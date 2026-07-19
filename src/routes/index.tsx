@@ -28,6 +28,14 @@ export const Route = createFileRoute("/")({
       { property: "og:image", content: ogImage },
       { name: "twitter:image", content: ogImage },
     ],
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: cyborgAsset.url,
+        fetchpriority: "high",
+      },
+    ],
     scripts: [
       {
         type: "application/ld+json",
