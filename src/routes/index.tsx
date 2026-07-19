@@ -185,7 +185,7 @@ function Index() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden scanlines">
+      <section className="relative overflow-hidden scanlines cv-auto">
         {/* Cyborg holographic background */}
         <div
           aria-hidden
@@ -302,7 +302,7 @@ function Index() {
       </section>
 
       {/* Marquee */}
-      <section className="relative overflow-hidden border-y border-border/40 bg-surface/60 py-6">
+      <section className="relative overflow-hidden border-y border-border/40 bg-surface/60 py-6 cv-auto">
         <div className="flex animate-marquee gap-10 whitespace-nowrap font-mono-tech text-sm uppercase tracking-widest text-muted-foreground">
           {[...courses, ...courses].map((c, i) => (
             <span key={i} className="flex items-center gap-10">
