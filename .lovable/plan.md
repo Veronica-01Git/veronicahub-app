@@ -1,73 +1,66 @@
-# Landing Veronica Hub — recriação moderna
+# Próximo nível — Veronica Hub
 
-Baseado no site veronicahub.com (estética cyber/hacker dark, neon verde + ciano) + imagem enviada (rosto ciborgue meio humano/meio máquina) que vira o **background do hero**.
+Sugestões priorizadas para deixar a landing ainda mais impactante, moderna e conversora. Você pode escolher tudo, ou só os blocos que fizerem sentido.
 
-## Direção visual
+## 1. Hero mais cinematográfico
+- **Terminal boot sequence** logo abaixo do headline: linhas tipo `> initializing veronica.hub_ ✓` aparecendo com typewriter, reforçando o clima hacker.
+- **Cursor piscando** no fim do "Prompt." e efeito de "text scramble" (letras trocando por glitch antes de fixar) no load.
+- **Parallax leve** na imagem da ciborgue conforme o scroll (translateY sutil) para dar profundidade holográfica sem pesar.
+- **Ruído/grain sutil** global (SVG noise) para textura de filme.
 
-- **Paleta dark-first:**
-  - `--background`: near-black `oklch(0.14 0.02 240)`
-  - `--foreground`: off-white
-  - `--primary`: neon green `#22e57d` (CTA + acentos "online")
-  - `--accent`: cyan `#5cf0e8` (títulos secundários, glow)
-  - Borders translúcidas com `color-mix`, gradient glow verde→ciano
-- **Tipografia:**
-  - Display: **Archivo Black** (títulos gigantes brutalistas)
-  - Body: **JetBrains Mono** (labels/tags tech) + **Inter** (parágrafos)
-  - Carregadas via `<link>` no `__root.tsx`
+## 2. Prova social + autoridade (a peça que mais converte)
+Hoje não existe prova social. Adicionar uma seção nova entre o marquee e o catálogo:
+- Linha de logos/menções ("Como visto em…") ou números fortes ("+X alunos", "Y horas de conteúdo").
+- 3 depoimentos em cards com foto, nome, curso feito e resultado concreto.
+- Selo "★ 4.9 · N avaliações".
 
-## Hero background (imagem ciborgue) — V1
+## 3. Catálogo mais rico
+- **Filtro por tag** no topo do grid (Conteúdo, IA, Tráfego, Dev, Segurança) com pill toggles.
+- Cada card ganha **duração / nº de aulas / nível** em micro-tipografia.
+- **Hover state** com preview do que o aluno aprende (3 bullets aparecendo no fundo do card).
+- Card em destaque ("Mais vendido") com borda neon animada.
 
-- Upload da imagem via `lovable-assets` (CDN pointer JSON, não fica binário no repo).
-- Aplicada como `background-image` do hero, posicionada à direita/centro.
-- **Tratamento holográfico moderno:**
-  - Opacidade baixa (~35–45%) sobre fundo near-black
-  - `mix-blend-mode: screen` ou `luminosity` para fundir com o preto
-  - Filtro: `contrast(1.1) saturate(0.6) hue-rotate(160deg)` puxando pro cyan/verde
-  - Gradient overlay: `linear-gradient(90deg, background 0%, transparent 40%, background 100%)` (fade lateral)
-  - Gradient overlay vertical: `linear-gradient(180deg, transparent 0%, background 90%)` (fade inferior)
-  - Scanlines sutis via `repeating-linear-gradient` translúcido (efeito holográfico)
-  - Chromatic aberration leve via `text-shadow` nos títulos por cima
-  - Opcional: `filter: drop-shadow` verde para glow holográfico nas bordas
+## 4. Seção de preço/oferta explícita
+Hoje só existe "a partir de R$ 19,90" no topo. Criar uma seção dedicada:
+- 2–3 planos (curso avulso / hub completo / hub + mentoria) com destaque no plano recomendado.
+- Bullets do que inclui, badge "Acesso vitalício", contador de vagas ou timer opcional.
+- CTA sólido com preço final visível.
 
-## Estrutura (`src/routes/index.tsx`)
+## 5. FAQ (reduz atrito de compra)
+Accordion com 6–8 perguntas reais: "Como funciona o acesso?", "Tenho suporte?", "Serve pra iniciante?", "Emite nota?", "Posso pedir reembolso?", "Como recebo os cursos?".
 
-1. **Top bar tech** — barra fina: "VERONICA HUB ATIVO · 11 CURSOS / ACESSO VITALÍCIO / A PARTIR DE R$ 19,90 / CURSOS + VÍDEO AI · UM ÚNICO HUB". Mono uppercase.
-2. **Nav** — logo "VERONICA · HUB", links (Cursos, Sobre, Vídeo AI), ícones sociais, CTA "VER CURSOS" (outline neon).
-3. **Hero (com background ciborgue holográfico)** — badge "● VERONICA HUB · LABORATÓRIO DIGITAL · 2026", headline "O Segredo Tá no Prompt." (com "Prompt" em outline neon + glow), sub-copy, 2 CTAs. Layout centralizado ou 60/40 com respiro para a imagem aparecer.
-4. **Stats row** — 4 cards borda neon: `11+ Cursos`, `100% Online`, `∞ Acesso`, `R$19 A partir de`.
-5. **Marquee de cursos** — ticker horizontal infinito com os 11 cursos.
-6. **Grid de cursos (11 cards)** — 3/2/1 col responsivo, número `[01]`, título, tag, hover glow.
-7. **"Por que Veronica Hub"** — 4 mini-cards: Acesso Vitalício, 100% Online, Foco em Execução, Certificado.
-8. **CTA final** — bloco full-width, gradient verde→ciano sutil, botão grande.
-9. **Footer** — minimal mono, "Veronica Hub · Laboratório Digital · 2026".
+## 6. Microinterações e polimento
+- **Reveal on scroll** (fade + translateY) nas seções, usando IntersectionObserver ou Framer Motion — leve, não exagerado.
+- **Contador animado** nos stats (0 → 11, 0 → 100%) quando entram no viewport.
+- **Magnetic hover** nos CTAs primários (o botão puxa levemente o cursor).
+- **Cursor customizado** só no hero (um retículo/crosshair neon) — opcional, é assinatura visual.
 
-## Tokens & CSS (`src/styles.css`)
+## 7. Barra de anúncio conversora
+Trocar a top bar atual por uma **announcement bar** com CTA embutido:
+`⚡ Acesso vitalício por R$ 19,90 · Últimas vagas → [Garantir]`
+Mais direto e clicável do que a linha de status atual.
 
-- Reescrever `:root` para dark-native.
-- Novos tokens: `--color-neon-green`, `--color-neon-cyan`, `--gradient-neon`, `--shadow-glow-green`, `--shadow-glow-cyan`.
-- `@theme inline` mapeia para utilitários Tailwind.
-- Fontes registradas em `@theme` (`--font-display`, `--font-mono`, `--font-sans`).
-- Animações: `pulse-dot`, `marquee`, `glow-pulse`, `scanlines`.
+## 8. Footer expandido
+Hoje o footer é minimalista demais para uma landing de venda. Adicionar:
+- CNPJ, contato, links sociais visuais, e um mini-CTA final.
+- Newsletter opcional ("Receba os drops da Veronica").
 
-## Metadata (`__root.tsx`)
+## 9. SEO + compartilhamento
+- Gerar uma **OG image** dedicada (1200×630) com a ciborgue + logo + tagline para preview no WhatsApp/Twitter.
+- Adicionar JSON-LD `Course` / `Organization` para rich results no Google.
 
-- Title: `Veronica Hub — Cursos + Vídeo AI · Um único hub`
-- Description: "11 cursos diretos ao ponto: dark content, IA, tráfego pago, hacking ético. Acesso vitalício a partir de R$ 19,90."
-- og / twitter tags correspondentes.
-- `<link>` para Google Fonts (Archivo Black, JetBrains Mono, Inter).
+## 10. Performance & acessibilidade
+- Converter a imagem da ciborgue para **WebP/AVIF** e servir em resolução adequada (hoje é jpeg pesado).
+- `prefers-reduced-motion`: desligar scanline sweep, glow-pulse e flicker para quem pede menos movimento.
+- Auditar contraste dos textos `text-muted-foreground` sobre `bg-surface` (alguns podem estar abaixo de AA).
 
-## Assets
+---
 
-- Upload da imagem ciborgue via `lovable-assets create --file /mnt/user-uploads/IMG_4804.jpeg_202607181526.jpeg --filename veronica-cyborg.jpeg > src/assets/veronica-cyborg.jpeg.asset.json`.
-- Import do pointer JSON no hero component.
+## Minha recomendação de sequência
+Se quiser máximo impacto com pouco esforço, começar por:
 
-## Fora de escopo desta etapa
+1. **Prova social + FAQ + seção de preço** — o que mais move conversão.
+2. **Terminal boot + reveal on scroll + contador nos stats** — assinatura visual sem quebrar nada.
+3. **OG image + WebP + reduced-motion** — polimento técnico.
 
-- Páginas internas de curso, checkout, área de aluno, auth.
-- Seção "Vídeo AI" dedicada e página "Sobre" (só âncoras por ora).
-
-## Nota sobre stack
-
-Projeto Lovable roda **TanStack Start + Tailwind v4** (não Next.js). Os componentes JSX + classes Tailwind portam quase 1:1 para seu Next no VSCode; só o roteamento (`createFileRoute` → `app/page.tsx`) muda.
-
-Confirma pra eu implementar.
+Me diga quais blocos quer que eu inclua e eu monto o plano detalhado de implementação.
