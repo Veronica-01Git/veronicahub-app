@@ -276,7 +276,7 @@ function Index() {
           {/* Stats */}
           <div
             ref={stats.ref}
-            className={`reveal ${stats.visible ? "reveal-visible" : ""} mt-20 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4`}
+            className={`reveal ${stats.visible ? "reveal-visible" : ""} mt-20 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 cv-auto`}
           >
             {[
               { value: `${c1}`, suffix: "+", label: "Cursos no hub" },
@@ -316,7 +316,7 @@ function Index() {
       {/* Social proof */}
       <section
         ref={proof.ref}
-        className={`reveal ${proof.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24`}
+        className={`reveal ${proof.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24 cv-auto`}
       >
         <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -370,7 +370,7 @@ function Index() {
       <section
         id="cursos"
         ref={catalog.ref}
-        className={`reveal ${catalog.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24`}
+        className={`reveal ${catalog.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24 cv-auto`}
       >
         <div className="mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
@@ -460,7 +460,7 @@ function Index() {
       <section
         id="sobre"
         ref={featuresR.ref}
-        className={`reveal ${featuresR.visible ? "reveal-visible" : ""} border-t border-border/40 bg-surface/40 py-24`}
+        className={`reveal ${featuresR.visible ? "reveal-visible" : ""} border-t border-border/40 bg-surface/40 py-24 cv-auto`}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-14 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
@@ -488,7 +488,7 @@ function Index() {
       <section
         id="pricing"
         ref={pricingR.ref}
-        className={`reveal ${pricingR.visible ? "reveal-visible" : ""} relative border-t border-border/40 py-24`}
+        className={`reveal ${pricingR.visible ? "reveal-visible" : ""} relative border-t border-border/40 py-24 cv-auto`}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 50% 0%, oklch(0.85 0.22 155 / 0.2), transparent 60%)" }} />
         <div className="relative mx-auto max-w-7xl px-6">
@@ -565,7 +565,7 @@ function Index() {
       <section
         id="faq"
         ref={faqR.ref}
-        className={`reveal ${faqR.visible ? "reveal-visible" : ""} border-t border-border/40 bg-surface/30 py-24`}
+        className={`reveal ${faqR.visible ? "reveal-visible" : ""} border-t border-border/40 bg-surface/30 py-24 cv-auto`}
       >
         <div className="mx-auto max-w-4xl px-6">
           <div className="mb-12">
@@ -590,7 +590,7 @@ function Index() {
       <section
         id="video-ai"
         ref={ctaR.ref}
-        className={`reveal ${ctaR.visible ? "reveal-visible" : ""} relative overflow-hidden py-24`}
+        className={`reveal ${ctaR.visible ? "reveal-visible" : ""} relative overflow-hidden py-24 cv-auto`}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40" style={{ background: "radial-gradient(circle at 30% 50%, oklch(0.85 0.22 155 / 0.25), transparent 50%), radial-gradient(circle at 70% 50%, oklch(0.88 0.15 195 / 0.25), transparent 50%)" }} />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
