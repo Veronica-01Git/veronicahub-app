@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import ogImage from "../assets/og-veronica-hub.jpg";
 
 function NotFoundComponent() {
   return (
@@ -97,6 +98,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "Cursos + Vídeo AI · Um único hub. A partir de R$ 19,90.",
       },
+      { property: "og:image", content: ogImage },
+      { name: "twitter:image", content: ogImage },
     ],
     links: [
       {
