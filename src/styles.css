@@ -264,6 +264,12 @@
   transform: translateY(0);
 }
 
+/* Defer offscreen render/paint work for below-the-fold sections */
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
