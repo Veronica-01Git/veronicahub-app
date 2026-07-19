@@ -77,14 +77,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Veronica Hub — Cursos + Vídeo AI · Um único hub" },
+      {
+        name: "description",
+        content:
+          "11 cursos diretos ao ponto: dark content, IA, tráfego pago, VSL, hacking ético. Acesso vitalício a partir de R$ 19,90.",
+      },
+      { name: "author", content: "Veronica Hub" },
+      { property: "og:title", content: "Veronica Hub — Laboratório Digital" },
+      {
+        property: "og:description",
+        content:
+          "11 cursos diretos ao ponto: dark content, IA, tráfego pago, VSL, hacking ético. Acesso vitalício.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Veronica Hub — Laboratório Digital" },
+      {
+        name: "twitter:description",
+        content: "Cursos + Vídeo AI · Um único hub. A partir de R$ 19,90.",
+      },
     ],
     links: [
       {
@@ -92,6 +104,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
