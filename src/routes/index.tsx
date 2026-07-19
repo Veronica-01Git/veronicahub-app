@@ -185,7 +185,7 @@ function Index() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden scanlines cv-auto">
+      <section className="relative overflow-hidden scanlines">
         {/* Cyborg holographic background */}
         <div
           aria-hidden
