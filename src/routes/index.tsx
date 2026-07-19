@@ -17,11 +17,35 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg.jpeg.asset.json";
+import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { property: "og:image", content: ogImage },
+      { name: "twitter:image", content: ogImage },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Veronica Hub",
+          url: "https://veronicahub.com",
+          description:
+            "Laboratório digital com 11 cursos: dark content, IA generativa, tráfego pago, VSL, hacking ético.",
+          sameAs: [
+            "https://instagram.com/veronicahub",
+            "https://youtube.com/@veronicahub",
+          ],
+        }),
+      },
+    ],
+  }),
 });
 
 type Course = {
