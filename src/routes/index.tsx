@@ -21,6 +21,8 @@ import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
 
+const HUB_URL = "https://veronicahub.com";
+
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
@@ -124,24 +126,6 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* Announcement bar with inline CTA */}
-      <a
-        href="#pricing"
-        className="group block border-b border-neon-green/30 bg-gradient-to-r from-neon-green/15 via-neon-green/5 to-neon-cyan/15 transition hover:from-neon-green/25 hover:to-neon-cyan/25"
-      >
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-6 py-2.5 text-[11px] font-mono-tech uppercase tracking-widest">
-          <span className="flex items-center gap-2 text-neon-green">
-            <Zap className="h-3 w-3" />
-            Acesso vitalício por R$ 19,90
-          </span>
-          <span className="text-muted-foreground opacity-50">·</span>
-          <span className="text-foreground">Últimas vagas do mês</span>
-          <span className="ml-2 inline-flex items-center gap-1 text-neon-cyan">
-            Garantir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-          </span>
-        </div>
-      </a>
-
       {/* Nav */}
       <header className="sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -174,11 +158,13 @@ function Index() {
               <a href="#" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
             </div>
             <a
-              href="#cursos"
+              href={HUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group relative inline-flex items-center gap-2 rounded-sm bg-neon-green px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-[0_0_0_1px_oklch(0.85_0.22_155),0_8px_24px_-8px_oklch(0.85_0.22_155/0.6)] transition duration-200 hover:-translate-y-0.5 hover:shadow-glow-green active:translate-y-0 active:brightness-95"
             >
               <span className="text-[10px] opacity-70 group-hover:opacity-100">▸</span>
-              Ver Cursos
+              Acessar Hub
             </a>
           </div>
         </div>
@@ -249,7 +235,7 @@ function Index() {
             </h1>
 
             <p className="mt-8 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-              Cursos diretos ao ponto para quem quer entrar no digital sem enrolação,
+              Comandos diretos ao ponto para quem quer entrar no digital sem enrolação,
               guiados pela Veronica. Do dark content à IA, do tráfego pago ao hacking ético.
             </p>
 
@@ -257,7 +243,9 @@ function Index() {
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <a
-                href="#pricing"
+                href={HUB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group relative inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_0_60px_oklch(0.85_0.22_155/0.6)] active:translate-y-0 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span className="text-[10px] transition-transform group-hover:translate-x-0.5">▸</span>
@@ -411,7 +399,9 @@ function Index() {
           {filtered.map((c, i) => (
             <a
               key={c.title}
-              href="#pricing"
+              href={HUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className={`group relative overflow-hidden rounded-sm border p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-glow-green ${
                 c.featured
                   ? "border-neon-green/60 bg-gradient-to-br from-neon-green/8 via-surface/70 to-surface"
@@ -541,7 +531,9 @@ function Index() {
                   ))}
                 </ul>
                 <a
-                  href="#"
+                  href={HUB_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`group mt-10 inline-flex items-center justify-center gap-2 rounded-sm px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] transition duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
                     p.featured
                       ? "bg-neon-green text-primary-foreground shadow-glow-green hover:brightness-110"
@@ -605,7 +597,9 @@ function Index() {
             11 cursos, acesso vitalício, a partir de R$ 19,90. Sem enrolação.
           </p>
           <a
-            href="#pricing"
+            href={HUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="group relative mt-10 inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-10 py-5 font-mono-tech text-sm uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_0_80px_oklch(0.85_0.22_155/0.7)] active:translate-y-0 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Garantir meu acesso <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -639,7 +633,7 @@ function Index() {
               <div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">Navegar</div>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li><a href="#cursos" className="transition hover:text-neon-green">Cursos</a></li>
-                <li><a href="#pricing" className="transition hover:text-neon-green">Planos</a></li>
+                <li><a href={HUB_URL} target="_blank" rel="noopener noreferrer" className="transition hover:text-neon-green">Planos</a></li>
                 <li><a href="#faq" className="transition hover:text-neon-green">FAQ</a></li>
                 <li><a href="#sobre" className="transition hover:text-neon-green">Sobre</a></li>
               </ul>
