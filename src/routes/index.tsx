@@ -16,7 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import cyborgAsset from "@/assets/veronica-cyborg.jpeg.asset.json";
+import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
 import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
@@ -179,11 +179,11 @@ function Index() {
           style={{
             backgroundImage: `url(${cyborgAsset.url})`,
             backgroundSize: "cover",
-            backgroundPosition: "center right",
+            backgroundPosition: "center 30%",
             backgroundRepeat: "no-repeat",
-            filter: "contrast(1.02) saturate(0.4) hue-rotate(150deg) brightness(0.75) blur(0.3px)",
+            filter: "contrast(1.05) saturate(0.85) brightness(0.9)",
             mixBlendMode: "screen",
-            opacity: 0.22,
+            opacity: 0.38,
           }}
         />
         {/* Holographic scanline sweep */}
