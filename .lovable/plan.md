@@ -1,25 +1,23 @@
-## Objetivo
-Modernizar a imagem cyborg da Veronica no background do Hero V1, deixando-a mais nítida, reconhecível e com estética atualizada (menos "antiga").
+## Publicar em veronicahub.com
 
-## Mudanças
+O domínio `veronicahub.com` já hospeda o site atual da Veronica (que você me passou como referência). Para publicar essa nova landing nele, precisamos de dois passos — o primeiro eu executo, o segundo é feito por você na UI do Lovable (não tenho acesso a DNS/registrar).
 
-1. **Gerar nova arte cyborg moderna** (`src/assets/veronica-cyborg-v2.jpg`)
-   - Baseada na foto original enviada, porém com refresh visual: rosto feminino ciborgue, luz neon ciano/verde, circuitos holográficos sutis, estilo cinematográfico moderno (Blade Runner 2049 meets Ghost in the Shell), fundo escuro puro para blend perfeito.
-   - Formato retrato otimizado para o Hero.
+### Passo 1 — Publicar (eu faço)
+- Rodar `security--get_scan_results` para checar findings críticos antes do deploy.
+- Publicar o projeto via `preview_ui--publish`. Isso gera a URL `*.lovable.app` estável necessária para poder conectar o domínio custom.
 
-2. **Atualizar `src/routes/index.tsx`**
-   - Trocar referência do asset antigo pelo novo `veronica-cyborg-v2`.
-   - Atualizar o `<link rel="preload">` no `head()` para o novo URL (mantendo `fetchpriority="high"` para LCP).
-   - Reposicionar: aumentar levemente a escala e mover o foco para o rosto (`object-position: center 30%`).
+### Passo 2 — Conectar `veronicahub.com` (você faz)
+Após o deploy ficar pronto (~1min):
+1. **Project Settings → Domains → Connect Domain** → digitar `veronicahub.com`.
+2. Adicionar também `www.veronicahub.com` como entrada separada e escolher qual é a **Primary**.
+3. No seu registrar/DNS atual (onde o domínio está hoje), **remover os registros antigos** que apontam pro site atual e adicionar:
+   - `A @` → `185.158.133.1`
+   - `A www` → `185.158.133.1`
+   - `TXT _lovable` → valor que o Lovable mostrar na UI
+   - Se usa Cloudflare com proxy, marcar "Domain uses Cloudflare or a similar proxy" no diálogo Advanced.
+4. Aguardar propagação DNS (minutos até 72h) — o Lovable provisiona SSL automaticamente.
 
-3. **Refinar tratamento holográfico em `src/styles.css`**
-   - Aumentar opacidade base de 22% → 35% para dar mais presença.
-   - Reduzir `hue-rotate` para preservar tons naturais da nova arte.
-   - Manter scanlines e sweep animation.
-   - Adicionar gradient mask lateral para fundir suavemente com o dark background.
+### Aviso importante
+Trocar o DNS de `veronicahub.com` para o Lovable **derruba o site atual** que está no ar nesse domínio. Se ele tem checkout, área de membros ou tráfego pago rodando, planeje a janela de troca. Alternativa mais segura: publicar antes em um subdomínio tipo `novo.veronicahub.com` para validar, e só depois trocar a raiz.
 
-4. **Cleanup**
-   - Remover o asset antigo (`veronica-cyborg.jpeg.asset.json`) via `lovable-assets delete` após confirmar que não há outras referências.
-
-## Resultado esperado
-Ciborgue mais visível, moderna e integrada, sem perder a vibe hacker/holográfica atual.
+Confirma que posso publicar agora?
