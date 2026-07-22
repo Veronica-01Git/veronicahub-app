@@ -9,8 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VeronicaCurriculoCertoRoute = VeronicaCurriculoCertoRouteImport.update({
+  id: '/veronica-curriculo-certo',
+  path: '/veronica-curriculo-certo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +25,39 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/veronica-curriculo-certo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/veronica-curriculo-certo'
+  id: '__root__' | '/' | '/veronica-curriculo-certo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/veronica-curriculo-certo': {
+      id: '/veronica-curriculo-certo'
+      path: '/veronica-curriculo-certo'
+      fullPath: '/veronica-curriculo-certo'
+      preLoaderRoute: typeof VeronicaCurriculoCertoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +70,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
