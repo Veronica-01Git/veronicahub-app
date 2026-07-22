@@ -177,15 +177,11 @@ function Index() {
         {/* Cyborg holographic background */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 animate-holo-shimmer"
+          className="pointer-events-none absolute inset-0 animate-holo-shimmer bg-cover bg-no-repeat opacity-[0.5] md:opacity-[0.42] lg:opacity-[0.38] bg-[position:58%_20%] md:bg-[position:55%_25%] lg:bg-[position:center_30%]"
           style={{
             backgroundImage: `url(${cyborgAsset.url})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center 30%",
-            backgroundRepeat: "no-repeat",
             filter: "contrast(1.05) saturate(0.85) brightness(0.9)",
             mixBlendMode: "screen",
-            opacity: 0.38,
           }}
         />
         {/* Holographic scanline sweep */}
