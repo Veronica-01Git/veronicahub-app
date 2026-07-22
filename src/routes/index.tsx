@@ -177,7 +177,7 @@ function Index() {
         {/* Cyborg holographic background */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 animate-holo-shimmer bg-cover bg-no-repeat opacity-[0.5] md:opacity-[0.42] lg:opacity-[0.38] bg-[position:58%_20%] md:bg-[position:55%_25%] lg:bg-[position:center_30%]"
+          className="pointer-events-none absolute inset-0 animate-holo-shimmer bg-cover bg-no-repeat opacity-[0.55] md:opacity-[0.45] lg:opacity-[0.38] bg-[position:42%_22%] md:bg-[position:46%_26%] lg:bg-[position:center_30%]"
           style={{
             backgroundImage: `url(${cyborgAsset.url})`,
             filter: "contrast(1.05) saturate(0.85) brightness(0.9)",

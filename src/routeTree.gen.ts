@@ -9,8 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VideoIaRouteImport } from './routes/video-ia'
+import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VideoIaRoute = VideoIaRouteImport.update({
+  id: '/video-ia',
+  path: '/video-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeronicaCurriculoCertoRoute = VeronicaCurriculoCertoRouteImport.update({
+  id: '/veronica-curriculo-certo',
+  path: '/veronica-curriculo-certo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +31,50 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
+  '/video-ia': typeof VideoIaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
+  '/video-ia': typeof VideoIaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
+  '/video-ia': typeof VideoIaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/veronica-curriculo-certo' | '/video-ia'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/veronica-curriculo-certo' | '/video-ia'
+  id: '__root__' | '/' | '/veronica-curriculo-certo' | '/video-ia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
+  VideoIaRoute: typeof VideoIaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/video-ia': {
+      id: '/video-ia'
+      path: '/video-ia'
+      fullPath: '/video-ia'
+      preLoaderRoute: typeof VideoIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-curriculo-certo': {
+      id: '/veronica-curriculo-certo'
+      path: '/veronica-curriculo-certo'
+      fullPath: '/veronica-curriculo-certo'
+      preLoaderRoute: typeof VeronicaCurriculoCertoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
+  VideoIaRoute: VideoIaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
