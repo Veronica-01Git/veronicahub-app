@@ -127,7 +127,9 @@ function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Nav */}
-      <header className="sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
+      <header className="relative sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
+        {/* Sutil linha vermelha de ponta a ponta no topo */}
+        <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-destructive/60 to-transparent" />
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <a href="#" className="flex items-center gap-2 font-mono-tech text-sm uppercase tracking-widest">
             <span className="h-2 w-2 rounded-full bg-neon-green animate-pulse-dot" />
