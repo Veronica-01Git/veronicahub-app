@@ -294,3 +294,10 @@
   0%, 100% { opacity: 0.85; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(1.06); }
 }
+
+@keyframes holo-beam {
+  0%   { top: -2%; opacity: 0; }
+  8%   { opacity: 0.85; }
+  92%  { opacity: 0.85; }
+  100% { top: 102%; opacity: 0; }
+}
