@@ -1,11 +1,6 @@
 {
   "version": 1,
-  "asset_id": "805cde01-9a79-4a7d-b04e-145c1690a824",
-  "project_id": "f97ee1b7-4eb7-4836-9497-26f44c9efb3e",
-  "url": "/__l5e/assets-v1/805cde01-9a79-4a7d-b04e-145c1690a824/veronica-cyborg-v2.jpg",
-  "r2_key": "a/v1/f97ee1b7-4eb7-4836-9497-26f44c9efb3e/805cde01-9a79-4a7d-b04e-145c1690a824/veronica-cyborg-v2.jpg",
-  "original_filename": "veronica-cyborg-v2.jpg",
-  "size": 6716252,
-  "content_type": "image/png",
-  "created_at": "2026-07-21T23:32:23Z"
+  "url": "/veronica-cyborg-v2.webp",
+  "original_filename": "veronica-cyborg-v2.webp",
+  "content_type": "image/webp"
 }
