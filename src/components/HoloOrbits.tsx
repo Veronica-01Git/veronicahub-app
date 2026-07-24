@@ -72,7 +72,7 @@ function NeuralNet({ w = 230, h = 185 }: { w?: number; h?: number }) {
 function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden
-      style={{ filter: `drop-shadow(0 0 3px ${hue})` }}>
+      style={{ filter: `drop-shadow(0 0 1.5px ${hue})` }}>
       <g stroke={hue} fill="none">
         <path d="M8 26 V8 H26" strokeWidth="1.4" opacity="0.6" />
         <path d="M74 8 H92 V26" strokeWidth="1.4" opacity="0.45" />
@@ -94,7 +94,7 @@ function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }
           <animate attributeName="opacity" values="0;0.5;0" dur="6.5s" repeatCount="indefinite" />
         </line>
       </g>
-      <circle cx="50" cy="50" r="2.6" fill={hue} opacity="0.65">
+      <circle cx="50" cy="50" r="2.4" fill={hue} opacity="0.4">
         <animate attributeName="opacity" values="1;0.15;1" dur="1.8s" repeatCount="indefinite" />
         <animate attributeName="r" values="3.4;4.6;3.4" dur="1.8s" repeatCount="indefinite" />
       </circle>
@@ -119,14 +119,13 @@ export function HoloOrbits() {
         background: "radial-gradient(ellipse 120% 80% at 50% 50%, transparent 55%, oklch(0.14 0.015 200 / 0.55) 100%)",
       }} />
       <div className="absolute inset-x-0 h-[2px]" style={{
-        background: `linear-gradient(90deg, transparent, ${GREEN}, ${CYAN}, transparent)`,
-        filter: "blur(1px)", animation: "holo-beam 11s cubic-bezier(0.4,0,0.2,1) infinite",
+        background: `linear-gradient(90deg, transparent, ${GREEN}, transparent)`,
+        filter: "blur(1.5px)", opacity: 0.4, animation: "holo-beam 16s cubic-bezier(0.4,0,0.2,1) infinite",
       }} />
-      <div className="absolute left-[2%] top-[24%] opacity-[0.85]" style={{ animation: "holo-drift-c 27s ease-in-out infinite" }}><NeuralNet /></div>
-      <div className="absolute right-[3.5%] top-[27%] opacity-[0.5]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
-      <div className="absolute right-[6%] bottom-[19%] opacity-[0.38]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
-      <div className="absolute left-5 top-20 h-14 w-14 border-l-2 border-t-2" style={{ borderColor: `${GREEN}`, opacity: 0.5 }} />
-      <div className="absolute right-5 bottom-20 h-14 w-14 border-r-2 border-b-2" style={{ borderColor: `${CYAN}`, opacity: 0.5 }} />
+      <div className="absolute right-[3.5%] top-[27%] opacity-[0.34]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
+      <div className="absolute right-[6%] bottom-[19%] opacity-[0.26]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
+      <div className="absolute left-5 top-20 h-14 w-14 border-l-2 border-t-2" style={{ borderColor: `${GREEN}`, opacity: 0.3 }} />
+      <div className="absolute right-5 bottom-20 h-14 w-14 border-r-2 border-b-2" style={{ borderColor: `${CYAN}`, opacity: 0.3 }} />
     </div>
   );
 }
