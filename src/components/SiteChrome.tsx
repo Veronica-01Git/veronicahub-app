@@ -1,10 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { Youtube, Instagram, MessageCircle } from "lucide-react";
+import { Youtube, Instagram, MessageCircle, Mail } from "lucide-react";
 import type { ReactNode } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
 import { VeronicaHero } from "@/components/VeronicaHero";
 
 export const HUB_URL = "https://veronicahub.com";
+
+export const SOCIAL_LINKS = {
+  youtube: "https://youtube.com/@veronica-hub",
+  instagram: "https://instagram.com/veronicahub_",
+  whatsapp: "https://wa.me/5547996057436",
+  email: "mailto:yo-tech01@outlook.com",
+};
 
 export function SiteHeader() {
   return (
@@ -39,15 +46,25 @@ export function SiteHeader() {
             to="/video-ia"
             className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
           >
-            Vídeo IA
+            Veronica Studio
             <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
           </Link>
+          <span
+            aria-disabled="true"
+            className="relative flex cursor-default items-center gap-1.5 px-3 py-2 text-muted-foreground/50"
+          >
+            Veronica Analytics
+            <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground/70">
+              em breve
+            </span>
+          </span>
         </nav>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-3 text-muted-foreground sm:flex">
-            <a href="#" aria-label="YouTube" className="transition hover:text-neon-green hover:-translate-y-0.5"><Youtube className="h-4 w-4" /></a>
-            <a href="#" aria-label="Instagram" className="transition hover:text-neon-green hover:-translate-y-0.5"><Instagram className="h-4 w-4" /></a>
-            <a href="#" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
+            <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="transition hover:text-neon-green hover:-translate-y-0.5"><Youtube className="h-4 w-4" /></a>
+            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition hover:text-neon-green hover:-translate-y-0.5"><Instagram className="h-4 w-4" /></a>
+            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
+            <a href={SOCIAL_LINKS.email} aria-label="E-mail" className="transition hover:text-neon-green hover:-translate-y-0.5"><Mail className="h-4 w-4" /></a>
           </div>
           <a
             href={HUB_URL}
@@ -120,7 +137,7 @@ export function SiteFooter() {
         <div className="flex items-center gap-4 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
           <Link to="/" className="transition hover:text-neon-green">Home</Link>
           <Link to="/veronica-curriculo-certo" className="transition hover:text-neon-green">Currículo</Link>
-          <Link to="/video-ia" className="transition hover:text-neon-green">Vídeo IA</Link>
+          <Link to="/video-ia" className="transition hover:text-neon-green">Veronica Studio</Link>
           <a href={HUB_URL} target="_blank" rel="noopener noreferrer" className="transition hover:text-neon-green">Hub</a>
         </div>
       </div>

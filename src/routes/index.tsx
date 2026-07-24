@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   Infinity as InfinityIcon,
   Instagram,
   Youtube,
   MessageCircle,
+  Mail,
   Zap,
   Wifi,
   Target,
@@ -14,6 +15,9 @@ import {
   Plus,
   Minus,
   Sparkles,
+  Wand2,
+  FileText,
+  BarChart3,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
@@ -26,8 +30,44 @@ import vfx5 from "@/assets/vfx/pexels-cottonbro-6153739.jpg.asset.json";
 import vfx6 from "@/assets/vfx/pexels-merlin-14268798.jpg.asset.json";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
+import { SOCIAL_LINKS } from "@/components/SiteChrome";
 
 const HUB_URL = "https://veronicahub.com";
+
+type EcosystemItem = {
+  icon: typeof Wand2;
+  name: string;
+  tag: string;
+  desc: string;
+  ready: boolean;
+  to?: string;
+};
+
+const ecosystem: EcosystemItem[] = [
+  {
+    icon: Wand2,
+    name: "Veronica Studio",
+    tag: "Geração com IA",
+    desc: "Imagem, vídeo e voz gerados com IA. Do prompt à entrega, um pipeline pro que roda em qualquer nicho.",
+    ready: true,
+    to: "/video-ia",
+  },
+  {
+    icon: FileText,
+    name: "Currículo-Certo",
+    tag: "Carreira",
+    desc: "Otimização de currículo pra passar em ATS, chamar recrutador e virar entrevista.",
+    ready: true,
+    to: "/veronica-curriculo-certo",
+  },
+  {
+    icon: BarChart3,
+    name: "Veronica Analytics",
+    tag: "TikTok Shop",
+    desc: "Análise de perfil e performance pra quem vende no TikTok Shop tomar decisão com dado, não achismo.",
+    ready: false,
+  },
+];
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -55,8 +95,8 @@ export const Route = createFileRoute("/")({
           description:
             "Laboratório digital com 11 cursos: dark content, IA generativa, tráfego pago, VSL, hacking ético.",
           sameAs: [
-            "https://instagram.com/veronicahub",
-            "https://youtube.com/@veronicahub",
+            "https://instagram.com/veronicahub_",
+            "https://youtube.com/@veronica-hub",
           ],
         }),
       },
@@ -123,6 +163,7 @@ function Index() {
   const proof = useReveal<HTMLElement>();
   const catalog = useReveal<HTMLElement>();
   const featuresR = useReveal<HTMLElement>();
+  const ecosystemR = useReveal<HTMLElement>();
   const pricingR = useReveal<HTMLElement>();
   const faqR = useReveal<HTMLElement>();
   const ctaR = useReveal<HTMLElement>();
@@ -148,7 +189,7 @@ function Index() {
             {[
               { href: "#cursos", label: "Cursos" },
               { href: "#sobre", label: "Sobre" },
-              { href: "#video-ai", label: "Vídeo AI" },
+              { href: "#ecossistema", label: "Ecossistema" },
             ].map((l) => (
               <a
                 key={l.href}
@@ -159,12 +200,36 @@ function Index() {
                 <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
               </a>
             ))}
+            <Link
+              to="/video-ia"
+              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
+            >
+              Veronica Studio
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
+            <Link
+              to="/veronica-curriculo-certo"
+              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
+            >
+              Currículo-Certo
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
+            <span
+              aria-disabled="true"
+              className="relative flex cursor-default items-center gap-1.5 px-3 py-2 text-muted-foreground/50"
+            >
+              Veronica Analytics
+              <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground/70">
+                em breve
+              </span>
+            </span>
           </nav>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-3 text-muted-foreground sm:flex">
-              <a href="#" aria-label="YouTube" className="transition hover:text-neon-green hover:-translate-y-0.5"><Youtube className="h-4 w-4" /></a>
-              <a href="#" aria-label="Instagram" className="transition hover:text-neon-green hover:-translate-y-0.5"><Instagram className="h-4 w-4" /></a>
-              <a href="#" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
+              <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="transition hover:text-neon-green hover:-translate-y-0.5"><Youtube className="h-4 w-4" /></a>
+              <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition hover:text-neon-green hover:-translate-y-0.5"><Instagram className="h-4 w-4" /></a>
+              <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
+              <a href={SOCIAL_LINKS.email} aria-label="E-mail" className="transition hover:text-neon-green hover:-translate-y-0.5"><Mail className="h-4 w-4" /></a>
             </div>
             <a
               href={HUB_URL}
@@ -520,6 +585,77 @@ function Index() {
         </div>
       </section>
 
+      {/* Ecosystem */}
+      <section
+        id="ecossistema"
+        ref={ecosystemR.ref}
+        className={`reveal ${ecosystemR.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24 cv-auto`}
+      >
+        <div className="mb-14 flex flex-col gap-3">
+          <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+            <span className="h-px w-8 bg-neon-green" />
+            [ 03 ] O Ecossistema
+          </div>
+          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
+            Além do Hub,<br />
+            <span className="text-neon-green text-glow-green">um ecossistema</span> inteiro.
+          </h2>
+          <p className="max-w-2xl leading-[1.65] text-muted-foreground">
+            Ferramentas próprias da Veronica pra ir do conteúdo à execução, sem sair do laboratório.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {ecosystem.map((e) => {
+            const cardClass = `group relative overflow-hidden rounded-sm border p-6 backdrop-blur transition duration-300 ${
+              e.ready
+                ? "border-border/60 bg-surface/70 hover:-translate-y-1 hover:border-neon-green/60 hover:bg-surface hover:shadow-glow-green"
+                : "border-border/40 bg-surface/40 opacity-80"
+            }`;
+            const content = (
+              <>
+                <div className="flex items-start justify-between">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-sm border ${e.ready ? "border-neon-green/50 text-neon-green" : "border-border/60 text-muted-foreground"}`}>
+                    <e.icon className="h-5 w-5" />
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest ${
+                      e.ready
+                        ? "border border-neon-cyan/40 text-neon-cyan"
+                        : "border border-dashed border-muted-foreground/40 text-muted-foreground/70"
+                    }`}
+                  >
+                    {e.ready ? e.tag : "Em breve"}
+                  </span>
+                </div>
+                <h3 className="mt-6 font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+                  {e.name}
+                </h3>
+                <p className="mt-3 text-sm leading-[1.6] text-muted-foreground">{e.desc}</p>
+                <div className={`mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest ${e.ready ? "text-muted-foreground transition group-hover:text-neon-green" : "text-muted-foreground/50"}`}>
+                  {e.ready ? (
+                    <>
+                      Explorar <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                    </>
+                  ) : (
+                    "Em desenvolvimento"
+                  )}
+                </div>
+              </>
+            );
+            return e.ready && e.to ? (
+              <Link key={e.name} to={e.to} className={cardClass}>
+                {content}
+              </Link>
+            ) : (
+              <div key={e.name} className={cardClass}>
+                {content}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Pricing */}
       <section
         id="pricing"
@@ -531,7 +667,7 @@ function Index() {
           <div className="mb-14 flex flex-col gap-3 text-center">
             <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
               <span className="h-px w-8 bg-neon-green" />
-              [ 03 ] Planos · escolha o seu
+              [ 04 ] Planos · escolha o seu
               <span className="h-px w-8 bg-neon-green" />
             </div>
             <h2 className="mx-auto max-w-3xl font-display text-4xl sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
@@ -609,7 +745,7 @@ function Index() {
           <div className="mb-12">
             <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
               <span className="h-px w-8 bg-neon-cyan" />
-              [ 04 ] Dúvidas frequentes
+              [ 05 ] Dúvidas frequentes
             </div>
             <h2 className="mt-3 font-display text-4xl sm:text-5xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
               Antes de entrar,<br />
@@ -626,7 +762,7 @@ function Index() {
 
       {/* CTA */}
       <section
-        id="video-ai"
+        id="cta"
         ref={ctaR.ref}
         className={`reveal ${ctaR.visible ? "reveal-visible" : ""} relative overflow-hidden py-24 cv-auto`}
       >
@@ -670,15 +806,17 @@ function Index() {
                 à IA generativa. Sem fluff, só resultado.
               </p>
               <div className="mt-6 flex items-center gap-3 text-muted-foreground">
-                <a href="#" aria-label="YouTube" className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"><Youtube className="h-4 w-4" /></a>
-                <a href="#" aria-label="Instagram" className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"><Instagram className="h-4 w-4" /></a>
-                <a href="#" aria-label="WhatsApp" className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"><MessageCircle className="h-4 w-4" /></a>
+                <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"><Youtube className="h-4 w-4" /></a>
+                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"><Instagram className="h-4 w-4" /></a>
+                <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"><MessageCircle className="h-4 w-4" /></a>
+                <a href={SOCIAL_LINKS.email} aria-label="E-mail" className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"><Mail className="h-4 w-4" /></a>
               </div>
             </div>
             <div>
               <div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">Navegar</div>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li><a href="#cursos" className="transition hover:text-neon-green">Cursos</a></li>
+                <li><a href="#ecossistema" className="transition hover:text-neon-green">Ecossistema</a></li>
                 <li><a href={HUB_URL} target="_blank" rel="noopener noreferrer" className="transition hover:text-neon-green">Planos</a></li>
                 <li><a href="#faq" className="transition hover:text-neon-green">FAQ</a></li>
                 <li><a href="#sobre" className="transition hover:text-neon-green">Sobre</a></li>
