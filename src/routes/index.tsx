@@ -413,18 +413,59 @@ function Index() {
                   : "border-border/60 bg-surface/70 hover:border-neon-green/60 hover:bg-surface"
               }`}
             >
-              {c.featured && (
-                <span className="absolute right-3 top-3 rounded-full bg-neon-green px-2 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-primary-foreground">
-                  Mais vendido
-                </span>
-              )}
-              <div className="mb-6 flex items-center justify-between">
-                <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+              {/* VFX thumbnail with hover animations */}
+              <div className="relative -mx-6 -mt-6 mb-6 h-36 overflow-hidden border-b border-border/50">
+                <img
+                  src={c.image}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:[filter:contrast(1.15)_saturate(1.2)_hue-rotate(-8deg)] [filter:contrast(1.05)_saturate(0.75)_brightness(0.75)_hue-rotate(140deg)]"
+                />
+                {/* Neon color wash */}
+                <div
+                  aria-hidden
+                  className="absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-40"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, oklch(0.85 0.22 155 / 0.35) 0%, transparent 45%, oklch(0.88 0.15 195 / 0.25) 100%)",
+                    mixBlendMode: "screen",
+                  }}
+                />
+                {/* Dark fade for legibility */}
+                <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent" />
+                {/* Scanlines */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 opacity-50"
+                  style={{
+                    backgroundImage:
+                      "repeating-linear-gradient(0deg, transparent 0 2px, oklch(0.14 0.015 200 / 0.4) 2px 3px)",
+                  }}
+                />
+                {/* Holo sweep on hover */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-neon-cyan/25 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full"
+                />
+                {/* Glitch bars on hover */}
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 top-3 h-px bg-neon-green/0 transition-colors duration-300 group-hover:bg-neon-green/70" />
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-4 h-px bg-neon-cyan/0 transition-colors duration-500 group-hover:bg-neon-cyan/60" />
+                {/* Corner brackets */}
+                <span aria-hidden className="absolute left-2 top-2 h-3 w-3 border-l border-t border-neon-green/70" />
+                <span aria-hidden className="absolute right-2 top-2 h-3 w-3 border-r border-t border-neon-cyan/70" />
+                {/* Index + tag overlays */}
+                <span className="absolute left-3 bottom-3 font-mono-tech text-[10px] uppercase tracking-widest text-foreground/90">
                   [ {String(i + 1).padStart(2, "0")} ]
                 </span>
-                <span className="rounded-full border border-border/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground group-hover:border-neon-cyan/50 group-hover:text-neon-cyan">
+                <span className="absolute right-3 bottom-3 rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground backdrop-blur group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
                   {c.tag}
                 </span>
+                {c.featured && (
+                  <span className="absolute right-3 top-3 rounded-full bg-neon-green px-2 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-primary-foreground shadow-glow-green">
+                    Mais vendido
+                  </span>
+                )}
               </div>
               <h3 className="font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>{c.title}</h3>
               <div className="mt-3 flex items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
