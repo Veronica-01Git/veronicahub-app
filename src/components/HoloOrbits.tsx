@@ -72,46 +72,32 @@ function NeuralNet({ w = 230, h = 185 }: { w?: number; h?: number }) {
 function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden
-      style={{ filter: `drop-shadow(0 0 9px ${hue})` }}>
+      style={{ filter: `drop-shadow(0 0 3px ${hue})` }}>
       <g stroke={hue} fill="none">
-        <path d="M8 26 V8 H26" strokeWidth="1.8" opacity="1" />
-        <path d="M74 8 H92 V26" strokeWidth="1.8" opacity="0.8" />
-        <path d="M92 74 V92 H74" strokeWidth="1.8" opacity="0.65" />
-        <path d="M26 92 H8 V74" strokeWidth="1.8" opacity="0.8" />
+        <path d="M8 26 V8 H26" strokeWidth="1.4" opacity="0.6" />
+        <path d="M74 8 H92 V26" strokeWidth="1.4" opacity="0.45" />
+        <path d="M92 74 V92 H74" strokeWidth="1.4" opacity="0.35" />
+        <path d="M26 92 H8 V74" strokeWidth="1.4" opacity="0.45" />
         <circle cx="50" cy="50" r="34" strokeWidth="0.6" opacity="0.3" strokeDasharray="2 8">
           <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="20s" repeatCount="indefinite" />
         </circle>
-        <circle cx="50" cy="50" r="27" strokeWidth="0.9" opacity="0.5" strokeDasharray="4 7">
+        <circle cx="50" cy="50" r="27" strokeWidth="0.7" opacity="0.3" strokeDasharray="4 7">
           <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="12s" repeatCount="indefinite" />
         </circle>
-        <circle cx="50" cy="50" r="19" strokeWidth="1.2" opacity="0.75" strokeDasharray="34 86">
+        <circle cx="50" cy="50" r="19" strokeWidth="0.9" opacity="0.42" strokeDasharray="34 86">
           <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="6s" repeatCount="indefinite" />
         </circle>
-        <path d="M50 30 V40 M50 60 V70 M30 50 H40 M60 50 H70" strokeWidth="1.1" opacity="0.9" />
-        <line x1="12" y1="50" x2="88" y2="50" strokeWidth="0.8" opacity="0.6">
+        <path d="M50 30 V40 M50 60 V70 M30 50 H40 M60 50 H70" strokeWidth="0.8" opacity="0.5" />
+        <line x1="12" y1="50" x2="88" y2="50" strokeWidth="0.6" opacity="0.35">
           <animate attributeName="y1" values="14;86;14" dur="4.5s" repeatCount="indefinite" />
           <animate attributeName="y2" values="14;86;14" dur="4.5s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0;0.9;0" dur="4.5s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0;0.5;0" dur="6.5s" repeatCount="indefinite" />
         </line>
       </g>
-      <circle cx="50" cy="50" r="3.4" fill={hue}>
+      <circle cx="50" cy="50" r="2.6" fill={hue} opacity="0.65">
         <animate attributeName="opacity" values="1;0.15;1" dur="1.8s" repeatCount="indefinite" />
         <animate attributeName="r" values="3.4;4.6;3.4" dur="1.8s" repeatCount="indefinite" />
       </circle>
-    </svg>
-  );
-}
-
-function Telemetry({ hue = CYAN }: { hue?: string }) {
-  const bars = [12, 26, 16, 34, 20, 30, 14, 28, 18, 32];
-  return (
-    <svg width="112" height="40" viewBox="0 0 112 40" aria-hidden style={{ filter: `drop-shadow(0 0 7px ${hue})` }}>
-      {bars.map((v, i) => (
-        <rect key={i} x={i * 11.4} y={40 - v} width="4.5" height={v} fill={hue} opacity="0.8" rx="1">
-          <animate attributeName="height" values={`${v};${40 - v + 8};${v}`} dur={`${1.4 + i * 0.19}s`} repeatCount="indefinite" />
-          <animate attributeName="y" values={`${40 - v};${v - 8};${40 - v}`} dur={`${1.4 + i * 0.19}s`} repeatCount="indefinite" />
-        </rect>
-      ))}
     </svg>
   );
 }
@@ -153,10 +139,9 @@ export function HoloOrbits() {
         background: `linear-gradient(90deg, transparent, ${GREEN}, ${CYAN}, transparent)`,
         filter: "blur(1px)", animation: "holo-beam 11s cubic-bezier(0.4,0,0.2,1) infinite",
       }} />
-      <div className="absolute left-[2%] top-[24%] opacity-[0.85]"><NeuralNet /></div>
-      <div className="absolute right-[3.5%] top-[27%] opacity-[0.72]"><HudScanner size={118} hue={GREEN} /></div>
-      <div className="absolute right-[6%] bottom-[19%] opacity-[0.55]"><HudScanner size={72} hue={CYAN} /></div>
-      <div className="absolute left-[4%] bottom-[13%] opacity-[0.62]"><Telemetry /></div>
+      <div className="absolute left-[2%] top-[24%] opacity-[0.85]" style={{ animation: "holo-drift-c 27s ease-in-out infinite" }}><NeuralNet /></div>
+      <div className="absolute right-[3.5%] top-[27%] opacity-[0.5]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
+      <div className="absolute right-[6%] bottom-[19%] opacity-[0.38]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
       <div className="absolute right-[1.5%] top-[8%] opacity-[0.4]"><DataStream hue={CYAN} /></div>
       <div className="absolute left-[1.5%] top-[6%] opacity-[0.32]"><DataStream hue={VIOLET} /></div>
       <div className="absolute left-5 top-20 h-14 w-14 border-l-2 border-t-2" style={{ borderColor: `${GREEN}`, opacity: 0.5 }} />
