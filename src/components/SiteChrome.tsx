@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Youtube, Instagram, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
+import { VeronicaHero } from "@/components/VeronicaHero";
 
 export const HUB_URL = "https://veronicahub.com";
 
@@ -66,6 +67,7 @@ export function SiteHeader() {
 export function CyborgBackdrop() {
   return (
     <>
+      <VeronicaHero />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 animate-holo-shimmer bg-cover bg-no-repeat opacity-[0.55] md:opacity-[0.45] lg:opacity-[0.38] bg-[position:42%_22%] md:bg-[position:46%_26%] lg:bg-[position:center_30%]"
