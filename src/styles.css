@@ -301,3 +301,20 @@
   92%  { opacity: 0.85; }
   100% { top: 102%; opacity: 0; }
 }
+
+@keyframes holo-drift-a {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(-14px, 18px) rotate(2deg); }
+  50%  { transform: translate(8px, 30px) rotate(-1deg); }
+  75%  { transform: translate(16px, 10px) rotate(1.5deg); }
+}
+@keyframes holo-drift-b {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  30%  { transform: translate(18px, -16px) rotate(-2deg); }
+  60%  { transform: translate(-10px, -26px) rotate(2deg); }
+}
+@keyframes holo-drift-c {
+  0%, 100% { transform: translate(0, 0); }
+  35%  { transform: translate(12px, -14px); }
+  70%  { transform: translate(-8px, 16px); }
+}

@@ -139,7 +139,7 @@ export function HoloOrbits() {
         background: `linear-gradient(90deg, transparent, ${GREEN}, ${CYAN}, transparent)`,
         filter: "blur(1px)", animation: "holo-beam 11s cubic-bezier(0.4,0,0.2,1) infinite",
       }} />
-      <div className="absolute left-[2%] top-[24%] opacity-[0.85]" style={{ animation: "holo-drift-c 27s ease-in-out infinite" }}><NeuralNet /></div>
+      <div className="absolute left-[2%] top-[24%] opacity-[0.85]" style={{ animation: "holo-drift-c 27s ease-in-out infinite" }} style={{ animation: "holo-drift-c 27s ease-in-out infinite" }}><NeuralNet /></div>
       <div className="absolute right-[3.5%] top-[27%] opacity-[0.5]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
       <div className="absolute right-[6%] bottom-[19%] opacity-[0.38]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
       <div className="absolute right-[1.5%] top-[8%] opacity-[0.4]"><DataStream hue={CYAN} /></div>
