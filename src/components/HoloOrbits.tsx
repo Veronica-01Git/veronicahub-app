@@ -102,23 +102,6 @@ function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }
   );
 }
 
-function DataStream({ hue = GREEN }: { hue?: string }) {
-  return (
-    <svg width="60" height="180" viewBox="0 0 60 180" aria-hidden style={{ filter: `drop-shadow(0 0 5px ${hue})` }}>
-      {[0, 1, 2].map((c) => (
-        <g key={c}>
-          {[0, 1, 2, 3].map((d) => (
-            <rect key={d} x={c * 22} y={-20} width="2.5" height={10 + d * 4} fill={hue} opacity="0.75" rx="1">
-              <animate attributeName="y" values="-20;190" dur={`${3.6 + c * 0.9 + d * 0.5}s`} repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0;0.9;0" dur={`${3.6 + c * 0.9 + d * 0.5}s`} repeatCount="indefinite" />
-            </rect>
-          ))}
-        </g>
-      ))}
-    </svg>
-  );
-}
-
 export function HoloOrbits() {
   const [on, setOn] = useState(false);
 
@@ -139,11 +122,9 @@ export function HoloOrbits() {
         background: `linear-gradient(90deg, transparent, ${GREEN}, ${CYAN}, transparent)`,
         filter: "blur(1px)", animation: "holo-beam 11s cubic-bezier(0.4,0,0.2,1) infinite",
       }} />
-      <div className="absolute left-[2%] top-[24%] opacity-[0.85]" style={{ animation: "holo-drift-c 27s ease-in-out infinite" }} style={{ animation: "holo-drift-c 27s ease-in-out infinite" }}><NeuralNet /></div>
+      <div className="absolute left-[2%] top-[24%] opacity-[0.85]" style={{ animation: "holo-drift-c 27s ease-in-out infinite" }}><NeuralNet /></div>
       <div className="absolute right-[3.5%] top-[27%] opacity-[0.5]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
       <div className="absolute right-[6%] bottom-[19%] opacity-[0.38]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
-      <div className="absolute right-[1.5%] top-[8%] opacity-[0.4]"><DataStream hue={CYAN} /></div>
-      <div className="absolute left-[1.5%] top-[6%] opacity-[0.32]"><DataStream hue={VIOLET} /></div>
       <div className="absolute left-5 top-20 h-14 w-14 border-l-2 border-t-2" style={{ borderColor: `${GREEN}`, opacity: 0.5 }} />
       <div className="absolute right-5 bottom-20 h-14 w-14 border-r-2 border-b-2" style={{ borderColor: `${CYAN}`, opacity: 0.5 }} />
     </div>
