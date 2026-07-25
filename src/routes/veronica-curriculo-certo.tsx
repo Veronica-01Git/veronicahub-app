@@ -119,6 +119,54 @@ function buildJobSearchLinks(city: string, uf: string, niche: string) {
   ];
 }
 
+// ---------------------------------------------------------------------------
+// Construtor de currículo — monta o texto no mesmo formato canônico que o
+// motor de avaliação já entende (cabeçalhos + bullets "- "), então reaproveita
+// evaluateResume()/generateAtsResume() sem duplicar nenhuma lógica de nota.
+// ---------------------------------------------------------------------------
+
+type BuilderExperience = { cargo: string; empresa: string; periodo: string; conquistas: string };
+type BuilderEducation = { curso: string; instituicao: string; ano: string };
+
+function assembleBuilderText(fields: {
+  name: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  experiences: BuilderExperience[];
+  educations: BuilderEducation[];
+  skills: string;
+}): string {
+  const lines: string[] = [];
+  if (fields.name.trim()) lines.push(fields.name.trim());
+  const contact = [fields.email.trim(), fields.phone.trim(), fields.linkedin.trim()].filter(Boolean).join(" | ");
+  if (contact) lines.push(contact);
+  lines.push("");
+
+  const expLines = fields.experiences.flatMap((exp) => {
+    if (!exp.cargo.trim() && !exp.empresa.trim()) return [];
+    const header = [exp.cargo, exp.empresa, exp.periodo].filter((v) => v.trim()).join(" - ");
+    const bullets = exp.conquistas.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => `- ${l}`);
+    return [header, ...bullets];
+  });
+  if (expLines.length) {
+    lines.push("Experiência Profissional", ...expLines, "");
+  }
+
+  const eduLines = fields.educations
+    .filter((e) => e.curso.trim() || e.instituicao.trim())
+    .map((e) => [e.curso, e.instituicao, e.ano].filter((v) => v.trim()).join(" - "));
+  if (eduLines.length) {
+    lines.push("Formação", ...eduLines, "");
+  }
+
+  if (fields.skills.trim()) {
+    lines.push("Habilidades", fields.skills.trim());
+  }
+
+  return lines.join("\n").trim();
+}
+
 function ScoreDial({ value, max, label }: { value: number; max: number; label: string }) {
   const tone = toneFor(value, max);
   const color = TONE_COLOR[tone];
@@ -167,6 +215,15 @@ function CurriculoCerto() {
   const [jobNiche, setJobNiche] = useState("Todos");
   const [jobLinks, setJobLinks] = useState<{ name: string; url: string }[] | null>(null);
 
+  const [mode, setMode] = useState<"build" | "paste">("build");
+  const [builderName, setBuilderName] = useState("");
+  const [builderEmail, setBuilderEmail] = useState("");
+  const [builderPhone, setBuilderPhone] = useState("");
+  const [builderLinkedin, setBuilderLinkedin] = useState("");
+  const [builderExperiences, setBuilderExperiences] = useState<BuilderExperience[]>([{ cargo: "", empresa: "", periodo: "", conquistas: "" }]);
+  const [builderEducations, setBuilderEducations] = useState<BuilderEducation[]>([{ curso: "", instituicao: "", ano: "" }]);
+  const [builderSkills, setBuilderSkills] = useState("");
+
   useEffect(() => {
     setSession(loadSession());
   }, []);
@@ -194,8 +251,41 @@ function CurriculoCerto() {
     };
   }, [mobileOpen]);
 
-  const wordCount = useMemo(() => input.trim().split(/\s+/).filter(Boolean).length, [input]);
+  const builderText = useMemo(
+    () => assembleBuilderText({
+      name: builderName, email: builderEmail, phone: builderPhone, linkedin: builderLinkedin,
+      experiences: builderExperiences, educations: builderEducations, skills: builderSkills,
+    }),
+    [builderName, builderEmail, builderPhone, builderLinkedin, builderExperiences, builderEducations, builderSkills],
+  );
+  const activeText = mode === "build" ? builderText : input;
+  const wordCount = useMemo(() => activeText.trim().split(/\s+/).filter(Boolean).length, [activeText]);
   const canEvaluate = wordCount >= 50;
+  // Free, ungated live preview while building — this is the "quanto mais dados,
+  // maior a pontuação" feedback loop, visible before any login/payment.
+  const livePreview = useMemo(
+    () => (mode === "build" && wordCount >= 15 ? evaluateResume(builderText) : null),
+    [mode, builderText, wordCount],
+  );
+
+  function addExperience() {
+    setBuilderExperiences((exps) => (exps.length >= 5 ? exps : [...exps, { cargo: "", empresa: "", periodo: "", conquistas: "" }]));
+  }
+  function removeExperience(idx: number) {
+    setBuilderExperiences((exps) => (exps.length <= 1 ? exps : exps.filter((_, i) => i !== idx)));
+  }
+  function updateExperience(idx: number, patch: Partial<BuilderExperience>) {
+    setBuilderExperiences((exps) => exps.map((e, i) => (i === idx ? { ...e, ...patch } : e)));
+  }
+  function addEducation() {
+    setBuilderEducations((edus) => (edus.length >= 3 ? edus : [...edus, { curso: "", instituicao: "", ano: "" }]));
+  }
+  function removeEducation(idx: number) {
+    setBuilderEducations((edus) => (edus.length <= 1 ? edus : edus.filter((_, i) => i !== idx)));
+  }
+  function updateEducation(idx: number, patch: Partial<BuilderEducation>) {
+    setBuilderEducations((edus) => edus.map((e, i) => (i === idx ? { ...e, ...patch } : e)));
+  }
 
   async function onFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -220,7 +310,7 @@ function CurriculoCerto() {
       openAuth("evaluate");
       return;
     }
-    setResult(evaluateResume(input));
+    setResult(evaluateResume(activeText));
     setGenerated(null);
   }
 
@@ -280,7 +370,7 @@ function CurriculoCerto() {
     setSession((prev) => prev ?? createSession(authChannel, authIdentifier.trim()));
     setToast("Sessão confirmada (simulada).");
     if (pendingAction === "evaluate" && canEvaluate) {
-      setResult(evaluateResume(input));
+      setResult(evaluateResume(activeText));
       setGenerated(null);
     } else if (pendingAction === "generate") {
       setDepositError(null);
@@ -309,6 +399,7 @@ function CurriculoCerto() {
   }
 
   function handleGenerate() {
+    if (!canEvaluate) return;
     if (!session) {
       openAuth("generate");
       return;
@@ -319,7 +410,7 @@ function CurriculoCerto() {
       return;
     }
     setSession({ ...session, balanceCents: session.balanceCents - GENERATION_PRICE_CENTS });
-    setGenerated(generateAtsResume(input));
+    setGenerated(generateAtsResume(activeText));
     setToast(`Currículo gerado. ${formatBRL(GENERATION_PRICE_CENTS)} debitado do saldo (simulado).`);
   }
 
@@ -592,15 +683,15 @@ function CurriculoCerto() {
             <div className="max-w-2xl">
               <div className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>
                 <span className="h-px w-5" style={{ background: "var(--doc-accent)" }} />
-                Protocolo de avaliação · Gratuito
+                Gerador de currículo · ATS real
               </div>
               <h1 className="mt-5 text-[34px] sm:text-5xl md:text-6xl" style={headingSerif}>
-                Cole o currículo.
+                Construa o currículo.
                 <br />
-                Receba a nota <em className="not-italic" style={{ color: "var(--doc-accent)" }}>agora</em>.
+                Saia com <em className="not-italic" style={{ color: "var(--doc-accent)" }}>aprovação</em>.
               </h1>
               <p className="mt-5 max-w-md text-[15.5px] leading-[1.6]" style={{ color: "var(--doc-ink-soft)" }}>
-                Nota estrutural de compatibilidade com ATS e o checklist exato do que corrigir. Login rápido por e-mail ou celular, confirmação em segundos.
+                Alimente a Veronica ATS com seus dados — quanto mais completo, maior sua pontuação. Avaliação é grátis; gerar o documento final custa {formatBRL(GENERATION_PRICE_CENTS)}.
               </p>
             </div>
             <div className="hidden shrink-0 lg:block">
@@ -608,54 +699,172 @@ function CurriculoCerto() {
             </div>
           </div>
 
-          <div
-            className="relative mt-10 max-w-3xl border p-5 sm:p-7"
-            style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)" }}
-          >
-            <span aria-hidden className="absolute left-3 top-3 h-3.5 w-3.5 border-l-2 border-t-2" style={{ borderColor: "var(--doc-accent)" }} />
-            <span aria-hidden className="absolute right-3 bottom-3 h-3.5 w-3.5 border-r-2 border-b-2" style={{ borderColor: "var(--doc-accent)" }} />
-
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Cole aqui o texto completo do seu currículo (experiência, formação, habilidades, contato)..."
-              rows={10}
-              className="w-full resize-y border p-4 text-[14.5px] leading-[1.6] outline-none"
-              style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)", fontFamily: sansStack }}
-            />
-
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <label
-                  className="cursor-pointer rounded-[2px] border px-3.5 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5"
-                  style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)", opacity: fileParsing ? 0.5 : 1 }}
-                >
-                  {fileParsing ? "Lendo arquivo…" : "Enviar arquivo"}
-                  <input type="file" accept={ACCEPT_ATTR} onChange={onFileChange} disabled={fileParsing} className="hidden" />
-                </label>
-                <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: canEvaluate ? "var(--doc-ink-faint)" : "var(--doc-red)" }}>
-                  {wordCount} palavras {!canEvaluate && "· mínimo 50"}
-                </span>
-              </div>
-              <button
-                onClick={handleEvaluate}
-                disabled={!canEvaluate}
-                className="rounded-[2px] px-7 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ background: "var(--doc-accent)", color: "var(--doc-paper)", border: "1px solid var(--doc-accent)" }}
-              >
-                {session ? "Avaliar currículo" : "Entrar para avaliar"}
-              </button>
-            </div>
-
-            {fileError && (
-              <p className="mt-3 text-[13px] leading-[1.5]" style={{ color: "var(--doc-red)" }}>{fileError}</p>
-            )}
-            {!fileError && (
-              <p className="mt-3 text-[12.5px] leading-[1.5]" style={{ color: "var(--doc-ink-faint)" }}>
-                Aceita PDF, Word (.docx), HTML ou .txt — ou cole o texto direto na caixa acima.
-              </p>
-            )}
+          <div className="mt-8 flex gap-2">
+            <button
+              onClick={() => setMode("build")}
+              className="rounded-full border px-4 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition"
+              style={mode === "build" ? { background: "var(--doc-accent)", borderColor: "var(--doc-accent)", color: "var(--doc-paper)" } : { borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}
+            >
+              Criar do zero
+            </button>
+            <button
+              onClick={() => setMode("paste")}
+              className="rounded-full border px-4 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition"
+              style={mode === "paste" ? { background: "var(--doc-accent)", borderColor: "var(--doc-accent)", color: "var(--doc-paper)" } : { borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}
+            >
+              Já tenho um currículo
+            </button>
           </div>
+
+          {mode === "paste" ? (
+            <div
+              className="relative mt-6 max-w-3xl border p-5 sm:p-7"
+              style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)" }}
+            >
+              <span aria-hidden className="absolute left-3 top-3 h-3.5 w-3.5 border-l-2 border-t-2" style={{ borderColor: "var(--doc-accent)" }} />
+              <span aria-hidden className="absolute right-3 bottom-3 h-3.5 w-3.5 border-r-2 border-b-2" style={{ borderColor: "var(--doc-accent)" }} />
+
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Cole aqui o texto completo do seu currículo (experiência, formação, habilidades, contato)..."
+                rows={10}
+                className="w-full resize-y border p-4 text-[14.5px] leading-[1.6] outline-none"
+                style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)", fontFamily: sansStack }}
+              />
+
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <label
+                    className="cursor-pointer rounded-[2px] border px-3.5 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5"
+                    style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)", opacity: fileParsing ? 0.5 : 1 }}
+                  >
+                    {fileParsing ? "Lendo arquivo…" : "Enviar arquivo"}
+                    <input type="file" accept={ACCEPT_ATTR} onChange={onFileChange} disabled={fileParsing} className="hidden" />
+                  </label>
+                  <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: canEvaluate ? "var(--doc-ink-faint)" : "var(--doc-red)" }}>
+                    {wordCount} palavras {!canEvaluate && "· mínimo 50"}
+                  </span>
+                </div>
+                <button
+                  onClick={handleEvaluate}
+                  disabled={!canEvaluate}
+                  className="rounded-[2px] px-7 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ background: "var(--doc-accent)", color: "var(--doc-paper)", border: "1px solid var(--doc-accent)" }}
+                >
+                  {session ? "Avaliar currículo" : "Entrar para avaliar"}
+                </button>
+              </div>
+
+              {fileError && (
+                <p className="mt-3 text-[13px] leading-[1.5]" style={{ color: "var(--doc-red)" }}>{fileError}</p>
+              )}
+              {!fileError && (
+                <p className="mt-3 text-[12.5px] leading-[1.5]" style={{ color: "var(--doc-ink-faint)" }}>
+                  Aceita PDF, Word (.docx), HTML ou .txt — ou cole o texto direto na caixa acima.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="mt-6 grid max-w-4xl grid-cols-1 gap-6 lg:grid-cols-[1fr_220px]">
+              <div className="flex flex-col gap-5 border p-5 sm:p-7" style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)" }}>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Nome completo</span>
+                    <input value={builderName} onChange={(e) => setBuilderName(e.target.value)} placeholder="Ex.: Maria Souza" className="border px-3 py-2.5 text-[14px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>E-mail</span>
+                    <input value={builderEmail} onChange={(e) => setBuilderEmail(e.target.value)} placeholder="voce@email.com" className="border px-3 py-2.5 text-[14px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Telefone</span>
+                    <input value={builderPhone} onChange={(e) => setBuilderPhone(e.target.value)} placeholder="(11) 98888-7777" className="border px-3 py-2.5 text-[14px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>LinkedIn</span>
+                    <input value={builderLinkedin} onChange={(e) => setBuilderLinkedin(e.target.value)} placeholder="linkedin.com/in/voce" className="border px-3 py-2.5 text-[14px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                  </label>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>Experiência profissional</span>
+                  {builderExperiences.map((exp, idx) => (
+                    <div key={idx} className="flex flex-col gap-2 border p-3.5" style={{ borderColor: "var(--doc-line)" }}>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        <input value={exp.cargo} onChange={(e) => updateExperience(idx, { cargo: e.target.value })} placeholder="Cargo" className="border px-2.5 py-2 text-[13px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                        <input value={exp.empresa} onChange={(e) => updateExperience(idx, { empresa: e.target.value })} placeholder="Empresa" className="border px-2.5 py-2 text-[13px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                        <input value={exp.periodo} onChange={(e) => updateExperience(idx, { periodo: e.target.value })} placeholder="Período (2021-2023)" className="border px-2.5 py-2 text-[13px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                      </div>
+                      <textarea
+                        value={exp.conquistas}
+                        onChange={(e) => updateExperience(idx, { conquistas: e.target.value })}
+                        placeholder={"Uma conquista por linha, começando com verbo de ação:\nLiderei equipe de 5 pessoas...\nAumentei vendas em 20%..."}
+                        rows={3}
+                        className="resize-y border px-2.5 py-2 text-[13px] leading-[1.5] outline-none"
+                        style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }}
+                      />
+                      {builderExperiences.length > 1 && (
+                        <button onClick={() => removeExperience(idx)} className="self-start font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-red)" }}>Remover</button>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={addExperience} disabled={builderExperiences.length >= 5} className="self-start rounded-[2px] border px-3.5 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:opacity-40" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
+                    + Adicionar experiência
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>Formação</span>
+                  {builderEducations.map((edu, idx) => (
+                    <div key={idx} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_100px_auto] sm:items-center">
+                      <input value={edu.curso} onChange={(e) => updateEducation(idx, { curso: e.target.value })} placeholder="Curso" className="border px-2.5 py-2 text-[13px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                      <input value={edu.instituicao} onChange={(e) => updateEducation(idx, { instituicao: e.target.value })} placeholder="Instituição" className="border px-2.5 py-2 text-[13px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                      <input value={edu.ano} onChange={(e) => updateEducation(idx, { ano: e.target.value })} placeholder="Ano" className="border px-2.5 py-2 text-[13px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                      {builderEducations.length > 1 && (
+                        <button onClick={() => removeEducation(idx)} className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-red)" }}>Remover</button>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={addEducation} disabled={builderEducations.length >= 3} className="self-start rounded-[2px] border px-3.5 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:opacity-40" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
+                    + Adicionar formação
+                  </button>
+                </div>
+
+                <label className="flex flex-col gap-1.5">
+                  <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>Habilidades (separadas por vírgula)</span>
+                  <input value={builderSkills} onChange={(e) => setBuilderSkills(e.target.value)} placeholder="Excel, gestão de projetos, inglês avançado" className="border px-3 py-2.5 text-[14px] outline-none" style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }} />
+                </label>
+
+                <button
+                  onClick={handleGenerate}
+                  disabled={!canEvaluate}
+                  className="mt-2 self-start rounded-[2px] px-7 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ background: "var(--doc-accent)", color: "var(--doc-paper)", border: "1px solid var(--doc-accent)" }}
+                >
+                  {!session ? "Entrar para gerar" : session.balanceCents < GENERATION_PRICE_CENTS ? `Depositar para gerar · faltam ${formatBRL(GENERATION_PRICE_CENTS - session.balanceCents)}` : `Gerar meu currículo ATS · ${formatBRL(GENERATION_PRICE_CENTS)}`}
+                </button>
+                {!canEvaluate && (
+                  <p className="text-[12px]" style={{ color: "var(--doc-ink-faint)" }}>Preencha mais dados — faltam palavras suficientes pra gerar um currículo consistente ({wordCount}/50).</p>
+                )}
+              </div>
+
+              {/* Live, free, ungated score preview */}
+              <div className="flex flex-col items-center gap-3 self-start border p-5" style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)" }}>
+                <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Pontuação ao vivo</span>
+                {livePreview ? (
+                  <ScoreDial value={livePreview.score} max={livePreview.maxScore} label="Prontidão" />
+                ) : (
+                  <div className="flex h-[104px] w-[104px] items-center justify-center rounded-full border-[2.5px] border-dashed" style={{ borderColor: "var(--doc-line-strong)" }}>
+                    <span className="text-center text-[10px] leading-tight" style={{ color: "var(--doc-ink-faint)" }}>Preencha os campos</span>
+                  </div>
+                )}
+                <p className="text-center text-[11.5px] leading-[1.5]" style={{ color: "var(--doc-ink-faint)" }}>
+                  Quanto mais dados você informar, maior a pontuação.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Results */}
           {result && (
