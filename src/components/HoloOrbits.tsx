@@ -1,3 +1,4 @@
+import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 const GREEN = "oklch(0.85 0.22 155)";
@@ -102,8 +103,13 @@ function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }
   );
 }
 
+// Routes with their own light "paper" identity opt out of this dark-cyber overlay.
+const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo"];
+
 export function HoloOrbits() {
   const [on, setOn] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isLightRoute = LIGHT_THEME_ROUTES.some((r) => pathname.startsWith(r));
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -111,7 +117,7 @@ export function HoloOrbits() {
     setOn(!reduced && !small);
   }, []);
 
-  if (!on) return null;
+  if (!on || isLightRoute) return null;
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-10 hidden lg:block">
