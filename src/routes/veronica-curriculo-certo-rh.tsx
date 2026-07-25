@@ -60,9 +60,10 @@ function CurriculoCertoRH() {
   const [requireSkills, setRequireSkills] = useState(false);
   const [jobSaved, setJobSaved] = useState(false);
 
-  const [candidateInput, setCandidateInput] = useState("");
-  const [fileError, setFileError] = useState<string | null>(null);
-  const [fileParsing, setFileParsing] = useState(false);
+  const [batch, setBatch] = useState<{ id: number; text: string; parsing: boolean; fileError: string | null }[]>([
+    { id: 1, text: "", parsing: false, fileError: null },
+  ]);
+  const [nextSlotId, setNextSlotId] = useState(2);
   const [candidates, setCandidates] = useState<CandidateMatch[]>([]);
 
   const [session, setSession] = useState<Session | null>(null);
@@ -102,8 +103,13 @@ function CurriculoCertoRH() {
     requireSkills,
   }), [keywordsInput, requireExperience, requireEducation, requireSkills]);
 
-  const candidateWordCount = useMemo(() => candidateInput.trim().split(/\s+/).filter(Boolean).length, [candidateInput]);
-  const canScreen = jobSaved && candidateWordCount >= 30;
+  const MAX_BATCH = 10;
+  function wordCount(text: string): number {
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  }
+  const filledSlots = useMemo(() => batch.filter((s) => wordCount(s.text) >= 30), [batch]);
+  const batchCost = filledSlots.length * SCREEN_PRICE_CENTS;
+  const canScreen = jobSaved && filledSlots.length > 0;
 
   function openAuth(action: "screen" | null) {
     setPendingAction(action);
@@ -142,12 +148,14 @@ function CurriculoCertoRH() {
     setToast(`Ambiente de teste — novo código (simulado): ${code}`);
   }
 
-  function runScreening(currentSession: Session) {
-    setSession({ ...currentSession, balanceCents: currentSession.balanceCents - SCREEN_PRICE_CENTS });
-    const result = matchAgainstJob(candidateInput, job);
-    setCandidates((prev) => [result, ...prev]);
-    setCandidateInput("");
-    setToast(`Triagem concluída. ${formatBRL(SCREEN_PRICE_CENTS)} debitado do saldo (simulado).`);
+  function runScreening(currentSession: Session, slots: { id: number; text: string }[]) {
+    const cost = slots.length * SCREEN_PRICE_CENTS;
+    setSession({ ...currentSession, balanceCents: currentSession.balanceCents - cost });
+    const results = slots.map((s) => matchAgainstJob(s.text, job));
+    setCandidates((prev) => [...results, ...prev]);
+    setBatch([{ id: nextSlotId, text: "", parsing: false, fileError: null }]);
+    setNextSlotId((n) => n + 1);
+    setToast(`${slots.length} currículo${slots.length > 1 ? "s" : ""} triado${slots.length > 1 ? "s" : ""}. ${formatBRL(cost)} debitado do saldo (simulado).`);
   }
 
   function confirmCode(e: FormEvent) {
@@ -157,8 +165,8 @@ function CurriculoCertoRH() {
     const newSession = session ?? createSession(authChannel, authIdentifier.trim());
     setSession(newSession);
     setToast("Sessão confirmada (simulada).");
-    if (pendingAction === "screen" && canScreen) {
-      if (newSession.balanceCents >= SCREEN_PRICE_CENTS) runScreening(newSession);
+    if (pendingAction === "screen" && filledSlots.length > 0) {
+      if (newSession.balanceCents >= filledSlots.length * SCREEN_PRICE_CENTS) runScreening(newSession, filledSlots);
       else { setDepositError(null); setDepositOpen(true); }
     }
     closeAuth();
@@ -185,24 +193,32 @@ function CurriculoCertoRH() {
   function handleScreen() {
     if (!canScreen) return;
     if (!session) { openAuth("screen"); return; }
-    if (session.balanceCents < SCREEN_PRICE_CENTS) { setDepositError(null); setDepositOpen(true); return; }
-    runScreening(session);
+    if (session.balanceCents < batchCost) { setDepositError(null); setDepositOpen(true); return; }
+    runScreening(session, filledSlots);
   }
 
-  async function onFileChange(e: ChangeEvent<HTMLInputElement>) {
+  function addSlot() {
+    setBatch((b) => (b.length >= MAX_BATCH ? b : [...b, { id: nextSlotId, text: "", parsing: false, fileError: null }]));
+    setNextSlotId((n) => n + 1);
+  }
+  function removeSlot(id: number) {
+    setBatch((b) => (b.length <= 1 ? b : b.filter((s) => s.id !== id)));
+  }
+  function updateSlotText(id: number, text: string) {
+    setBatch((b) => b.map((s) => (s.id === id ? { ...s, text } : s)));
+  }
+
+  async function onSlotFileChange(id: number, e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setFileError(null);
-    setFileParsing(true);
+    setBatch((b) => b.map((s) => (s.id === id ? { ...s, parsing: true, fileError: null } : s)));
     try {
       const { text, warning } = await extractTextFromFile(file);
-      setCandidateInput(text);
-      setFileError(warning ?? null);
+      setBatch((b) => b.map((s) => (s.id === id ? { ...s, text, parsing: false, fileError: warning ?? null } : s)));
     } catch (err) {
-      setFileError(err instanceof Error ? err.message : "Não consegui ler esse arquivo. Cole o texto direto.");
-    } finally {
-      setFileParsing(false);
+      const message = err instanceof Error ? err.message : "Não consegui ler esse arquivo. Cole o texto direto.";
+      setBatch((b) => b.map((s) => (s.id === id ? { ...s, parsing: false, fileError: message } : s)));
     }
   }
 
@@ -387,41 +403,69 @@ function CurriculoCertoRH() {
             <div className="flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>
               <span>§</span> Passo 2
             </div>
-            <h2 className="mt-2.5 text-2xl sm:text-[32px]" style={headingSerif}>Triagem de currículos.</h2>
+            <h2 className="mt-2.5 text-2xl sm:text-[32px]" style={headingSerif}>Triagem em lote — até {MAX_BATCH} currículos.</h2>
             {!jobSaved && (
               <p className="mt-3 text-[13.5px]" style={{ color: "var(--doc-red)" }}>Salve a vaga acima antes de triar currículos.</p>
             )}
           </div>
 
-          <div className="max-w-2xl border p-5 sm:p-7" style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)" }}>
-            <textarea
-              value={candidateInput}
-              onChange={(e) => setCandidateInput(e.target.value)}
-              placeholder="Cole aqui o currículo do candidato..."
-              rows={8}
-              className="w-full resize-y border p-4 text-[14px] leading-[1.6] outline-none"
-              style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }}
-            />
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <label className="cursor-pointer rounded-[2px] border px-3.5 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)", opacity: fileParsing ? 0.5 : 1 }}>
-                  {fileParsing ? "Lendo arquivo…" : "Enviar arquivo"}
-                  <input type="file" accept={ACCEPT_ATTR} onChange={onFileChange} disabled={fileParsing} className="hidden" />
-                </label>
-                <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: candidateWordCount >= 30 ? "var(--doc-ink-faint)" : "var(--doc-red)" }}>
-                  {candidateWordCount} palavras · mínimo 30
-                </span>
-              </div>
+          <div className="flex max-w-2xl flex-col gap-4">
+            {batch.map((slot, idx) => {
+              const words = wordCount(slot.text);
+              return (
+                <div key={slot.id} className="border p-5 sm:p-6" style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)" }}>
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Candidato {idx + 1}</span>
+                    {batch.length > 1 && (
+                      <button onClick={() => removeSlot(slot.id)} className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-red)" }}>Remover</button>
+                    )}
+                  </div>
+                  <textarea
+                    value={slot.text}
+                    onChange={(e) => updateSlotText(slot.id, e.target.value)}
+                    placeholder="Cole aqui o currículo do candidato..."
+                    rows={5}
+                    className="w-full resize-y border p-3.5 text-[13.5px] leading-[1.6] outline-none"
+                    style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }}
+                  />
+                  <div className="mt-2.5 flex flex-wrap items-center gap-3">
+                    <label className="cursor-pointer rounded-[2px] border px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)", opacity: slot.parsing ? 0.5 : 1 }}>
+                      {slot.parsing ? "Lendo…" : "Enviar arquivo"}
+                      <input type="file" accept={ACCEPT_ATTR} onChange={(e) => onSlotFileChange(slot.id, e)} disabled={slot.parsing} className="hidden" />
+                    </label>
+                    <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: words >= 30 ? "var(--doc-ink-faint)" : "var(--doc-red)" }}>
+                      {words} palavras · mínimo 30
+                    </span>
+                  </div>
+                  {slot.fileError && <p className="mt-2 text-[12.5px]" style={{ color: "var(--doc-red)" }}>{slot.fileError}</p>}
+                </div>
+              );
+            })}
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <button
+                onClick={addSlot}
+                disabled={batch.length >= MAX_BATCH}
+                className="rounded-[2px] border px-4 py-2.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}
+              >
+                + Adicionar candidato ({batch.length}/{MAX_BATCH})
+              </button>
               <button
                 onClick={handleScreen}
                 disabled={!canScreen}
                 className="rounded-[2px] px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ background: "var(--doc-accent)", color: "var(--doc-paper)", border: "1px solid var(--doc-accent)" }}
               >
-                {!session ? "Entrar para triar" : session.balanceCents < SCREEN_PRICE_CENTS ? `Depositar · faltam ${formatBRL(SCREEN_PRICE_CENTS - session.balanceCents)}` : `Analisar candidato · ${formatBRL(SCREEN_PRICE_CENTS)}`}
+                {!session
+                  ? "Entrar para triar"
+                  : filledSlots.length === 0
+                    ? "Preencha ao menos 1 currículo"
+                    : session.balanceCents < batchCost
+                      ? `Depositar · faltam ${formatBRL(batchCost - session.balanceCents)}`
+                      : `Triar ${filledSlots.length} currículo${filledSlots.length > 1 ? "s" : ""} · ${formatBRL(batchCost)}`}
               </button>
             </div>
-            {fileError && <p className="mt-3 text-[13px]" style={{ color: "var(--doc-red)" }}>{fileError}</p>}
           </div>
 
           {candidates.length > 0 && (

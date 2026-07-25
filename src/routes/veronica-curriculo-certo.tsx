@@ -83,6 +83,42 @@ const TONE_LABEL: Record<"low" | "mid" | "high", string> = {
 
 const GENERATION_PRICE_CENTS = 990; // R$9,90 por geração — placeholder
 
+// ---------------------------------------------------------------------------
+// Vagas de emprego — links reais pra buscadores de vaga já existentes e
+// confiáveis, filtrados pela cidade/estado e nicho escolhidos. Sem varredura
+// própria, sem dado inventado: são só URLs de busca montadas dinamicamente.
+// ---------------------------------------------------------------------------
+
+const BR_STATES = [
+  { uf: "AC", name: "Acre" }, { uf: "AL", name: "Alagoas" }, { uf: "AP", name: "Amapá" },
+  { uf: "AM", name: "Amazonas" }, { uf: "BA", name: "Bahia" }, { uf: "CE", name: "Ceará" },
+  { uf: "DF", name: "Distrito Federal" }, { uf: "ES", name: "Espírito Santo" }, { uf: "GO", name: "Goiás" },
+  { uf: "MA", name: "Maranhão" }, { uf: "MT", name: "Mato Grosso" }, { uf: "MS", name: "Mato Grosso do Sul" },
+  { uf: "MG", name: "Minas Gerais" }, { uf: "PA", name: "Pará" }, { uf: "PB", name: "Paraíba" },
+  { uf: "PR", name: "Paraná" }, { uf: "PE", name: "Pernambuco" }, { uf: "PI", name: "Piauí" },
+  { uf: "RJ", name: "Rio de Janeiro" }, { uf: "RN", name: "Rio Grande do Norte" }, { uf: "RS", name: "Rio Grande do Sul" },
+  { uf: "RO", name: "Rondônia" }, { uf: "RR", name: "Roraima" }, { uf: "SC", name: "Santa Catarina" },
+  { uf: "SP", name: "São Paulo" }, { uf: "SE", name: "Sergipe" }, { uf: "TO", name: "Tocantins" },
+];
+
+const JOB_NICHES = [
+  "Varejo", "Tecnologia", "Saúde", "Logística", "Educação", "Alimentação",
+  "Construção Civil", "Administração", "Vendas", "Atendimento ao Cliente",
+  "Marketing", "Financeiro", "Recursos Humanos", "Beleza e Estética",
+  "Transporte", "Indústria", "Turismo e Hotelaria", "Agronegócio",
+  "Telemarketing", "Segurança do Trabalho",
+];
+
+function buildJobSearchLinks(city: string, uf: string, niche: string) {
+  const loc = `${city}, ${uf}`;
+  const query = [niche, city].filter(Boolean).join(" ");
+  return [
+    { name: "Google Empregos", url: `https://www.google.com/search?q=${encodeURIComponent(`vagas de emprego ${query}`)}&ibp=htl;jobs` },
+    { name: "LinkedIn Vagas", url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(niche)}&location=${encodeURIComponent(`${loc}, Brasil`)}` },
+    { name: "Indeed", url: `https://br.indeed.com/jobs?q=${encodeURIComponent(niche)}&l=${encodeURIComponent(loc)}` },
+  ];
+}
+
 function ScoreDial({ value, max, label }: { value: number; max: number; label: string }) {
   const tone = toneFor(value, max);
   const color = TONE_COLOR[tone];
@@ -125,6 +161,11 @@ function CurriculoCerto() {
   const [depositError, setDepositError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const [jobCity, setJobCity] = useState("");
+  const [jobUf, setJobUf] = useState("SP");
+  const [jobNiche, setJobNiche] = useState("Todos");
+  const [jobLinks, setJobLinks] = useState<{ name: string; url: string }[] | null>(null);
 
   useEffect(() => {
     setSession(loadSession());
@@ -302,6 +343,11 @@ function CurriculoCerto() {
     }
   }
 
+  function handleSearchJobs() {
+    if (!jobCity.trim()) return;
+    setJobLinks(buildJobSearchLinks(jobCity.trim(), jobUf, jobNiche === "Todos" ? "" : jobNiche));
+  }
+
   return (
     <div
       className="relative min-h-screen overflow-x-hidden"
@@ -329,6 +375,7 @@ function CurriculoCerto() {
         <nav className="hidden items-center gap-7 font-mono-tech text-[11px] uppercase tracking-widest sm:flex" style={{ color: "var(--doc-ink-soft)" }}>
           <a href="#ferramenta" className="border-b border-transparent pb-0.5 transition hover:border-current">Avaliar</a>
           <a href="#criterios" className="border-b border-transparent pb-0.5 transition hover:border-current">Critérios</a>
+          <a href="#vagas" className="border-b border-transparent pb-0.5 transition hover:border-current">Vagas</a>
           <Link to="/veronica-curriculo-certo-rh" className="border-b border-transparent pb-0.5 transition hover:border-current">Área RH</Link>
           <a href={HUB_URL} target="_blank" rel="noopener noreferrer" className="border-b border-transparent pb-0.5 transition hover:border-current">Hub</a>
         </nav>
@@ -370,6 +417,7 @@ function CurriculoCerto() {
           <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
             <a href="#ferramenta" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Avaliar</a>
             <a href="#criterios" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Critérios</a>
+            <a href="#vagas" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Vagas</a>
             <Link to="/veronica-curriculo-certo-rh" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Área RH</Link>
             <a href={HUB_URL} target="_blank" rel="noopener noreferrer" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Hub</a>
 
@@ -777,6 +825,97 @@ function CurriculoCerto() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Vagas de emprego — links reais pra buscadores já existentes, filtrados */}
+        <section id="vagas" className="border-b px-6 py-14 md:px-0 md:py-20" style={{ borderColor: "var(--doc-line)" }}>
+          <div className="mb-8 max-w-xl">
+            <div className="flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>
+              <span>§</span> Depois de gerar
+            </div>
+            <h2 className="mt-2.5 text-2xl sm:text-[32px]" style={headingSerif}>Vagas de emprego.</h2>
+            <p className="mt-3 text-[13.5px] leading-[1.55]" style={{ color: "var(--doc-ink-soft)" }}>
+              Escolha cidade, estado e nicho — a gente monta a busca certa nos maiores buscadores de vaga do mercado. Leve o currículo que você gerou aqui pra aplicar.
+            </p>
+          </div>
+
+          <div className="max-w-2xl border p-5 sm:p-7" style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)" }}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-1.5">
+                <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Cidade</span>
+                <input
+                  value={jobCity}
+                  onChange={(e) => setJobCity(e.target.value)}
+                  placeholder="Ex.: Ibirité"
+                  className="border px-3 py-2.5 text-[14px] outline-none"
+                  style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Estado</span>
+                <select
+                  value={jobUf}
+                  onChange={(e) => setJobUf(e.target.value)}
+                  className="border px-3 py-2.5 text-[14px] outline-none"
+                  style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper)", color: "var(--doc-ink)" }}
+                >
+                  {BR_STATES.map((s) => (
+                    <option key={s.uf} value={s.uf}>{s.name}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="mt-4">
+              <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Nicho</span>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {["Todos", ...JOB_NICHES].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setJobNiche(n)}
+                    className="rounded-full border px-3 py-1 font-mono-tech text-[10px] uppercase tracking-widest transition"
+                    style={
+                      jobNiche === n
+                        ? { background: "var(--doc-accent)", borderColor: "var(--doc-accent)", color: "var(--doc-paper)" }
+                        : { borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }
+                    }
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleSearchJobs}
+              disabled={!jobCity.trim()}
+              className="mt-6 rounded-[2px] px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ background: "var(--doc-accent)", color: "var(--doc-paper)", border: "1px solid var(--doc-accent)" }}
+            >
+              Buscar vagas
+            </button>
+
+            {jobLinks && (
+              <div className="mt-6 flex flex-col gap-2.5 border-t pt-6" style={{ borderColor: "var(--doc-line)" }}>
+                {jobLinks.map((l) => (
+                  <a
+                    key={l.name}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between border px-4 py-3 text-[14px] transition hover:-translate-y-0.5"
+                    style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink)" }}
+                  >
+                    {l.name}
+                    <span style={{ color: "var(--doc-accent)" }}>Abrir →</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+          <p className="mt-4 max-w-2xl text-[12px] leading-[1.5]" style={{ color: "var(--doc-ink-faint)" }}>
+            Links reais pra buscadores de vaga externos e independentes — a Veronica não hospeda, seleciona nem garante as vagas listadas neles.
+          </p>
         </section>
 
         {/* Thin, secondary CTA to the paid method */}
