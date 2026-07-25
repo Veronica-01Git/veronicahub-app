@@ -4,6 +4,16 @@ import { HUB_URL } from "@/components/SiteChrome";
 import { evaluateResume, generateAtsResume, type AtsResume, type EvalResult } from "@/lib/resume-tools";
 import { extractTextFromFile, ACCEPT_ATTR } from "@/lib/resume-parsers";
 import { HoloResumeOrbit } from "@/components/HoloResumeOrbit";
+import {
+  loadSession,
+  persistSession,
+  createSession,
+  generateCode,
+  formatBRL,
+  MIN_DEPOSIT_CENTS,
+  type AuthChannel,
+  type Session,
+} from "@/lib/account";
 
 export const Route = createFileRoute("/veronica-curriculo-certo")({
   component: CurriculoCerto,
@@ -65,35 +75,11 @@ const TONE_LABEL: Record<"low" | "mid" | "high", string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Carteira simulada — sem backend ainda. Login e saldo vivem só no navegador
-// (localStorage) até Supabase (conta) e Mercado Pago (Pix/cartão) entrarem.
-// Nenhum valor real é movimentado por este código.
+// Carteira simulada — conta compartilhada com o resto do ecossistema, ver
+// src/lib/account.ts (mesma sessão local vale pra Currículo-Certo e Studio).
 // ---------------------------------------------------------------------------
 
-const SESSION_KEY = "cc_session_sim_v1";
-const MIN_DEPOSIT_CENTS = 1000; // R$10,00 — investimento mínimo na plataforma
 const GENERATION_PRICE_CENTS = 990; // R$9,90 por geração — placeholder
-
-type AuthChannel = "email" | "phone";
-type Session = { channel: AuthChannel; identifier: string; balanceCents: number };
-
-function generateCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
-}
-
-function formatBRL(cents: number): string {
-  return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
-}
-
-function loadSession(): Session | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
-  } catch {
-    return null;
-  }
-}
 
 function ScoreDial({ value, max, label }: { value: number; max: number; label: string }) {
   const tone = toneFor(value, max);
@@ -141,9 +127,7 @@ function CurriculoCerto() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (session) window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    else window.localStorage.removeItem(SESSION_KEY);
+    persistSession(session);
   }, [session]);
 
   useEffect(() => {
@@ -235,7 +219,7 @@ function CurriculoCerto() {
       setAuthError("Código incorreto. Confira e tente de novo.");
       return;
     }
-    setSession({ channel: authChannel, identifier: authIdentifier.trim(), balanceCents: 0 });
+    setSession((prev) => prev ?? createSession(authChannel, authIdentifier.trim()));
     setToast("Sessão confirmada (simulada).");
     if (pendingAction === "evaluate" && canEvaluate) {
       setResult(evaluateResume(input));
