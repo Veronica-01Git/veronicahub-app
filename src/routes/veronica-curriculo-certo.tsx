@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type CSSProperties, type ChangeEvent, type FormEvent } from "react";
 import { HUB_URL } from "@/components/SiteChrome";
 import { evaluateResume, generateAtsResume, type AtsResume, type EvalResult } from "@/lib/resume-tools";
+import { extractTextFromFile, ACCEPT_ATTR } from "@/lib/resume-parsers";
+import { HoloResumeOrbit } from "@/components/HoloResumeOrbit";
 
 export const Route = createFileRoute("/veronica-curriculo-certo")({
   component: CurriculoCerto,
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/veronica-curriculo-certo")({
       {
         name: "description",
         content:
-          "Cole seu currículo e receba, na hora, uma nota estrutural de compatibilidade com ATS e o checklist exato do que corrigir. Sem cadastro, sem enrolação.",
+          "Cole seu currículo e receba, na hora, uma nota estrutural de compatibilidade com ATS e o checklist exato do que corrigir. Login rápido por e-mail ou celular.",
       },
       { property: "og:title", content: "Currículo Certo — Avalie seu currículo grátis" },
       { property: "og:description", content: "Nota instantânea de compatibilidade com ATS, com checklist do que corrigir." },
@@ -69,10 +71,15 @@ const TONE_LABEL: Record<"low" | "mid" | "high", string> = {
 // ---------------------------------------------------------------------------
 
 const SESSION_KEY = "cc_session_sim_v1";
-const MIN_DEPOSIT_CENTS = 2000; // R$20,00 — placeholder, ajustável
+const MIN_DEPOSIT_CENTS = 1000; // R$10,00 — investimento mínimo na plataforma
 const GENERATION_PRICE_CENTS = 990; // R$9,90 por geração — placeholder
 
-type Session = { email: string; balanceCents: number };
+type AuthChannel = "email" | "phone";
+type Session = { channel: AuthChannel; identifier: string; balanceCents: number };
+
+function generateCode(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
 function formatBRL(cents: number): string {
   return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
@@ -111,12 +118,19 @@ function ScoreDial({ value, max, label }: { value: number; max: number; label: s
 function CurriculoCerto() {
   const [input, setInput] = useState("");
   const [fileError, setFileError] = useState<string | null>(null);
+  const [fileParsing, setFileParsing] = useState(false);
   const [result, setResult] = useState<EvalResult | null>(null);
   const [generated, setGenerated] = useState<AtsResume | null>(null);
 
   const [session, setSession] = useState<Session | null>(null);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authStep, setAuthStep] = useState<"identify" | "confirm">("identify");
+  const [authChannel, setAuthChannel] = useState<AuthChannel>("email");
+  const [authIdentifier, setAuthIdentifier] = useState("");
+  const [authCode, setAuthCode] = useState("");
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<"evaluate" | "generate" | null>(null);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositValue, setDepositValue] = useState(String(MIN_DEPOSIT_CENTS / 100));
   const [depositError, setDepositError] = useState<string | null>(null);
@@ -141,33 +155,96 @@ function CurriculoCerto() {
   const wordCount = useMemo(() => input.trim().split(/\s+/).filter(Boolean).length, [input]);
   const canEvaluate = wordCount >= 50;
 
-  function onFileChange(e: ChangeEvent<HTMLInputElement>) {
+  async function onFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".txt")) {
-      setFileError("Por enquanto só lemos arquivos .txt aqui. Pra PDF ou Word, selecione todo o texto (Ctrl+A) no seu leitor e cole na caixa abaixo — leva 5 segundos.");
-      return;
-    }
     setFileError(null);
-    const reader = new FileReader();
-    reader.onload = () => setInput(String(reader.result ?? ""));
-    reader.readAsText(file);
+    setFileParsing(true);
+    try {
+      const { text, warning } = await extractTextFromFile(file);
+      setInput(text);
+      setFileError(warning ?? null);
+    } catch (err) {
+      setFileError(err instanceof Error ? err.message : "Não consegui ler esse arquivo. Tente colar o texto direto.");
+    } finally {
+      setFileParsing(false);
+    }
   }
 
   function handleEvaluate() {
     if (!canEvaluate) return;
+    if (!session) {
+      openAuth("evaluate");
+      return;
+    }
     setResult(evaluateResume(input));
     setGenerated(null);
   }
 
-  function handleLogin(e: FormEvent) {
+  function openAuth(action: "evaluate" | "generate" | null) {
+    setPendingAction(action);
+    setAuthOpen(true);
+    setAuthStep("identify");
+    setAuthError(null);
+  }
+
+  function closeAuth() {
+    setAuthOpen(false);
+    setAuthStep("identify");
+    setAuthError(null);
+    setAuthCode("");
+    setPendingCode(null);
+    setPendingAction(null);
+  }
+
+  function requestCode(e: FormEvent) {
     e.preventDefault();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail)) return;
-    setSession({ email: loginEmail, balanceCents: 0 });
-    setLoginOpen(false);
-    setLoginEmail("");
-    setToast("Sessão de teste criada (simulada — nenhuma conta real foi acessada).");
+    const id = authIdentifier.trim();
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
+    const digits = id.replace(/\D/g, "");
+    const validPhone = digits.length >= 10 && digits.length <= 13;
+    if (authChannel === "email" && !validEmail) {
+      setAuthError("Digite um e-mail válido.");
+      return;
+    }
+    if (authChannel === "phone" && !validPhone) {
+      setAuthError("Digite um celular válido, com DDD.");
+      return;
+    }
+    const code = generateCode();
+    setPendingCode(code);
+    setAuthStep("confirm");
+    setAuthError(null);
+    setAuthCode("");
+    setToast(`Ambiente de teste — código (simulado) que seria enviado por ${authChannel === "email" ? "e-mail" : "SMS"}: ${code}`);
+  }
+
+  function resendCode() {
+    const code = generateCode();
+    setPendingCode(code);
+    setAuthCode("");
+    setAuthError(null);
+    setToast(`Ambiente de teste — novo código (simulado): ${code}`);
+  }
+
+  function confirmCode(e: FormEvent) {
+    e.preventDefault();
+    if (!pendingCode) return;
+    if (authCode.trim() !== pendingCode) {
+      setAuthError("Código incorreto. Confira e tente de novo.");
+      return;
+    }
+    setSession({ channel: authChannel, identifier: authIdentifier.trim(), balanceCents: 0 });
+    setToast("Sessão confirmada (simulada).");
+    if (pendingAction === "evaluate" && canEvaluate) {
+      setResult(evaluateResume(input));
+      setGenerated(null);
+    } else if (pendingAction === "generate") {
+      setDepositError(null);
+      setDepositOpen(true);
+    }
+    closeAuth();
   }
 
   function handleLogout() {
@@ -191,7 +268,7 @@ function CurriculoCerto() {
 
   function handleGenerate() {
     if (!session) {
-      setLoginOpen(true);
+      openAuth("generate");
       return;
     }
     if (session.balanceCents < GENERATION_PRICE_CENTS) {
@@ -253,7 +330,7 @@ function CurriculoCerto() {
         <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest">
           {session ? (
             <>
-              <span style={{ color: "var(--doc-ink-soft)" }}>{session.email}</span>
+              <span style={{ color: "var(--doc-ink-soft)" }}>{session.identifier}</span>
               <span style={{ color: "var(--doc-accent)" }}>{formatBRL(session.balanceCents)}</span>
               <button onClick={() => { setDepositError(null); setDepositOpen((v) => !v); }} className="rounded-[2px] border px-3 py-1.5 transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
                 Depositar
@@ -263,39 +340,100 @@ function CurriculoCerto() {
               </button>
             </>
           ) : (
-            <button onClick={() => setLoginOpen((v) => !v)} className="rounded-[2px] border px-3.5 py-1.5 transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
+            <button onClick={() => (authOpen ? closeAuth() : openAuth(null))} className="rounded-[2px] border px-3.5 py-1.5 transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
               Entrar
             </button>
           )}
         </div>
       </header>
 
-      {loginOpen && !session && (
-        <form
-          onSubmit={handleLogin}
-          className="flex flex-wrap items-center gap-2.5 border-b px-6 py-4 md:pl-[92px] md:pr-10"
+      {authOpen && !session && (
+        <div
+          className="border-b px-6 py-4 md:pl-[92px] md:pr-10"
           style={{ borderColor: "var(--doc-line)", background: "var(--doc-accent-soft)" }}
         >
-          <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-soft)" }}>
-            Ambiente de teste —
-          </span>
-          <input
-            type="email"
-            required
-            autoFocus
-            value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
-            placeholder="seu@email.com"
-            className="border px-3 py-1.5 text-[13px] outline-none"
-            style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)", color: "var(--doc-ink)" }}
-          />
-          <button type="submit" className="rounded-[2px] px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ background: "var(--doc-accent)", color: "var(--doc-paper)" }}>
-            Entrar (simulado)
-          </button>
-          <button type="button" onClick={() => setLoginOpen(false)} className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>
-            Cancelar
-          </button>
-        </form>
+          {authStep === "identify" ? (
+            <form onSubmit={requestCode} className="flex flex-wrap items-center gap-2.5">
+              <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-soft)" }}>
+                Entrar ou criar conta —
+              </span>
+              <div className="flex overflow-hidden rounded-[2px] border" style={{ borderColor: "var(--doc-line-strong)" }}>
+                <button
+                  type="button"
+                  onClick={() => { setAuthChannel("email"); setAuthIdentifier(""); setAuthError(null); }}
+                  className="px-3 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition"
+                  style={{ background: authChannel === "email" ? "var(--doc-accent)" : "var(--doc-paper-raised)", color: authChannel === "email" ? "var(--doc-paper)" : "var(--doc-ink-soft)" }}
+                >
+                  E-mail
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAuthChannel("phone"); setAuthIdentifier(""); setAuthError(null); }}
+                  className="px-3 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition"
+                  style={{ background: authChannel === "phone" ? "var(--doc-accent)" : "var(--doc-paper-raised)", color: authChannel === "phone" ? "var(--doc-paper)" : "var(--doc-ink-soft)" }}
+                >
+                  Celular
+                </button>
+              </div>
+              <input
+                type={authChannel === "email" ? "email" : "tel"}
+                required
+                autoFocus
+                value={authIdentifier}
+                onChange={(e) => setAuthIdentifier(e.target.value)}
+                placeholder={authChannel === "email" ? "seu@email.com" : "(11) 98888-7777"}
+                className="border px-3 py-1.5 text-[13px] outline-none"
+                style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)", color: "var(--doc-ink)" }}
+              />
+              <button type="submit" className="rounded-[2px] px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ background: "var(--doc-accent)", color: "var(--doc-paper)" }}>
+                Enviar código
+              </button>
+              <button type="button" onClick={closeAuth} className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>
+                Cancelar
+              </button>
+              {authError && (
+                <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-red)" }}>
+                  {authError}
+                </span>
+              )}
+            </form>
+          ) : (
+            <form onSubmit={confirmCode} className="flex flex-wrap items-center gap-2.5">
+              <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-soft)" }}>
+                Código enviado (simulado) para {authIdentifier} —
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                required
+                autoFocus
+                value={authCode}
+                onChange={(e) => setAuthCode(e.target.value.replace(/\D/g, ""))}
+                placeholder="000000"
+                className="w-28 border px-3 py-1.5 text-center text-[15px] outline-none"
+                style={{ borderColor: "var(--doc-line-strong)", background: "var(--doc-paper-raised)", color: "var(--doc-ink)", fontFamily: "var(--font-mono)", letterSpacing: "0.3em" }}
+              />
+              <button type="submit" className="rounded-[2px] px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ background: "var(--doc-accent)", color: "var(--doc-paper)" }}>
+                Confirmar
+              </button>
+              <button type="button" onClick={resendCode} className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-soft)" }}>
+                Reenviar
+              </button>
+              <button type="button" onClick={() => { setAuthStep("identify"); setAuthError(null); }} className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>
+                Trocar
+              </button>
+              <button type="button" onClick={closeAuth} className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>
+                Cancelar
+              </button>
+              {authError && (
+                <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-red)" }}>
+                  {authError}
+                </span>
+              )}
+            </form>
+          )}
+        </div>
       )}
 
       {depositOpen && session && (
@@ -344,19 +482,24 @@ function CurriculoCerto() {
       <main className="md:pl-[92px] md:pr-10">
         {/* Tool — the page's single job, front and center */}
         <section id="ferramenta" className="border-b px-6 py-14 md:px-0 md:py-20" style={{ borderColor: "var(--doc-line)" }}>
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>
-              <span className="h-px w-5" style={{ background: "var(--doc-accent)" }} />
-              Protocolo de avaliação · Gratuito
+          <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>
+                <span className="h-px w-5" style={{ background: "var(--doc-accent)" }} />
+                Protocolo de avaliação · Gratuito
+              </div>
+              <h1 className="mt-5 text-[34px] sm:text-5xl md:text-6xl" style={headingSerif}>
+                Cole o currículo.
+                <br />
+                Receba a nota <em className="not-italic" style={{ color: "var(--doc-accent)" }}>agora</em>.
+              </h1>
+              <p className="mt-5 max-w-md text-[15.5px] leading-[1.6]" style={{ color: "var(--doc-ink-soft)" }}>
+                Nota estrutural de compatibilidade com ATS e o checklist exato do que corrigir. Login rápido por e-mail ou celular, confirmação em segundos.
+              </p>
             </div>
-            <h1 className="mt-5 text-[34px] sm:text-5xl md:text-6xl" style={headingSerif}>
-              Cole o currículo.
-              <br />
-              Receba a nota <em className="not-italic" style={{ color: "var(--doc-accent)" }}>agora</em>.
-            </h1>
-            <p className="mt-5 max-w-md text-[15.5px] leading-[1.6]" style={{ color: "var(--doc-ink-soft)" }}>
-              Sem cadastro, sem espera. Nota estrutural de compatibilidade com ATS e o checklist exato do que corrigir.
-            </p>
+            <div className="hidden shrink-0 lg:block">
+              <HoloResumeOrbit />
+            </div>
           </div>
 
           <div
@@ -379,10 +522,10 @@ function CurriculoCerto() {
               <div className="flex items-center gap-3">
                 <label
                   className="cursor-pointer rounded-[2px] border px-3.5 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5"
-                  style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}
+                  style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)", opacity: fileParsing ? 0.5 : 1 }}
                 >
-                  Enviar arquivo .txt
-                  <input type="file" accept=".txt" onChange={onFileChange} className="hidden" />
+                  {fileParsing ? "Lendo arquivo…" : "Enviar arquivo"}
+                  <input type="file" accept={ACCEPT_ATTR} onChange={onFileChange} disabled={fileParsing} className="hidden" />
                 </label>
                 <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: canEvaluate ? "var(--doc-ink-faint)" : "var(--doc-red)" }}>
                   {wordCount} palavras {!canEvaluate && "· mínimo 50"}
@@ -394,7 +537,7 @@ function CurriculoCerto() {
                 className="rounded-[2px] px-7 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ background: "var(--doc-accent)", color: "var(--doc-paper)", border: "1px solid var(--doc-accent)" }}
               >
-                Avaliar currículo
+                {session ? "Avaliar currículo" : "Entrar para avaliar"}
               </button>
             </div>
 
@@ -403,7 +546,7 @@ function CurriculoCerto() {
             )}
             {!fileError && (
               <p className="mt-3 text-[12.5px] leading-[1.5]" style={{ color: "var(--doc-ink-faint)" }}>
-                PDF ou Word? Selecione todo o texto no seu leitor (Ctrl+A) e cole na caixa acima.
+                Aceita PDF, Word (.docx), HTML ou .txt — ou cole o texto direto na caixa acima.
               </p>
             )}
           </div>
