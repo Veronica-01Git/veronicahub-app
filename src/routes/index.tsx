@@ -216,6 +216,10 @@ function Index() {
               </a>
             ))}
             <EcosystemMenu />
+            <Link to="/blog" className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green">
+              Blog
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
           </nav>
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-3 text-muted-foreground sm:flex">
@@ -244,47 +248,48 @@ function Index() {
             </button>
           </div>
         </div>
-
-        {mobileOpen && (
-          <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
-            <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
-              <a href="#cursos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Cursos</a>
-              <a href="#sobre" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Sobre</a>
-              <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ecossistema</div>
-              {ECOSYSTEM_LINKS.map((item) =>
-                item.ready ? (
-                  <Link key={item.name} to={item.to} onClick={() => setMobileOpen(false)} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5">
-                    <span className="text-foreground">{item.name}</span>
-                    <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-                  </Link>
-                ) : (
-                  <div key={item.name} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5 opacity-50">
-                    <span className="flex items-center gap-2 text-foreground">
-                      {item.name}
-                      <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground">em breve</span>
-                    </span>
-                    <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-                  </div>
-                ),
-              )}
-              <a
-                href={HUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center justify-center gap-2 rounded-sm bg-neon-green px-4 py-3 text-[11px] text-primary-foreground"
-              >
-                Acessar Hub
-              </a>
-              <div className="mt-6 flex items-center gap-4 text-muted-foreground">
-                <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube"><Youtube className="h-5 w-5" /></a>
-                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Instagram className="h-5 w-5" /></a>
-                <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle className="h-5 w-5" /></a>
-                <a href={SOCIAL_LINKS.email} aria-label="E-mail"><Mail className="h-5 w-5" /></a>
-              </div>
-            </nav>
-          </div>
-        )}
       </header>
+
+      {mobileOpen && (
+        <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
+          <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
+            <a href="#cursos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Cursos</a>
+            <a href="#sobre" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Sobre</a>
+            <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Blog</Link>
+            <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ecossistema</div>
+            {ECOSYSTEM_LINKS.map((item) =>
+              item.ready ? (
+                <Link key={item.name} to={item.to} onClick={() => setMobileOpen(false)} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5">
+                  <span className="text-foreground">{item.name}</span>
+                  <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
+                </Link>
+              ) : (
+                <div key={item.name} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5 opacity-50">
+                  <span className="flex items-center gap-2 text-foreground">
+                    {item.name}
+                    <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground">em breve</span>
+                  </span>
+                  <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
+                </div>
+              ),
+            )}
+            <a
+              href={HUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-sm bg-neon-green px-4 py-3 text-[11px] text-primary-foreground"
+            >
+              Acessar Hub
+            </a>
+            <div className="mt-6 flex items-center gap-4 text-muted-foreground">
+              <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube"><Youtube className="h-5 w-5" /></a>
+              <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Instagram className="h-5 w-5" /></a>
+              <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle className="h-5 w-5" /></a>
+              <a href={SOCIAL_LINKS.email} aria-label="E-mail"><Mail className="h-5 w-5" /></a>
+            </div>
+          </nav>
+        </div>
+      )}
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
