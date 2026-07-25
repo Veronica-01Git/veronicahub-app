@@ -132,7 +132,7 @@ function CurriculoCerto() {
 
   useEffect(() => {
     if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 3500);
+    const t = window.setTimeout(() => setToast(null), 7000);
     return () => window.clearTimeout(t);
   }, [toast]);
 
@@ -386,6 +386,17 @@ function CurriculoCerto() {
               <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--doc-ink-soft)" }}>
                 Código enviado (simulado) para {authIdentifier} —
               </span>
+              {pendingCode && (
+                <button
+                  type="button"
+                  onClick={() => setAuthCode(pendingCode)}
+                  className="rounded-[2px] border border-dashed px-3 py-1.5 font-mono-tech text-[13px] tracking-[0.3em]"
+                  style={{ borderColor: "var(--doc-accent)", color: "var(--doc-accent)" }}
+                  title="Clique para preencher automaticamente"
+                >
+                  {pendingCode}
+                </button>
+              )}
               <input
                 type="text"
                 inputMode="numeric"

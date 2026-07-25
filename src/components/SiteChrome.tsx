@@ -20,6 +20,7 @@ export type EcosystemLink = { name: string; tag: string; to: string; ready: bool
 export const ECOSYSTEM_LINKS: EcosystemLink[] = [
   { name: "Veronica Studio", tag: "Imagem, vídeo e voz com IA", to: "/video-ia", ready: true },
   { name: "Currículo-Certo", tag: "Currículo pronto pra ATS", to: "/veronica-curriculo-certo", ready: true },
+  { name: "Veronica Wire", tag: "Jornal digital de IA", to: "/blog", ready: true },
   { name: "Veronica Analytics", tag: "Análise de perfil TikTok Shop", to: "#", ready: false },
 ];
 

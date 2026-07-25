@@ -30,7 +30,7 @@ import vfx5 from "@/assets/vfx/pexels-cottonbro-6153739.jpg.asset.json";
 import vfx6 from "@/assets/vfx/pexels-merlin-14268798.jpg.asset.json";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
-import { SOCIAL_LINKS } from "@/components/SiteChrome";
+import { SOCIAL_LINKS, EcosystemMenu } from "@/components/SiteChrome";
 
 const HUB_URL = "https://veronicahub.com";
 
@@ -189,7 +189,6 @@ function Index() {
             {[
               { href: "#cursos", label: "Cursos" },
               { href: "#sobre", label: "Sobre" },
-              { href: "#ecossistema", label: "Ecossistema" },
             ].map((l) => (
               <a
                 key={l.href}
@@ -200,6 +199,7 @@ function Index() {
                 <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
               </a>
             ))}
+            <EcosystemMenu />
           </nav>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-3 text-muted-foreground sm:flex">

@@ -36,19 +36,49 @@ export const Route = createFileRoute("/video-ia")({
 
 type Format = "video" | "image" | "voice";
 
-const PRICES: Record<Format, number> = {
-  video: 2990, // R$29,90 por vídeo 1080p — placeholder
+const PRICES: Record<Exclude<Format, "video">, number> = {
   image: 490, // R$4,90 por imagem (Nano Banana Pro) — placeholder
   voice: 790, // R$7,90 por voz — placeholder
 };
 
 const FORMAT_META: Record<Format, { label: string; icon: typeof Video; unit: string }> = {
-  video: { label: "Vídeo", icon: Video, unit: "1080p" },
+  video: { label: "Vídeo", icon: Video, unit: "Vídeo" },
   image: { label: "Imagem", icon: ImageIcon, unit: "Nano Banana Pro" },
   voice: { label: "Voz", icon: AudioLines, unit: "Narração" },
 };
 
-type GenerationResult = { format: Format; prompt: string; createdAt: string; free: boolean };
+// Vídeo tem dois motores à escolha, cada um com sua faixa de qualidade —
+// o crédito grátis do cadastro só cobre a qualidade 1080p, de qualquer um.
+type VideoModelKey = "seedance" | "veo";
+type VideoTier = { key: string; label: string; priceCents: number; freeEligible: boolean };
+
+const VIDEO_MODELS: Record<VideoModelKey, { label: string; tiers: VideoTier[] }> = {
+  seedance: {
+    label: "Seedance 2.0",
+    tiers: [
+      { key: "low", label: "Baixo", priceCents: 1490, freeEligible: false },
+      { key: "1080p", label: "1080p", priceCents: 2990, freeEligible: true },
+      { key: "4k", label: "4K", priceCents: 5990, freeEligible: false },
+    ],
+  },
+  veo: {
+    label: "Veo 3.1",
+    tiers: [
+      { key: "simple", label: "Simples", priceCents: 1990, freeEligible: false },
+      { key: "1080p", label: "1080p", priceCents: 3490, freeEligible: true },
+      { key: "4kpro", label: "4K Pro", priceCents: 7990, freeEligible: false },
+    ],
+  },
+};
+
+type GenerationResult = {
+  format: Format;
+  prompt: string;
+  createdAt: string;
+  free: boolean;
+  videoModel?: VideoModelKey;
+  videoTier?: string;
+};
 
 function GenerationPreview({ result }: { result: GenerationResult }) {
   if (result.format === "video") {
@@ -68,7 +98,8 @@ function GenerationPreview({ result }: { result: GenerationResult }) {
           </div>
         </div>
         <span className="absolute left-3 top-3 rounded-sm border border-neon-green/40 bg-background/70 px-2 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-green">
-          1080p · simulado
+          {result.videoModel && VIDEO_MODELS[result.videoModel].label} ·{" "}
+          {result.videoModel && result.videoTier && VIDEO_MODELS[result.videoModel].tiers.find((t) => t.key === result.videoTier)?.label} · simulado
         </span>
       </div>
     );
@@ -114,6 +145,8 @@ function GenerationPreview({ result }: { result: GenerationResult }) {
 
 function VeronicaStudio() {
   const [format, setFormat] = useState<Format>("video");
+  const [videoModel, setVideoModel] = useState<VideoModelKey>("seedance");
+  const [videoTier, setVideoTier] = useState<string>("1080p");
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<GenerationResult | null>(null);
@@ -142,16 +175,31 @@ function VeronicaStudio() {
 
   useEffect(() => {
     if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 3500);
+    const t = window.setTimeout(() => setToast(null), 7000);
     return () => window.clearTimeout(t);
   }, [toast]);
 
+  const currentVideoTier = useMemo(
+    () => VIDEO_MODELS[videoModel].tiers.find((t) => t.key === videoTier) ?? VIDEO_MODELS[videoModel].tiers[0],
+    [videoModel, videoTier],
+  );
+
+  function priceFor(fmt: Format): number {
+    return fmt === "video" ? currentVideoTier.priceCents : PRICES[fmt];
+  }
+
+  function hasFreeFor(fmt: Format, s: Session): boolean {
+    if (fmt === "video") return s.freeVideoCredits > 0 && currentVideoTier.freeEligible;
+    if (fmt === "image") return s.freeImageCredits > 0;
+    return false;
+  }
+
   const freeLeft = useMemo(() => {
     if (!session) return null;
-    if (format === "video") return session.freeVideoCredits;
+    if (format === "video") return currentVideoTier.freeEligible ? session.freeVideoCredits : 0;
     if (format === "image") return session.freeImageCredits;
     return 0;
-  }, [session, format]);
+  }, [session, format, currentVideoTier]);
 
   function openAuth(action: "generate" | null) {
     setPendingAction(action);
@@ -200,8 +248,8 @@ function VeronicaStudio() {
   }
 
   function performGeneration(currentSession: Session) {
-    const price = PRICES[format];
-    const hasFree = format === "video" ? currentSession.freeVideoCredits > 0 : format === "image" ? currentSession.freeImageCredits > 0 : false;
+    const price = priceFor(format);
+    const hasFree = hasFreeFor(format, currentSession);
     setGenerating(true);
     window.setTimeout(() => {
       setSession((prev) => {
@@ -211,7 +259,13 @@ function VeronicaStudio() {
         }
         return { ...base, balanceCents: base.balanceCents - price };
       });
-      setResult({ format, prompt: prompt.trim(), createdAt: new Date().toLocaleTimeString("pt-BR"), free: hasFree });
+      setResult({
+        format,
+        prompt: prompt.trim(),
+        createdAt: new Date().toLocaleTimeString("pt-BR"),
+        free: hasFree,
+        ...(format === "video" ? { videoModel, videoTier: currentVideoTier.key } : {}),
+      });
       setGenerating(false);
       setToast(hasFree ? "Gerado usando seu crédito grátis (simulado)." : `Gerado. ${formatBRL(price)} debitado do saldo (simulado).`);
     }, 1600);
@@ -228,8 +282,8 @@ function VeronicaStudio() {
     setSession(newSession);
     setToast("Sessão confirmada (simulada).");
     if (pendingAction === "generate" && prompt.trim()) {
-      const price = PRICES[format];
-      const hasFree = format === "video" ? newSession.freeVideoCredits > 0 : format === "image" ? newSession.freeImageCredits > 0 : false;
+      const price = priceFor(format);
+      const hasFree = hasFreeFor(format, newSession);
       if (hasFree || newSession.balanceCents >= price) {
         performGeneration(newSession);
       } else {
@@ -265,8 +319,8 @@ function VeronicaStudio() {
       openAuth("generate");
       return;
     }
-    const price = PRICES[format];
-    const hasFree = format === "video" ? session.freeVideoCredits > 0 : format === "image" ? session.freeImageCredits > 0 : false;
+    const price = priceFor(format);
+    const hasFree = hasFreeFor(format, session);
     if (!hasFree && session.balanceCents < price) {
       setDepositError(null);
       setDepositOpen(true);
@@ -275,7 +329,7 @@ function VeronicaStudio() {
     performGeneration(session);
   }
 
-  const price = PRICES[format];
+  const price = priceFor(format);
   const generateLabel = !session
     ? "Entrar para gerar"
     : freeLeft && freeLeft > 0
@@ -336,6 +390,16 @@ function VeronicaStudio() {
                 <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
                   Código enviado (simulado) para {authIdentifier} —
                 </span>
+                {pendingCode && (
+                  <button
+                    type="button"
+                    onClick={() => setAuthCode(pendingCode)}
+                    className="rounded-sm border border-dashed border-neon-green px-3 py-1.5 font-mono-tech text-[13px] tracking-[0.3em] text-neon-green"
+                    title="Clique para preencher automaticamente"
+                  >
+                    {pendingCode}
+                  </button>
+                )}
                 <input
                   type="text"
                   inputMode="numeric"
@@ -465,6 +529,52 @@ function VeronicaStudio() {
             })}
           </div>
 
+          {format === "video" && (
+            <div className="mt-4 flex flex-col gap-3 rounded-sm border border-border/60 bg-background/40 p-4">
+              <div className="flex flex-wrap gap-2">
+                {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).map((m) => {
+                  const active = videoModel === m;
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => {
+                        setVideoModel(m);
+                        setVideoTier(VIDEO_MODELS[m].tiers.find((t) => t.freeEligible)?.key ?? VIDEO_MODELS[m].tiers[0].key);
+                      }}
+                      className={`rounded-sm border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
+                        active ? "border-neon-cyan bg-neon-cyan/10 text-neon-cyan" : "border-border/60 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {VIDEO_MODELS[m].label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {VIDEO_MODELS[videoModel].tiers.map((t) => {
+                  const active = videoTier === t.key;
+                  const freeNow = t.freeEligible && (session?.freeVideoCredits ?? 0) > 0;
+                  return (
+                    <button
+                      key={t.key}
+                      onClick={() => setVideoTier(t.key)}
+                      className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
+                        active
+                          ? "border-neon-green bg-neon-green/15 text-neon-green"
+                          : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
+                      }`}
+                    >
+                      {t.label}
+                      <span className={active ? "text-neon-green/80" : "text-muted-foreground/70"}>
+                        {freeNow ? "grátis" : formatBRL(t.priceCents)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="relative mt-6 rounded-sm border border-border/60 bg-background/60 p-5 backdrop-blur sm:p-7">
             <textarea
               value={prompt}
@@ -475,7 +585,8 @@ function VeronicaStudio() {
             />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                {FORMAT_META[format].unit} · {session ? formatBRL(session.balanceCents) + " de saldo" : "grátis pra começar"}
+                {format === "video" ? `${VIDEO_MODELS[videoModel].label} · ${currentVideoTier.label}` : FORMAT_META[format].unit} ·{" "}
+                {session ? formatBRL(session.balanceCents) + " de saldo" : "grátis pra começar"}
               </span>
               <button
                 onClick={handleGenerate}
@@ -509,23 +620,32 @@ function VeronicaStudio() {
             <span className="h-px w-8 bg-neon-green" />
             [ 02 ] Como funciona o custo
           </div>
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["1 vídeo 1080p", "Grátis no cadastro"],
-              ["Vídeo (depois)", formatBRL(PRICES.video)],
-              ["2 imagens Nano Banana Pro", "Grátis no cadastro"],
-              ["Imagem (depois)", formatBRL(PRICES.image)],
-              ["Voz", formatBRL(PRICES.voice)],
-              ["Depósito mínimo", formatBRL(MIN_DEPOSIT_CENTS)],
-            ].map(([label, value]) => (
-              <div key={label} className="flex flex-col gap-1 bg-background/70 p-5">
-                <span className="text-[13px] text-foreground">{label}</span>
-                <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">{value}</span>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
+            {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).flatMap((m) =>
+              VIDEO_MODELS[m].tiers.map((t) => (
+                <div key={`${m}-${t.key}`} className="flex flex-col gap-1 bg-background/70 p-5">
+                  <span className="text-[13px] text-foreground">{VIDEO_MODELS[m].label} · {t.label}</span>
+                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                    {t.freeEligible ? `${formatBRL(t.priceCents)} · 1º grátis no cadastro` : formatBRL(t.priceCents)}
+                  </span>
+                </div>
+              )),
+            )}
+            <div className="flex flex-col gap-1 bg-background/70 p-5">
+              <span className="text-[13px] text-foreground">Imagem · Nano Banana Pro</span>
+              <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">{formatBRL(PRICES.image)} · 2 grátis no cadastro</span>
+            </div>
+            <div className="flex flex-col gap-1 bg-background/70 p-5">
+              <span className="text-[13px] text-foreground">Voz</span>
+              <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">{formatBRL(PRICES.voice)}</span>
+            </div>
+            <div className="flex flex-col gap-1 bg-background/70 p-5">
+              <span className="text-[13px] text-foreground">Depósito mínimo</span>
+              <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">{formatBRL(MIN_DEPOSIT_CENTS)}</span>
+            </div>
           </div>
           <ul className="mt-8 space-y-2.5">
-            {["Sem mensalidade — paga só quando gera", "Conta compartilhada com o resto do ecossistema Veronica", "Créditos grátis valem uma vez por conta"].map((p) => (
+            {["Sem mensalidade — paga só quando gera", "Conta compartilhada com o resto do ecossistema Veronica", "Créditos grátis valem uma vez por conta, só na qualidade 1080p"].map((p) => (
               <li key={p} className="flex items-start gap-3 text-sm text-foreground/90">
                 <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-green" />
                 {p}
