@@ -200,29 +200,6 @@ function Index() {
                 <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
               </a>
             ))}
-            <Link
-              to="/video-ia"
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-            >
-              Veronica Studio
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
-            <Link
-              to="/veronica-curriculo-certo"
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-            >
-              Currículo-Certo
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
-            <span
-              aria-disabled="true"
-              className="relative flex cursor-default items-center gap-1.5 px-3 py-2 text-muted-foreground/50"
-            >
-              Veronica Analytics
-              <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground/70">
-                em breve
-              </span>
-            </span>
           </nav>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-3 text-muted-foreground sm:flex">

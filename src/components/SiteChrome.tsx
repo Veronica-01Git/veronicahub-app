@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Youtube, Instagram, MessageCircle, Mail } from "lucide-react";
-import type { ReactNode } from "react";
+import { Youtube, Instagram, MessageCircle, Mail, ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
 import { VeronicaHero } from "@/components/VeronicaHero";
 
@@ -12,6 +12,81 @@ export const SOCIAL_LINKS = {
   whatsapp: "https://wa.me/5547996057436",
   email: "mailto:yo-tech01@outlook.com",
 };
+
+// Single source of truth for the ecosystem — the header dropdown and the
+// home page's "O Ecossistema" cards both read from this list.
+export type EcosystemLink = { name: string; tag: string; to: string; ready: boolean };
+
+export const ECOSYSTEM_LINKS: EcosystemLink[] = [
+  { name: "Veronica Studio", tag: "Imagem, vídeo e voz com IA", to: "/video-ia", ready: true },
+  { name: "Currículo-Certo", tag: "Currículo pronto pra ATS", to: "/veronica-curriculo-certo", ready: true },
+  { name: "Veronica Analytics", tag: "Análise de perfil TikTok Shop", to: "#", ready: false },
+];
+
+export function EcosystemMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="group relative flex items-center gap-1 px-3 py-2 text-muted-foreground transition hover:text-neon-green"
+      >
+        Ecossistema
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
+        <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-40 mt-2 w-64 rounded-sm border border-border/60 bg-background/95 p-1.5 shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)] backdrop-blur">
+          {ECOSYSTEM_LINKS.map((item) =>
+            item.ready ? (
+              <Link
+                key={item.name}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className="group flex flex-col gap-0.5 rounded-sm px-3 py-2.5 transition hover:bg-neon-green/10"
+              >
+                <span className="font-mono-tech text-[11px] uppercase tracking-widest text-foreground group-hover:text-neon-green">
+                  {item.name}
+                </span>
+                <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
+              </Link>
+            ) : (
+              <div key={item.name} className="flex flex-col gap-0.5 px-3 py-2.5 opacity-50">
+                <span className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-widest text-foreground">
+                  {item.name}
+                  <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground">
+                    em breve
+                  </span>
+                </span>
+                <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
+              </div>
+            ),
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function SiteHeader() {
   return (
@@ -35,29 +110,7 @@ export function SiteHeader() {
             Home
             <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
           </Link>
-          <Link
-            to="/veronica-curriculo-certo"
-            className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-          >
-            Currículo Certo
-            <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-          </Link>
-          <Link
-            to="/video-ia"
-            className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-          >
-            Veronica Studio
-            <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-          </Link>
-          <span
-            aria-disabled="true"
-            className="relative flex cursor-default items-center gap-1.5 px-3 py-2 text-muted-foreground/50"
-          >
-            Veronica Analytics
-            <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground/70">
-              em breve
-            </span>
-          </span>
+          <EcosystemMenu />
         </nav>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-3 text-muted-foreground sm:flex">
