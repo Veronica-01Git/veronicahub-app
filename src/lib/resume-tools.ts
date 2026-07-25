@@ -307,3 +307,59 @@ export function generateAtsResume(rawText: string): AtsResume {
 
   return { name, contactLine, sections, text };
 }
+
+// ---------------------------------------------------------------------------
+// Triagem RH — compara um currículo contra os requisitos de uma vaga. Reusa
+// o mesmo motor de avaliação ATS; não depende de IA, roda inteiro no navegador.
+// ---------------------------------------------------------------------------
+
+export type JobRequirements = {
+  keywords: string[];
+  requireExperience: boolean;
+  requireEducation: boolean;
+  requireSkills: boolean;
+};
+
+export type CandidateMatch = {
+  name: string;
+  atsScore: number;
+  atsMax: number;
+  matchedKeywords: string[];
+  missingKeywords: string[];
+  missingRequirements: string[];
+  matchPercent: number;
+  pass: boolean;
+};
+
+export function matchAgainstJob(resumeText: string, job: JobRequirements): CandidateMatch {
+  const evalResult = evaluateResume(resumeText);
+  const text = resumeText.toLowerCase();
+  const keywords = job.keywords.map((k) => k.trim()).filter(Boolean);
+  const matchedKeywords = keywords.filter((k) => text.includes(k.toLowerCase()));
+  const missingKeywords = keywords.filter((k) => !matchedKeywords.includes(k));
+
+  const missingRequirements: string[] = [];
+  if (job.requireExperience && !EXP_HEADER_RE.test(resumeText)) missingRequirements.push("Seção Experiência");
+  if (job.requireEducation && !EDU_HEADER_RE.test(resumeText)) missingRequirements.push("Seção Formação");
+  if (job.requireSkills && !SKILLS_HEADER_RE.test(resumeText)) missingRequirements.push("Seção Habilidades");
+
+  const requirementCount = [job.requireExperience, job.requireEducation, job.requireSkills].filter(Boolean).length;
+  const requirementsMet = requirementCount - missingRequirements.length;
+  const keywordPct = keywords.length > 0 ? matchedKeywords.length / keywords.length : 1;
+  const requirementPct = requirementCount > 0 ? requirementsMet / requirementCount : 1;
+  const matchPercent = Math.round(keywordPct * 70 + requirementPct * 30);
+
+  const lines = resumeText.trim().split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const name = lines[0] || "Candidato";
+
+  return {
+    name,
+    atsScore: evalResult.score,
+    atsMax: evalResult.maxScore,
+    matchedKeywords,
+    missingKeywords,
+    missingRequirements,
+    matchPercent,
+    pass: matchPercent >= 70 && missingRequirements.length === 0,
+  };
+}

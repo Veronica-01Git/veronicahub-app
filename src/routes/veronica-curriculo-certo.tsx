@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type CSSProperties, type ChangeEvent, type FormEvent } from "react";
+import { Menu, X } from "lucide-react";
 import { HUB_URL } from "@/components/SiteChrome";
 import { evaluateResume, generateAtsResume, type AtsResume, type EvalResult } from "@/lib/resume-tools";
 import { extractTextFromFile, ACCEPT_ATTR } from "@/lib/resume-parsers";
+import { downloadTxt, downloadPdf, downloadDocx } from "@/lib/resume-export";
 import { HoloResumeOrbit } from "@/components/HoloResumeOrbit";
 import {
   loadSession,
@@ -107,6 +109,7 @@ function CurriculoCerto() {
   const [fileParsing, setFileParsing] = useState(false);
   const [result, setResult] = useState<EvalResult | null>(null);
   const [generated, setGenerated] = useState<AtsResume | null>(null);
+  const [exporting, setExporting] = useState<"txt" | "pdf" | "docx" | null>(null);
 
   const [session, setSession] = useState<Session | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -121,6 +124,7 @@ function CurriculoCerto() {
   const [depositValue, setDepositValue] = useState(String(MIN_DEPOSIT_CENTS / 100));
   const [depositError, setDepositError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setSession(loadSession());
@@ -135,6 +139,19 @@ function CurriculoCerto() {
     const t = window.setTimeout(() => setToast(null), 7000);
     return () => window.clearTimeout(t);
   }, [toast]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMobileOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   const wordCount = useMemo(() => input.trim().split(/\s+/).filter(Boolean).length, [input]);
   const canEvaluate = wordCount >= 50;
@@ -271,15 +288,18 @@ function CurriculoCerto() {
     setToast("Texto copiado.");
   }
 
-  function downloadGenerated() {
-    if (!generated) return;
-    const blob = new Blob([generated.text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "curriculo-ats.txt";
-    a.click();
-    URL.revokeObjectURL(url);
+  async function downloadGenerated(fmt: "txt" | "pdf" | "docx") {
+    if (!generated || exporting) return;
+    setExporting(fmt);
+    try {
+      if (fmt === "txt") downloadTxt(generated);
+      else if (fmt === "pdf") await downloadPdf(generated);
+      else await downloadDocx(generated);
+    } catch {
+      setToast("Não consegui gerar o arquivo. Tenta de novo.");
+    } finally {
+      setExporting(null);
+    }
   }
 
   return (
@@ -309,27 +329,70 @@ function CurriculoCerto() {
         <nav className="hidden items-center gap-7 font-mono-tech text-[11px] uppercase tracking-widest sm:flex" style={{ color: "var(--doc-ink-soft)" }}>
           <a href="#ferramenta" className="border-b border-transparent pb-0.5 transition hover:border-current">Avaliar</a>
           <a href="#criterios" className="border-b border-transparent pb-0.5 transition hover:border-current">Critérios</a>
+          <Link to="/veronica-curriculo-certo-rh" className="border-b border-transparent pb-0.5 transition hover:border-current">Área RH</Link>
           <a href={HUB_URL} target="_blank" rel="noopener noreferrer" className="border-b border-transparent pb-0.5 transition hover:border-current">Hub</a>
         </nav>
         <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest">
           {session ? (
             <>
-              <span style={{ color: "var(--doc-ink-soft)" }}>{session.identifier}</span>
+              <span className="hidden sm:inline" style={{ color: "var(--doc-ink-soft)" }}>{session.identifier}</span>
               <span style={{ color: "var(--doc-accent)" }}>{formatBRL(session.balanceCents)}</span>
-              <button onClick={() => { setDepositError(null); setDepositOpen((v) => !v); }} className="rounded-[2px] border px-3 py-1.5 transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
+              <button onClick={() => { setDepositError(null); setDepositOpen((v) => !v); }} className="hidden rounded-[2px] border px-3 py-1.5 transition hover:-translate-y-0.5 sm:inline-block" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
                 Depositar
               </button>
-              <button onClick={handleLogout} className="transition hover:opacity-70" style={{ color: "var(--doc-ink-faint)" }}>
+              <button onClick={handleLogout} className="hidden transition hover:opacity-70 sm:inline-block" style={{ color: "var(--doc-ink-faint)" }}>
                 Sair
               </button>
             </>
           ) : (
-            <button onClick={() => (authOpen ? closeAuth() : openAuth(null))} className="rounded-[2px] border px-3.5 py-1.5 transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
+            <button onClick={() => (authOpen ? closeAuth() : openAuth(null))} className="hidden rounded-[2px] border px-3.5 py-1.5 transition hover:-translate-y-0.5 sm:inline-block" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
               Entrar
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={mobileOpen}
+            className="flex h-9 w-9 items-center justify-center rounded-[2px] border sm:hidden"
+            style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink)" }}
+          >
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
         </div>
       </header>
+
+      {mobileOpen && (
+        <div
+          className="fixed inset-x-0 top-[61px] bottom-0 z-40 overflow-y-auto sm:hidden"
+          style={{ background: "var(--doc-paper)" }}
+        >
+          <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
+            <a href="#ferramenta" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Avaliar</a>
+            <a href="#criterios" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Critérios</a>
+            <Link to="/veronica-curriculo-certo-rh" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Área RH</Link>
+            <a href={HUB_URL} target="_blank" rel="noopener noreferrer" onClick={() => setMobileOpen(false)} className="border-b py-3.5" style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink)" }}>Hub</a>
+
+            <div className="mt-6 flex flex-col gap-3">
+              {session ? (
+                <>
+                  <div className="text-[11px]" style={{ color: "var(--doc-ink-soft)" }}>{session.identifier} · {formatBRL(session.balanceCents)}</div>
+                  <button onClick={() => { setDepositError(null); setDepositOpen(true); setMobileOpen(false); }} className="rounded-[2px] border px-4 py-3 text-[11px]" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
+                    Depositar
+                  </button>
+                  <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="text-[11px]" style={{ color: "var(--doc-ink-faint)" }}>
+                    Sair
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => { openAuth(null); setMobileOpen(false); }} className="rounded-[2px] px-4 py-3 text-[11px]" style={{ background: "var(--doc-accent)", color: "var(--doc-paper)" }}>
+                  Entrar
+                </button>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
 
       {authOpen && !session && (
         <div
@@ -651,12 +714,33 @@ function CurriculoCerto() {
                 <span className="font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--doc-accent)" }}>
                   Currículo gerado · padrão ATS
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button onClick={copyGenerated} className="rounded-[2px] border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5" style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}>
                     Copiar texto
                   </button>
-                  <button onClick={downloadGenerated} className="rounded-[2px] px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5" style={{ background: "var(--doc-accent)", color: "var(--doc-paper)" }}>
-                    Baixar .txt
+                  <button
+                    onClick={() => downloadGenerated("txt")}
+                    disabled={exporting !== null}
+                    className="rounded-[2px] border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:opacity-50"
+                    style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}
+                  >
+                    {exporting === "txt" ? "Gerando…" : ".TXT"}
+                  </button>
+                  <button
+                    onClick={() => downloadGenerated("docx")}
+                    disabled={exporting !== null}
+                    className="rounded-[2px] border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:opacity-50"
+                    style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}
+                  >
+                    {exporting === "docx" ? "Gerando…" : ".DOCX"}
+                  </button>
+                  <button
+                    onClick={() => downloadGenerated("pdf")}
+                    disabled={exporting !== null}
+                    className="rounded-[2px] px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:opacity-50"
+                    style={{ background: "var(--doc-accent)", color: "var(--doc-paper)" }}
+                  >
+                    {exporting === "pdf" ? "Gerando…" : "Baixar PDF"}
                   </button>
                 </div>
               </div>
