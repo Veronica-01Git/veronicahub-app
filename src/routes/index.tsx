@@ -66,8 +66,9 @@ const ecosystem: EcosystemItem[] = [
     icon: BarChart3,
     name: "Veronica Analytics",
     tag: "TikTok Shop",
-    desc: "Análise de perfil e performance pra quem vende no TikTok Shop tomar decisão com dado, não achismo.",
-    ready: false,
+    desc: "Calculadora de engajamento e plano de ação pra vender mais no TikTok Shop.",
+    ready: true,
+    to: "/veronica-analytics",
   },
 ];
 
@@ -177,7 +178,6 @@ function Index() {
 
   const stats = useReveal<HTMLDivElement>();
   const proof = useReveal<HTMLElement>();
-  const catalog = useReveal<HTMLElement>();
   const featuresR = useReveal<HTMLElement>();
   const ecosystemR = useReveal<HTMLElement>();
   const pricingR = useReveal<HTMLElement>();
@@ -466,12 +466,11 @@ function Index() {
         </div>
       </section>
 
-      {/* Courses grid */}
-      <section
-        id="cursos"
-        ref={catalog.ref}
-        className={`reveal ${catalog.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24 cv-auto`}
-      >
+      {/* Courses grid — no scroll-reveal/content-visibility here: this section is tall
+          (11 cards stacked to 1 column on mobile) and the placeholder height used by
+          content-visibility:auto badly undersizes it on narrow viewports, which was
+          leaving the section stuck invisible between "[00]" and "[02]" on mobile. */}
+      <section id="cursos" className="mx-auto max-w-7xl px-6 py-24">
         <div className="mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
