@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const VERT = `
 attribute vec2 p;
@@ -73,92 +73,6 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
   gl.shaderSource(s, src);
   gl.compileShader(s);
   return s;
-}
-
-const HOLO_GREEN = "oklch(0.85 0.22 155)";
-const HOLO_CYAN = "oklch(0.88 0.15 195)";
-
-// Small fixed holographic emblem — energy core + two tilted rings. Pure SVG,
-// animated with SMIL (rotation/pulse) + one lightweight CSS float on the
-// wrapper. No canvas, no WebGL: cheap enough to run on every device, visible
-// in both the mobile flat background and the desktop WebGL parallax above.
-function HoloBadge() {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
-
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute right-5 top-5 animate-holo-badge-float sm:right-8 sm:top-8"
-      style={{ width: 110, height: 110 }}
-    >
-      <svg
-        viewBox="0 0 100 100"
-        className="h-full w-full"
-        style={{ filter: "drop-shadow(0 0 10px oklch(0.85 0.22 155 / 0.35))" }}
-      >
-        <ellipse
-          cx="50"
-          cy="50"
-          rx="42"
-          ry="14"
-          fill="none"
-          stroke={HOLO_CYAN}
-          strokeWidth="1.1"
-          opacity="0.5"
-          transform="rotate(-16 50 50)"
-        >
-          {!reduced && (
-            <animateTransform
-              attributeName="transform"
-              type="rotate"
-              from="-16 50 50"
-              to="344 50 50"
-              dur="14s"
-              repeatCount="indefinite"
-            />
-          )}
-        </ellipse>
-        <ellipse
-          cx="50"
-          cy="50"
-          rx="33"
-          ry="10"
-          fill="none"
-          stroke={HOLO_GREEN}
-          strokeWidth="1"
-          opacity="0.65"
-          transform="rotate(20 50 50)"
-        >
-          {!reduced && (
-            <animateTransform
-              attributeName="transform"
-              type="rotate"
-              from="20 50 50"
-              to="-340 50 50"
-              dur="10s"
-              repeatCount="indefinite"
-            />
-          )}
-        </ellipse>
-        <polygon
-          points="50,31 63,40.5 63,59.5 50,69 37,59.5 37,40.5"
-          fill={HOLO_GREEN}
-          fillOpacity="0.12"
-          stroke={HOLO_GREEN}
-          strokeWidth="1.3"
-        />
-        <circle cx="50" cy="50" r="3.4" fill={HOLO_CYAN}>
-          {!reduced && (
-            <animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite" />
-          )}
-        </circle>
-      </svg>
-    </div>
-  );
 }
 
 export function VeronicaHero() {
@@ -287,7 +201,7 @@ export function VeronicaHero() {
         ref={ref}
         aria-hidden
         className="pointer-events-none absolute inset-0 hidden h-full w-full md:block"
-        style={{ mixBlendMode: "screen", opacity: 0.9 }}
+        style={{ mixBlendMode: "screen", opacity: 0.7 }}
       />
       {/* Mobile stand-in: flat, cheap gradient — same tone already used for the
           site's base background (see body rule in styles.css), no WebGL, no texture. */}
@@ -299,7 +213,6 @@ export function VeronicaHero() {
             "radial-gradient(ellipse at top, oklch(0.22 0.05 180 / 0.25), transparent 60%), linear-gradient(180deg, oklch(0.17 0.02 200) 0%, oklch(0.13 0.015 200) 100%)",
         }}
       />
-      <HoloBadge />
     </>
   );
 }
