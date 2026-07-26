@@ -26,7 +26,7 @@ import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
 import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
-import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS } from "@/components/SiteChrome";
+import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, CyborgBackdrop } from "@/components/SiteChrome";
 import { courses } from "@/lib/courses";
 
 const HUB_URL = "https://veronicahub.com";
@@ -275,48 +275,10 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
-        {/* Cyborg holographic background */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 animate-holo-shimmer bg-cover bg-no-repeat opacity-[0.55] md:opacity-[0.45] lg:opacity-[0.38] bg-[position:42%_22%] md:bg-[position:46%_26%] lg:bg-[position:center_30%]"
-          style={{
-            backgroundImage: `url(${cyborgAsset.url})`,
-            filter: "contrast(1.05) saturate(0.85) brightness(0.9)",
-            mixBlendMode: "screen",
-          }}
-        />
-        {/* Holographic scanline sweep */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-32 animate-holo-sweep"
-          style={{
-            background:
-              "linear-gradient(180deg, transparent 0%, oklch(0.88 0.15 195 / 0.14) 45%, oklch(0.85 0.22 155 / 0.22) 50%, oklch(0.88 0.15 195 / 0.14) 55%, transparent 100%)",
-            mixBlendMode: "screen",
-          }}
-        />
-        {/* Static scanlines overlay */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, transparent 0 2px, oklch(0.14 0.015 200 / 0.35) 2px 3px)",
-            mixBlendMode: "multiply",
-          }}
-        />
-        {/* Fade overlays to blend with dark bg */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(90deg, var(--background) 0%, oklch(0.14 0.015 200 / 0.6) 40%, transparent 75%, oklch(0.14 0.015 200 / 0.85) 100%), linear-gradient(180deg, transparent 0%, transparent 55%, var(--background) 100%)",
-          }}
-        />
-        {/* Corner bracket */}
-        <div aria-hidden className="pointer-events-none absolute left-6 top-6 h-16 w-16 border-l-2 border-t-2 border-neon-green/70" />
-        <div aria-hidden className="pointer-events-none absolute right-6 bottom-6 h-16 w-16 border-r-2 border-b-2 border-neon-cyan/70" />
+        {/* Mesmo backdrop (WebGL parallax desktop / gradiente + HoloBadge mobile)
+            já em uso na Veronica Studio — antes era este mesmo empilhamento de
+            divs copiado à mão, sem o canvas. */}
+        <CyborgBackdrop />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
           <div className="max-w-3xl">
