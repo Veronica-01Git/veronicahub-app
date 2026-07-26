@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { Sparkles, TrendingUp, ShoppingBag } from "lucide-react";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, CyborgBackdrop } from "@/components/SiteChrome";
 import { calcEngagement, TIER_META, type EngagementResult, type Tier } from "@/lib/tiktok-engagement";
 
 export const Route = createFileRoute("/veronica-analytics")({
@@ -108,6 +108,7 @@ function VeronicaAnalytics() {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b px-6 py-16 md:py-24" style={{ borderColor: "var(--tt-line)" }}>
+        <CyborgBackdrop />
         <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--tt-cyan) 12%, transparent), transparent 55%), radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--tt-pink) 14%, transparent), transparent 55%)" }} />
         <div className="relative mx-auto max-w-5xl">
           <Sparkles8 />

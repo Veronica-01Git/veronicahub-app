@@ -215,18 +215,6 @@
   73% { opacity: 0.19; }
 }
 
-@keyframes holo-sweep {
-  0%   { transform: translateY(-30%); opacity: 0; }
-  10%  { opacity: 0.55; }
-  90%  { opacity: 0.55; }
-  100% { transform: translateY(130%); opacity: 0; }
-}
-
-@keyframes holo-shimmer {
-  0%, 100% { opacity: 0.18; filter: hue-rotate(0deg); }
-  50%      { opacity: 0.32; filter: hue-rotate(20deg); }
-}
-
 @utility animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
@@ -241,14 +229,6 @@
 
 @utility animate-flicker {
   animation: flicker 6s ease-in-out infinite;
-}
-
-@utility animate-holo-sweep {
-  animation: holo-sweep 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@utility animate-holo-shimmer {
-  animation: holo-shimmer 5s ease-in-out infinite;
 }
 
 /* Reveal on scroll */

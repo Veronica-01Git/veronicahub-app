@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { Youtube, Instagram, MessageCircle, Mail, ChevronDown, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
-import { VeronicaHero } from "@/components/VeronicaHero";
 
 export const HUB_URL = "https://veronicahub.com";
 
@@ -225,35 +224,17 @@ export function SiteHeader() {
 export function CyborgBackdrop() {
   return (
     <>
-      <VeronicaHero />
-      {/* Mobile: imagem estática, sem shimmer/hue-rotate — só posição, brilho
-          e contraste ajustados. O tratamento "holográfico" (shimmer, sweep,
-          scanlines) fica reservado pra md+, onde tem espaço/tela pra ele
-          respirar sem virar ruído visual num viewport estreito. */}
+      {/* Imagem estática da Veronica — sem WebGL, sem shimmer/hue-rotate,
+          sem sweep, sem scanlines. Só posição, contraste e brilho ajustados
+          pra ficar limpa e nítida em qualquer tela, igual em toda página que
+          usa este componente (home, Studio, Analytics, Security). */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.42] bg-[position:50%_18%] [filter:contrast(1.08)_saturate(0.85)_brightness(0.95)] md:animate-holo-shimmer md:opacity-[0.38] md:bg-[position:46%_26%] md:[filter:contrast(1.05)_saturate(0.8)_brightness(0.82)] lg:opacity-[0.32] lg:bg-[position:center_30%]"
+        className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.48] bg-[position:50%_16%] md:opacity-[0.44] md:bg-[position:46%_22%] lg:opacity-[0.4] lg:bg-[position:center_26%]"
         style={{
           backgroundImage: `url(${cyborgAsset.url})`,
+          filter: "contrast(1.08) saturate(0.88) brightness(0.98)",
           mixBlendMode: "screen",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 hidden h-32 md:block md:animate-holo-sweep"
-        style={{
-          background:
-            "linear-gradient(180deg, transparent 0%, oklch(0.88 0.15 195 / 0.14) 45%, oklch(0.85 0.22 155 / 0.22) 50%, oklch(0.88 0.15 195 / 0.14) 55%, transparent 100%)",
-          mixBlendMode: "screen",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 hidden opacity-40 md:block"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, transparent 0 2px, oklch(0.14 0.015 200 / 0.35) 2px 3px)",
-          mixBlendMode: "multiply",
         }}
       />
       <div
