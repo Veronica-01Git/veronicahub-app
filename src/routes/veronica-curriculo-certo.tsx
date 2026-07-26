@@ -89,6 +89,8 @@ const GENERATION_PRICE_CENTS = 990; // R$9,90 por geração — placeholder
 // própria, sem dado inventado: são só URLs de busca montadas dinamicamente.
 // ---------------------------------------------------------------------------
 
+const JOB_SEARCH_KEY = "cc_job_search_v1";
+
 const BR_STATES = [
   { uf: "AC", name: "Acre" }, { uf: "AL", name: "Alagoas" }, { uf: "AP", name: "Amapá" },
   { uf: "AM", name: "Amazonas" }, { uf: "BA", name: "Bahia" }, { uf: "CE", name: "Ceará" },
@@ -109,13 +111,25 @@ const JOB_NICHES = [
   "Telemarketing", "Segurança do Trabalho",
 ];
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function buildJobSearchLinks(city: string, uf: string, niche: string) {
   const loc = `${city}, ${uf}`;
   const query = [niche, city].filter(Boolean).join(" ");
+  const term = niche || city;
   return [
     { name: "Google Empregos", url: `https://www.google.com/search?q=${encodeURIComponent(`vagas de emprego ${query}`)}&ibp=htl;jobs` },
     { name: "LinkedIn Vagas", url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(niche)}&location=${encodeURIComponent(`${loc}, Brasil`)}` },
     { name: "Indeed", url: `https://br.indeed.com/jobs?q=${encodeURIComponent(niche)}&l=${encodeURIComponent(loc)}` },
+    { name: "Gupy", url: `https://portal.gupy.io/job-search/term=${encodeURIComponent(term)}` },
+    { name: "Vagas.com", url: `https://www.vagas.com.br/vagas-de-${slugify(term)}` },
   ];
 }
 
@@ -214,6 +228,36 @@ function CurriculoCerto() {
   const [jobUf, setJobUf] = useState("SP");
   const [jobNiche, setJobNiche] = useState("Todos");
   const [jobLinks, setJobLinks] = useState<{ name: string; url: string }[] | null>(null);
+  const [nicheSuggested, setNicheSuggested] = useState(false);
+
+  // Lembra a última busca de vagas entre visitas.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(JOB_SEARCH_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { city?: string; uf?: string; niche?: string };
+      if (saved.city) setJobCity(saved.city);
+      if (saved.uf) setJobUf(saved.uf);
+      if (saved.niche) setJobNiche(saved.niche);
+    } catch {
+      // localStorage indisponível ou dado corrompido — segue com os padrões.
+    }
+  }, []);
+  useEffect(() => {
+    window.localStorage.setItem(JOB_SEARCH_KEY, JSON.stringify({ city: jobCity, uf: jobUf, niche: jobNiche }));
+  }, [jobCity, jobUf, jobNiche]);
+
+  // Sugere um nicho com base no currículo já gerado — só uma vez, e só se o
+  // usuário ainda não tiver escolhido nada manualmente.
+  useEffect(() => {
+    if (!generated || jobNiche !== "Todos" || nicheSuggested) return;
+    const haystack = generated.text.toLowerCase();
+    const match = JOB_NICHES.find((n) => haystack.includes(n.toLowerCase()));
+    if (match) {
+      setJobNiche(match);
+      setNicheSuggested(true);
+    }
+  }, [generated, jobNiche, nicheSuggested]);
 
   const [mode, setMode] = useState<"build" | "paste">("build");
   const [builderName, setBuilderName] = useState("");
@@ -1076,12 +1120,14 @@ function CurriculoCerto() {
             </div>
 
             <div className="mt-4">
-              <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>Nicho</span>
+              <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--doc-ink-faint)" }}>
+                Nicho {nicheSuggested && <span style={{ color: "var(--doc-accent)" }}>· sugerido a partir do seu currículo</span>}
+              </span>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {["Todos", ...JOB_NICHES].map((n) => (
                   <button
                     key={n}
-                    onClick={() => setJobNiche(n)}
+                    onClick={() => { setJobNiche(n); setNicheSuggested(false); }}
                     className="rounded-full border px-3 py-1 font-mono-tech text-[10px] uppercase tracking-widest transition"
                     style={
                       jobNiche === n
