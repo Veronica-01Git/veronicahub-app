@@ -132,6 +132,24 @@ const courses: Course[] = [
   { title: "Hacking Ético", tag: "Segurança", lessons: 34, hours: "8h", level: "Avançado", image: vfx5.url, perks: ["Pentesting real", "Bug bounty", "Lab dedicado"] },
 ];
 
+type PartnerCourse = {
+  title: string;
+  author: string;
+  desc: string;
+  url: string;
+};
+
+// Curadoria de terceiros — fora do catálogo oficial do Hub. Nenhum parceiro
+// publicado ainda; a seção só renderiza quando este array tiver itens.
+const partnerCourses: PartnerCourse[] = [
+  // {
+  //   title: "Nome do curso",
+  //   author: "Nome do instrutor/autor",
+  //   desc: "Descrição curta do que o curso ensina.",
+  //   url: "https://exemplo.com/curso",
+  // },
+];
+
 const testimonials = [
   { name: "Marina R.", handle: "@marinacria", course: "Canais Dark", result: "R$ 12k/mês em 90 dias", quote: "Larguei a CLT. O método é execução pura, sem enrolação. Em 3 meses tinha 2 canais rodando no automático." },
   { name: "Diego F.", handle: "@diegoflow", course: "VSL + Meta Ads", result: "+340% ROAS", quote: "Nunca vi uma didática tão direta. A Veronica corta o fluff e vai pro que faz vender. Aplicável no dia 1." },
@@ -602,6 +620,45 @@ function Index() {
           ))}
         </div>
       </section>
+
+      {/* Recomendados (curadoria de parceiros — fora do catálogo oficial) */}
+      {partnerCourses.length > 0 && (
+        <section id="recomendados" className="mx-auto max-w-7xl px-6 pb-24">
+          <div className="mb-8 flex flex-col gap-3 rounded-sm border border-border/50 bg-muted/20 p-6">
+            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="h-px w-8 bg-muted-foreground/50" />
+              Recomendados pela Veronica
+            </div>
+            <p className="max-w-2xl text-xs leading-[1.6] text-muted-foreground">
+              Conteúdo de parceiros selecionados — fora do catálogo oficial do Hub.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {partnerCourses.map((p) => (
+              <a
+                key={p.title}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className="group relative overflow-hidden rounded-sm border border-border/50 bg-surface/40 p-6 transition duration-300 hover:-translate-y-1 hover:border-muted-foreground/60"
+              >
+                <span className="absolute right-3 top-3 rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                  Parceiro
+                </span>
+                <h3 className="pr-16 font-display text-xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1.05" }}>
+                  {p.title}
+                </h3>
+                <p className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">{p.author}</p>
+                <p className="mt-4 text-[13px] leading-[1.6] text-muted-foreground">{p.desc}</p>
+                <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-foreground">
+                  Ver curso <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Features */}
       <section
