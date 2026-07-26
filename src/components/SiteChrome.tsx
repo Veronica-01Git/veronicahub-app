@@ -226,18 +226,21 @@ export function CyborgBackdrop() {
   return (
     <>
       <VeronicaHero />
+      {/* Mobile: imagem estática, sem shimmer/hue-rotate — só posição, brilho
+          e contraste ajustados. O tratamento "holográfico" (shimmer, sweep,
+          scanlines) fica reservado pra md+, onde tem espaço/tela pra ele
+          respirar sem virar ruído visual num viewport estreito. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 animate-holo-shimmer bg-cover bg-no-repeat opacity-[0.46] md:opacity-[0.38] lg:opacity-[0.32] bg-[position:42%_22%] md:bg-[position:46%_26%] lg:bg-[position:center_30%]"
+        className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.42] bg-[position:50%_18%] [filter:contrast(1.08)_saturate(0.85)_brightness(0.95)] md:animate-holo-shimmer md:opacity-[0.38] md:bg-[position:46%_26%] md:[filter:contrast(1.05)_saturate(0.8)_brightness(0.82)] lg:opacity-[0.32] lg:bg-[position:center_30%]"
         style={{
           backgroundImage: `url(${cyborgAsset.url})`,
-          filter: "contrast(1.05) saturate(0.8) brightness(0.82)",
           mixBlendMode: "screen",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-32 animate-holo-sweep"
+        className="pointer-events-none absolute inset-x-0 top-0 hidden h-32 md:block md:animate-holo-sweep"
         style={{
           background:
             "linear-gradient(180deg, transparent 0%, oklch(0.88 0.15 195 / 0.14) 45%, oklch(0.85 0.22 155 / 0.22) 50%, oklch(0.88 0.15 195 / 0.14) 55%, transparent 100%)",
@@ -246,7 +249,7 @@ export function CyborgBackdrop() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-40"
+        className="pointer-events-none absolute inset-0 hidden opacity-40 md:block"
         style={{
           backgroundImage:
             "repeating-linear-gradient(0deg, transparent 0 2px, oklch(0.14 0.015 200 / 0.35) 2px 3px)",
