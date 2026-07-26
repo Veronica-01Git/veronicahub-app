@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type CSSProperties, type FormEvent } from "react";
-import { Sparkles, TrendingUp, ShoppingBag } from "lucide-react";
+import { useMemo, useState, type CSSProperties } from "react";
+import { Sparkles, TrendingUp, ShoppingBag, RotateCcw } from "lucide-react";
 import { SiteHeader, SiteFooter, CyborgBackdrop } from "@/components/SiteChrome";
 import { calcEngagement, TIER_META, type EngagementResult, type Tier } from "@/lib/tiktok-engagement";
 
@@ -62,18 +62,42 @@ function Sparkles8() {
   );
 }
 
-function NumberField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder: string }) {
+function NumberField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  size = "md",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  size?: "md" | "lg";
+}) {
+  const formatted = value ? Number(value).toLocaleString("pt-BR") : "";
   return (
     <label className="flex flex-col gap-2">
-      <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>{label}</span>
+      <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
+        {label}
+      </span>
       <input
         type="text"
         inputMode="numeric"
-        value={value}
+        value={formatted}
         onChange={(e) => onChange(e.target.value.replace(/[^\d]/g, ""))}
         placeholder={placeholder}
-        className="rounded-xl border px-4 py-3 text-[15px] outline-none"
-        style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface)", color: "var(--tt-ink)" }}
+        className={`rounded-xl border outline-none transition focus:ring-2 focus:ring-offset-0 ${
+          size === "lg" ? "px-5 py-4 text-[19px]" : "px-4 py-3 text-[15px]"
+        }`}
+        style={
+          {
+            borderColor: "var(--tt-line)",
+            background: "var(--tt-surface)",
+            color: "var(--tt-ink)",
+            "--tw-ring-color": "var(--tt-cyan)",
+          } as CSSProperties
+        }
       />
     </label>
   );
@@ -85,22 +109,28 @@ function VeronicaAnalytics() {
   const [avgComments, setAvgComments] = useState("");
   const [avgShares, setAvgShares] = useState("");
   const [avgViews, setAvgViews] = useState("");
-  const [result, setResult] = useState<EngagementResult | null>(null);
 
-  function handleCalculate(e: FormEvent) {
-    e.preventDefault();
-    const input = {
+  const hasFollowers = Number(followers) > 0;
+
+  // Recalcula na hora, a cada tecla — sem precisar clicar em nada.
+  const result: EngagementResult | null = useMemo(() => {
+    if (!hasFollowers) return null;
+    return calcEngagement({
       followers: Number(followers) || 0,
       avgLikes: Number(avgLikes) || 0,
       avgComments: Number(avgComments) || 0,
       avgShares: Number(avgShares) || 0,
       avgViews: Number(avgViews) || 0,
-    };
-    if (input.followers <= 0) return;
-    setResult(calcEngagement(input));
-  }
+    });
+  }, [followers, avgLikes, avgComments, avgShares, avgViews, hasFollowers]);
 
-  const canCalculate = Number(followers) > 0;
+  function handleReset() {
+    setFollowers("");
+    setAvgLikes("");
+    setAvgComments("");
+    setAvgShares("");
+    setAvgViews("");
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ ...tt, background: "var(--tt-bg)", color: "var(--tt-ink)" }}>
@@ -117,15 +147,16 @@ function VeronicaAnalytics() {
             Veronica Analytics · TikTok Shop
           </div>
           <h1
-            className="mt-6 font-display text-5xl sm:text-6xl md:text-7xl"
+            className="mt-6 font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
             style={{ letterSpacing: "-0.03em", lineHeight: "0.95", textShadow: "-2px 0 var(--tt-cyan), 2px 0 var(--tt-pink)" }}
           >
             Descubra seu potencial
             <br />
             no <span style={{ color: "var(--tt-pink)", textShadow: "none" }}>TikTok Shop</span>.
           </h1>
-          <p className="mt-6 max-w-xl text-[16px] leading-[1.65]" style={{ color: "var(--tt-ink-soft)" }}>
-            Cole os números do seu próprio perfil, receba sua taxa de engajamento na hora e um plano de ação pra vender mais — sem cadastro, sem enrolação.
+          <p className="mt-6 max-w-xl text-[15px] leading-[1.65] sm:text-[16px]" style={{ color: "var(--tt-ink-soft)" }}>
+            Cole os números do seu próprio perfil e receba sua taxa de engajamento na hora — o resultado atualiza
+            enquanto você digita, sem cadastro, sem enrolação.
           </p>
           <a
             href="#calculadora"
@@ -144,35 +175,48 @@ function VeronicaAnalytics() {
             <span className="h-px w-8" style={{ background: "var(--tt-pink)" }} />
             Calculadora de engajamento
           </div>
-          <form onSubmit={handleCalculate} className="rounded-2xl border p-6 sm:p-8" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <NumberField label="Seguidores" value={followers} onChange={setFollowers} placeholder="Ex.: 12000" />
-              <NumberField label="Visualizações médias por vídeo" value={avgViews} onChange={setAvgViews} placeholder="Opcional" />
-              <NumberField label="Curtidas médias por vídeo" value={avgLikes} onChange={setAvgLikes} placeholder="Ex.: 800" />
-              <NumberField label="Comentários médios por vídeo" value={avgComments} onChange={setAvgComments} placeholder="Ex.: 40" />
-              <NumberField label="Compartilhamentos médios" value={avgShares} onChange={setAvgShares} placeholder="Ex.: 20" />
+          <div className="rounded-2xl border p-6 sm:p-8" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}>
+            <NumberField label="Seguidores" value={followers} onChange={setFollowers} placeholder="Ex.: 12000" size="lg" />
+
+            <div className="mb-3 mt-7 font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
+              Métricas médias por vídeo · opcional, deixa o plano de ação mais preciso
             </div>
-            <button
-              type="submit"
-              disabled={!canCalculate}
-              className="mt-6 inline-flex items-center gap-2 rounded-full px-7 py-3.5 font-mono-tech text-[12px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ background: "linear-gradient(90deg, var(--tt-cyan), var(--tt-pink))", color: "#0d0d0f" }}
-            >
-              Calcular engajamento
-            </button>
-            <p className="mt-3 text-[12px]" style={{ color: "var(--tt-ink-faint)" }}>Cálculo feito no seu navegador com os números que você digitar — nada é enviado a servidor nenhum.</p>
-          </form>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <NumberField label="Visualizações" value={avgViews} onChange={setAvgViews} placeholder="Ex.: 5000" />
+              <NumberField label="Curtidas" value={avgLikes} onChange={setAvgLikes} placeholder="Ex.: 800" />
+              <NumberField label="Comentários" value={avgComments} onChange={setAvgComments} placeholder="Ex.: 40" />
+              <NumberField label="Compartilhamentos" value={avgShares} onChange={setAvgShares} placeholder="Ex.: 20" />
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t pt-5" style={{ borderColor: "var(--tt-line)" }}>
+              <p className="max-w-sm text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-faint)" }}>
+                {hasFollowers
+                  ? "Cálculo feito no seu navegador — nada é enviado a servidor nenhum."
+                  : "Informe ao menos os seguidores pra ver o resultado."}
+              </p>
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={!followers && !avgLikes && !avgComments && !avgShares && !avgViews}
+                className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:translate-y-0"
+                style={{ borderColor: "var(--tt-line)", color: "var(--tt-ink-soft)" }}
+              >
+                <RotateCcw className="h-3 w-3" />
+                Limpar
+              </button>
+            </div>
+          </div>
 
           {result && (
             <div className="mt-8 rounded-2xl border p-6 sm:p-8" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}>
-              <div className="flex flex-wrap items-center gap-8">
+              <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:flex-wrap sm:items-center sm:gap-8 sm:text-left">
                 <div className="flex flex-col items-center">
-                  <span className="font-display text-6xl" style={{ color: TIER_COLOR[result.tier] }}>{result.erByFollowers.toFixed(1)}%</span>
+                  <span className="font-display text-6xl tabular-nums" style={{ color: TIER_COLOR[result.tier] }}>{result.erByFollowers.toFixed(1)}%</span>
                   <span className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>Por seguidor</span>
                 </div>
                 {result.erByViews !== null && (
                   <div className="flex flex-col items-center">
-                    <span className="font-display text-4xl" style={{ color: "var(--tt-ink)" }}>{result.erByViews.toFixed(1)}%</span>
+                    <span className="font-display text-4xl tabular-nums" style={{ color: "var(--tt-ink)" }}>{result.erByViews.toFixed(1)}%</span>
                     <span className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>Por visualização</span>
                   </div>
                 )}
