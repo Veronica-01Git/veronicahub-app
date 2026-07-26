@@ -15,7 +15,7 @@ import {
   X,
   GraduationCap,
 } from "lucide-react";
-import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, SOCIAL_LINKS, CyborgBackdrop } from "@/components/SiteChrome";
 import { courses } from "@/lib/courses";
 
 export const Route = createFileRoute("/veronica-security")({
@@ -181,34 +181,38 @@ function VeronicaSecurity() {
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {/* Hero — direto ao ponto, um único CTA */}
-      <section className="relative overflow-hidden border-b border-border/40 py-16 md:py-24">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-30"
-          style={{ background: "radial-gradient(circle at 20% 10%, oklch(0.85 0.22 155 / 0.18), transparent 55%)" }}
-        />
-        <div className="relative mx-auto max-w-3xl px-6 text-center">
-          <div className="mx-auto inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-            Veronica Security · Diagnóstico manual
+      {/* Hero — mesmo padrão visual da Studio: CyborgBackdrop + texto direto */}
+      <section className="relative overflow-hidden scanlines">
+        <CyborgBackdrop />
+        <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-16 md:pb-28 md:pt-24">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+              Veronica Security · Diagnóstico manual
+            </div>
+            <h1 className="mt-8 font-display text-5xl sm:text-6xl md:text-7xl" style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}>
+              <span className="block text-foreground">Seu projeto está</span>
+              <span className="block text-outline-neon animate-glow-pulse">
+                mais exposto<span className="text-neon-green">_</span>
+              </span>
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
+              Um checklist rápido e gratuito, em linguagem simples, pra saber onde estão os riscos reais.
+              Sem varredura automática — só o que você mesmo sabe sobre o seu projeto.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <a
+                href="#triagem"
+                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
+              >
+                Fazer a triagem grátis <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]" />
+              </a>
+            </div>
+            <p className="mt-4 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground/70">
+              Leva 2 minutos · 8 perguntas
+            </p>
           </div>
-          <h1 className="mx-auto mt-6 max-w-2xl font-display text-4xl sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
-            Seu projeto está mais <span className="text-neon-green text-glow-green">exposto</span> do que parece.
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-[1.65] text-muted-foreground">
-            Um checklist rápido e gratuito, em linguagem simples, pra saber onde estão os riscos reais.
-            Sem varredura automática — só o que você mesmo sabe sobre o seu projeto.
-          </p>
-          <a
-            href="#triagem"
-            className="group relative mt-8 inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
-          >
-            Fazer a triagem grátis <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </a>
-          <p className="mt-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground/70">
-            Leva 2 minutos · 8 perguntas
-          </p>
         </div>
       </section>
 
