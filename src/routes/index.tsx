@@ -18,6 +18,7 @@ import {
   Wand2,
   FileText,
   BarChart3,
+  ShieldCheck,
   Menu,
   X,
 } from "lucide-react";
@@ -64,6 +65,14 @@ const ecosystem: EcosystemItem[] = [
     desc: "Calculadora de engajamento e plano de ação pra vender mais no TikTok Shop.",
     ready: true,
     to: "/veronica-analytics",
+  },
+  {
+    icon: ShieldCheck,
+    name: "Veronica Security",
+    tag: "Segurança",
+    desc: "Triagem gratuita de segurança em linguagem simples, mais diagnóstico completo sob demanda.",
+    ready: true,
+    to: "/veronica-security",
   },
 ];
 
@@ -569,7 +578,7 @@ function Index() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ecosystem.map((e) => {
             const cardClass = `group relative overflow-hidden rounded-sm border p-6 backdrop-blur transition duration-300 ${
               e.ready

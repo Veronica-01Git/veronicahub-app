@@ -110,6 +110,7 @@ function Comandos() {
           {filtered.map((c, i) => (
             <a
               key={c.title}
+              id={c.title === "Hacking Ético" ? "hacking-etico" : undefined}
               href={HUB_URL}
               target="_blank"
               rel="noopener noreferrer"

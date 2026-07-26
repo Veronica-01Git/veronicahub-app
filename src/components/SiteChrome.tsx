@@ -22,6 +22,7 @@ export const ECOSYSTEM_LINKS: EcosystemLink[] = [
   { name: "Currículo-Certo", tag: "Currículo pronto pra ATS", to: "/veronica-curriculo-certo", ready: true },
   { name: "Veronica Wire", tag: "Jornal digital de IA", to: "/blog", ready: true },
   { name: "Veronica Analytics", tag: "Análise de perfil TikTok Shop", to: "/veronica-analytics", ready: true },
+  { name: "Veronica Security", tag: "Diagnóstico de segurança", to: "/veronica-security", ready: true },
 ];
 
 export function EcosystemMenu() {

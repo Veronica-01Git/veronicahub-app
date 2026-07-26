@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VideoIaRouteImport } from './routes/video-ia'
+import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security'
 import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
 import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VideoIaRoute = VideoIaRouteImport.update({
   id: '/video-ia',
   path: '/video-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeronicaSecurityRoute = VeronicaSecurityRouteImport.update({
+  id: '/veronica-security',
+  path: '/veronica-security',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VeronicaCurriculoCertoRhRoute =
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
+  '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
 }
 export interface FileRoutesByTo {
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
+  '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
 }
 export interface FileRoutesById {
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
+  '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
 }
 export interface FileRouteTypes {
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
+    | '/veronica-security'
     | '/video-ia'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
+    | '/veronica-security'
     | '/video-ia'
   id:
     | '__root__'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
+    | '/veronica-security'
     | '/video-ia'
   fileRoutesById: FileRoutesById
 }
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   VeronicaAnalyticsRoute: typeof VeronicaAnalyticsRoute
   VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
   VeronicaCurriculoCertoRhRoute: typeof VeronicaCurriculoCertoRhRoute
+  VeronicaSecurityRoute: typeof VeronicaSecurityRoute
   VideoIaRoute: typeof VideoIaRoute
 }
 
@@ -129,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/video-ia'
       fullPath: '/video-ia'
       preLoaderRoute: typeof VideoIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-security': {
+      id: '/veronica-security'
+      path: '/veronica-security'
+      fullPath: '/veronica-security'
+      preLoaderRoute: typeof VeronicaSecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/veronica-curriculo-certo-rh': {
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   VeronicaAnalyticsRoute: VeronicaAnalyticsRoute,
   VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
   VeronicaCurriculoCertoRhRoute: VeronicaCurriculoCertoRhRoute,
+  VeronicaSecurityRoute: VeronicaSecurityRoute,
   VideoIaRoute: VideoIaRoute,
 }
 export const routeTree = rootRouteImport
