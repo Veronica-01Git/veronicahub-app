@@ -13,6 +13,7 @@ import { Route as VideoIaRouteImport } from './routes/video-ia'
 import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
 import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
+import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -37,6 +38,11 @@ const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
   path: '/veronica-analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComandosRoute = ComandosRouteImport.update({
+  id: '/comandos',
+  path: '/comandos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -51,6 +57,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
+  '/comandos': typeof ComandosRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
+  '/comandos': typeof ComandosRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
+  '/comandos': typeof ComandosRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/blog'
+    | '/comandos'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/blog'
+    | '/comandos'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/blog'
+    | '/comandos'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -103,6 +115,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlogRoute: typeof BlogRoute
+  ComandosRoute: typeof ComandosRoute
   VeronicaAnalyticsRoute: typeof VeronicaAnalyticsRoute
   VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
   VeronicaCurriculoCertoRhRoute: typeof VeronicaCurriculoCertoRhRoute
@@ -139,6 +152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VeronicaAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comandos': {
+      id: '/comandos'
+      path: '/comandos'
+      fullPath: '/comandos'
+      preLoaderRoute: typeof ComandosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -159,6 +179,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlogRoute: BlogRoute,
+  ComandosRoute: ComandosRoute,
   VeronicaAnalyticsRoute: VeronicaAnalyticsRoute,
   VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
   VeronicaCurriculoCertoRhRoute: VeronicaCurriculoCertoRhRoute,

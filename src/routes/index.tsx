@@ -21,18 +21,13 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
 import ogImage from "@/assets/og-veronica-hub.jpg";
-import vfx1 from "@/assets/vfx/pexels-merlin-11308988.jpg.asset.json";
-import vfx2 from "@/assets/vfx/pexels-themob000-30895543.jpg.asset.json";
-import vfx3 from "@/assets/vfx/pexels-yaroslav-shuraev-7688551.jpg.asset.json";
-import vfx4 from "@/assets/vfx/pexels-leo-gilmant-1144880343-30459143.jpg.asset.json";
-import vfx5 from "@/assets/vfx/pexels-cottonbro-6153739.jpg.asset.json";
-import vfx6 from "@/assets/vfx/pexels-merlin-14268798.jpg.asset.json";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
 import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS } from "@/components/SiteChrome";
+import { courses } from "@/lib/courses";
 
 const HUB_URL = "https://veronicahub.com";
 
@@ -107,36 +102,12 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Course = {
-  title: string;
-  tag: string;
-  lessons: number;
-  hours: string;
-  level: "Iniciante" | "Intermediário" | "Avançado";
-  featured?: boolean;
-  perks: [string, string, string];
-  image: string;
-};
-
-const courses: Course[] = [
-  { title: "Canais Dark", tag: "Conteúdo", lessons: 32, hours: "6h", level: "Intermediário", featured: true, image: vfx1.url, perks: ["Nichos ocultos que faturam", "Automação com IA", "Monetização YouTube"] },
-  { title: "VSL Cinematográfico", tag: "Vídeo", lessons: 24, hours: "5h", level: "Intermediário", image: vfx6.url, perks: ["Roteiro que converte", "Edição cinematográfica", "CapCut + IA"] },
-  { title: "Avatar Digital IA", tag: "IA", lessons: 18, hours: "4h", level: "Iniciante", image: vfx4.url, perks: ["Clone da sua voz", "Avatar realista", "Automação total"] },
-  { title: "Afiliado", tag: "Vendas", lessons: 28, hours: "5h", level: "Iniciante", image: vfx2.url, perks: ["Primeira comissão", "Funil validado", "Escala orgânica"] },
-  { title: "iFood", tag: "Delivery", lessons: 20, hours: "3h", level: "Iniciante", image: vfx3.url, perks: ["Dark kitchen", "Anúncios que vendem", "Escala local"] },
-  { title: "Meta Ads", tag: "Tráfego", lessons: 26, hours: "6h", level: "Intermediário", image: vfx2.url, perks: ["Estrutura de campanha", "Escala vertical", "Otimização diária"] },
-  { title: "VFX com IA", tag: "IA", lessons: 16, hours: "4h", level: "Avançado", image: vfx5.url, perks: ["Runway + Kling", "Efeitos cinematográficos", "Pipeline pro"] },
-  { title: "Copywriting", tag: "Escrita", lessons: 22, hours: "4h", level: "Iniciante", image: vfx6.url, perks: ["Fórmulas que vendem", "IA como parceira", "Portfolio real"] },
-  { title: "App no-code", tag: "Dev", lessons: 30, hours: "7h", level: "Intermediário", image: vfx3.url, perks: ["App em 7 dias", "Backend automático", "Publicar nas stores"] },
-  { title: "Criar Site", tag: "Dev", lessons: 24, hours: "5h", level: "Iniciante", image: vfx1.url, perks: ["Sem código", "Deploy grátis", "SEO técnico"] },
-  { title: "Hacking Ético", tag: "Segurança", lessons: 34, hours: "8h", level: "Avançado", image: vfx5.url, perks: ["Pentesting real", "Bug bounty", "Lab dedicado"] },
-];
-
 type PartnerCourse = {
   title: string;
   author: string;
   desc: string;
   url: string;
+  tag: string;
 };
 
 // Curadoria de terceiros — fora do catálogo oficial do Hub. Nenhum parceiro
@@ -147,8 +118,12 @@ const partnerCourses: PartnerCourse[] = [
   //   author: "Nome do instrutor/autor",
   //   desc: "Descrição curta do que o curso ensina.",
   //   url: "https://exemplo.com/curso",
+  //   tag: "Parceiro",
   // },
 ];
+
+// 3 comandos em destaque no teaser da home — a grade completa mora em /comandos.
+const TEASER_TITLES = ["Canais Dark", "Avatar Digital IA", "VFX com IA"];
 
 const testimonials = [
   { name: "Marina R.", handle: "@marinacria", course: "Canais Dark", result: "R$ 12k/mês em 90 dias", quote: "Larguei a CLT. O método é execução pura, sem enrolação. Em 3 meses tinha 2 canais rodando no automático." },
@@ -173,13 +148,7 @@ const faqs = [
   { q: "Quanto tempo leva pra ter resultado?", a: "Depende de execução. Alunos aplicando 1h/dia costumam ter primeiros resultados entre 30 e 90 dias." },
 ];
 
-const TAG_ALL = "Todos";
-
 function Index() {
-  const tags = useMemo(() => [TAG_ALL, ...Array.from(new Set(courses.map((c) => c.tag)))], []);
-  const [activeTag, setActiveTag] = useState<string>(TAG_ALL);
-  const filtered = activeTag === TAG_ALL ? courses : courses.filter((c) => c.tag === activeTag);
-
   const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
     if (!mobileOpen) return;
@@ -220,19 +189,14 @@ function Index() {
             <span className="text-muted-foreground">Hub</span>
           </a>
           <nav className="hidden items-center gap-1 text-xs font-mono-tech uppercase tracking-wider md:flex">
-            {[
-              { href: "#cursos", label: "Cursos" },
-              { href: "#sobre", label: "Sobre" },
-            ].map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-              >
-                {l.label}
-                <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-              </a>
-            ))}
+            <Link to="/comandos" className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green">
+              Comandos
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
+            <a href="#sobre" className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green">
+              Sobre
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </a>
             <EcosystemMenu />
             <Link to="/blog" className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green">
               Blog
@@ -271,7 +235,7 @@ function Index() {
       {mobileOpen && (
         <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
           <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
-            <a href="#cursos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Cursos</a>
+            <Link to="/comandos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Comandos</Link>
             <a href="#sobre" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Sobre</a>
             <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Blog</Link>
             <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ecossistema</div>
@@ -387,12 +351,12 @@ function Index() {
                 Entrar no Hub
                 <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]" />
               </a>
-              <a
-                href="#cursos"
+              <Link
+                to="/comandos"
                 className="group inline-flex items-center gap-2 rounded-sm border border-border/60 bg-background/40 px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-muted-foreground backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-neon-cyan/60 hover:bg-neon-cyan/5 hover:text-neon-cyan active:translate-y-0"
               >
-                Ver os 11 cursos <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-              </a>
+                Ver os comandos <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </div>
           </div>
 
@@ -402,7 +366,7 @@ function Index() {
             className={`reveal ${stats.visible ? "reveal-visible" : ""} mt-20 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 cv-auto`}
           >
             {[
-              { value: `${c1}`, suffix: "+", label: "Cursos no hub" },
+              { value: `${c1}`, suffix: "+", label: "Comandos no hub" },
               { value: `${c2}`, suffix: "%", label: "Online · vitalício" },
               { value: `${c3.toLocaleString("pt-BR")}`, suffix: "+", label: "Alunos ativos" },
               { value: "R$19", suffix: ",90", label: "A partir de" },
@@ -489,15 +453,13 @@ function Index() {
         </div>
       </section>
 
-      {/* Courses grid — no scroll-reveal/content-visibility here: this section is tall
-          (11 cards stacked to 1 column on mobile) and the placeholder height used by
-          content-visibility:auto badly undersizes it on narrow viewports, which was
-          leaving the section stuck invisible between "[00]" and "[02]" on mobile. */}
-      <section id="cursos" className="mx-auto max-w-7xl px-6 py-24">
+      {/* Comandos teaser — enxuto de propósito. A grade completa com filtro
+          por categoria mora em /comandos; aqui é só a porta de entrada. */}
+      <section id="comandos" className="mx-auto max-w-7xl px-6 py-24">
         <div className="mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
-            [ 01 ] Catálogo · 11 cursos
+            [ 01 ] Comandos · 11 no catálogo
           </div>
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
             Do <span className="text-neon-green text-glow-green">dark content</span>
@@ -505,119 +467,56 @@ function Index() {
             ao <span className="text-neon-cyan text-glow-cyan">hacking ético</span>.
           </h2>
           <p className="max-w-2xl leading-[1.65] text-muted-foreground">
-            Sem fluff. Cada curso é construído sobre resultado real e execução prática.
+            Sem fluff. Cada comando é construído sobre resultado real e execução prática.
           </p>
         </div>
 
-        {/* Tag filter */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          {tags.map((tag) => {
-            const active = activeTag === tag;
-            return (
-              <button
-                key={tag}
-                onClick={() => setActiveTag(tag)}
-                className={`rounded-full border px-3.5 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest transition ${
-                  active
-                    ? "border-neon-green bg-neon-green/15 text-neon-green shadow-[0_0_20px_-4px_oklch(0.85_0.22_155/0.7)]"
-                    : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
-                }`}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {courses
+            .filter((c) => TEASER_TITLES.includes(c.title))
+            .map((c) => (
+              <Link
+                key={c.title}
+                to="/comandos"
+                className="group relative overflow-hidden rounded-sm border border-border/60 bg-surface/70 p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-neon-green/60 hover:bg-surface hover:shadow-glow-green"
               >
-                {tag}
-              </button>
-            );
-          })}
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full border border-border/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
+                    {c.tag}
+                  </span>
+                  {c.featured && (
+                    <span className="rounded-full bg-neon-green px-2 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-primary-foreground shadow-glow-green">
+                      Mais vendido
+                    </span>
+                  )}
+                </div>
+                <h3 className="mt-5 font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+                  {c.title}
+                </h3>
+                <p className="mt-3 text-[13px] leading-[1.5] text-muted-foreground">{c.perks[0]}</p>
+                <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
+                  Ver comando <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                </div>
+              </Link>
+            ))}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((c, i) => (
-            <a
-              key={c.title}
-              href={HUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`group relative overflow-hidden rounded-sm border p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-glow-green ${
-                c.featured
-                  ? "border-neon-green/60 bg-gradient-to-br from-neon-green/8 via-surface/70 to-surface"
-                  : "border-border/60 bg-surface/70 hover:border-neon-green/60 hover:bg-surface"
-              }`}
-            >
-              {/* VFX thumbnail with hover animations */}
-              <div className="relative -mx-6 -mt-6 mb-6 h-36 overflow-hidden border-b border-border/50">
-                <img
-                  src={c.image}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:[filter:contrast(1.15)_saturate(1.2)_hue-rotate(-8deg)] [filter:contrast(1.05)_saturate(0.75)_brightness(0.75)_hue-rotate(140deg)]"
-                />
-                {/* Neon color wash */}
-                <div
-                  aria-hidden
-                  className="absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-40"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, oklch(0.85 0.22 155 / 0.35) 0%, transparent 45%, oklch(0.88 0.15 195 / 0.25) 100%)",
-                    mixBlendMode: "screen",
-                  }}
-                />
-                {/* Dark fade for legibility */}
-                <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent" />
-                {/* Scanlines */}
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 opacity-50"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(0deg, transparent 0 2px, oklch(0.14 0.015 200 / 0.4) 2px 3px)",
-                  }}
-                />
-                {/* Holo sweep on hover */}
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-neon-cyan/25 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full"
-                />
-                {/* Glitch bars on hover */}
-                <div aria-hidden className="pointer-events-none absolute inset-x-0 top-3 h-px bg-neon-green/0 transition-colors duration-300 group-hover:bg-neon-green/70" />
-                <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-4 h-px bg-neon-cyan/0 transition-colors duration-500 group-hover:bg-neon-cyan/60" />
-                {/* Corner brackets */}
-                <span aria-hidden className="absolute left-2 top-2 h-3 w-3 border-l border-t border-neon-green/70" />
-                <span aria-hidden className="absolute right-2 top-2 h-3 w-3 border-r border-t border-neon-cyan/70" />
-                {/* Index + tag overlays */}
-                <span className="absolute left-3 bottom-3 font-mono-tech text-[10px] uppercase tracking-widest text-foreground/90">
-                  [ {String(i + 1).padStart(2, "0")} ]
-                </span>
-                <span className="absolute right-3 bottom-3 rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground backdrop-blur group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
-                  {c.tag}
-                </span>
-                {c.featured && (
-                  <span className="absolute right-3 top-3 rounded-full bg-neon-green px-2 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-primary-foreground shadow-glow-green">
-                    Mais vendido
-                  </span>
-                )}
-              </div>
-              <h3 className="font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>{c.title}</h3>
-              <div className="mt-3 flex items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                <span>{c.lessons} aulas</span>
-                <span className="opacity-40">·</span>
-                <span>{c.hours}</span>
-                <span className="opacity-40">·</span>
-                <span className="text-neon-cyan/80">{c.level}</span>
-              </div>
-              <ul className="mt-5 space-y-1.5 text-[13px] text-muted-foreground">
-                {c.perks.map((p) => (
-                  <li key={p} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-neon-green/80" />
-                    <span>{p}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
-                Acessar curso <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-              </div>
-              <div className="pointer-events-none absolute right-3 bottom-3 h-4 w-4 border-r border-b border-neon-green/0 transition group-hover:border-neon-green/80" />
-            </a>
-          ))}
+        <div className="mt-6 flex flex-col items-start gap-5 rounded-sm border border-neon-green/30 bg-gradient-to-br from-neon-green/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
+              Aprenda o comando. Execute na Studio.
+            </div>
+            <p className="mt-1.5 max-w-xl text-sm leading-[1.6] text-muted-foreground">
+              11 comandos prontos — do conteúdo à IA — pra você sair do curso e já rodar nas ferramentas do
+              ecossistema.
+            </p>
+          </div>
+          <Link
+            to="/comandos"
+            className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
+          >
+            Ver todos os comandos <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
 
@@ -644,7 +543,7 @@ function Index() {
                 className="group relative overflow-hidden rounded-sm border border-border/50 bg-surface/40 p-6 transition duration-300 hover:-translate-y-1 hover:border-muted-foreground/60"
               >
                 <span className="absolute right-3 top-3 rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
-                  Parceiro
+                  {p.tag}
                 </span>
                 <h3 className="pr-16 font-display text-xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1.05" }}>
                   {p.title}
@@ -918,7 +817,7 @@ function Index() {
             <div>
               <div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">Navegar</div>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li><a href="#cursos" className="transition hover:text-neon-green">Cursos</a></li>
+                <li><Link to="/comandos" className="transition hover:text-neon-green">Comandos</Link></li>
                 <li><a href="#ecossistema" className="transition hover:text-neon-green">Ecossistema</a></li>
                 <li><a href={HUB_URL} target="_blank" rel="noopener noreferrer" className="transition hover:text-neon-green">Planos</a></li>
                 <li><a href="#faq" className="transition hover:text-neon-green">FAQ</a></li>

@@ -127,6 +127,13 @@ export function SiteHeader() {
             Home
             <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
           </Link>
+          <Link
+            to="/comandos"
+            className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
+          >
+            Comandos
+            <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+          </Link>
           <EcosystemMenu />
           <Link
             to="/blog"
@@ -170,6 +177,9 @@ export function SiteHeader() {
         <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
           <Link to="/" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
             Home
+          </Link>
+          <Link to="/comandos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
+            Comandos
           </Link>
           <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
             Blog
