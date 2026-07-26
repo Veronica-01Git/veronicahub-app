@@ -15,6 +15,7 @@ import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-
 import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
+import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as IndexRouteImport } from './routes/index'
@@ -50,6 +51,11 @@ const SeloDemoRoute = SeloDemoRouteImport.update({
   path: '/selo-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PromptPacksRoute = PromptPacksRouteImport.update({
+  id: '/prompt-packs',
+  path: '/prompt-packs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComandosRoute = ComandosRouteImport.update({
   id: '/comandos',
   path: '/comandos',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
   '/comandos': typeof ComandosRoute
+  '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
   '/comandos': typeof ComandosRoute
+  '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
   '/comandos': typeof ComandosRoute
+  '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/'
     | '/blog'
     | '/comandos'
+    | '/prompt-packs'
     | '/selo-demo'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/blog'
     | '/comandos'
+    | '/prompt-packs'
     | '/selo-demo'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/'
     | '/blog'
     | '/comandos'
+    | '/prompt-packs'
     | '/selo-demo'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlogRoute: typeof BlogRoute
   ComandosRoute: typeof ComandosRoute
+  PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
   VeronicaAnalyticsRoute: typeof VeronicaAnalyticsRoute
   VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SeloDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prompt-packs': {
+      id: '/prompt-packs'
+      path: '/prompt-packs'
+      fullPath: '/prompt-packs'
+      preLoaderRoute: typeof PromptPacksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comandos': {
       id: '/comandos'
       path: '/comandos'
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlogRoute: BlogRoute,
   ComandosRoute: ComandosRoute,
+  PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
   VeronicaAnalyticsRoute: VeronicaAnalyticsRoute,
   VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,

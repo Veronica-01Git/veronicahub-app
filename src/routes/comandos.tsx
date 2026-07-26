@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Wand2, FileText, BarChart3 } from "lucide-react";
+import { ArrowRight, Check, Wand2, FileText, BarChart3, Layers } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SiteHeader, SiteFooter, HUB_URL } from "@/components/SiteChrome";
 import { courses } from "@/lib/courses";
@@ -21,6 +21,13 @@ export const Route = createFileRoute("/comandos")({
 });
 
 const TAG_ALL = "Todos";
+
+// Comandos que têm um Prompt Pack correspondente em /prompt-packs.
+const PACK_BY_COURSE: Record<string, { label: string; slug: string }> = {
+  "VFX com IA": { label: "VFX Ultra-Realista", slug: "vfx-ultra-realista" },
+  "Avatar Digital IA": { label: "Avatar Digital", slug: "avatar-digital" },
+  "VSL Cinematográfico": { label: "VSL Cinematográfica", slug: "vsl-cinematografica" },
+};
 
 type EcosystemCta = {
   icon: typeof Wand2;
@@ -107,9 +114,11 @@ function Comandos() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((c, i) => (
+          {filtered.map((c, i) => {
+            const pack = PACK_BY_COURSE[c.title];
+            return (
+            <div key={c.title} className="flex flex-col gap-2">
             <a
-              key={c.title}
               id={c.title === "Hacking Ético" ? "hacking-etico" : undefined}
               href={HUB_URL}
               target="_blank"
@@ -187,7 +196,19 @@ function Comandos() {
               </div>
               <div className="pointer-events-none absolute right-3 bottom-3 h-4 w-4 border-r border-b border-neon-green/0 transition group-hover:border-neon-green/80" />
             </a>
-          ))}
+            {pack && (
+              <Link
+                to="/prompt-packs"
+                hash={pack.slug}
+                className="flex min-h-[44px] items-center justify-center gap-2 rounded-sm border border-border/50 bg-surface/40 px-3 py-2.5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition hover:border-neon-cyan/60 hover:text-neon-cyan"
+              >
+                <Layers className="h-3 w-3" />
+                Ver Prompt Pack: {pack.label}
+              </Link>
+            )}
+            </div>
+            );
+          })}
         </div>
       </section>
 

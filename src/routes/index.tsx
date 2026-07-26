@@ -19,6 +19,7 @@ import {
   FileText,
   BarChart3,
   ShieldCheck,
+  Layers,
   Menu,
   X,
 } from "lucide-react";
@@ -73,6 +74,14 @@ const ecosystem: EcosystemItem[] = [
     desc: "Triagem gratuita de segurança em linguagem simples, mais diagnóstico completo sob demanda.",
     ready: true,
     to: "/veronica-security",
+  },
+  {
+    icon: Layers,
+    name: "Prompt Packs",
+    tag: "Comandos prontos",
+    desc: "Documentos com prompts prontos pra IA real — Nano Banana Pro, Veo, Midjourney, ElevenLabs.",
+    ready: true,
+    to: "/prompt-packs",
   },
 ];
 
