@@ -14,6 +14,7 @@ import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security
 import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
 import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
+import { Route as SeloDemoRouteImport } from './routes/selo-demo'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as IndexRouteImport } from './routes/index'
@@ -44,6 +45,11 @@ const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
   path: '/veronica-analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SeloDemoRoute = SeloDemoRouteImport.update({
+  id: '/selo-demo',
+  path: '/selo-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComandosRoute = ComandosRouteImport.update({
   id: '/comandos',
   path: '/comandos',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
   '/comandos': typeof ComandosRoute
+  '/selo-demo': typeof SeloDemoRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
   '/comandos': typeof ComandosRoute
+  '/selo-demo': typeof SeloDemoRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
   '/comandos': typeof ComandosRoute
+  '/selo-demo': typeof SeloDemoRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/blog'
     | '/comandos'
+    | '/selo-demo'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/'
     | '/blog'
     | '/comandos'
+    | '/selo-demo'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/'
     | '/blog'
     | '/comandos'
+    | '/selo-demo'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlogRoute: typeof BlogRoute
   ComandosRoute: typeof ComandosRoute
+  SeloDemoRoute: typeof SeloDemoRoute
   VeronicaAnalyticsRoute: typeof VeronicaAnalyticsRoute
   VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
   VeronicaCurriculoCertoRhRoute: typeof VeronicaCurriculoCertoRhRoute
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VeronicaAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/selo-demo': {
+      id: '/selo-demo'
+      path: '/selo-demo'
+      fullPath: '/selo-demo'
+      preLoaderRoute: typeof SeloDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comandos': {
       id: '/comandos'
       path: '/comandos'
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlogRoute: BlogRoute,
   ComandosRoute: ComandosRoute,
+  SeloDemoRoute: SeloDemoRoute,
   VeronicaAnalyticsRoute: VeronicaAnalyticsRoute,
   VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
   VeronicaCurriculoCertoRhRoute: VeronicaCurriculoCertoRhRoute,
