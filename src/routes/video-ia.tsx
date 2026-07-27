@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Video, Image as ImageIcon, AudioLines, User, Play, Check, ArrowRight, Sparkles } from "lucide-react";
-import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
-import { SiteHeader, SiteFooter, CyborgBackdrop } from "@/components/SiteChrome";
-import { HoloStudioCore } from "@/components/HoloStudioCore";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { Video, Image as ImageIcon, AudioLines, User, Play, Check, ArrowRight, ChevronDown } from "lucide-react";
+import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
+import { VeronicaHero } from "@/components/VeronicaHero";
 import { courses } from "@/lib/courses";
 import {
   loadSession,
@@ -31,7 +30,7 @@ export const Route = createFileRoute("/video-ia")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "preload", as: "image", href: cyborgAsset.url, fetchpriority: "high" }],
+    links: [{ rel: "preload", as: "image", href: "/veronica-hero.webp", fetchpriority: "high" }],
   }),
 });
 
@@ -156,6 +155,19 @@ const STUDIO_COMMANDS = courses.filter((c) =>
   ["VSL Cinematográfico", "Avatar Digital IA", "VFX com IA"].includes(c.title),
 );
 
+// Controles secundários do workspace — cosméticos, não afetam preço (o preço
+// já é resolvido por Motor + Qualidade). Só reforçam o padrão de ferramenta
+// profissional de geração.
+const ASPECT_RATIOS = ["16:9", "9:16", "1:1"] as const;
+const VIDEO_DURATIONS = ["5s", "10s", "15s"] as const;
+
+const PROMPT_PLACEHOLDER: Record<Format, string> = {
+  video: 'Ex.: "closeup cinematográfico de uma xícara de café fumegante ao amanhecer, luz suave, câmera lenta"',
+  image: 'Ex.: "still de produto minimalista, fundo branco, luz de estúdio, alta definição"',
+  voice: 'Ex.: "narração calma e confiante pra um vídeo de 30 segundos sobre rotina matinal"',
+  avatar: 'Ex.: "avatar apresentando o produto, olhando pra câmera, tom acolhedor e direto"',
+};
+
 type GenerationResult = {
   format: Format;
   prompt: string;
@@ -251,6 +263,33 @@ function GenerationPreview({ result }: { result: GenerationResult }) {
   );
 }
 
+// Controle compacto do workspace: mini-label + fileira de pills. Reaproveitado
+// pelos seletores de motor/qualidade/proporção/duração — mantém tudo enxuto
+// e sem ocupar espaço vertical excessivo.
+function PillGroup({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground/70">{label}</span>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+}
+
+function Pill({ active, onClick, tone = "green", children }: { active: boolean; onClick: () => void; tone?: "green" | "cyan"; children: ReactNode }) {
+  const activeClass = tone === "cyan" ? "border-neon-cyan bg-neon-cyan/10 text-neon-cyan" : "border-neon-green bg-neon-green/15 text-neon-green";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest transition ${
+        active ? activeClass : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function VeronicaStudio() {
   const [format, setFormat] = useState<Format>("video");
   const [videoModel, setVideoModel] = useState<VideoModelKey>("seedance");
@@ -258,6 +297,9 @@ function VeronicaStudio() {
   const [imageEngine, setImageEngine] = useState<ImageEngineKey>("nanobanana");
   const [voiceEngine, setVoiceEngine] = useState<VoiceEngineKey>("elevenlabs");
   const [avatarEngine, setAvatarEngine] = useState<AvatarEngineKey>("heygen");
+  const [aspectRatio, setAspectRatio] = useState<(typeof ASPECT_RATIOS)[number]>("16:9");
+  const [duration, setDuration] = useState<(typeof VIDEO_DURATIONS)[number]>("10s");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<GenerationResult | null>(null);
@@ -580,220 +622,181 @@ function VeronicaStudio() {
         </div>
       )}
 
-      {/* Hero — ultra-modern, futuretech background, living holographic core */}
+      {/* Hero — workspace de geração sobre o fundo vivo da Veronica (rastreio
+          de olhar). Painel com blur/overlay garante contraste do texto por
+          cima; o botão de gerar fica sempre visível, sem precisar rolar. */}
       <section className="relative overflow-hidden scanlines">
-        <CyborgBackdrop />
-        <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-16 md:pb-28 md:pt-24">
-          <div className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
-                <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-                Veronica Studio · Vídeo · Imagem · Voz · Avatar
-              </div>
-              <h1 className="mt-8 font-display text-5xl sm:text-6xl md:text-7xl" style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}>
-                <span className="block text-foreground">Sua ideia.</span>
-                <span className="block text-outline-neon animate-glow-pulse">
-                  Em execução<span className="text-neon-green">_</span>
-                </span>
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-                Descreva o que você quer e a IA gera vídeo, imagem, voz ou avatar. 1 vídeo em 1080p e 2 imagens Nano Banana Pro grátis ao criar sua conta — depois, pague só pelo que gerar.
-              </p>
-              <div className="mt-10 flex flex-wrap items-center gap-4">
-                <a
-                  href="#gerar"
-                  className="group relative inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Começar agora
-                  <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]" />
-                </a>
-              </div>
+        <VeronicaHero />
+        <HeroFrame />
+        <div className="relative mx-auto max-w-5xl px-6 pb-14 pt-10 md:pb-20 md:pt-16">
+          <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+            Veronica Studio · Vídeo · Imagem · Voz · Avatar
+          </div>
+
+          <div id="gerar" className="relative rounded-sm border border-border/60 bg-background/55 p-5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7">
+            {/* formato */}
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(FORMAT_META) as Format[]).map((f) => {
+                const meta = FORMAT_META[f];
+                const active = format === f;
+                return (
+                  <button
+                    key={f}
+                    onClick={() => setFormat(f)}
+                    className={`flex items-center gap-2 rounded-full border px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest transition ${
+                      active
+                        ? "border-neon-green bg-neon-green/15 text-neon-green shadow-[0_0_20px_-4px_oklch(0.85_0.22_155/0.7)]"
+                        : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
+                    }`}
+                  >
+                    <meta.icon className="h-3.5 w-3.5" />
+                    {meta.label}
+                  </button>
+                );
+              })}
             </div>
-            <div className="hidden shrink-0 lg:block">
-              <HoloStudioCore />
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Tool */}
-      <section id="gerar" className="border-t border-border/40 bg-surface/40 py-24 cv-auto">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="mb-4 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-            <span className="h-px w-8 bg-neon-cyan" />
-            [ 01 ] Gerador
-          </div>
-          <p className="mb-8 max-w-2xl text-sm leading-[1.6] text-muted-foreground">
-            As APIs mais fortes do mercado, num só lugar: Seedance, Veo, Kling e Sora pra vídeo · Nano Banana Pro,
-            Midjourney e FLUX pra imagem · ElevenLabs e OpenAI Voice pra narração · HeyGen e Synthesia pra avatar.
-          </p>
-
-          <div className="flex flex-wrap gap-2">
-            {(Object.keys(FORMAT_META) as Format[]).map((f) => {
-              const meta = FORMAT_META[f];
-              const active = format === f;
-              return (
-                <button
-                  key={f}
-                  onClick={() => setFormat(f)}
-                  className={`flex items-center gap-2 rounded-full border px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest transition ${
-                    active
-                      ? "border-neon-green bg-neon-green/15 text-neon-green shadow-[0_0_20px_-4px_oklch(0.85_0.22_155/0.7)]"
-                      : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
-                  }`}
-                >
-                  <meta.icon className="h-3.5 w-3.5" />
-                  {meta.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 flex flex-col gap-4 rounded-sm border border-border/60 bg-background/40 p-4">
-            {format === "video" && (
-              <>
-                <div>
-                  <div className="mb-2 font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground/70">Motor</div>
-                  <div className="flex flex-wrap gap-2">
-                    {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).map((m) => {
-                      const active = videoModel === m;
-                      return (
-                        <button
-                          key={m}
-                          onClick={() => {
-                            setVideoModel(m);
-                            setVideoTier(VIDEO_MODELS[m].tiers.find((t) => t.freeEligible)?.key ?? VIDEO_MODELS[m].tiers[0].key);
-                          }}
-                          className={`rounded-sm border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
-                            active ? "border-neon-cyan bg-neon-cyan/10 text-neon-cyan" : "border-border/60 text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {VIDEO_MODELS[m].label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-2 font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground/70">Qualidade</div>
-                  <div className="flex flex-wrap gap-2">
-                    {VIDEO_MODELS[videoModel].tiers.map((t) => {
-                      const active = videoTier === t.key;
-                      const freeNow = t.freeEligible && (session?.freeVideoCredits ?? 0) > 0;
-                      return (
-                        <button
-                          key={t.key}
-                          onClick={() => setVideoTier(t.key)}
-                          className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
-                            active
-                              ? "border-neon-green bg-neon-green/15 text-neon-green"
-                              : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
-                          }`}
-                        >
-                          {t.label}
-                          <span className={active ? "text-neon-green/80" : "text-muted-foreground/70"}>
-                            {freeNow ? "grátis" : formatBRL(t.priceCents)}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {format === "image" && (
-              <div>
-                <div className="mb-2 font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground/70">Motor</div>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(IMAGE_ENGINES) as ImageEngineKey[]).map((k) => {
-                    const e = IMAGE_ENGINES[k];
-                    const active = imageEngine === k;
-                    const freeNow = e.freeEligible && (session?.freeImageCredits ?? 0) > 0;
-                    return (
-                      <button
-                        key={k}
-                        onClick={() => setImageEngine(k)}
-                        className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
-                          active
-                            ? "border-neon-green bg-neon-green/15 text-neon-green"
-                            : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
-                        }`}
-                      >
-                        {e.label}
-                        <span className={active ? "text-neon-green/80" : "text-muted-foreground/70"}>
-                          {freeNow ? "grátis" : formatBRL(e.priceCents)}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {format === "voice" && (
-              <div>
-                <div className="mb-2 font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground/70">Motor</div>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(VOICE_ENGINES) as VoiceEngineKey[]).map((k) => {
-                    const e = VOICE_ENGINES[k];
-                    const active = voiceEngine === k;
-                    return (
-                      <button
-                        key={k}
-                        onClick={() => setVoiceEngine(k)}
-                        className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
-                          active
-                            ? "border-neon-green bg-neon-green/15 text-neon-green"
-                            : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
-                        }`}
-                      >
-                        {e.label}
-                        <span className={active ? "text-neon-green/80" : "text-muted-foreground/70"}>{formatBRL(e.priceCents)}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {format === "avatar" && (
-              <div>
-                <div className="mb-2 font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground/70">Motor</div>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(AVATAR_ENGINES) as AvatarEngineKey[]).map((k) => {
-                    const e = AVATAR_ENGINES[k];
-                    const active = avatarEngine === k;
-                    return (
-                      <button
-                        key={k}
-                        onClick={() => setAvatarEngine(k)}
-                        className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
-                          active
-                            ? "border-neon-green bg-neon-green/15 text-neon-green"
-                            : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
-                        }`}
-                      >
-                        {e.label}
-                        <span className={active ? "text-neon-green/80" : "text-muted-foreground/70"}>{formatBRL(e.priceCents)}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="relative mt-6 rounded-sm border border-border/60 bg-background/60 p-5 backdrop-blur sm:p-7">
+            {/* prompt — em destaque */}
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={`Descreva o ${FORMAT_META[format].label.toLowerCase()} que você quer gerar...`}
-              rows={5}
-              className="w-full resize-y rounded-sm border border-border/60 bg-background/50 p-4 text-[14.5px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/60"
+              placeholder={PROMPT_PLACEHOLDER[format]}
+              rows={4}
+              className="mt-4 w-full resize-y rounded-sm border border-border/60 bg-background/70 p-4 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/50 sm:p-5 sm:text-base"
             />
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+
+            {/* opções avançadas — sempre visível no desktop, recolhe no mobile */}
+            <button
+              type="button"
+              onClick={() => setAdvancedOpen((v) => !v)}
+              className="mt-4 flex min-h-[44px] w-full items-center justify-between rounded-sm border border-border/60 px-4 py-2.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground md:hidden"
+            >
+              Opções avançadas
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            <div className={`${advancedOpen ? "mt-4 flex" : "hidden"} flex-wrap gap-x-6 gap-y-4 md:mt-5 md:flex`}>
+              {format === "video" && (
+                <>
+                  <PillGroup label="Motor">
+                    {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).map((m) => (
+                      <Pill
+                        key={m}
+                        tone="cyan"
+                        active={videoModel === m}
+                        onClick={() => {
+                          setVideoModel(m);
+                          setVideoTier(VIDEO_MODELS[m].tiers.find((t) => t.freeEligible)?.key ?? VIDEO_MODELS[m].tiers[0].key);
+                        }}
+                      >
+                        {VIDEO_MODELS[m].label}
+                      </Pill>
+                    ))}
+                  </PillGroup>
+                  <PillGroup label="Qualidade">
+                    {VIDEO_MODELS[videoModel].tiers.map((t) => {
+                      const freeNow = t.freeEligible && (session?.freeVideoCredits ?? 0) > 0;
+                      return (
+                        <Pill key={t.key} active={videoTier === t.key} onClick={() => setVideoTier(t.key)}>
+                          {t.label}
+                          <span className={videoTier === t.key ? "text-neon-green/80" : "text-muted-foreground/70"}>
+                            {freeNow ? "grátis" : formatBRL(t.priceCents)}
+                          </span>
+                        </Pill>
+                      );
+                    })}
+                  </PillGroup>
+                  <PillGroup label="Proporção">
+                    {ASPECT_RATIOS.map((r) => (
+                      <Pill key={r} active={aspectRatio === r} onClick={() => setAspectRatio(r)}>
+                        {r}
+                      </Pill>
+                    ))}
+                  </PillGroup>
+                  <PillGroup label="Duração">
+                    {VIDEO_DURATIONS.map((d) => (
+                      <Pill key={d} active={duration === d} onClick={() => setDuration(d)}>
+                        {d}
+                      </Pill>
+                    ))}
+                  </PillGroup>
+                </>
+              )}
+
+              {format === "image" && (
+                <>
+                  <PillGroup label="Motor">
+                    {(Object.keys(IMAGE_ENGINES) as ImageEngineKey[]).map((k) => {
+                      const e = IMAGE_ENGINES[k];
+                      const freeNow = e.freeEligible && (session?.freeImageCredits ?? 0) > 0;
+                      return (
+                        <Pill key={k} active={imageEngine === k} onClick={() => setImageEngine(k)}>
+                          {e.label}
+                          <span className={imageEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"}>
+                            {freeNow ? "grátis" : formatBRL(e.priceCents)}
+                          </span>
+                        </Pill>
+                      );
+                    })}
+                  </PillGroup>
+                  <PillGroup label="Proporção">
+                    {ASPECT_RATIOS.map((r) => (
+                      <Pill key={r} active={aspectRatio === r} onClick={() => setAspectRatio(r)}>
+                        {r}
+                      </Pill>
+                    ))}
+                  </PillGroup>
+                </>
+              )}
+
+              {format === "voice" && (
+                <PillGroup label="Motor">
+                  {(Object.keys(VOICE_ENGINES) as VoiceEngineKey[]).map((k) => {
+                    const e = VOICE_ENGINES[k];
+                    return (
+                      <Pill key={k} active={voiceEngine === k} onClick={() => setVoiceEngine(k)}>
+                        {e.label}
+                        <span className={voiceEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"}>{formatBRL(e.priceCents)}</span>
+                      </Pill>
+                    );
+                  })}
+                </PillGroup>
+              )}
+
+              {format === "avatar" && (
+                <>
+                  <PillGroup label="Motor">
+                    {(Object.keys(AVATAR_ENGINES) as AvatarEngineKey[]).map((k) => {
+                      const e = AVATAR_ENGINES[k];
+                      return (
+                        <Pill key={k} active={avatarEngine === k} onClick={() => setAvatarEngine(k)}>
+                          {e.label}
+                          <span className={avatarEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"}>{formatBRL(e.priceCents)}</span>
+                        </Pill>
+                      );
+                    })}
+                  </PillGroup>
+                  <PillGroup label="Proporção">
+                    {ASPECT_RATIOS.map((r) => (
+                      <Pill key={r} active={aspectRatio === r} onClick={() => setAspectRatio(r)}>
+                        {r}
+                      </Pill>
+                    ))}
+                  </PillGroup>
+                  <PillGroup label="Duração">
+                    {VIDEO_DURATIONS.map((d) => (
+                      <Pill key={d} active={duration === d} onClick={() => setDuration(d)}>
+                        {d}
+                      </Pill>
+                    ))}
+                  </PillGroup>
+                </>
+              )}
+            </div>
+
+            {/* gerar — sempre visível, nunca compete com o fundo */}
+            <div className="mt-5 flex flex-col gap-3 border-t border-border/50 pt-5 sm:flex-row sm:items-center sm:justify-between">
               <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
                 {format === "video"
                   ? `${VIDEO_MODELS[videoModel].label} · ${currentVideoTier.label}`
@@ -808,25 +811,26 @@ function VeronicaStudio() {
               <button
                 onClick={handleGenerate}
                 disabled={!prompt.trim() || generating}
-                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                className="group relative inline-flex min-h-[44px] w-full items-center justify-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
               >
                 {generating ? "Gerando…" : generateLabel}
               </button>
             </div>
-            <p className="mt-3 text-[12px] leading-[1.5] text-muted-foreground">
-              Ambiente de teste — geração simulada, sem custo real ainda. Integração real com os motores acima entra na próxima fase.
+            <p className="mt-3 text-[11.5px] leading-[1.5] text-muted-foreground">
+              Ambiente de teste — geração simulada, sem custo real ainda. As APIs mais fortes do mercado (Seedance,
+              Veo, Kling, Sora, Nano Banana Pro, Midjourney, FLUX, ElevenLabs, HeyGen, Synthesia) entram na próxima fase.
             </p>
-          </div>
 
-          {result && (
-            <div className="mt-8 flex flex-col items-start gap-4 rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur sm:p-8">
-              <div className="flex w-full flex-wrap items-center justify-between gap-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                <span>Gerado às {result.createdAt} {result.free && <span className="text-neon-green">· crédito grátis</span>}</span>
-                <span className="text-neon-cyan">"{result.prompt.slice(0, 60)}{result.prompt.length > 60 ? "…" : ""}"</span>
+            {result && (
+              <div className="mt-6 flex flex-col items-start gap-4 rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur sm:p-8">
+                <div className="flex w-full flex-wrap items-center justify-between gap-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                  <span>Gerado às {result.createdAt} {result.free && <span className="text-neon-green">· crédito grátis</span>}</span>
+                  <span className="text-neon-cyan">"{result.prompt.slice(0, 60)}{result.prompt.length > 60 ? "…" : ""}"</span>
+                </div>
+                <GenerationPreview result={result} />
               </div>
-              <GenerationPreview result={result} />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
 
@@ -835,7 +839,7 @@ function VeronicaStudio() {
         <div className="mx-auto max-w-5xl px-6">
           <div className="mb-4 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
-            [ 02 ] Domine a técnica
+            [ 01 ] Domine a técnica
           </div>
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
             A IA gera. <span className="text-neon-green text-glow-green">Você dirige.</span>
@@ -913,7 +917,7 @@ function VeronicaStudio() {
         <div className="mx-auto max-w-5xl px-6">
           <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
-            [ 03 ] Como funciona o custo
+            [ 02 ] Como funciona o custo
           </div>
           <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
             {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).flatMap((m) =>

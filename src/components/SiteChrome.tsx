@@ -222,22 +222,12 @@ export function SiteHeader() {
   );
 }
 
-export function CyborgBackdrop() {
+// Moldura reutilizável de qualquer hero com fundo da Veronica — fade pras
+// bordas se fundirem com o resto da página + corner brackets. Usada tanto
+// pelo CyborgBackdrop (imagem estática) quanto pela hero WebGL da Studio.
+export function HeroFrame() {
   return (
     <>
-      {/* Imagem estática da Veronica — sem WebGL, sem shimmer/hue-rotate,
-          sem sweep, sem scanlines. Só posição, contraste e brilho ajustados
-          pra ficar limpa e nítida em qualquer tela, igual em toda página que
-          usa este componente (home, Studio, Analytics, Security). */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.48] bg-[position:50%_16%] md:opacity-[0.44] md:bg-[position:46%_22%] lg:opacity-[0.4] lg:bg-[position:center_26%]"
-        style={{
-          backgroundImage: `url(${cyborgAsset.url})`,
-          filter: "contrast(1.08) saturate(0.88) brightness(0.98)",
-          mixBlendMode: "screen",
-        }}
-      />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -248,6 +238,28 @@ export function CyborgBackdrop() {
       />
       <div aria-hidden className="pointer-events-none absolute left-6 top-6 h-16 w-16 border-l-2 border-t-2 border-neon-green/70" />
       <div aria-hidden className="pointer-events-none absolute right-6 bottom-6 h-16 w-16 border-r-2 border-b-2 border-neon-cyan/70" />
+    </>
+  );
+}
+
+export function CyborgBackdrop() {
+  return (
+    <>
+      {/* Imagem estática da Veronica — sem WebGL, sem shimmer/hue-rotate,
+          sem sweep, sem scanlines. Só posição, contraste e brilho ajustados
+          pra ficar limpa e nítida em qualquer tela, igual em toda página que
+          usa este componente (home, Analytics, Security). A Studio usa a
+          hero WebGL própria (VeronicaHero) em vez desta. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.48] bg-[position:50%_16%] md:opacity-[0.44] md:bg-[position:46%_22%] lg:opacity-[0.4] lg:bg-[position:center_26%]"
+        style={{
+          backgroundImage: `url(${cyborgAsset.url})`,
+          filter: "contrast(1.08) saturate(0.88) brightness(0.98)",
+          mixBlendMode: "screen",
+        }}
+      />
+      <HeroFrame />
     </>
   );
 }
