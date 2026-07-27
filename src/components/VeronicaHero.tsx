@@ -9,6 +9,11 @@ const LEFT_EYE_UV: [number, number] = [0.32, 0.27];
 const RIGHT_EYE_UV: [number, number] = [0.72, 0.28];
 const EYE_MOVEMENT_RADIUS = 0.012; // deslocamento máximo da pupila (fração da imagem) — pequeno de propósito
 const EYE_EFFECT_RADIUS = 0.032; // raio da zona de influência ao redor de cada olho (falloff suave)
+// Ponto da imagem que fica alinhado ao centro da tela (o crop, por padrão,
+// centraliza no meio geométrico da imagem — 0.5,0.5 — que fica bem acima
+// dos olhos). Ajuste só este ponto pra reenquadrar sem tocar no resto do
+// shader; Y menor sobe os olhos em relação ao centro da tela.
+const FRAME_CENTER_UV: [number, number] = [0.52, 0.3];
 
 const VERT = `
 attribute vec2 p;
@@ -26,18 +31,21 @@ uniform vec2 leftEye;
 uniform vec2 rightEye;
 uniform float eyeRadius;
 uniform float eyeEffectRadius;
+uniform vec2 frameCenter;
 uniform float time;
 
 void main(){
   vec2 st = uv;
   st.y = 1.0 - st.y;
 
-  // corrige aspecto (imagem quadrada em tela larga)
+  // corrige aspecto (imagem quadrada em tela larga) recortando ao redor de
+  // frameCenter em vez do centro geométrico da imagem — é isso que traz os
+  // olhos pro centro da tela em vez do meio do rosto/cabeça.
   float ar = res.x / res.y;
-  vec2 c = st - 0.5;
+  vec2 c = st - frameCenter;
   if (ar > 1.0) { c.y *= 1.0 / ar; } else { c.x *= ar; }
   c *= 0.92;
-  st = c + 0.5;
+  st = c + frameCenter;
 
   // rastreio de pupila — ÚNICO movimento reativo ao mouse (sem parallax
   // geral da cena). Desloca a amostra de textura só perto de cada olho,
@@ -126,6 +134,7 @@ export function VeronicaHero() {
     gl.uniform2f(gl.getUniformLocation(prog, "rightEye"), RIGHT_EYE_UV[0], RIGHT_EYE_UV[1]);
     gl.uniform1f(gl.getUniformLocation(prog, "eyeRadius"), EYE_MOVEMENT_RADIUS);
     gl.uniform1f(gl.getUniformLocation(prog, "eyeEffectRadius"), EYE_EFFECT_RADIUS);
+    gl.uniform2f(gl.getUniformLocation(prog, "frameCenter"), FRAME_CENTER_UV[0], FRAME_CENTER_UV[1]);
 
     const mkTex = (unit: number) => {
       const t = gl.createTexture();
@@ -218,10 +227,12 @@ export function VeronicaHero() {
         style={{ mixBlendMode: "screen", opacity: 0.75 }}
       />
       {/* Fallback estático: mobile sempre, e desktop quando prefers-reduced-motion
-          está ativo — mesma imagem, sem canvas, sem parallax, sem rastreio. */}
+          está ativo — mesma imagem, sem canvas, sem parallax, sem rastreio.
+          Posição alinhada ao mesmo FRAME_CENTER_UV usado no shader, pra manter
+          os olhos centralizados aqui também. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 block bg-cover bg-no-repeat opacity-[0.42] bg-[position:50%_18%] md:hidden motion-reduce:md:block motion-reduce:md:bg-[position:46%_24%]"
+        className="pointer-events-none absolute inset-0 block bg-cover bg-no-repeat opacity-[0.42] bg-[position:52%_30%] md:hidden motion-reduce:md:block"
         style={{
           backgroundImage: "url(/veronica-hero-sm.webp)",
           filter: "contrast(1.08) saturate(0.85) brightness(0.95)",
