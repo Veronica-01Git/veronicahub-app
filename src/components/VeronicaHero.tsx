@@ -20,13 +20,13 @@ const FRAG = `
 precision mediump float;
 varying vec2 uv;
 uniform sampler2D tex;
-uniform sampler2D depth;
 uniform vec2 mouse;
 uniform vec2 res;
 uniform vec2 leftEye;
 uniform vec2 rightEye;
 uniform float eyeRadius;
 uniform float eyeEffectRadius;
+uniform float time;
 
 void main(){
   vec2 st = uv;
@@ -39,25 +39,32 @@ void main(){
   c *= 0.92;
   st = c + 0.5;
 
-  float d = texture2D(depth, st).r;
-
-  // parallax geral por profundidade — move a cena inteira
-  vec2 off = (mouse - 0.5) * (d - 0.45) * 0.075;
-  vec2 suv = st + off;
-
-  // rastreio de pupila — camada local ADICIONAL, só perto de cada olho.
-  // Desloca a amostra de textura dentro de um raio pequeno (eyeRadius),
+  // rastreio de pupila — ÚNICO movimento reativo ao mouse (sem parallax
+  // geral da cena). Desloca a amostra de textura só perto de cada olho,
   // com falloff suave (eyeEffectRadius) pra não criar costura visível.
   vec2 gaze = (mouse - 0.5) * 2.0 * eyeRadius;
-  float wL = 1.0 - smoothstep(0.0, eyeEffectRadius, distance(st, leftEye));
-  float wR = 1.0 - smoothstep(0.0, eyeEffectRadius, distance(st, rightEye));
-  suv += gaze * wL + gaze * wR;
+  float dL = distance(st, leftEye);
+  float dR = distance(st, rightEye);
+  float wL = 1.0 - smoothstep(0.0, eyeEffectRadius, dL);
+  float wR = 1.0 - smoothstep(0.0, eyeEffectRadius, dR);
+  vec2 suv = st + gaze * wL + gaze * wR;
 
   vec3 col = texture2D(tex, suv).rgb;
 
-  // vinheta discreta
+  // destaque "tecnologia macabra" nos olhos: brilho ciano/verde pulsante +
+  // anel fino, tipo mira/scanner — só aparece perto da pupila.
+  vec3 eyeColor = vec3(0.22, 0.95, 0.68);
+  float pulse = 0.6 + 0.4 * sin(time * 1.4);
+  float glow = wL + wR;
+  col += eyeColor * glow * glow * 0.55 * pulse;
+
+  float ringL = smoothstep(eyeEffectRadius * 0.48, eyeEffectRadius * 0.56, dL) - smoothstep(eyeEffectRadius * 0.56, eyeEffectRadius * 0.68, dL);
+  float ringR = smoothstep(eyeEffectRadius * 0.48, eyeEffectRadius * 0.56, dR) - smoothstep(eyeEffectRadius * 0.56, eyeEffectRadius * 0.68, dR);
+  col += eyeColor * (ringL + ringR) * (0.5 + 0.5 * pulse);
+
+  // vinheta um pouco mais funda — contraste dramático pros olhos se destacarem
   float v = 1.0 - length((st - 0.5) * vec2(1.15, 1.05));
-  col *= smoothstep(-0.05, 0.62, v);
+  col *= smoothstep(-0.1, 0.6, v);
 
   // grao sutil, evita banding
   float n = fract(sin(dot(st * res, vec2(12.9898, 78.233))) * 43758.5453);
@@ -110,9 +117,9 @@ export function VeronicaHero() {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const uTex = gl.getUniformLocation(prog, "tex");
-    const uDepth = gl.getUniformLocation(prog, "depth");
     const uMouse = gl.getUniformLocation(prog, "mouse");
     const uRes = gl.getUniformLocation(prog, "res");
+    const uTime = gl.getUniformLocation(prog, "time");
 
     // Constantes de calibração dos olhos — declaradas uma vez, fora do loop.
     gl.uniform2f(gl.getUniformLocation(prog, "leftEye"), LEFT_EYE_UV[0], LEFT_EYE_UV[1]);
@@ -142,10 +149,8 @@ export function VeronicaHero() {
       return t;
     };
 
-    const t0 = mkTex(0),
-      t1 = mkTex(1);
+    const t0 = mkTex(0);
     gl.uniform1i(uTex, 0);
-    gl.uniform1i(uDepth, 1);
 
     let ready = 0;
     const load = (src: string, tex: WebGLTexture | null, unit: number) => {
@@ -162,9 +167,8 @@ export function VeronicaHero() {
 
     const small = window.innerWidth < 900;
     load(small ? "/veronica-hero-sm.webp" : "/veronica-hero.webp", t0, 0);
-    load("/veronica-depth.webp", t1, 1);
 
-    // Mesmo padrão de smoothing (lerp) já usado pro parallax geral —
+    // Mesmo padrão de smoothing (lerp) já usado antes pro parallax geral —
     // reaproveitado como está pro rastreio de pupila, sem novo estado.
     const mouse = { x: 0.5, y: 0.5 };
     const target = { x: 0.5, y: 0.5 };
@@ -185,13 +189,15 @@ export function VeronicaHero() {
     window.addEventListener("resize", resize);
 
     let raf = 0;
+    const start = performance.now();
     const loop = () => {
       raf = requestAnimationFrame(loop);
-      if (ready < 2) return;
+      if (ready < 1) return;
       mouse.x += (target.x - mouse.x) * 0.05;
       mouse.y += (target.y - mouse.y) * 0.05;
       gl.uniform2f(uMouse, mouse.x, mouse.y);
       gl.uniform2f(uRes, cv.width, cv.height);
+      gl.uniform1f(uTime, (performance.now() - start) / 1000);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     loop();
