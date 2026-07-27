@@ -24,11 +24,11 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
 import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
-import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, CyborgBackdrop } from "@/components/SiteChrome";
+import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
+import { VeronicaHero } from "@/components/VeronicaHero";
 import { courses } from "@/lib/courses";
 
 const HUB_URL = "https://veronicahub.com";
@@ -96,7 +96,7 @@ export const Route = createFileRoute("/")({
       {
         rel: "preload",
         as: "image",
-        href: cyborgAsset.url,
+        href: "/veronica-hero.webp",
         fetchpriority: "high",
       },
     ],
@@ -293,10 +293,10 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
-        {/* Mesmo backdrop (WebGL parallax desktop / gradiente + HoloBadge mobile)
-            já em uso na Veronica Studio — antes era este mesmo empilhamento de
-            divs copiado à mão, sem o canvas. */}
-        <CyborgBackdrop />
+        {/* Mesmo backdrop vivo da Veronica Studio — WebGL com rastreio de
+            pupila no desktop, imagem estática no mobile/reduced-motion. */}
+        <VeronicaHero />
+        <HeroFrame />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
           <div className="max-w-3xl">
