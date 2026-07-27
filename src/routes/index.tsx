@@ -29,24 +29,8 @@ import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
 import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
 import { VeronicaHero } from "@/components/VeronicaHero";
-import { HudScanner, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
+import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { courses } from "@/lib/courses";
-
-// Elemento decorativo 3D leve (SVG + SMIL, sem Three.js) pra reforçar o ar
-// future-tech nas seções mais relevantes em termos de produto/venda — some
-// completamente com prefers-reduced-motion, não anima à toa.
-function HudAccent({ size = 68, hue = HOLO_GREEN, className = "" }: { size?: number; hue?: string; className?: string }) {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
-  if (reduced) return null;
-  return (
-    <div aria-hidden className={`pointer-events-none hidden opacity-70 sm:block ${className}`}>
-      <HudScanner size={size} hue={hue} />
-    </div>
-  );
-}
 
 const HUB_URL = "https://veronicahub.com";
 

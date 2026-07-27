@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 export const GREEN = "oklch(0.85 0.22 155)";
 export const CYAN = "oklch(0.88 0.15 195)";
+export const GOLD = "oklch(0.75 0.15 85)";
 const VIOLET = "oklch(0.65 0.2 250)";
 
 function NeuralNet({ w = 230, h = 185 }: { w?: number; h?: number }) {
@@ -100,6 +101,23 @@ export function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: s
         <animate attributeName="r" values="3.4;4.6;3.4" dur="1.8s" repeatCount="indefinite" />
       </circle>
     </svg>
+  );
+}
+
+// HudScanner posicionado como acento decorativo dentro do conteúdo de uma
+// página (diferente do overlay global HoloOrbits, que é fixed site-wide).
+// SMIL não é coberto pela regra CSS global de prefers-reduced-motion, então
+// checa e some por completo quando a preferência está ativa.
+export function HudAccent({ size = 68, hue = GREEN, className = "" }: { size?: number; hue?: string; className?: string }) {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+  if (reduced) return null;
+  return (
+    <div aria-hidden className={`pointer-events-none hidden opacity-70 sm:block ${className}`}>
+      <HudScanner size={size} hue={hue} />
+    </div>
   );
 }
 
