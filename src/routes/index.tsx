@@ -29,7 +29,24 @@ import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
 import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
 import { VeronicaHero } from "@/components/VeronicaHero";
+import { HudScanner, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { courses } from "@/lib/courses";
+
+// Elemento decorativo 3D leve (SVG + SMIL, sem Three.js) pra reforçar o ar
+// future-tech nas seções mais relevantes em termos de produto/venda — some
+// completamente com prefers-reduced-motion, não anima à toa.
+function HudAccent({ size = 68, hue = HOLO_GREEN, className = "" }: { size?: number; hue?: string; className?: string }) {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+  if (reduced) return null;
+  return (
+    <div aria-hidden className={`pointer-events-none hidden opacity-70 sm:block ${className}`}>
+      <HudScanner size={size} hue={hue} />
+    </div>
+  );
+}
 
 const HUB_URL = "https://veronicahub.com";
 
@@ -216,18 +233,15 @@ function Index() {
               <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </a>
             <EcosystemMenu />
-            <Link to="/blog" className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green">
+          </nav>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/blog"
+              className="group relative hidden px-3 py-2 font-mono-tech text-xs uppercase tracking-wider text-muted-foreground transition hover:text-neon-green sm:block"
+            >
               Blog
               <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-3 text-muted-foreground sm:flex">
-              <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="transition hover:text-neon-green hover:-translate-y-0.5"><Youtube className="h-4 w-4" /></a>
-              <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition hover:text-neon-green hover:-translate-y-0.5"><Instagram className="h-4 w-4" /></a>
-              <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
-              <a href={SOCIAL_LINKS.email} aria-label="E-mail" className="transition hover:text-neon-green hover:-translate-y-0.5"><Mail className="h-4 w-4" /></a>
-            </div>
             <a
               href={HUB_URL}
               target="_blank"
@@ -331,12 +345,12 @@ function Index() {
                 Entrar no Hub
                 <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]" />
               </a>
-              <Link
-                to="/comandos"
+              <a
+                href="#ecossistema"
                 className="group inline-flex items-center gap-2 rounded-sm border border-border/60 bg-background/40 px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-muted-foreground backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-neon-cyan/60 hover:bg-neon-cyan/5 hover:text-neon-cyan active:translate-y-0"
               >
-                Ver os comandos <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-              </Link>
+                Conheça nosso ecossistema <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </a>
             </div>
           </div>
 
@@ -435,7 +449,8 @@ function Index() {
 
       {/* Comandos teaser — enxuto de propósito. A grade completa com filtro
           por categoria mora em /comandos; aqui é só a porta de entrada. */}
-      <section id="comandos" className="mx-auto max-w-7xl px-6 py-24">
+      <section id="comandos" className="relative mx-auto max-w-7xl px-6 py-24">
+        <HudAccent size={72} hue={HOLO_GREEN} className="absolute right-6 top-6" />
         <div className="mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
@@ -571,9 +586,30 @@ function Index() {
       <section
         id="ecossistema"
         ref={ecosystemR.ref}
-        className={`reveal ${ecosystemR.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24 cv-auto`}
+        className={`reveal ${ecosystemR.visible ? "reveal-visible" : ""} relative mx-auto max-w-7xl px-6 py-24 cv-auto`}
       >
-        <div className="mb-14 flex flex-col gap-3">
+        {/* "Organismo vivo" — pontos sutis pulsando ao fundo, células vivas do
+            ecossistema. Puramente atmosférico, opacidade baixíssima. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <span
+              key={i}
+              className="absolute rounded-full animate-sparkle"
+              style={{
+                left: `${8 + ((i * 17) % 90)}%`,
+                top: `${10 + ((i * 29) % 80)}%`,
+                width: i % 2 === 0 ? 4 : 3,
+                height: i % 2 === 0 ? 4 : 3,
+                background: i % 2 === 0 ? "var(--neon-green)" : "var(--neon-cyan)",
+                opacity: 0.35,
+                animationDelay: `${i * 0.4}s`,
+              }}
+            />
+          ))}
+        </div>
+        <HudAccent size={80} hue={HOLO_CYAN} className="absolute right-4 top-4 lg:right-10" />
+
+        <div className="relative mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
             [ 03 ] O Ecossistema
@@ -583,11 +619,12 @@ function Index() {
             <span className="text-neon-green text-glow-green">um ecossistema</span> inteiro.
           </h2>
           <p className="max-w-2xl leading-[1.65] text-muted-foreground">
-            Ferramentas próprias da Veronica pra ir do conteúdo à execução, sem sair do laboratório.
+            O complexo digital mais completo e atualizado do laboratório: produtos, marcas e ferramentas próprias,
+            multidisciplinares, conectados numa conta só. Um cadastro abre as cinco.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ecosystem.map((e) => {
             const cardClass = `group relative overflow-hidden rounded-sm border p-6 backdrop-blur transition duration-300 ${
               e.ready
@@ -636,6 +673,24 @@ function Index() {
             );
           })}
         </div>
+
+        <div className="relative mt-6 flex flex-col items-start gap-5 rounded-sm border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
+              Um cadastro. Cinco ferramentas. Resultado em cada uma.
+            </div>
+            <p className="mt-1.5 max-w-xl text-sm leading-[1.6] text-muted-foreground">
+              Multidisciplinar, atualizado e completo — o ecossistema Veronica te acompanha do conteúdo à venda,
+              sem sair da plataforma.
+            </p>
+          </div>
+          <Link
+            to="/video-ia"
+            className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm bg-neon-cyan px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-[0_0_24px_-8px_oklch(0.88_0.15_195/0.7)] transition duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
+          >
+            Começar grátis na Studio <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
       </section>
 
       {/* Pricing */}
@@ -645,6 +700,7 @@ function Index() {
         className={`reveal ${pricingR.visible ? "reveal-visible" : ""} relative border-t border-border/40 py-24 cv-auto`}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 50% 0%, oklch(0.85 0.22 155 / 0.2), transparent 60%)" }} />
+        <HudAccent size={76} hue={HOLO_GREEN} className="absolute right-6 top-6" />
         <div className="relative mx-auto max-w-7xl px-6">
           <div className="mb-14 flex flex-col gap-3 text-center">
             <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">

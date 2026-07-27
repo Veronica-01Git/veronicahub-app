@@ -1,8 +1,8 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
-const GREEN = "oklch(0.85 0.22 155)";
-const CYAN = "oklch(0.88 0.15 195)";
+export const GREEN = "oklch(0.85 0.22 155)";
+export const CYAN = "oklch(0.88 0.15 195)";
 const VIOLET = "oklch(0.65 0.2 250)";
 
 function NeuralNet({ w = 230, h = 185 }: { w?: number; h?: number }) {
@@ -70,7 +70,7 @@ function NeuralNet({ w = 230, h = 185 }: { w?: number; h?: number }) {
   );
 }
 
-function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }) {
+export function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden
       style={{ filter: `drop-shadow(0 0 1.5px ${hue})` }}>
