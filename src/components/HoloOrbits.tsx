@@ -121,8 +121,9 @@ export function HudAccent({ size = 68, hue = GREEN, className = "" }: { size?: n
   );
 }
 
-// Routes with their own light "paper" identity opt out of this dark-cyber overlay.
-const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo"];
+// Routes with their own light "paper" identity, or a deliberately sober
+// institutional tone, opt out of this dark-cyber overlay.
+const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo", "/veronica-nautica"];
 
 export function HoloOrbits() {
   const [on, setOn] = useState(false);

@@ -22,6 +22,7 @@ export const ECOSYSTEM_LINKS: EcosystemLink[] = [
   { name: "Veronica Analytics", tag: "Análise de perfil TikTok Shop", to: "/veronica-analytics", ready: true },
   { name: "Veronica Security", tag: "Diagnóstico de segurança", to: "/veronica-security", ready: true },
   { name: "Prompt Packs", tag: "Comandos prontos pra IA real", to: "/prompt-packs", ready: true },
+  { name: "Veronica Náutica", tag: "Seguro náutico · em estruturação", to: "/veronica-nautica", ready: true },
 ];
 
 export function EcosystemMenu() {

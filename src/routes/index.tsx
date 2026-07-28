@@ -20,6 +20,7 @@ import {
   BarChart3,
   ShieldCheck,
   Layers,
+  Anchor,
   Menu,
   X,
 } from "lucide-react";
@@ -41,6 +42,7 @@ type EcosystemItem = {
   desc: string;
   ready: boolean;
   to?: string;
+  note?: string;
 };
 
 const ecosystem: EcosystemItem[] = [
@@ -83,6 +85,15 @@ const ecosystem: EcosystemItem[] = [
     desc: "Documentos com prompts prontos pra IA real — Nano Banana Pro, Veo, Midjourney, ElevenLabs.",
     ready: true,
     to: "/prompt-packs",
+  },
+  {
+    icon: Anchor,
+    name: "Veronica Náutica",
+    tag: "Seguro náutico",
+    desc: "Corretagem de seguros náuticos para jetskis guardados em marinas de SC. Projeto em estruturação, sujeito a habilitação regulatória.",
+    ready: true,
+    to: "/veronica-nautica",
+    note: "Em estruturação",
   },
 ];
 
@@ -604,7 +615,7 @@ function Index() {
           </h2>
           <p className="max-w-2xl leading-[1.65] text-muted-foreground">
             O complexo digital mais completo e atualizado do laboratório: produtos, marcas e ferramentas próprias,
-            multidisciplinares, conectados numa conta só. Um cadastro abre as cinco.
+            multidisciplinares, conectados numa conta só. Um cadastro abre todas elas.
           </p>
         </div>
 
@@ -631,8 +642,13 @@ function Index() {
                     {e.ready ? e.tag : "Em breve"}
                   </span>
                 </div>
-                <h3 className="mt-6 font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+                <h3 className="mt-6 flex items-center gap-2 font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
                   {e.name}
+                  {e.note && (
+                    <span className="rounded-full border border-dashed border-muted-foreground/50 px-2 py-0.5 font-mono-tech text-[8px] font-normal uppercase tracking-widest text-muted-foreground">
+                      {e.note}
+                    </span>
+                  )}
                 </h3>
                 <p className="mt-3 text-sm leading-[1.6] text-muted-foreground">{e.desc}</p>
                 <div className={`mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest ${e.ready ? "text-muted-foreground transition group-hover:text-neon-green" : "text-muted-foreground/50"}`}>
@@ -661,7 +677,7 @@ function Index() {
         <div className="relative mt-6 flex flex-col items-start gap-5 rounded-sm border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
-              Um cadastro. Cinco ferramentas. Resultado em cada uma.
+              Um cadastro. Seis ferramentas. Resultado em cada uma.
             </div>
             <p className="mt-1.5 max-w-xl text-sm leading-[1.6] text-muted-foreground">
               Multidisciplinar, atualizado e completo — o ecossistema Veronica te acompanha do conteúdo à venda,
