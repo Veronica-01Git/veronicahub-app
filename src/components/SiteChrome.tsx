@@ -249,8 +249,8 @@ export function CyborgBackdrop() {
       {/* Imagem estática da Veronica — sem WebGL, sem shimmer/hue-rotate,
           sem sweep, sem scanlines. Só posição, contraste e brilho ajustados
           pra ficar limpa e nítida em qualquer tela, igual em toda página que
-          usa este componente (Analytics, Security). Home e Studio não usam
-          mais fundo com a cyborg. */}
+          usa este componente (home, Analytics, Security). A Studio usa a
+          hero WebGL própria (VeronicaHero) em vez desta. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.48] bg-[position:50%_16%] md:opacity-[0.44] md:bg-[position:46%_22%] lg:opacity-[0.4] lg:bg-[position:center_26%]"
