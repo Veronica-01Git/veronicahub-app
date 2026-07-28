@@ -36,15 +36,28 @@ export function TerminalBoot() {
 
   return (
     <div className="mt-8 max-w-md rounded-sm border border-neon-green/30 bg-background/70 p-4 font-mono-tech text-[11px] leading-relaxed text-neon-green/90 backdrop-blur">
-      {shown.map((l) => (
-        <div key={l}>{l}</div>
-      ))}
-      {!reduced && idx < LINES.length && (
-        <div>
-          {text}
-          <span className="ml-0.5 inline-block h-3 w-1.5 -translate-y-[1px] bg-neon-green align-middle animate-pulse" />
+      {/* Grid de uma célula só: as duas camadas ocupam o mesmo espaço, então
+          a altura da caixa é sempre a do conteúdo completo (invisível, reserva
+          o layout desde o primeiro frame) — o texto visível nunca estica a
+          caixa por cima dela, só preenche o que já está reservado. */}
+      <div className="grid">
+        <div aria-hidden className="invisible [grid-area:1/1]">
+          {LINES.map((l) => (
+            <div key={l}>{l}</div>
+          ))}
         </div>
-      )}
+        <div className="[grid-area:1/1]">
+          {shown.map((l) => (
+            <div key={l}>{l}</div>
+          ))}
+          {!reduced && idx < LINES.length && (
+            <div>
+              {text}
+              <span className="ml-0.5 inline-block h-3 w-1.5 -translate-y-[1px] bg-neon-green align-middle animate-pulse" />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
