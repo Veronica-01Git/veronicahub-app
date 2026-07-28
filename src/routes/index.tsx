@@ -30,6 +30,7 @@ import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
 import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
 import { VeronicaSkullHologram } from "@/components/VeronicaSkullHologram";
+import { CinematicReveal } from "@/components/CinematicReveal";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { courses } from "@/lib/courses";
 
@@ -696,6 +697,11 @@ function Index() {
           </Link>
         </div>
       </section>
+
+      {/* Interlúdio cinematográfico — scroll-driven, entre Ecossistema e
+          Planos. Não é um capítulo numerado como as demais seções: é uma
+          pausa narrativa própria, por isso fica fora da numeração [ 0X ]. */}
+      <CinematicReveal />
 
       {/* Pricing */}
       <section
