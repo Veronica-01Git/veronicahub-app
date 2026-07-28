@@ -305,11 +305,13 @@ function Index() {
         <HeroFrame />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
-          {/* Crânio holográfico — ocupa o espaço central-direita que sobra ao
-              lado do bloco de texto (max-w-3xl) em telas largas. */}
-          <VeronicaSkullHologram className="right-0 top-1/2 hidden w-[clamp(220px,30vw,480px)] -translate-y-1/2 sm:block" />
+          {/* Layout adaptativo: mobile/tablet empilham o crânio centralizado
+              acima do texto; a partir de lg vira coluna ao lado, centralizado
+              contra a altura real do bloco de texto (não da hero inteira). */}
+          <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+            <VeronicaSkullHologram className="w-[190px] shrink-0 self-center sm:w-[240px] md:w-[300px] lg:order-2 lg:w-[clamp(260px,26vw,440px)] lg:self-auto" />
 
-          <div className="max-w-3xl">
+            <div className="max-w-3xl lg:order-1">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
               Veronica Hub · Laboratório Digital · 2026
@@ -347,6 +349,7 @@ function Index() {
               >
                 Conheça nosso ecossistema <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </a>
+            </div>
             </div>
           </div>
 

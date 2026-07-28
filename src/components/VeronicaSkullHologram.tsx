@@ -43,7 +43,7 @@ export function VeronicaSkullHologram({ className = "" }: { className?: string }
   }, [active]);
 
   return (
-    <div aria-hidden className={`pointer-events-none absolute ${className}`} style={{ mixBlendMode: "screen" }}>
+    <div aria-hidden className={`pointer-events-none relative ${className}`} style={{ mixBlendMode: "screen" }}>
       {/* Halo ambiente atrás do crânio — só a opacidade pulsa, nunca a escala. */}
       <div
         className="absolute inset-0 -z-10 animate-skull-halo"
