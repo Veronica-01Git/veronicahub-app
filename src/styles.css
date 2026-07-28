@@ -375,8 +375,8 @@
    no elemento em si); só brilho, drift de partículas em poucos px e opacidade
    têm vida própria. */
 @keyframes skull-breathe {
-  0%, 100% { filter: brightness(1) drop-shadow(0 0 18px oklch(0.75 0.14 220 / 0.35)); }
-  50% { filter: brightness(1.12) drop-shadow(0 0 32px oklch(0.75 0.14 220 / 0.55)); }
+  0%, 100% { filter: brightness(1) blur(0px) drop-shadow(0 0 18px oklch(0.75 0.14 220 / 0.35)); }
+  50% { filter: brightness(1.14) blur(0.4px) drop-shadow(0 0 34px oklch(0.75 0.14 220 / 0.6)); }
 }
 @utility animate-skull-breathe {
   animation: skull-breathe 5.4s ease-in-out infinite;
@@ -388,6 +388,29 @@
 }
 @utility animate-skull-halo {
   animation: skull-halo-pulse 5.4s ease-in-out infinite;
+}
+
+/* Segunda camada de halo, maior e mais difusa, com fase própria — dá
+   profundidade de bloom em vez de um brilho só e achatado. */
+@keyframes skull-halo-bloom {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+@utility animate-skull-halo-bloom {
+  animation: skull-halo-bloom 7.2s ease-in-out infinite;
+  animation-delay: -2.1s;
+}
+
+/* Feixe de luz diagonal cruzando o crânio, lento e raro — ecoa os raios de
+   luz do vídeo de referência. Só desliza o gradiente de fundo (o elemento
+   em si nunca se move), então fica sempre recortado no formato do crânio. */
+@keyframes skull-light-sweep {
+  0%, 85%, 100% { opacity: 0; background-position: -20% 0; }
+  90% { opacity: 0.55; background-position: 60% 0; }
+  95% { opacity: 0; background-position: 120% 0; }
+}
+@utility animate-skull-sweep {
+  animation: skull-light-sweep 16s ease-in-out infinite;
 }
 
 @keyframes skull-drift-a {

@@ -44,7 +44,15 @@ export function VeronicaSkullHologram({ className = "" }: { className?: string }
 
   return (
     <div aria-hidden className={`pointer-events-none relative ${className}`} style={{ mixBlendMode: "screen" }}>
-      {/* Halo ambiente atrás do crânio — só a opacidade pulsa, nunca a escala. */}
+      {/* Bloom em duas camadas — halo apertado + halo largo e mais difuso,
+          cada um com fase própria. Só a opacidade pulsa, nunca a escala. */}
+      <div
+        className="absolute -inset-10 -z-20 animate-skull-halo-bloom"
+        style={{
+          background: "radial-gradient(closest-side, oklch(0.75 0.14 220 / 0.4), transparent 70%)",
+          filter: "blur(48px)",
+        }}
+      />
       <div
         className="absolute inset-0 -z-10 animate-skull-halo"
         style={{
@@ -79,6 +87,26 @@ export function VeronicaSkullHologram({ className = "" }: { className?: string }
             <div
               className="absolute inset-0 z-0 animate-skull-drift-b opacity-[0.16]"
               style={{ backgroundImage: `url(${GHOST_URL})`, backgroundSize: "contain", backgroundPosition: "center", backgroundRepeat: "no-repeat" }}
+            />
+
+            {/* Feixe de luz diagonal, lento e raro, recortado no formato do
+                crânio via mask-image — reforço cinematográfico, sem mover
+                o elemento em si. */}
+            <div
+              className="absolute inset-0 z-10 animate-skull-sweep"
+              style={{
+                background: "linear-gradient(100deg, transparent 42%, oklch(0.9 0.1 200 / 0.85) 50%, transparent 58%)",
+                backgroundSize: "260% 100%",
+                mixBlendMode: "screen",
+                WebkitMaskImage: `url(${GHOST_URL})`,
+                maskImage: `url(${GHOST_URL})`,
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+                WebkitMaskPosition: "center",
+                maskPosition: "center",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+              }}
             />
 
             {/* Aberração cromática — quieta por padrão, só reforça no flicker. */}
