@@ -370,3 +370,38 @@
   35%  { transform: translate(12px, -14px); }
   70%  { transform: translate(-8px, 16px); }
 }
+
+/* Crânio holográfico da hero — enquadramento sempre fixo (nunca rotate/scale
+   no elemento em si); só brilho, drift de partículas em poucos px e opacidade
+   têm vida própria. */
+@keyframes skull-breathe {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 18px oklch(0.75 0.14 220 / 0.35)); }
+  50% { filter: brightness(1.12) drop-shadow(0 0 32px oklch(0.75 0.14 220 / 0.55)); }
+}
+@utility animate-skull-breathe {
+  animation: skull-breathe 5.4s ease-in-out infinite;
+}
+
+@keyframes skull-halo-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+@utility animate-skull-halo {
+  animation: skull-halo-pulse 5.4s ease-in-out infinite;
+}
+
+@keyframes skull-drift-a {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(2.4px, -1.6px); }
+}
+@utility animate-skull-drift-a {
+  animation: skull-drift-a 9.5s ease-in-out infinite;
+}
+
+@keyframes skull-drift-b {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-2px, 2.2px); }
+}
+@utility animate-skull-drift-b {
+  animation: skull-drift-b 12.5s ease-in-out infinite;
+}

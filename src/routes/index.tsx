@@ -29,7 +29,7 @@ import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { TerminalBoot } from "@/components/TerminalBoot";
 import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
-import { VeronicaHero } from "@/components/VeronicaHero";
+import { VeronicaSkullHologram } from "@/components/VeronicaSkullHologram";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { courses } from "@/lib/courses";
 
@@ -108,7 +108,7 @@ export const Route = createFileRoute("/")({
       {
         rel: "preload",
         as: "image",
-        href: "/veronica-hero.webp",
+        href: "/images/hero/veronica-skull-800.webp",
         fetchpriority: "high",
       },
     ],
@@ -302,12 +302,13 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
-        {/* Mesmo backdrop vivo da Veronica Studio — WebGL com rastreio de
-            pupila no desktop, imagem estática no mobile/reduced-motion. */}
-        <VeronicaHero />
         <HeroFrame />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
+          {/* Crânio holográfico — ocupa o espaço central-direita que sobra ao
+              lado do bloco de texto (max-w-3xl) em telas largas. */}
+          <VeronicaSkullHologram className="right-0 top-1/2 hidden w-[clamp(220px,30vw,480px)] -translate-y-1/2 sm:block" />
+
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />

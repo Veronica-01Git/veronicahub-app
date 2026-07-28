@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Video, Image as ImageIcon, AudioLines, User, Play, Check, ArrowRight, ChevronDown } from "lucide-react";
 import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
-import { VeronicaHero } from "@/components/VeronicaHero";
 import { courses } from "@/lib/courses";
 import {
   loadSession,
@@ -30,7 +29,6 @@ export const Route = createFileRoute("/video-ia")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "preload", as: "image", href: "/veronica-hero.webp", fetchpriority: "high" }],
   }),
 });
 
@@ -622,11 +620,10 @@ function VeronicaStudio() {
         </div>
       )}
 
-      {/* Hero — workspace de geração sobre o fundo vivo da Veronica (rastreio
-          de olhar). Painel com blur/overlay garante contraste do texto por
-          cima; o botão de gerar fica sempre visível, sem precisar rolar. */}
+      {/* Hero — workspace de geração. Painel com blur/overlay garante
+          contraste do texto; o botão de gerar fica sempre visível, sem
+          precisar rolar. */}
       <section className="relative overflow-hidden scanlines">
-        <VeronicaHero />
         <HeroFrame />
         <div className="relative mx-auto max-w-5xl px-6 pb-14 pt-10 md:pb-20 md:pt-16">
           <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
