@@ -57,7 +57,9 @@ void main(){
   float wR = 1.0 - smoothstep(0.0, eyeEffectRadius, dR);
   vec2 suv = st + gaze * wL + gaze * wR;
 
-  vec3 col = texture2D(tex, suv).rgb;
+  // base um pouco mais discreta pra dar contraste ao brilho da pupila —
+  // sem isso o glow se perdia no resto do rosto na mesma intensidade.
+  vec3 col = texture2D(tex, suv).rgb * 0.88;
 
   // destaque "tecnologia macabra" nos olhos: brilho ciano/verde pulsante +
   // anel fino, tipo mira/scanner — só aparece perto da pupila.
@@ -196,6 +198,14 @@ export function VeronicaHero() {
     };
     resize();
     window.addEventListener("resize", resize);
+    // A janela não é o único jeito da hero mudar de tamanho: conteúdo que
+    // cresce por cima dela (ex.: o boot de texto digitando linha a linha)
+    // também estica a section — e sem isso o canvas ficava com a resolução
+    // interna desatualizada, esticando/deslocando a imagem até o layout
+    // assentar. ResizeObserver cobre qualquer mudança de tamanho, não só a
+    // da janela.
+    const ro = new ResizeObserver(resize);
+    ro.observe(cv);
 
     let raf = 0;
     const start = performance.now();
@@ -215,6 +225,7 @@ export function VeronicaHero() {
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("resize", resize);
+      ro.disconnect();
     };
   }, []);
 
@@ -228,11 +239,13 @@ export function VeronicaHero() {
       />
       {/* Fallback estático: mobile sempre, e desktop quando prefers-reduced-motion
           está ativo — mesma imagem, sem canvas, sem parallax, sem rastreio.
-          Posição alinhada ao mesmo FRAME_CENTER_UV usado no shader, pra manter
-          os olhos centralizados aqui também. */}
+          bg-contain (não cover) garante o rosto inteiro — os dois olhos —
+          sempre visível, não importa a proporção da hero nesse viewport;
+          cover cortava lado a lado ou topo/base dependendo da altura que o
+          TerminalBoot deixava a section, o que podia sumir com um olho. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 block bg-cover bg-no-repeat opacity-[0.42] bg-[position:52%_30%] md:hidden motion-reduce:md:block"
+        className="pointer-events-none absolute inset-0 block bg-contain bg-center bg-no-repeat opacity-[0.42] md:hidden motion-reduce:md:block"
         style={{
           backgroundImage: "url(/veronica-hero-sm.webp)",
           filter: "contrast(1.08) saturate(0.85) brightness(0.95)",
