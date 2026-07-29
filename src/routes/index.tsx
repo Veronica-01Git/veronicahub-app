@@ -394,6 +394,55 @@ function Index() {
         </div>
       </section>
 
+      {/* Guia em vídeo — não é um capítulo numerado como as demais seções
+          (mesmo critério da antiga seção cinematográfica): é a Veronica se
+          apresentando, uma ponte pessoal entre o marquee e a prova real, não
+          mais um "[ 0X ]" da estrutura. Sem autoplay — controles nativos,
+          usuário decide tocar; nada de peso extra no load da página. */}
+      <section className="relative overflow-hidden border-b border-border/40 bg-surface/40 py-24">
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1fr_1.15fr] lg:items-center">
+          <div>
+            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
+              <span className="h-px w-8 bg-neon-cyan" />
+              Direto da Veronica
+            </div>
+            <h2 className="mt-3 font-display text-4xl sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
+              Ela mesma <span className="text-neon-cyan text-glow-cyan">te guia</span><br />
+              pelo Hub.
+            </h2>
+            <p className="mt-5 max-w-md text-base leading-[1.65] text-muted-foreground">
+              Um tour rápido pela plataforma: como entrar, o que executar primeiro e por onde tirar
+              o primeiro resultado. Direto da voz dela.
+            </p>
+            <a
+              href={HUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-8 inline-flex items-center gap-2 rounded-sm border border-neon-cyan/50 bg-neon-cyan/10 px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-neon-cyan transition duration-200 hover:-translate-y-0.5 hover:bg-neon-cyan hover:text-primary-foreground hover:shadow-glow-cyan"
+            >
+              Entrar no Hub agora <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+            </a>
+          </div>
+          <div className="relative">
+            <div aria-hidden className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-cyan/20 via-transparent to-neon-green/20 blur-xl" />
+            <div className="relative overflow-hidden rounded-sm border border-neon-cyan/40 bg-black shadow-glow-cyan">
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                poster="/images/vfx/veronica-guia-poster.webp"
+                className="block aspect-video h-auto w-full"
+              >
+                <source src="/videos/veronica-guia.mp4" type="video/mp4" />
+              </video>
+              <div aria-hidden className="pointer-events-none absolute inset-0 scanlines opacity-20" />
+            </div>
+            <div aria-hidden className="pointer-events-none absolute -left-3 -top-3 h-10 w-10 border-l-2 border-t-2 border-neon-cyan/70" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-green/70" />
+          </div>
+        </div>
+      </section>
+
       {/* Social proof */}
       <section
         ref={proof.ref}
