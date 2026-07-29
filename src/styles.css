@@ -213,6 +213,28 @@
   }
 }
 
+/* Grão cinematográfico — ruído procedural via SVG feTurbulence (sem asset de
+   imagem), estático (não anima quadro a quadro, então não precisa checar
+   prefers-reduced-motion: é textura fixa, não movimento). Mesmo vocabulário
+   do .scanlines: mix-blend-mode:overlay, opacidade baixíssima. */
+@utility film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* Glow reativo — estende o sistema .reveal: elementos com esta classe ficam
+   sem glow até a seção-mãe ganhar .reveal-visible, aí o box-shadow entra
+   suavemente via transition (não keyframe), então a regra global de
+   prefers-reduced-motion (transition-duration 0.001ms) já cobre sem precisar
+   de checagem JS extra. */
+.glow-on-reveal {
+  box-shadow: 0 0 0 0 transparent;
+  transition: box-shadow 900ms ease-out 150ms;
+}
+.reveal-visible .glow-on-reveal {
+  box-shadow: var(--shadow-glow-green);
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 oklch(0.85 0.22 155 / 0.7); }
   50% { opacity: 0.7; box-shadow: 0 0 0 6px oklch(0.85 0.22 155 / 0); }

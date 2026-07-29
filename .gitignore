@@ -20,6 +20,10 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Intermediários brutos de processamento de asset (rembg/ffmpeg) — nunca
+# commitar direto, só as versões otimizadas em public/
+assets/processed/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

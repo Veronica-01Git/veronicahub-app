@@ -27,6 +27,7 @@ import {
 import { useEffect, useState } from "react";
 import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
+import { useParallax } from "@/hooks/use-parallax";
 import { TerminalBoot } from "@/components/TerminalBoot";
 import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
 import { VeronicaHero } from "@/components/VeronicaHero";
@@ -207,6 +208,9 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      {/* Grão cinematográfico — textura estática (sem jitter quadro a quadro),
+          mesmo vocabulário do .scanlines da hero, cobrindo a página inteira. */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-40 film-grain opacity-[0.05]" />
       {/* Nav */}
       <header className="relative sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
         {/* Sutil linha vermelha de ponta a ponta no topo */}
@@ -306,6 +310,7 @@ function Index() {
             pupila no desktop, imagem estática no mobile/reduced-motion. */}
         <VeronicaHero />
         <HeroFrame />
+        <HeroEyeAccent />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
           <div className="max-w-3xl">
@@ -392,9 +397,10 @@ function Index() {
       {/* Social proof */}
       <section
         ref={proof.ref}
-        className={`reveal ${proof.visible ? "reveal-visible" : ""} mx-auto max-w-7xl px-6 py-24 cv-auto`}
+        className={`reveal ${proof.visible ? "reveal-visible" : ""} relative overflow-hidden mx-auto max-w-7xl px-6 py-24 cv-auto`}
       >
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+        <ProofBackdrop />
+        <div className="relative mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
               <span className="h-px w-8 bg-neon-green" />
@@ -417,7 +423,7 @@ function Index() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="relative grid gap-4 md:grid-cols-3">
           {testimonials.map((t) => (
             <figure
               key={t.name}
@@ -581,8 +587,9 @@ function Index() {
       <section
         id="ecossistema"
         ref={ecosystemR.ref}
-        className={`reveal ${ecosystemR.visible ? "reveal-visible" : ""} relative mx-auto max-w-7xl px-6 py-24 cv-auto`}
+        className={`reveal ${ecosystemR.visible ? "reveal-visible" : ""} relative overflow-hidden mx-auto max-w-7xl px-6 py-24 cv-auto`}
       >
+        <EcosystemBackdrop />
         {/* "Organismo vivo" — pontos sutis pulsando ao fundo, células vivas do
             ecossistema. Puramente atmosférico, opacidade baixíssima. */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -719,7 +726,7 @@ function Index() {
                 key={p.name}
                 className={`relative flex flex-col rounded-sm border p-8 backdrop-blur transition duration-300 hover:-translate-y-1 ${
                   p.featured
-                    ? "border-neon-green bg-gradient-to-br from-neon-green/10 via-surface to-neon-cyan/5 shadow-glow-green lg:scale-105"
+                    ? "glow-on-reveal border-neon-green bg-gradient-to-br from-neon-green/10 via-surface to-neon-cyan/5 lg:scale-105"
                     : "border-border/60 bg-surface/60 hover:border-neon-green/50 hover:shadow-glow-green"
                 }`}
               >
@@ -889,6 +896,94 @@ function Index() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// Crânio wireframe holográfico em loop, fundo já removido — reforça o eixo
+// "laboratório digital" atrás dos depoimentos. Some em mobile/reduced-motion
+// (vídeo decorativo pesado não compensa em tela pequena).
+function ProofBackdrop() {
+  const [active, setActive] = useState(false);
+  const parallaxRef = useParallax<HTMLDivElement>(0.06);
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const small = window.matchMedia("(max-width: 767px)").matches;
+    setActive(!reduced && !small);
+  }, []);
+  if (!active) return null;
+  return (
+    <div
+      ref={parallaxRef}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.16] lg:opacity-[0.2]"
+      style={{
+        mixBlendMode: "screen",
+        maskImage: "radial-gradient(ellipse 65% 60% at 50% 38%, black 35%, transparent 82%)",
+        WebkitMaskImage: "radial-gradient(ellipse 65% 60% at 50% 38%, black 35%, transparent 82%)",
+      }}
+    >
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute left-1/2 top-1/2 h-full w-auto min-w-full -translate-x-1/2 -translate-y-1/2 object-cover blur-[1px]"
+      >
+        <source src="/videos/skull-reference-nobg.webm" type="video/webm" />
+      </video>
+    </div>
+  );
+}
+
+// Esfera de partículas flutuando atrás do grid do ecossistema — profundidade
+// sutil, nunca sobre os cards (z-index abaixo, blur leve de fundo).
+function EcosystemBackdrop() {
+  const [active, setActive] = useState(false);
+  const parallaxRef = useParallax<HTMLDivElement>(0.05);
+  useEffect(() => {
+    setActive(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+  if (!active) return null;
+  return (
+    <div
+      ref={parallaxRef}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 hidden overflow-hidden opacity-[0.14] md:block"
+      style={{
+        mixBlendMode: "screen",
+        maskImage: "radial-gradient(ellipse 55% 60% at 50% 45%, black 30%, transparent 78%)",
+        WebkitMaskImage: "radial-gradient(ellipse 55% 60% at 50% 45%, black 30%, transparent 78%)",
+      }}
+    >
+      <img
+        src="/images/vfx/particle-sphere-nobg.webp"
+        alt=""
+        className="absolute left-1/2 top-1/2 w-[85%] max-w-3xl -translate-x-1/2 -translate-y-1/2 blur-[2px]"
+      />
+    </div>
+  );
+}
+
+// Acento no canto da hero — olho com nuvem de partículas, bem discreto.
+// Só desktop grande: em telas menores o espaço ao lado do texto some.
+function HeroEyeAccent() {
+  const [active, setActive] = useState(false);
+  const parallaxRef = useParallax<HTMLImageElement>(0.04);
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const small = window.matchMedia("(max-width: 1023px)").matches;
+    setActive(!reduced && !small);
+  }, []);
+  if (!active) return null;
+  return (
+    <img
+      ref={parallaxRef}
+      aria-hidden
+      src="/images/vfx/eye-particles-nobg.webp"
+      alt=""
+      className="pointer-events-none absolute right-[6%] top-[16%] w-[150px] opacity-[0.2] xl:w-[190px]"
+      style={{ mixBlendMode: "screen" }}
+    />
   );
 }
 
