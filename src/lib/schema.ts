@@ -1,0 +1,79 @@
+import { pgTable, text, integer, timestamp, pgEnum, index } from "drizzle-orm/pg-core";
+import { createId } from "@paralleldrive/cuid2";
+
+// Carteira compartilhada do ecossistema Veronica Hub (Studio, Currículo-Certo,
+// Currículo-Certo RH). Créditos grátis ficam ligados permanentemente ao
+// e-mail — ao contrário da versão simulada anterior (localStorage), não dá
+// pra "resetar" limpando o navegador.
+export const users = pgTable("User", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  email: text("email").notNull().unique(),
+  balanceCents: integer("balanceCents").notNull().default(0),
+  freeVideoCredits: integer("freeVideoCredits").notNull().default(1),
+  freeImageCredits: integer("freeImageCredits").notNull().default(2),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+// Código de login por e-mail. Sem relação com User: o código pode ser
+// pedido antes da conta existir (verifyEmailCode cria o User no sucesso).
+export const emailOtps = pgTable(
+  "EmailOtp",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    email: text("email").notNull(),
+    codeHash: text("codeHash").notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    consumedAt: timestamp("consumedAt"),
+    attempts: integer("attempts").notNull().default(0),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [index("EmailOtp_email_createdAt_idx").on(table.email, table.createdAt)],
+);
+
+export const topUpStatus = pgEnum("TopUpStatus", ["PENDENTE", "PAGO", "CANCELADO"]);
+
+// Depósito de saldo via Mercado Pago (Checkout Pro). Só credita balanceCents
+// quando o webhook confirma status PAGO — nunca no momento da criação.
+export const walletTopUps = pgTable(
+  "WalletTopUp",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id),
+    amountCents: integer("amountCents").notNull(),
+    status: topUpStatus("status").notNull().default("PENDENTE"),
+    gatewayPaymentId: text("gatewayPaymentId"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    paidAt: timestamp("paidAt"),
+  },
+  (table) => [
+    index("WalletTopUp_userId_status_idx").on(table.userId, table.status),
+    index("WalletTopUp_gatewayPaymentId_idx").on(table.gatewayPaymentId),
+  ],
+);
+
+// Auditoria de todo débito/crédito de saldo (geração, crédito grátis,
+// top-up, estorno). Nunca existe um débito sem uma linha aqui.
+export const ledgerEntries = pgTable(
+  "LedgerEntry",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id),
+    deltaCents: integer("deltaCents").notNull(),
+    reason: text("reason").notNull(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [index("LedgerEntry_userId_createdAt_idx").on(table.userId, table.createdAt)],
+);

@@ -1,18 +1,30 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Video, Image as ImageIcon, AudioLines, User, Play, Check, ArrowRight, ChevronDown } from "lucide-react";
+import {
+  Video,
+  Image as ImageIcon,
+  AudioLines,
+  User,
+  Play,
+  Check,
+  ArrowRight,
+  ChevronDown,
+} from "lucide-react";
 import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
 import { courses } from "@/lib/courses";
-import {
-  loadSession,
-  persistSession,
-  createSession,
-  generateCode,
-  formatBRL,
-  MIN_DEPOSIT_CENTS,
-  type AuthChannel,
-  type Session,
-} from "@/lib/account";
+import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
+import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
+import { createDeposit, generateNanoBanana } from "@/lib/wallet-server";
+
+const NANO_BANANA_PRICE_CENTS = 490;
+
+type Wallet = {
+  id: string;
+  email: string;
+  balanceCents: number;
+  freeVideoCredits: number;
+  freeImageCredits: number;
+};
 
 export const Route = createFileRoute("/video-ia")({
   component: VeronicaStudio,
@@ -25,7 +37,10 @@ export const Route = createFileRoute("/video-ia")({
           "Descreva sua ideia e gere vídeo, imagem, voz ou avatar com IA. 1 vídeo em 1080p e 2 imagens Nano Banana Pro grátis ao criar sua conta.",
       },
       { property: "og:title", content: "Veronica Studio — Vídeo, imagem, voz e avatar com IA" },
-      { property: "og:description", content: "Sua ideia, em execução. Geração com IA, pague só pelo que gerar." },
+      {
+        property: "og:description",
+        content: "Sua ideia, em execução. Geração com IA, pague só pelo que gerar.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -113,7 +128,7 @@ const STUDIO_PLAYBOOK = [
   {
     n: "01",
     title: "Escolha o produto",
-    body: "Pesquise no Google o que já tem demanda no seu nicho — o que as pessoas já procuram e compram bate mais forte que achismo. Ex: \"perfume importado\" já chega buscando comparação de preço.",
+    body: 'Pesquise no Google o que já tem demanda no seu nicho — o que as pessoas já procuram e compram bate mais forte que achismo. Ex: "perfume importado" já chega buscando comparação de preço.',
   },
   {
     n: "02",
@@ -123,7 +138,7 @@ const STUDIO_PLAYBOOK = [
   {
     n: "03",
     title: "Copy: dor → solução",
-    body: "A Big Idea nasce da dor, não da solução. Ex (perfume): dor = \"seu perfume some no almoço, você reaplica toda hora e ainda assim ninguém sente\"; solução = \"fixação de 12h comprovada, borrifou de manhã, ainda sente à noite\".",
+    body: 'A Big Idea nasce da dor, não da solução. Ex (perfume): dor = "seu perfume some no almoço, você reaplica toda hora e ainda assim ninguém sente"; solução = "fixação de 12h comprovada, borrifou de manhã, ainda sente à noite".',
   },
   {
     n: "04",
@@ -160,7 +175,8 @@ const ASPECT_RATIOS = ["16:9", "9:16", "1:1"] as const;
 const VIDEO_DURATIONS = ["5s", "10s", "15s"] as const;
 
 const PROMPT_PLACEHOLDER: Record<Format, string> = {
-  video: 'Ex.: "closeup cinematográfico de uma xícara de café fumegante ao amanhecer, luz suave, câmera lenta"',
+  video:
+    'Ex.: "closeup cinematográfico de uma xícara de café fumegante ao amanhecer, luz suave, câmera lenta"',
   image: 'Ex.: "still de produto minimalista, fundo branco, luz de estúdio, alta definição"',
   voice: 'Ex.: "narração calma e confiante pra um vídeo de 30 segundos sobre rotina matinal"',
   avatar: 'Ex.: "avatar apresentando o produto, olhando pra câmera, tom acolhedor e direto"',
@@ -176,6 +192,7 @@ type GenerationResult = {
   imageEngine?: ImageEngineKey;
   voiceEngine?: VoiceEngineKey;
   avatarEngine?: AvatarEngineKey;
+  imageUrl?: string;
 };
 
 function GenerationPreview({ result }: { result: GenerationResult }) {
@@ -197,24 +214,41 @@ function GenerationPreview({ result }: { result: GenerationResult }) {
         </div>
         <span className="absolute left-3 top-3 rounded-sm border border-neon-green/40 bg-background/70 px-2 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-green">
           {result.videoModel && VIDEO_MODELS[result.videoModel].label} ·{" "}
-          {result.videoModel && result.videoTier && VIDEO_MODELS[result.videoModel].tiers.find((t) => t.key === result.videoTier)?.label} · simulado
+          {result.videoModel &&
+            result.videoTier &&
+            VIDEO_MODELS[result.videoModel].tiers.find((t) => t.key === result.videoTier)
+              ?.label}{" "}
+          · simulado
         </span>
       </div>
     );
   }
   if (result.format === "image") {
+    if (result.imageUrl) {
+      return (
+        <div className="relative w-full max-w-xs overflow-hidden rounded-sm border border-neon-cyan/40 bg-black">
+          <img src={result.imageUrl} alt={result.prompt} className="w-full" />
+          <span className="absolute left-3 top-3 rounded-sm border border-neon-cyan/40 bg-background/70 px-2 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
+            {IMAGE_ENGINES.nanobanana.label}
+          </span>
+        </div>
+      );
+    }
     return (
       <div className="relative aspect-square w-full max-w-xs overflow-hidden rounded-sm border border-neon-cyan/40 bg-black">
         <div
           aria-hidden
           className="absolute inset-0 opacity-60"
-          style={{ background: "radial-gradient(circle at 35% 30%, oklch(0.88 0.15 195 / 0.4), transparent 55%), radial-gradient(circle at 70% 75%, oklch(0.85 0.22 155 / 0.3), transparent 55%)" }}
+          style={{
+            background:
+              "radial-gradient(circle at 35% 30%, oklch(0.88 0.15 195 / 0.4), transparent 55%), radial-gradient(circle at 70% 75%, oklch(0.85 0.22 155 / 0.3), transparent 55%)",
+          }}
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <ImageIcon className="h-10 w-10 text-neon-cyan/80" />
         </div>
         <span className="absolute left-3 top-3 rounded-sm border border-neon-cyan/40 bg-background/70 px-2 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
-          {IMAGE_ENGINES[result.imageEngine ?? "nanobanana"].label} · simulado
+          {IMAGE_ENGINES[result.imageEngine ?? "nanobanana"].label} · prévia
         </span>
       </div>
     );
@@ -267,20 +301,37 @@ function GenerationPreview({ result }: { result: GenerationResult }) {
 function PillGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground/70">{label}</span>
+      <span className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground/70">
+        {label}
+      </span>
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   );
 }
 
-function Pill({ active, onClick, tone = "green", children }: { active: boolean; onClick: () => void; tone?: "green" | "cyan"; children: ReactNode }) {
-  const activeClass = tone === "cyan" ? "border-neon-cyan bg-neon-cyan/10 text-neon-cyan" : "border-neon-green bg-neon-green/15 text-neon-green";
+function Pill({
+  active,
+  onClick,
+  tone = "green",
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  tone?: "green" | "cyan";
+  children: ReactNode;
+}) {
+  const activeClass =
+    tone === "cyan"
+      ? "border-neon-cyan bg-neon-cyan/10 text-neon-cyan"
+      : "border-neon-green bg-neon-green/15 text-neon-green";
   return (
     <button
       type="button"
       onClick={onClick}
       className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest transition ${
-        active ? activeClass : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
+        active
+          ? activeClass
+          : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
       }`}
     >
       {children}
@@ -302,27 +353,37 @@ function VeronicaStudio() {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<GenerationResult | null>(null);
 
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<Wallet | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
   const [authStep, setAuthStep] = useState<"identify" | "confirm">("identify");
-  const [authChannel, setAuthChannel] = useState<AuthChannel>("email");
-  const [authIdentifier, setAuthIdentifier] = useState("");
+  const [authEmail, setAuthEmail] = useState("");
   const [authCode, setAuthCode] = useState("");
-  const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<"generate" | null>(null);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositValue, setDepositValue] = useState(String(MIN_DEPOSIT_CENTS / 100));
   const [depositError, setDepositError] = useState<string | null>(null);
+  const [depositLoading, setDepositLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  useEffect(() => {
-    setSession(loadSession());
-  }, []);
+  async function refreshUser() {
+    const u = await getCurrentUser();
+    setUser(u);
+    setUserLoading(false);
+    return u;
+  }
 
   useEffect(() => {
-    persistSession(session);
-  }, [session]);
+    refreshUser();
+    // Voltando de um checkout do Mercado Pago — o webhook pode levar alguns
+    // segundos pra creditar; confere de novo depois de um instante.
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("topup")) {
+      setToast("Confirmando pagamento…");
+      window.setTimeout(() => refreshUser(), 4000);
+    }
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -331,9 +392,17 @@ function VeronicaStudio() {
   }, [toast]);
 
   const currentVideoTier = useMemo(
-    () => VIDEO_MODELS[videoModel].tiers.find((t) => t.key === videoTier) ?? VIDEO_MODELS[videoModel].tiers[0],
+    () =>
+      VIDEO_MODELS[videoModel].tiers.find((t) => t.key === videoTier) ??
+      VIDEO_MODELS[videoModel].tiers[0],
     [videoModel, videoTier],
   );
+
+  // Só imagem via Nano Banana Pro está integrada de verdade (Higgsfield);
+  // o resto (vídeo, outros motores de imagem, voz, avatar) continua sendo
+  // uma prévia simulada e gratuita, sem débito — não faz sentido cobrar
+  // dinheiro real por uma geração que não vai acontecer de verdade.
+  const isRealPath = format === "image" && imageEngine === "nanobanana";
 
   function priceFor(fmt: Format): number {
     if (fmt === "video") return currentVideoTier.priceCents;
@@ -342,18 +411,13 @@ function VeronicaStudio() {
     return AVATAR_ENGINES[avatarEngine].priceCents;
   }
 
-  function hasFreeFor(fmt: Format, s: Session): boolean {
-    if (fmt === "video") return s.freeVideoCredits > 0 && currentVideoTier.freeEligible;
-    if (fmt === "image") return s.freeImageCredits > 0 && IMAGE_ENGINES[imageEngine].freeEligible;
-    return false;
-  }
-
   const freeLeft = useMemo(() => {
-    if (!session) return null;
-    if (format === "video") return currentVideoTier.freeEligible ? session.freeVideoCredits : 0;
-    if (format === "image") return IMAGE_ENGINES[imageEngine].freeEligible ? session.freeImageCredits : 0;
+    if (!user) return null;
+    if (format === "video") return currentVideoTier.freeEligible ? user.freeVideoCredits : 0;
+    if (format === "image")
+      return IMAGE_ENGINES[imageEngine].freeEligible ? user.freeImageCredits : 0;
     return 0;
-  }, [session, format, currentVideoTier, imageEngine]);
+  }, [user, format, currentVideoTier, imageEngine]);
 
   function openAuth(action: "generate" | null) {
     setPendingAction(action);
@@ -367,139 +431,176 @@ function VeronicaStudio() {
     setAuthStep("identify");
     setAuthError(null);
     setAuthCode("");
-    setPendingCode(null);
+    setAuthEmail("");
     setPendingAction(null);
   }
 
-  function requestCode(e: FormEvent) {
+  async function requestCode(e: FormEvent) {
     e.preventDefault();
-    const id = authIdentifier.trim();
-    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    const digits = id.replace(/\D/g, "");
-    const validPhone = digits.length >= 10 && digits.length <= 13;
-    if (authChannel === "email" && !validEmail) {
-      setAuthError("Digite um e-mail válido.");
-      return;
-    }
-    if (authChannel === "phone" && !validPhone) {
-      setAuthError("Digite um celular válido, com DDD.");
-      return;
-    }
-    const code = generateCode();
-    setPendingCode(code);
-    setAuthStep("confirm");
     setAuthError(null);
-    setAuthCode("");
-    setToast(`Ambiente de teste — código (simulado) que seria enviado por ${authChannel === "email" ? "e-mail" : "SMS"}: ${code}`);
+    setAuthLoading(true);
+    try {
+      const res = await requestEmailCode({ data: { email: authEmail.trim() } });
+      if (res.ok) {
+        setAuthStep("confirm");
+        setAuthCode("");
+      } else {
+        setAuthError(res.error);
+      }
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Falha ao pedir código.");
+    } finally {
+      setAuthLoading(false);
+    }
   }
 
-  function resendCode() {
-    const code = generateCode();
-    setPendingCode(code);
-    setAuthCode("");
-    setAuthError(null);
-    setToast(`Ambiente de teste — novo código (simulado): ${code}`);
-  }
-
-  function performGeneration(currentSession: Session) {
-    const price = priceFor(format);
-    const hasFree = hasFreeFor(format, currentSession);
+  function performSimulatedGeneration() {
     setGenerating(true);
     window.setTimeout(() => {
-      setSession((prev) => {
-        const base = prev ?? currentSession;
-        if (hasFree) {
-          return format === "video" ? { ...base, freeVideoCredits: base.freeVideoCredits - 1 } : { ...base, freeImageCredits: base.freeImageCredits - 1 };
-        }
-        return { ...base, balanceCents: base.balanceCents - price };
-      });
       setResult({
         format,
         prompt: prompt.trim(),
         createdAt: new Date().toLocaleTimeString("pt-BR"),
-        free: hasFree,
+        free: true,
         ...(format === "video" ? { videoModel, videoTier: currentVideoTier.key } : {}),
         ...(format === "image" ? { imageEngine } : {}),
         ...(format === "voice" ? { voiceEngine } : {}),
         ...(format === "avatar" ? { avatarEngine } : {}),
       });
       setGenerating(false);
-      setToast(hasFree ? "Gerado usando seu crédito grátis (simulado)." : `Gerado. ${formatBRL(price)} debitado do saldo (simulado).`);
+      setToast(
+        "Prévia — esse motor ainda não tem geração real, só a Nano Banana Pro por enquanto.",
+      );
     }, 1600);
   }
 
-  function confirmCode(e: FormEvent) {
-    e.preventDefault();
-    if (!pendingCode) return;
-    if (authCode.trim() !== pendingCode) {
-      setAuthError("Código incorreto. Confira e tente de novo.");
-      return;
-    }
-    const newSession = session ?? createSession(authChannel, authIdentifier.trim());
-    setSession(newSession);
-    setToast("Sessão confirmada (simulada).");
-    if (pendingAction === "generate" && prompt.trim()) {
-      const price = priceFor(format);
-      const hasFree = hasFreeFor(format, newSession);
-      if (hasFree || newSession.balanceCents >= price) {
-        performGeneration(newSession);
-      } else {
+  async function performRealGeneration() {
+    setGenerating(true);
+    try {
+      const res = await generateNanoBanana({ data: { prompt: prompt.trim() } });
+      if (res.ok) {
+        setResult({
+          format: "image",
+          prompt: prompt.trim(),
+          createdAt: new Date().toLocaleTimeString("pt-BR"),
+          free: res.free,
+          imageEngine: "nanobanana",
+          imageUrl: res.imageUrl,
+        });
+        await refreshUser();
+        setToast(
+          res.free
+            ? "Gerado usando seu crédito grátis."
+            : `Gerado. ${formatBRL(NANO_BANANA_PRICE_CENTS)} debitado do saldo.`,
+        );
+      } else if (res.error === "insufficient_funds") {
         setDepositError(null);
         setDepositOpen(true);
+      } else {
+        setToast(`Erro ao gerar: ${res.error}`);
       }
+    } finally {
+      setGenerating(false);
     }
-    closeAuth();
   }
 
-  function handleLogout() {
-    setSession(null);
+  async function confirmCode(e: FormEvent) {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthLoading(true);
+    try {
+      const res = await verifyEmailCode({
+        data: { email: authEmail.trim(), code: authCode.trim() },
+      });
+      if (!res.ok) {
+        setAuthError(res.error);
+        return;
+      }
+      setUser(res.user);
+      closeAuth();
+      if (pendingAction === "generate" && prompt.trim()) {
+        if (!isRealPath) {
+          performSimulatedGeneration();
+        } else {
+          const hasFree = res.user.freeImageCredits > 0;
+          if (hasFree || res.user.balanceCents >= NANO_BANANA_PRICE_CENTS) {
+            await performRealGeneration();
+          } else {
+            setDepositError(null);
+            setDepositOpen(true);
+          }
+        }
+      }
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Falha ao confirmar código.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    await logout();
+    setUser(null);
     setResult(null);
   }
 
-  function handleDeposit(e: FormEvent) {
+  async function handleDeposit(e: FormEvent) {
     e.preventDefault();
-    if (!session) return;
+    if (!user) return;
     const cents = Math.round(parseFloat(depositValue.replace(",", ".")) * 100);
     if (Number.isNaN(cents) || cents < MIN_DEPOSIT_CENTS) {
       setDepositError(`Depósito mínimo é ${formatBRL(MIN_DEPOSIT_CENTS)}.`);
       return;
     }
     setDepositError(null);
-    setSession({ ...session, balanceCents: session.balanceCents + cents });
-    setDepositOpen(false);
-    setToast(`Depósito simulado de ${formatBRL(cents)} creditado. Nenhum valor real foi cobrado.`);
+    setDepositLoading(true);
+    try {
+      const res = await createDeposit({ data: { amountCents: cents } });
+      if (res.ok) {
+        window.location.href = res.checkoutUrl;
+      } else {
+        setDepositError(res.error);
+      }
+    } finally {
+      setDepositLoading(false);
+    }
   }
 
   function handleGenerate() {
     if (!prompt.trim() || generating) return;
-    if (!session) {
+    if (!user) {
       openAuth("generate");
       return;
     }
-    const price = priceFor(format);
-    const hasFree = hasFreeFor(format, session);
-    if (!hasFree && session.balanceCents < price) {
+    if (!isRealPath) {
+      performSimulatedGeneration();
+      return;
+    }
+    const hasFree = user.freeImageCredits > 0;
+    if (!hasFree && user.balanceCents < NANO_BANANA_PRICE_CENTS) {
       setDepositError(null);
       setDepositOpen(true);
       return;
     }
-    performGeneration(session);
+    performRealGeneration();
   }
 
-  const price = priceFor(format);
-  const generateLabel = !session
+  const price = isRealPath ? NANO_BANANA_PRICE_CENTS : priceFor(format);
+  const generateLabel = !user
     ? "Entrar para gerar"
-    : freeLeft && freeLeft > 0
-      ? `Gerar grátis · ${freeLeft} restante${freeLeft > 1 ? "s" : ""}`
-      : session.balanceCents < price
-        ? `Depositar para gerar · faltam ${formatBRL(price - session.balanceCents)}`
-        : `Gerar ${FORMAT_META[format].label.toLowerCase()} · ${formatBRL(price)}`;
+    : !isRealPath
+      ? "Testar prévia grátis"
+      : freeLeft && freeLeft > 0
+        ? `Gerar grátis · ${freeLeft} restante${freeLeft > 1 ? "s" : ""}`
+        : user.balanceCents < price
+          ? `Depositar para gerar · faltam ${formatBRL(price - user.balanceCents)}`
+          : `Gerar ${FORMAT_META[format].label.toLowerCase()} · ${formatBRL(price)}`;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {authOpen && !session && (
+      {authOpen && !user && (
         <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
           <div className="mx-auto max-w-7xl">
             {authStep === "identify" ? (
@@ -507,56 +608,40 @@ function VeronicaStudio() {
                 <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
                   Entrar ou criar conta —
                 </span>
-                <div className="flex overflow-hidden rounded-sm border border-border/60">
-                  <button
-                    type="button"
-                    onClick={() => { setAuthChannel("email"); setAuthIdentifier(""); setAuthError(null); }}
-                    className="px-3 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition"
-                    style={{ background: authChannel === "email" ? "oklch(0.85 0.22 155)" : "transparent", color: authChannel === "email" ? "oklch(0.12 0.02 200)" : undefined }}
-                  >
-                    E-mail
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setAuthChannel("phone"); setAuthIdentifier(""); setAuthError(null); }}
-                    className="px-3 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition"
-                    style={{ background: authChannel === "phone" ? "oklch(0.85 0.22 155)" : "transparent", color: authChannel === "phone" ? "oklch(0.12 0.02 200)" : undefined }}
-                  >
-                    Celular
-                  </button>
-                </div>
                 <input
-                  type={authChannel === "email" ? "email" : "tel"}
+                  type="email"
                   required
                   autoFocus
-                  value={authIdentifier}
-                  onChange={(e) => setAuthIdentifier(e.target.value)}
-                  placeholder={authChannel === "email" ? "seu@email.com" : "(11) 98888-7777"}
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="seu@email.com"
                   className="rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-[13px] outline-none"
                 />
-                <button type="submit" className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground">
-                  Enviar código
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
+                >
+                  {authLoading ? "Enviando…" : "Enviar código"}
                 </button>
-                <button type="button" onClick={closeAuth} className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={closeAuth}
+                  className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+                >
                   Cancelar
                 </button>
-                {authError && <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">{authError}</span>}
+                {authError && (
+                  <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
+                    {authError}
+                  </span>
+                )}
               </form>
             ) : (
               <form onSubmit={confirmCode} className="flex flex-wrap items-center gap-2.5">
                 <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  Código enviado (simulado) para {authIdentifier} —
+                  Código enviado para {authEmail} —
                 </span>
-                {pendingCode && (
-                  <button
-                    type="button"
-                    onClick={() => setAuthCode(pendingCode)}
-                    className="rounded-sm border border-dashed border-neon-green px-3 py-1.5 font-mono-tech text-[13px] tracking-[0.3em] text-neon-green"
-                    title="Clique para preencher automaticamente"
-                  >
-                    {pendingCode}
-                  </button>
-                )}
                 <input
                   type="text"
                   inputMode="numeric"
@@ -568,30 +653,49 @@ function VeronicaStudio() {
                   placeholder="000000"
                   className="w-28 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-center text-[15px] font-mono-tech tracking-[0.3em] outline-none"
                 />
-                <button type="submit" className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground">
-                  Confirmar
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
+                >
+                  {authLoading ? "Confirmando…" : "Confirmar"}
                 </button>
-                <button type="button" onClick={resendCode} className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  Reenviar
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthStep("identify");
+                    setAuthError(null);
+                  }}
+                  className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+                >
+                  Trocar e-mail
                 </button>
-                <button type="button" onClick={() => { setAuthStep("identify"); setAuthError(null); }} className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  Trocar
-                </button>
-                <button type="button" onClick={closeAuth} className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={closeAuth}
+                  className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+                >
                   Cancelar
                 </button>
-                {authError && <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">{authError}</span>}
+                {authError && (
+                  <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
+                    {authError}
+                  </span>
+                )}
               </form>
             )}
           </div>
         </div>
       )}
 
-      {depositOpen && session && (
+      {depositOpen && user && (
         <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
-          <form onSubmit={handleDeposit} className="mx-auto flex max-w-7xl flex-wrap items-center gap-2.5">
+          <form
+            onSubmit={handleDeposit}
+            className="mx-auto flex max-w-7xl flex-wrap items-center gap-2.5"
+          >
             <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-              Depósito simulado — mínimo {formatBRL(MIN_DEPOSIT_CENTS)}
+              Depositar via Mercado Pago — mínimo {formatBRL(MIN_DEPOSIT_CENTS)}
             </span>
             <span className="font-mono-tech text-[12px]">R$</span>
             <input
@@ -603,13 +707,25 @@ function VeronicaStudio() {
               onChange={(e) => setDepositValue(e.target.value)}
               className="w-24 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-[13px] outline-none"
             />
-            <button type="submit" className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground">
-              Confirmar (simulado)
+            <button
+              type="submit"
+              disabled={depositLoading}
+              className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
+            >
+              {depositLoading ? "Criando…" : "Ir para pagamento"}
             </button>
-            <button type="button" onClick={() => setDepositOpen(false)} className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => setDepositOpen(false)}
+              className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+            >
               Cancelar
             </button>
-            {depositError && <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">{depositError}</span>}
+            {depositError && (
+              <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
+                {depositError}
+              </span>
+            )}
           </form>
         </div>
       )}
@@ -631,7 +747,10 @@ function VeronicaStudio() {
             Veronica Studio · Vídeo · Imagem · Voz · Avatar
           </div>
 
-          <div id="gerar" className="relative rounded-sm border border-border/60 bg-background/55 p-5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7">
+          <div
+            id="gerar"
+            className="relative rounded-sm border border-border/60 bg-background/55 p-5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7"
+          >
             {/* formato */}
             <div className="flex flex-wrap gap-2">
               {(Object.keys(FORMAT_META) as Format[]).map((f) => {
@@ -670,10 +789,14 @@ function VeronicaStudio() {
               className="mt-4 flex min-h-[44px] w-full items-center justify-between rounded-sm border border-border/60 px-4 py-2.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground md:hidden"
             >
               Opções avançadas
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
-            <div className={`${advancedOpen ? "mt-4 flex" : "hidden"} flex-wrap gap-x-6 gap-y-4 md:mt-5 md:flex`}>
+            <div
+              className={`${advancedOpen ? "mt-4 flex" : "hidden"} flex-wrap gap-x-6 gap-y-4 md:mt-5 md:flex`}
+            >
               {format === "video" && (
                 <>
                   <PillGroup label="Motor">
@@ -684,7 +807,10 @@ function VeronicaStudio() {
                         active={videoModel === m}
                         onClick={() => {
                           setVideoModel(m);
-                          setVideoTier(VIDEO_MODELS[m].tiers.find((t) => t.freeEligible)?.key ?? VIDEO_MODELS[m].tiers[0].key);
+                          setVideoTier(
+                            VIDEO_MODELS[m].tiers.find((t) => t.freeEligible)?.key ??
+                              VIDEO_MODELS[m].tiers[0].key,
+                          );
                         }}
                       >
                         {VIDEO_MODELS[m].label}
@@ -692,17 +818,22 @@ function VeronicaStudio() {
                     ))}
                   </PillGroup>
                   <PillGroup label="Qualidade">
-                    {VIDEO_MODELS[videoModel].tiers.map((t) => {
-                      const freeNow = t.freeEligible && (session?.freeVideoCredits ?? 0) > 0;
-                      return (
-                        <Pill key={t.key} active={videoTier === t.key} onClick={() => setVideoTier(t.key)}>
-                          {t.label}
-                          <span className={videoTier === t.key ? "text-neon-green/80" : "text-muted-foreground/70"}>
-                            {freeNow ? "grátis" : formatBRL(t.priceCents)}
-                          </span>
-                        </Pill>
-                      );
-                    })}
+                    {VIDEO_MODELS[videoModel].tiers.map((t) => (
+                      <Pill
+                        key={t.key}
+                        active={videoTier === t.key}
+                        onClick={() => setVideoTier(t.key)}
+                      >
+                        {t.label}
+                        <span
+                          className={
+                            videoTier === t.key ? "text-neon-green/80" : "text-muted-foreground/70"
+                          }
+                        >
+                          em breve
+                        </span>
+                      </Pill>
+                    ))}
                   </PillGroup>
                   <PillGroup label="Proporção">
                     {ASPECT_RATIOS.map((r) => (
@@ -726,12 +857,17 @@ function VeronicaStudio() {
                   <PillGroup label="Motor">
                     {(Object.keys(IMAGE_ENGINES) as ImageEngineKey[]).map((k) => {
                       const e = IMAGE_ENGINES[k];
-                      const freeNow = e.freeEligible && (session?.freeImageCredits ?? 0) > 0;
+                      const isReal = k === "nanobanana";
+                      const freeNow = isReal && (user?.freeImageCredits ?? 0) > 0;
                       return (
                         <Pill key={k} active={imageEngine === k} onClick={() => setImageEngine(k)}>
                           {e.label}
-                          <span className={imageEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"}>
-                            {freeNow ? "grátis" : formatBRL(e.priceCents)}
+                          <span
+                            className={
+                              imageEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"
+                            }
+                          >
+                            {!isReal ? "em breve" : freeNow ? "grátis" : formatBRL(e.priceCents)}
                           </span>
                         </Pill>
                       );
@@ -754,7 +890,13 @@ function VeronicaStudio() {
                     return (
                       <Pill key={k} active={voiceEngine === k} onClick={() => setVoiceEngine(k)}>
                         {e.label}
-                        <span className={voiceEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"}>{formatBRL(e.priceCents)}</span>
+                        <span
+                          className={
+                            voiceEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"
+                          }
+                        >
+                          {formatBRL(e.priceCents)}
+                        </span>
                       </Pill>
                     );
                   })}
@@ -767,9 +909,19 @@ function VeronicaStudio() {
                     {(Object.keys(AVATAR_ENGINES) as AvatarEngineKey[]).map((k) => {
                       const e = AVATAR_ENGINES[k];
                       return (
-                        <Pill key={k} active={avatarEngine === k} onClick={() => setAvatarEngine(k)}>
+                        <Pill
+                          key={k}
+                          active={avatarEngine === k}
+                          onClick={() => setAvatarEngine(k)}
+                        >
                           {e.label}
-                          <span className={avatarEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"}>{formatBRL(e.priceCents)}</span>
+                          <span
+                            className={
+                              avatarEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"
+                            }
+                          >
+                            {formatBRL(e.priceCents)}
+                          </span>
                         </Pill>
                       );
                     })}
@@ -802,27 +954,33 @@ function VeronicaStudio() {
                     : format === "voice"
                       ? VOICE_ENGINES[voiceEngine].label
                       : AVATAR_ENGINES[avatarEngine].label}{" "}
-                ·{" "}
-                {session ? formatBRL(session.balanceCents) + " de saldo" : "grátis pra começar"}
+                · {user ? formatBRL(user.balanceCents) + " de saldo" : "grátis pra começar"}
               </span>
               <button
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || generating}
+                disabled={!prompt.trim() || generating || userLoading}
                 className="group relative inline-flex min-h-[44px] w-full items-center justify-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
               >
                 {generating ? "Gerando…" : generateLabel}
               </button>
             </div>
             <p className="mt-3 text-[11.5px] leading-[1.5] text-muted-foreground">
-              Ambiente de teste — geração simulada, sem custo real ainda. As APIs mais fortes do mercado (Seedance,
-              Veo, Kling, Sora, Nano Banana Pro, Midjourney, FLUX, ElevenLabs, HeyGen, Synthesia) entram na próxima fase.
+              Imagem via Nano Banana Pro já gera de verdade (Higgsfield), com saldo real. Os demais
+              motores (Seedance, Veo, Kling, Sora, Midjourney, FLUX, ElevenLabs, HeyGen, Synthesia)
+              ainda são só prévia, sem cobrança, até entrarem na integração real.
             </p>
 
             {result && (
               <div className="mt-6 flex flex-col items-start gap-4 rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur sm:p-8">
                 <div className="flex w-full flex-wrap items-center justify-between gap-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  <span>Gerado às {result.createdAt} {result.free && <span className="text-neon-green">· crédito grátis</span>}</span>
-                  <span className="text-neon-cyan">"{result.prompt.slice(0, 60)}{result.prompt.length > 60 ? "…" : ""}"</span>
+                  <span>
+                    Gerado às {result.createdAt}{" "}
+                    {result.free && <span className="text-neon-green">· crédito grátis</span>}
+                  </span>
+                  <span className="text-neon-cyan">
+                    "{result.prompt.slice(0, 60)}
+                    {result.prompt.length > 60 ? "…" : ""}"
+                  </span>
                 </div>
                 <GenerationPreview result={result} />
               </div>
@@ -835,28 +993,39 @@ function VeronicaStudio() {
       <section className="border-t border-border/40 py-24 cv-auto">
         <div className="mx-auto max-w-5xl px-6">
           <div className="mb-4 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />
-            [ 01 ] Domine a técnica
+            <span className="h-px w-8 bg-neon-green" />[ 01 ] Domine a técnica
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
+          <h2
+            className="font-display text-3xl sm:text-4xl md:text-5xl"
+            style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
+          >
             A IA gera. <span className="text-neon-green text-glow-green">Você dirige.</span>
           </h2>
           <p className="mt-4 max-w-2xl leading-[1.65] text-muted-foreground">
-            Prompt bom nasce de roteiro bom. É a mesma ordem pra vender qualquer produto — a Veronica te guia passo a
-            passo, do produto escolhido até a VSL cinematográfica pronta pra rodar.
+            Prompt bom nasce de roteiro bom. É a mesma ordem pra vender qualquer produto — a
+            Veronica te guia passo a passo, do produto escolhido até a VSL cinematográfica pronta
+            pra rodar.
           </p>
 
           <div className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2">
             {STUDIO_PLAYBOOK.map((s) => (
               <div key={s.n} className="flex gap-4">
-                <span className="font-display text-2xl text-neon-green/70" style={{ letterSpacing: "-0.02em" }}>
+                <span
+                  className="font-display text-2xl text-neon-green/70"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
                   {s.n}
                 </span>
                 <div>
-                  <h3 className="font-display text-base text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                  <h3
+                    className="font-display text-base text-foreground"
+                    style={{ letterSpacing: "-0.02em" }}
+                  >
                     {s.title}
                   </h3>
-                  <p className="mt-1.5 text-[13.5px] leading-[1.6] text-muted-foreground">{s.body}</p>
+                  <p className="mt-1.5 text-[13.5px] leading-[1.6] text-muted-foreground">
+                    {s.body}
+                  </p>
                 </div>
               </div>
             ))}
@@ -867,8 +1036,8 @@ function VeronicaStudio() {
             Quer se aprofundar em cada etapa?
           </div>
           <p className="mt-3 max-w-2xl leading-[1.65] text-muted-foreground">
-            Esses comandos ensinam exatamente o que fazer render aqui dentro — do roteiro de VSL ao VFX que separa
-            amador de profissional.
+            Esses comandos ensinam exatamente o que fazer render aqui dentro — do roteiro de VSL ao
+            VFX que separa amador de profissional.
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -881,12 +1050,16 @@ function VeronicaStudio() {
                 <span className="rounded-full border border-border/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
                   {c.tag}
                 </span>
-                <h3 className="mt-5 font-display text-xl text-foreground" style={{ letterSpacing: "-0.03em" }}>
+                <h3
+                  className="mt-5 font-display text-xl text-foreground"
+                  style={{ letterSpacing: "-0.03em" }}
+                >
                   {c.title}
                 </h3>
                 <p className="mt-2 text-[13px] leading-[1.5] text-muted-foreground">{c.perks[0]}</p>
                 <div className="mt-5 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
-                  Ver comando <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                  Ver comando{" "}
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                 </div>
               </Link>
             ))}
@@ -894,16 +1067,22 @@ function VeronicaStudio() {
 
           <div className="mt-6 flex flex-col items-start gap-4 rounded-sm border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="font-display text-lg text-foreground" style={{ letterSpacing: "-0.02em" }}>
+              <div
+                className="font-display text-lg text-foreground"
+                style={{ letterSpacing: "-0.02em" }}
+              >
                 Comando aprendido, execução na hora.
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">Termine o comando e volte pra cá — o gerador já tá esperando.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Termine o comando e volte pra cá — o gerador já tá esperando.
+              </p>
             </div>
             <Link
               to="/comandos"
               className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm border border-neon-cyan/60 bg-background/60 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.18em] text-neon-cyan transition duration-200 hover:-translate-y-0.5 hover:bg-neon-cyan/10 active:translate-y-0"
             >
-              Ver todos os comandos <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              Ver todos os comandos{" "}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
         </div>
@@ -913,16 +1092,19 @@ function VeronicaStudio() {
       <section className="border-t border-border/40 py-24 cv-auto">
         <div className="mx-auto max-w-5xl px-6">
           <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />
-            [ 02 ] Como funciona o custo
+            <span className="h-px w-8 bg-neon-green" />[ 02 ] Como funciona o custo
           </div>
           <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
             {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).flatMap((m) =>
               VIDEO_MODELS[m].tiers.map((t) => (
                 <div key={`${m}-${t.key}`} className="flex flex-col gap-1 bg-background/70 p-5">
-                  <span className="text-[13px] text-foreground">{VIDEO_MODELS[m].label} · {t.label}</span>
+                  <span className="text-[13px] text-foreground">
+                    {VIDEO_MODELS[m].label} · {t.label}
+                  </span>
                   <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-                    {t.freeEligible ? `${formatBRL(t.priceCents)} · 1º grátis no cadastro` : formatBRL(t.priceCents)}
+                    {t.freeEligible
+                      ? `${formatBRL(t.priceCents)} · 1º grátis no cadastro`
+                      : formatBRL(t.priceCents)}
                   </span>
                 </div>
               )),
@@ -933,7 +1115,9 @@ function VeronicaStudio() {
                 <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
                   <span className="text-[13px] text-foreground">Imagem · {e.label}</span>
                   <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-                    {e.freeEligible ? `${formatBRL(e.priceCents)} · 2 grátis no cadastro` : formatBRL(e.priceCents)}
+                    {e.freeEligible
+                      ? `${formatBRL(e.priceCents)} · 2 grátis no cadastro`
+                      : formatBRL(e.priceCents)}
                   </span>
                 </div>
               );
@@ -943,7 +1127,9 @@ function VeronicaStudio() {
               return (
                 <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
                   <span className="text-[13px] text-foreground">Voz · {e.label}</span>
-                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">{formatBRL(e.priceCents)}</span>
+                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                    {formatBRL(e.priceCents)}
+                  </span>
                 </div>
               );
             })}
@@ -952,17 +1138,25 @@ function VeronicaStudio() {
               return (
                 <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
                   <span className="text-[13px] text-foreground">Avatar · {e.label}</span>
-                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">{formatBRL(e.priceCents)}</span>
+                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                    {formatBRL(e.priceCents)}
+                  </span>
                 </div>
               );
             })}
             <div className="flex flex-col gap-1 bg-background/70 p-5">
               <span className="text-[13px] text-foreground">Depósito mínimo</span>
-              <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">{formatBRL(MIN_DEPOSIT_CENTS)}</span>
+              <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                {formatBRL(MIN_DEPOSIT_CENTS)}
+              </span>
             </div>
           </div>
           <ul className="mt-8 space-y-2.5">
-            {["Sem mensalidade — paga só quando gera", "Conta compartilhada com o resto do ecossistema Veronica", "Créditos grátis valem uma vez por conta, só na qualidade 1080p"].map((p) => (
+            {[
+              "Sem mensalidade — paga só quando gera",
+              "Conta compartilhada com o resto do ecossistema Veronica",
+              "Créditos grátis valem uma vez por conta, só na qualidade 1080p",
+            ].map((p) => (
               <li key={p} className="flex items-start gap-3 text-sm text-foreground/90">
                 <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-green" />
                 {p}

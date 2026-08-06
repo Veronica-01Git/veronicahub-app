@@ -12,4 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // Túnel público (cloudflared) usado só em dev pra testar o webhook do
+      // Mercado Pago, que precisa de uma URL alcançável de fora. Sem isso o
+      // Vite recusa qualquer request com Host diferente de localhost.
+      allowedHosts: [".trycloudflare.com"],
+    },
+  },
 });
