@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Layers,
   Anchor,
+  ShoppingBag,
   Menu,
   X,
 } from "lucide-react";
@@ -44,6 +45,7 @@ type EcosystemItem = {
   ready: boolean;
   to?: string;
   note?: string;
+  external?: boolean;
 };
 
 const ecosystem: EcosystemItem[] = [
@@ -95,6 +97,15 @@ const ecosystem: EcosystemItem[] = [
     ready: true,
     to: "/veronica-nautica",
     note: "Em estruturação",
+  },
+  {
+    icon: ShoppingBag,
+    name: "Negócio da China",
+    tag: "Marketplace C2C",
+    desc: "Anuncie e compre itens novos, seminovos e usados entre membros do ecossistema — pagamento protegido até a confirmação de recebimento.",
+    ready: true,
+    to: "https://negociodachina.veronicahub.com",
+    external: true,
   },
 ];
 
@@ -270,12 +281,35 @@ function Index() {
             <a href="#sobre" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Sobre</a>
             <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Blog</Link>
             <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ecossistema</div>
-            {ECOSYSTEM_LINKS.map((item) =>
-              item.ready ? (
-                <Link key={item.name} to={item.to} onClick={() => setMobileOpen(false)} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5">
+            {ECOSYSTEM_LINKS.map((item) => {
+              const itemContent = (
+                <>
                   <span className="text-foreground">{item.name}</span>
                   <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-                </Link>
+                </>
+              );
+              return item.ready ? (
+                item.external ? (
+                  <a
+                    key={item.name}
+                    href={item.to}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex flex-col gap-0.5 border-b border-border/40 py-3.5"
+                  >
+                    {itemContent}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.to}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex flex-col gap-0.5 border-b border-border/40 py-3.5"
+                  >
+                    {itemContent}
+                  </Link>
+                )
               ) : (
                 <div key={item.name} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5 opacity-50">
                   <span className="flex items-center gap-2 text-foreground">
@@ -284,8 +318,8 @@ function Index() {
                   </span>
                   <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
                 </div>
-              ),
-            )}
+              );
+            })}
             <a
               href={HUB_URL}
               target="_blank"
@@ -718,6 +752,13 @@ function Index() {
                 </div>
               </>
             );
+            if (e.ready && e.to && e.external) {
+              return (
+                <a key={e.name} href={e.to} target="_blank" rel="noopener noreferrer" className={cardClass}>
+                  {content}
+                </a>
+              );
+            }
             return e.ready && e.to ? (
               <Link key={e.name} to={e.to} className={cardClass}>
                 {content}
