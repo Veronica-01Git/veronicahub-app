@@ -235,7 +235,7 @@ export function VeronicaHero() {
         ref={ref}
         aria-hidden
         className="pointer-events-none absolute inset-0 hidden h-full w-full md:block motion-reduce:md:hidden"
-        style={{ opacity: 0.92 }}
+        style={{ mixBlendMode: "screen", opacity: 0.75 }}
       />
       {/* Fallback estático: mobile sempre, e desktop quando prefers-reduced-motion
           está ativo — mesma imagem, sem canvas, sem parallax, sem rastreio.
@@ -245,10 +245,11 @@ export function VeronicaHero() {
           TerminalBoot deixava a section, o que podia sumir com um olho. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 block bg-contain bg-center bg-no-repeat opacity-[0.85] md:hidden motion-reduce:md:block"
+        className="pointer-events-none absolute inset-0 block bg-contain bg-center bg-no-repeat opacity-[0.42] md:hidden motion-reduce:md:block"
         style={{
           backgroundImage: "url(/veronica-hero-sm.webp)",
-          filter: "contrast(1.05) saturate(0.9) brightness(1.02)",
+          filter: "contrast(1.08) saturate(0.85) brightness(0.95)",
+          mixBlendMode: "screen",
         }}
       />
     </>

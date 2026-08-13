@@ -20,18 +20,17 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 
 ## O que já foi feito
 
-### Home (`src/routes/index.tsx`)
-- Paleta clara escopada só na home (`.home-hybrid`, `.home-tint-green`,
-  `.home-tint-cyan` em `src/styles.css`) — outras rotas continuam com o
-  tema escuro original.
-- Hero centralizado estilo Apple, sem imagem/WebGL da Veronica, sem
-  glow/contorno neon no título, dois botões pill, espaço reservado
-  "Imagem em breve" (falta a imagem final do usuário).
-- Cabeçalho formalizado (sem mono/uppercase/sublinhado animado/pulse dot).
-- Seção "Ecossistema" em blocos grandes alternados (imagem + texto) por
-  produto, imagens em `public/images/ecosystem/*.webp` (já otimizadas,
-  ~80-145KB cada — os PNGs originais de ~1.5-1.8MB foram removidos).
-  Veronica Náutica ainda sem imagem (card compacto só texto).
+### Home (`src/routes/index.tsx`) — REVERTIDA
+Por pedido do usuário, a home voltou a ser exatamente a versão publicada
+(`main`, commit `70de73d`) — `index.tsx` e `VeronicaHero.tsx` foram
+restaurados com `git checkout main -- <arquivo>`. O redesign clara/Apple
+que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
+- As classes CSS `.home-hybrid`, `.home-tint-green`, `.home-tint-cyan`,
+  `.home-hero-dark` continuam em `src/styles.css` **porque o Veronica
+  Wire (`blog.tsx`) depende delas** — não remover essas classes.
+- As imagens em `public/images/ecosystem/*.webp` (já otimizadas) ficaram
+  órfãs (não usadas por nenhuma rota agora) — disponíveis se o redesign
+  da home for retomado no futuro.
 
 ### Studio Criativo (`src/routes/video-ia.tsx`)
 - Renomeado de "Veronica Studio". Banner com foto de fundo + 4 cards de
@@ -70,15 +69,22 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
   que outras partes do sistema vão ler, mas não fazia parte do pedido
   original (só drawer + registry + chat).
 
+### Veronica Analytics (`src/routes/veronica-analytics.tsx`)
+- Reskin pra paleta clara e viva (rosa/ciano/dourado, inspirada no
+  duotone do TikTok) via variáveis `--tt-*` escopadas (já existiam,
+  só trocamos os valores) — mesma técnica da home antiga. Calculadora
+  de engajamento 100% intacta (client-side, sem lógica tocada).
+- Ticker de tendências no topo + bloco escuro final puxando pro Studio
+  Criativo, no mesmo padrão do Wire.
+
 ## Pendências conhecidas
 
 1. Adicionar `ANTHROPIC_API_KEY` em `.env.local` pra o chat da Veronica
    funcionar de verdade.
-2. "Formalizar" trechos que ainda ficaram no estilo cyber antigo: labels
-   `[ 0X ]` nas seções Ecossistema/Preços/FAQ da home, tags dos cards de
-   depoimento, e o menu "Ecossistema" do cabeçalho (`EcosystemMenu` em
-   `SiteChrome.tsx`, componente compartilhado — não mexido ainda porque
-   afeta todas as rotas).
+2. "Formalizar" trechos que ainda ficaram no estilo cyber antigo em
+   Studio Criativo/Wire, e o menu "Ecossistema" do cabeçalho
+   (`EcosystemMenu` em `SiteChrome.tsx`, compartilhado — afeta todas as
+   rotas, não mexido ainda).
 3. Vídeos por passo do Studio Criativo (`studio-criativo/01-*.mp4` etc.)
    ainda não existem/foram gravados — o drawer já trata isso com um
    placeholder honesto ("Vídeo deste passo em breve").
@@ -86,8 +92,11 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
    volta em `redesign-visual` (ou direto em `main`, a decidir) quando o
    usuário aprovar.
 5. Rotas ainda no visual antigo, aguardando referência de design do
-   usuário: Currículo-Certo, Veronica Analytics (a próxima, apelidada de
-   "TikTok"), Security, Náutica.
+   usuário: Currículo-Certo, Security, Náutica.
+6. Página "/descobrir" (feed de vídeos virais do TikTok Shop, item
+   "Descobrir" da sidebar do Studio Criativo) tem referência HTML pronta
+   (`descobrir-exemplar-v2-claro.html`) mas ainda não foi construída —
+   o usuário decidiu usar essa referência no Analytics em vez disso.
 
 ## Como continuar
 
