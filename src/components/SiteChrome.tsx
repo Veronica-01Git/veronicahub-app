@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Youtube, Instagram, MessageCircle, Mail, ChevronDown, Menu, X } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Youtube, Instagram, MessageCircle, Mail, ChevronDown, Menu, X, User as UserIcon } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
+import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
 
 export const HUB_URL = "https://veronicahub.com";
 
@@ -108,6 +109,223 @@ export function EcosystemMenu() {
   );
 }
 
+// Login compartilhado do ecossistema — mesma conta/sessão que já é usada
+// no Currículo-Certo e no Studio Criativo (ver src/lib/auth-server.ts),
+// só que agora visível no cabeçalho de toda página que usa <SiteHeader />.
+// Não duplica lógica de autenticação, só chama as server functions que já
+// existem — nada em auth-server.ts foi alterado.
+type HubUser = { id: string; email: string };
+
+export function AuthWidget({ variant = "desktop" }: { variant?: "desktop" | "mobile" }) {
+  const [user, setUser] = useState<HubUser | null>(null);
+  const [checked, setChecked] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"identify" | "confirm">("identify");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentUser()
+      .then((u) => {
+        if (!cancelled) setUser(u);
+      })
+      .finally(() => {
+        if (!cancelled) setChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open || variant === "mobile") return;
+    function onPointerDown(e: PointerEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, variant]);
+
+  function resetForm() {
+    setStep("identify");
+    setEmail("");
+    setCode("");
+    setError(null);
+  }
+
+  async function handleRequestCode(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await requestEmailCode({ data: { email: email.trim() } });
+      if (res.ok) {
+        setStep("confirm");
+        setCode("");
+      } else {
+        setError(res.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao pedir código.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleConfirmCode(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await verifyEmailCode({ data: { email: email.trim(), code: code.trim() } });
+      if (res.ok) {
+        setUser(res.user);
+        setOpen(false);
+        resetForm();
+      } else {
+        setError(res.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao confirmar código.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    await logout();
+    setUser(null);
+    setOpen(false);
+  }
+
+  if (!checked) return null;
+
+  const triggerClass =
+    "group relative flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-2 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground transition hover:border-neon-green/60 hover:text-neon-green";
+
+  const panel = (
+    <div className="flex w-72 flex-col gap-3 p-3.5">
+      {user ? (
+        <>
+          <div className="flex items-center gap-2 font-mono-tech text-[11px]" style={{ color: "var(--foreground)" }}>
+            <UserIcon className="h-3.5 w-3.5 text-neon-green" />
+            {user.email}
+          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-sm border border-border/60 px-3 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground transition hover:border-destructive/60 hover:text-destructive"
+          >
+            Sair
+          </button>
+        </>
+      ) : step === "identify" ? (
+        <form onSubmit={handleRequestCode} className="flex flex-col gap-2.5">
+          <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+            Entrar ou criar conta
+          </span>
+          <input
+            type="email"
+            required
+            autoFocus
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="seu@email.com"
+            className="rounded-sm border border-border/60 bg-background/60 px-3 py-2 text-[13px] outline-none focus:border-neon-green/60"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-sm bg-neon-green px-3 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground transition disabled:opacity-50"
+          >
+            {loading ? "Enviando…" : "Enviar código"}
+          </button>
+          {error && <span className="font-mono-tech text-[10.5px] text-destructive">{error}</span>}
+        </form>
+      ) : (
+        <form onSubmit={handleConfirmCode} className="flex flex-col gap-2.5">
+          <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+            Código enviado para {email}
+          </span>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            required
+            autoFocus
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            placeholder="000000"
+            className="rounded-sm border border-border/60 bg-background/60 px-3 py-2 text-center text-[15px] tracking-[0.3em] outline-none focus:border-neon-green/60"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-sm bg-neon-green px-3 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground transition disabled:opacity-50"
+          >
+            {loading ? "Confirmando…" : "Confirmar"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setStep("identify");
+              setError(null);
+            }}
+            className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+          >
+            Trocar e-mail
+          </button>
+          {error && <span className="font-mono-tech text-[10.5px] text-destructive">{error}</span>}
+        </form>
+      )}
+    </div>
+  );
+
+  if (variant === "mobile") {
+    return (
+      <div className="flex flex-col gap-1">
+        {!open ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="mt-2 inline-flex items-center justify-center gap-2 rounded-sm border border-border/60 px-4 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-foreground"
+          >
+            <UserIcon className="h-3.5 w-3.5" />
+            {user ? user.email : "Entrar"}
+          </button>
+        ) : (
+          <div className="rounded-sm border border-border/60 bg-background/40">{panel}</div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div ref={ref} className="relative hidden sm:block">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className={triggerClass}>
+        <UserIcon className="h-3.5 w-3.5" />
+        {user ? user.email.split("@")[0] : "Entrar"}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-40 mt-2 rounded-sm border border-border/60 bg-background/95 shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)] backdrop-blur">
+          {panel}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -169,6 +387,7 @@ export function SiteHeader() {
             <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
             <a href={SOCIAL_LINKS.email} aria-label="E-mail" className="transition hover:text-neon-green hover:-translate-y-0.5"><Mail className="h-4 w-4" /></a>
           </div>
+          <AuthWidget />
           <a
             href={HUB_URL}
             target="_blank"
@@ -194,6 +413,7 @@ export function SiteHeader() {
     {mobileOpen && (
       <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
         <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
+          <AuthWidget variant="mobile" />
           <Link to="/" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
             Home
           </Link>

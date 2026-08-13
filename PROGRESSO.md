@@ -82,6 +82,53 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
 - Ticker de tendências no topo + bloco escuro final puxando pro Studio
   Criativo, no mesmo padrão do Wire.
 
+### Login visível em todo o Hub + painel admin (branch `claude/veronicahub-redesign-cont-k92gt4`)
+- **`AuthWidget`** (novo componente em `src/components/SiteChrome.tsx`) —
+  botão "Entrar" (código por e-mail, mesmo fluxo passwordless que já
+  existia só dentro do Currículo-Certo/RH/Studio) agora aparece no
+  cabeçalho de **todas** as páginas que usam `<SiteHeader />` (Blog,
+  Comandos, Prompt Packs, Security, Náutica, Rede, Studio, Analytics) e
+  também no header próprio da Home (`index.tsx`). Não duplica lógica —
+  só chama as server functions que já existiam em `auth-server.ts`
+  (arquivo não foi alterado). Currículo-Certo/RH continuam com seu
+  próprio header/modal de login (visual antigo, fora de escopo agora).
+- **Painel admin simples** (`/admin`, rota não listada no menu — só por
+  URL direta): lista usuários cadastrados (e-mail, saldo, créditos,
+  papel) e depósitos recentes. Protegido de verdade no servidor —
+  `src/lib/admin-server.ts` (novo arquivo, só leitura do banco, não
+  toca em `auth-server.ts`/`wallet-server.ts`). Quem vira admin é
+  definido pela env var `ADMIN_EMAILS` (lista de e-mails separados por
+  vírgula) — no primeiro acesso ao painel com uma sessão logada nesse
+  e-mail, o sistema promove a `role` do usuário pra `admin`
+  automaticamente. Sem `ADMIN_EMAILS` configurada, ninguém acessa.
+- **Mudança no schema do banco** (`src/lib/schema.ts`): campo novo
+  `role` (`UserRole` enum: `user`/`admin`, default `user`) na tabela
+  `User`. Migration já gerada em `drizzle/0001_square_lady_ursula.sql`
+  (`CREATE TYPE` + `ALTER TABLE ... ADD COLUMN` — aditiva, não
+  destrutiva), **mas ainda não aplicada no Neon de produção** — este
+  ambiente remoto não tem `DATABASE_URL` real pra rodar isso com
+  segurança. **Passo manual pendente, rodar no WSL com `.env.local`
+  configurado:**
+  ```bash
+  bunx drizzle-kit migrate
+  ```
+  Depois, adicionar `ADMIN_EMAILS=seu@email.com` no `.env.local` (dev)
+  e como secret do Worker de produção:
+  ```bash
+  wrangler secret put ADMIN_EMAILS --name veronicahub-app
+  ```
+  (nome do Worker de produção real — ver nota acima, não é
+  `veronica-01git-veronicahub-app`).
+- `src/routeTree.gen.ts` foi editado manualmente pra registrar a rota
+  `/admin` (normalmente esse arquivo é 100% autogerado pelo plugin do
+  TanStack Router ao rodar `vite dev`/`vite build` — este ambiente
+  remoto não conseguiu rodar `bun install` completo, um pacote privado
+  do registro bloqueou a instalação, então não deu pra rodar o gerador
+  de verdade). Rodar `bun run dev` ou `bun run build` uma vez no WSL
+  regenera esse arquivo do zero automaticamente e substitui essa edição
+  manual pela versão canônica — não deve dar conflito, só confirma que
+  ficou certo.
+
 ## Pendências conhecidas
 
 1. Adicionar `ANTHROPIC_API_KEY` em `.env.local` pra o chat da Veronica

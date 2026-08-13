@@ -1,6 +1,8 @@
 import { pgTable, text, integer, timestamp, pgEnum, index } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 
+export const userRole = pgEnum("UserRole", ["user", "admin"]);
+
 // Carteira compartilhada do ecossistema Veronica Hub (Studio, Currículo-Certo,
 // Currículo-Certo RH). Créditos grátis ficam ligados permanentemente ao
 // e-mail — ao contrário da versão simulada anterior (localStorage), não dá
@@ -10,6 +12,7 @@ export const users = pgTable("User", {
     .primaryKey()
     .$defaultFn(() => createId()),
   email: text("email").notNull().unique(),
+  role: userRole("role").notNull().default("user"),
   balanceCents: integer("balanceCents").notNull().default(0),
   freeVideoCredits: integer("freeVideoCredits").notNull().default(1),
   freeImageCredits: integer("freeImageCredits").notNull().default(2),

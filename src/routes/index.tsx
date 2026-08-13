@@ -29,7 +29,7 @@ import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { useParallax } from "@/hooks/use-parallax";
 import { TerminalBoot } from "@/components/TerminalBoot";
-import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
+import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame, AuthWidget } from "@/components/SiteChrome";
 import { VeronicaHero } from "@/components/VeronicaHero";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { courses } from "@/lib/courses";
@@ -241,6 +241,7 @@ function Index() {
               Blog
               <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
+            <AuthWidget />
             <a
               href={HUB_URL}
               target="_blank"
@@ -266,6 +267,7 @@ function Index() {
       {mobileOpen && (
         <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
           <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
+            <AuthWidget variant="mobile" />
             <Link to="/comandos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Comandos</Link>
             <a href="#sobre" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Sobre</a>
             <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Blog</Link>
