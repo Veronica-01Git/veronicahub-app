@@ -18,6 +18,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
+import { VeronicaDrawer } from "@/components/VeronicaDrawer";
+import type { StudioCriativoStepId } from "@/veronica/skills";
 import { courses } from "@/lib/courses";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
 import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
@@ -134,36 +136,43 @@ const AVATAR_ENGINES: Record<AvatarEngineKey, Engine> = {
 const STUDIO_PLAYBOOK = [
   {
     n: "01",
+    stepId: "escolha-produto" as const,
     title: "Escolha o produto",
     body: 'Pesquise no Google o que já tem demanda no seu nicho — o que as pessoas já procuram e compram bate mais forte que achismo. Ex: "perfume importado" já chega buscando comparação de preço.',
   },
   {
     n: "02",
+    stepId: "nome-certo" as const,
     title: "Nome certo",
     body: "Dê ao produto um nome de marca simples, fácil de lembrar e de falar em voz alta — ele vai aparecer no roteiro, na embalagem visual e na copy inteira.",
   },
   {
     n: "03",
+    stepId: "copy-dor-solucao" as const,
     title: "Copy: dor → solução",
     body: 'A Big Idea nasce da dor, não da solução. Ex (perfume): dor = "seu perfume some no almoço, você reaplica toda hora e ainda assim ninguém sente"; solução = "fixação de 12h comprovada, borrifou de manhã, ainda sente à noite".',
   },
   {
     n: "04",
+    stepId: "narrador" as const,
     title: "Narrador",
     body: "Escolha a voz que combina com quem compra — feminina pra leveza e identificação, masculina pra autoridade e confiança. Gere a narração na aba Voz do gerador acima.",
   },
   {
     n: "05",
+    stepId: "takes-imagens" as const,
     title: "Takes e imagens",
     body: "Baixe vídeos e fotos de banco gratuitos no Pexels — qualidade cinematográfica sem custo nenhum de produção.",
   },
   {
     n: "06",
+    stepId: "efeitos-sonoros" as const,
     title: "Efeitos sonoros",
     body: "Busque efeitos e trilha livre de direitos no Mixkit. O som certo no corte certo é o que separa amador de profissional.",
   },
   {
     n: "07",
+    stepId: "montagem-final" as const,
     title: "Montagem final",
     body: "Monte tudo no CapCut: corte no ritmo da copy (dor → solução → prova → oferta), overlay de texto nos pontos-chave, exporte em 1080p ou 4K.",
   },
@@ -353,10 +362,12 @@ function StudioSidebar({
   format,
   modalityChosen,
   onSelect,
+  onOpenVeronica,
 }: {
   format: Format;
   modalityChosen: boolean;
   onSelect: (f: Format) => void;
+  onOpenVeronica: () => void;
 }) {
   const modalities: { key: Format; label: string; icon: typeof Video }[] = [
     { key: "image", label: "Imagem", icon: ImageIcon },
@@ -368,7 +379,6 @@ function StudioSidebar({
     { icon: Compass, label: "Descobrir" },
     { icon: LayoutGrid, label: "Quadros" },
     { icon: History, label: "Linha do tempo" },
-    { icon: Wand2, label: "Assistente Veronica" },
     { icon: Clapperboard, label: "Produção" },
   ];
   return (
@@ -400,6 +410,13 @@ function StudioSidebar({
       </nav>
       <div className="mx-3 my-1 h-px bg-border/40" />
       <nav className="flex flex-col gap-0.5 p-3">
+        <button
+          type="button"
+          onClick={onOpenVeronica}
+          className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-neon-green transition hover:bg-neon-green/5"
+        >
+          <Wand2 className="h-4 w-4" /> ✦ Assistente Veronica
+        </button>
         {soon.map((item) => (
           <div
             key={item.label}
@@ -427,6 +444,8 @@ function StudioSidebar({
 
 function VeronicaStudio() {
   const [modalityChosen, setModalityChosen] = useState(false);
+  const [veronicaOpen, setVeronicaOpen] = useState(false);
+  const [veronicaStepId, setVeronicaStepId] = useState<StudioCriativoStepId | null>(null);
   const [format, setFormat] = useState<Format>("video");
   const [videoModel, setVideoModel] = useState<VideoModelKey>("seedance");
   const [videoTier, setVideoTier] = useState<string>("1080p");
@@ -661,6 +680,11 @@ function VeronicaStudio() {
     }, 50);
   }
 
+  function openVeronica(stepId?: StudioCriativoStepId) {
+    setVeronicaStepId(stepId ?? "escolha-produto");
+    setVeronicaOpen(true);
+  }
+
   function handleGenerate() {
     if (!prompt.trim() || generating) return;
     if (!user) {
@@ -694,9 +718,20 @@ function VeronicaStudio() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
-      <StudioSidebar format={format} modalityChosen={modalityChosen} onSelect={chooseModality} />
+      <StudioSidebar
+        format={format}
+        modalityChosen={modalityChosen}
+        onSelect={chooseModality}
+        onOpenVeronica={() => openVeronica()}
+      />
+      <VeronicaDrawer
+        skillId="studio-criativo"
+        open={veronicaOpen}
+        stepId={veronicaStepId}
+        onClose={() => setVeronicaOpen(false)}
+      />
 
-      <div className="md:pl-60">
+      <div className={`transition-[padding] duration-300 ease-out md:pl-60 ${veronicaOpen ? "sm:pr-[420px]" : ""}`}>
       {authOpen && !user && (
         <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
           <div className="mx-auto max-w-7xl">
@@ -1186,6 +1221,13 @@ function VeronicaStudio() {
                   <p className="mt-1.5 text-[13.5px] leading-[1.6] text-muted-foreground">
                     {s.body}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => openVeronica(s.stepId)}
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-neon-green/30 bg-neon-green/5 px-3 py-1.5 font-mono-tech text-[10.5px] text-neon-green transition hover:border-neon-green/60"
+                  >
+                    ✦ perguntar à veronica
+                  </button>
                 </div>
               </div>
             ))}
