@@ -877,7 +877,7 @@ function VeronicaStudio() {
             className="relative flex min-h-[360px] flex-col items-center justify-center gap-2 px-6 py-20 text-center"
             style={{
               backgroundImage:
-                "linear-gradient(180deg, rgba(5,8,12,.4), rgba(5,8,12,.85)), url(/images/ecosystem/studio.webp)",
+                "linear-gradient(180deg, rgba(5,8,12,.4), rgba(5,8,12,.85)), url(/images/studio/studio-film-set.webp)",
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}

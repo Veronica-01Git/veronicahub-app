@@ -402,7 +402,17 @@ function Index() {
           mais um "[ 0X ]" da estrutura. Sem autoplay — controles nativos,
           usuário decide tocar; nada de peso extra no load da página. */}
       <section className="relative overflow-hidden border-b border-border/40 bg-surface/40 py-24">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1fr_1.15fr] lg:items-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.16]"
+          style={{
+            backgroundImage: "url(/images/home/portal-vortex.webp)",
+            backgroundPosition: "center 30%",
+            maskImage: "linear-gradient(180deg, transparent, black 30%, black 70%, transparent)",
+            WebkitMaskImage: "linear-gradient(180deg, transparent, black 30%, black 70%, transparent)",
+          }}
+        />
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1fr_1.15fr] lg:items-center">
           <div>
             <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
               <span className="h-px w-8 bg-neon-cyan" />

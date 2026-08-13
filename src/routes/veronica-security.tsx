@@ -15,8 +15,29 @@ import {
   X,
   GraduationCap,
 } from "lucide-react";
-import { SiteHeader, SiteFooter, SOCIAL_LINKS, CyborgBackdrop } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, SOCIAL_LINKS, HeroFrame } from "@/components/SiteChrome";
 import { courses } from "@/lib/courses";
+
+// Backdrop temático da hero — central de operações de cibersegurança,
+// gerada no Higgsfield já na paleta neon-green/cyan do Hub. Auto-hospedada
+// em public/images/security/ (otimizada em .webp), mesma técnica visual do
+// CyborgBackdrop compartilhado (fade + corner brackets via HeroFrame).
+function SecurityBackdrop() {
+  return (
+    <>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.38] bg-[position:60%_30%] md:opacity-[0.4] md:bg-[position:58%_center]"
+        style={{
+          backgroundImage: "url(/images/security/security-ops-center.webp)",
+          filter: "contrast(1.08) saturate(0.95) brightness(0.92)",
+          mixBlendMode: "screen",
+        }}
+      />
+      <HeroFrame />
+    </>
+  );
+}
 
 export const Route = createFileRoute("/veronica-security")({
   component: VeronicaSecurity,
@@ -181,9 +202,9 @@ function VeronicaSecurity() {
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {/* Hero — mesmo padrão visual da Studio: CyborgBackdrop + texto direto */}
+      {/* Hero — mesmo padrão visual da Studio, com backdrop temático de Security */}
       <section className="relative overflow-hidden scanlines">
-        <CyborgBackdrop />
+        <SecurityBackdrop />
         <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-16 md:pb-28 md:pt-24">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
@@ -334,51 +355,70 @@ function VeronicaSecurity() {
 
       {/* Etapa 2 — Raio-X profissional */}
       <section className="border-b border-border/40 bg-surface/40 py-20 md:py-24">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />
-            [ 02 ] Raio-X profissional
-          </div>
-          <h2 className="font-display text-3xl sm:text-4xl" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
-            Quer o diagnóstico completo, feito por um especialista?
-          </h2>
-          <p className="mt-4 max-w-xl text-sm leading-[1.6] text-muted-foreground">
-            A triagem acima é uma autoavaliação. O Raio-X vai além: um desenvolvedor humano — o próprio
-            administrador da Veronica Hub — analisa seu projeto manualmente e entrega um documento oficial,
-            pronto pra protocolar ou arquivar.
-          </p>
-
-          <div className="mt-8 flex flex-col gap-4 rounded-sm border border-neon-green/30 bg-gradient-to-br from-neon-green/8 via-background/60 to-background p-6 backdrop-blur sm:p-8">
-            <div className="flex flex-wrap items-end gap-2">
-              <span className="font-display text-5xl text-neon-green text-glow-green">R$9,90</span>
-              <span className="mb-1.5 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
-                pagamento único · via Pix
-              </span>
+        <div className="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div>
+            <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <span className="h-px w-8 bg-neon-green" />
+              [ 02 ] Raio-X profissional
             </div>
-            <ul className="flex flex-col gap-2.5">
-              {[
-                "Análise manual, feita por um desenvolvedor — não é varredura automática",
-                "Entrega em até 24h após a confirmação do pagamento",
-                "Documento profissional, pronto pra protocolar ou arquivar",
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
-                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-green" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a
-              href={raioXWhatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative mt-2 inline-flex w-fit items-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Chamar no WhatsApp
-            </a>
-            <p className="text-[12px] leading-[1.5] text-muted-foreground">
-              O pagamento (Pix) é combinado direto no WhatsApp — nada é cobrado automaticamente aqui.
+            <h2 className="font-display text-3xl sm:text-4xl" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+              Quer o diagnóstico completo, feito por um especialista?
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-[1.6] text-muted-foreground">
+              A triagem acima é uma autoavaliação. O Raio-X vai além: um desenvolvedor humano — o próprio
+              administrador da Veronica Hub — analisa seu projeto manualmente e entrega um documento oficial,
+              pronto pra protocolar ou arquivar.
             </p>
+
+            <div className="mt-8 flex flex-col gap-4 rounded-sm border border-neon-green/30 bg-gradient-to-br from-neon-green/8 via-background/60 to-background p-6 backdrop-blur sm:p-8">
+              <div className="flex flex-wrap items-end gap-2">
+                <span className="font-display text-5xl text-neon-green text-glow-green">R$9,90</span>
+                <span className="mb-1.5 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
+                  pagamento único · via Pix
+                </span>
+              </div>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  "Análise manual, feita por um desenvolvedor — não é varredura automática",
+                  "Entrega em até 24h após a confirmação do pagamento",
+                  "Documento profissional, pronto pra protocolar ou arquivar",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
+                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-green" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a
+                href={raioXWhatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative mt-2 inline-flex w-fit items-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Chamar no WhatsApp
+              </a>
+              <p className="text-[12px] leading-[1.5] text-muted-foreground">
+                O pagamento (Pix) é combinado direto no WhatsApp — nada é cobrado automaticamente aqui.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative hidden lg:block">
+            <div aria-hidden className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-green/20 via-transparent to-neon-cyan/20 blur-xl" />
+            <div className="relative overflow-hidden rounded-sm border border-neon-green/40 shadow-glow-green">
+              <img
+                src="/images/security/security-hacker.webp"
+                alt="Desenvolvedor analisando vulnerabilidades em múltiplas telas de terminal"
+                className="block h-auto w-full"
+                loading="lazy"
+                width={1376}
+                height={768}
+              />
+              <div aria-hidden className="pointer-events-none absolute inset-0 scanlines opacity-20" />
+            </div>
+            <div aria-hidden className="pointer-events-none absolute -left-3 -top-3 h-10 w-10 border-l-2 border-t-2 border-neon-green/70" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-cyan/70" />
           </div>
         </div>
       </section>

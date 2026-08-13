@@ -145,7 +145,7 @@ export function VeronicaDrawer({
           </button>
         </div>
 
-        {step && (
+        {step ? (
           <>
             <div className="relative aspect-video w-full flex-shrink-0 border-b border-border/50 bg-black">
               <StepVideo videoAsset={step.videoAsset} title={step.title} />
@@ -165,6 +165,16 @@ export function VeronicaDrawer({
               </div>
             </div>
           </>
+        ) : (
+          <div className="relative aspect-video w-full flex-shrink-0 overflow-hidden border-b border-border/50 bg-black">
+            <img
+              src="/images/assistente/avatar-hologram.webp"
+              alt="Avatar da assistente Veronica materializando em holograma"
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+            <div aria-hidden className="pointer-events-none absolute inset-0 scanlines opacity-20" />
+          </div>
         )}
 
         <div ref={bodyRef} className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-4 py-4">
