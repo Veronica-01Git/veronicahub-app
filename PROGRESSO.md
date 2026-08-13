@@ -6,15 +6,14 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 ## Onde estamos
 
 - Repositório: `~/veronicahub-app` (WSL), GitHub `Veronica-01Git/veronicahub-app`.
-- Duas branches locais de trabalho, nessa ordem:
-  1. `redesign-visual` (criada a partir de `home-novo-visual`) — redesign
-     visual de Home, Studio Criativo e Veronica Wire. Commits:
-     `ab7e22c` (checkpoint inicial) → `9fc7f1c` (checkpoint do redesign).
-  2. `veronica-assistente-studio` (criada a partir de `redesign-visual`) —
-     drawer da assistente Veronica no Studio Criativo. Commit: `94d6292`.
-     **É a branch atual (`git branch --show-current`).**
-- **Nada foi publicado.** Produção (`veronicahub.com`) continua servindo
-  `main`, commit `70de73d` — nenhuma das mudanças abaixo está no ar.
+- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `99b006c` (merge do
+  redesign visual: Studio Criativo, Veronica Wire, Veronica Analytics,
+  drawer da assistente Veronica) — deploy feito no Cloudflare Worker
+  (`veronica-01git-veronicahub-app`), confirmado ao vivo em
+  `veronicahub.com`.
+- Branch de trabalho atual: `claude/veronicahub-redesign-cont-k92gt4`
+  (criada a partir de `main` em `99b006c`, ainda não publicada no
+  GitHub) — pra continuar itens pendentes sem mexer direto em `main`.
 - Repositório irmão `~/negocio-da-china-app` (China Exchange) não foi
   tocado.
 
@@ -88,22 +87,27 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
 3. Vídeos por passo do Studio Criativo (`studio-criativo/01-*.mp4` etc.)
    ainda não existem/foram gravados — o drawer já trata isso com um
    placeholder honesto ("Vídeo deste passo em breve").
-4. Merge pendente: `veronica-assistente-studio` precisa ser mesclada de
-   volta em `redesign-visual` (ou direto em `main`, a decidir) quando o
-   usuário aprovar.
+4. ~~Merge pendente~~ — RESOLVIDO: tudo já foi mesclado em `main`
+   (commit `99b006c`), publicado no GitHub e com deploy feito no
+   Cloudflare Worker. `veronicahub.com` já serve essa versão.
 5. Rotas ainda no visual antigo, aguardando referência de design do
    usuário: Currículo-Certo, Security, Náutica.
-6. Página "/descobrir" (feed de vídeos virais do TikTok Shop, item
-   "Descobrir" da sidebar do Studio Criativo) tem referência HTML pronta
-   (`descobrir-exemplar-v2-claro.html`) mas ainda não foi construída —
-   o usuário decidiu usar essa referência no Analytics em vez disso.
+6. ~~Página "/descobrir"~~ — RESOLVIDO: a referência HTML
+   (`descobrir-exemplar-v2-claro.html`) foi aplicada dentro do Veronica
+   Analytics (`src/routes/veronica-analytics.tsx`), não como rota
+   separada. A página agora abre com a seção "O que está bombando
+   agora" (ticker, chips de filtro por categoria, ordenação, grid de
+   cards virais com GMV/crescimento mockados, cada card linkando pro
+   Studio Criativo) e a calculadora de engajamento original continua
+   logo abaixo, intacta. Ainda não commitado/publicado — feito na
+   branch `claude/veronicahub-redesign-cont-k92gt4`.
 
 ## Como continuar
 
 ```bash
 cd ~/veronicahub-app
 git status                  # confirma branch atual e se há mudanças não commitadas
-git branch                  # lista as branches (veronica-assistente-studio é a mais recente)
+git branch                  # branch de trabalho atual: claude/veronicahub-redesign-cont-k92gt4
 bun run dev                  # sobe o servidor local em http://localhost:8080
 ```
 
