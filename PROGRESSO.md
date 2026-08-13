@@ -12,11 +12,23 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 - **Worker de produção correto: `veronicahub-app`** (não
   `veronica-01git-veronicahub-app`). A conta Cloudflare tem os dois —
   `veronica-01git-veronicahub-app` existe mas NÃO é o que serve o
-  domínio (ficou parado no commit `99b006c`, desatualizado). O deploy
-  automático (Cloudflare Git integration, dispara a cada push em
-  `main`) publica em `veronicahub-app`, confirmado com o usuário abrindo
-  o navegador direto. Se for usar `wrangler secret put` ou qualquer
-  comando `--name`, usar `veronicahub-app`.
+  domínio (ficou parado no commit `99b006c`, desatualizado). Se for usar
+  `wrangler secret put` ou qualquer comando `--name`, usar
+  `veronicahub-app`.
+- **⚠️ CRÍTICO — o deploy automático do Cloudflare dispara a CADA PUSH
+  em QUALQUER branch conectada, não só em `main`.** Confirmado na
+  prática: dar `git push` numa branch de feature (`claude/…`) já gerou
+  um "Deployment successful!" direto no ambiente `production` do
+  Worker (comentário do bot `cloudflare-workers-and-pages` no PR,
+  apontando pra `.../veronicahub-app/production/builds/...`). **Não
+  existe deploy de preview separado nesse projeto** — todo push vira
+  produção na hora, esteja em `main` ou não. Isso já causou um susto
+  real: uma mudança de schema (coluna `role` nova) foi publicada antes
+  da migration rodar no banco, o que quebraria login em todo o Hub até
+  a migration ser aplicada (resolvido rápido, mas foi por pouco).
+  **Regra prática daqui pra frente: rodar qualquer migration de banco
+  ANTES de dar `git push` em qualquer branch — não só antes de mesclar
+  em `main`.**
 - Branch de trabalho atual: `claude/veronicahub-redesign-cont-k92gt4`
   (criada a partir de `main`, já com histórico mesclado em `main` também)
   — pra continuar itens pendentes sem mexer direto em `main`.
