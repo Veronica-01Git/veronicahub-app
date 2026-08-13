@@ -9,6 +9,13 @@ import {
   Check,
   ArrowRight,
   ChevronDown,
+  Home as HomeIcon,
+  Compass,
+  LayoutGrid,
+  History,
+  Wand2,
+  Clapperboard,
+  BookOpen,
 } from "lucide-react";
 import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
 import { courses } from "@/lib/courses";
@@ -30,13 +37,13 @@ export const Route = createFileRoute("/video-ia")({
   component: VeronicaStudio,
   head: () => ({
     meta: [
-      { title: "Veronica Studio — Vídeo, imagem, voz e avatar com IA | Veronica Hub" },
+      { title: "Studio Criativo — Vídeo, imagem, voz e avatar com IA | Veronica Hub" },
       {
         name: "description",
         content:
           "Descreva sua ideia e gere vídeo, imagem, voz ou avatar com IA. 1 vídeo em 1080p e 2 imagens Nano Banana Pro grátis ao criar sua conta.",
       },
-      { property: "og:title", content: "Veronica Studio — Vídeo, imagem, voz e avatar com IA" },
+      { property: "og:title", content: "Studio Criativo — Vídeo, imagem, voz e avatar com IA" },
       {
         property: "og:description",
         content: "Sua ideia, em execução. Geração com IA, pague só pelo que gerar.",
@@ -339,7 +346,87 @@ function Pill({
   );
 }
 
+// Sidebar do Studio Criativo — só navegação/visual, não toca em nenhum
+// estado de carteira/geração. Itens sem função real ainda ficam marcados
+// "em breve" em vez de fingir que funcionam.
+function StudioSidebar({
+  format,
+  modalityChosen,
+  onSelect,
+}: {
+  format: Format;
+  modalityChosen: boolean;
+  onSelect: (f: Format) => void;
+}) {
+  const modalities: { key: Format; label: string; icon: typeof Video }[] = [
+    { key: "image", label: "Imagem", icon: ImageIcon },
+    { key: "video", label: "Vídeo", icon: Video },
+    { key: "voice", label: "Voz", icon: AudioLines },
+    { key: "avatar", label: "Avatar", icon: User },
+  ];
+  const soon = [
+    { icon: Compass, label: "Descobrir" },
+    { icon: LayoutGrid, label: "Quadros" },
+    { icon: History, label: "Linha do tempo" },
+    { icon: Wand2, label: "Assistente Veronica" },
+    { icon: Clapperboard, label: "Produção" },
+  ];
+  return (
+    <aside className="fixed bottom-0 left-0 top-16 z-20 hidden w-60 flex-col overflow-y-auto border-r border-border/40 bg-surface/60 backdrop-blur md:flex">
+      <nav className="flex flex-col gap-0.5 p-3">
+        <Link
+          to="/"
+          className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-muted-foreground transition hover:bg-background/60 hover:text-foreground"
+        >
+          <HomeIcon className="h-4 w-4" /> Início
+        </Link>
+        {modalities.map((item) => {
+          const active = modalityChosen && format === item.key;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => onSelect(item.key)}
+              className={`flex items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm transition ${
+                active
+                  ? "bg-neon-green/10 text-neon-green"
+                  : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+              }`}
+            >
+              <item.icon className="h-4 w-4" /> {item.label}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="mx-3 my-1 h-px bg-border/40" />
+      <nav className="flex flex-col gap-0.5 p-3">
+        {soon.map((item) => (
+          <div
+            key={item.label}
+            className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-muted-foreground/50"
+          >
+            <item.icon className="h-4 w-4" /> {item.label}
+            <span className="ml-auto rounded-full border border-border/50 px-1.5 py-0.5 font-mono-tech text-[8px] uppercase tracking-widest">
+              em breve
+            </span>
+          </div>
+        ))}
+      </nav>
+      <div className="mx-3 my-1 h-px bg-border/40" />
+      <nav className="flex flex-col gap-0.5 p-3">
+        <Link
+          to="/prompt-packs"
+          className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-muted-foreground transition hover:bg-background/60 hover:text-foreground"
+        >
+          <BookOpen className="h-4 w-4" /> Prompt Packs
+        </Link>
+      </nav>
+    </aside>
+  );
+}
+
 function VeronicaStudio() {
+  const [modalityChosen, setModalityChosen] = useState(false);
   const [format, setFormat] = useState<Format>("video");
   const [videoModel, setVideoModel] = useState<VideoModelKey>("seedance");
   const [videoTier, setVideoTier] = useState<string>("1080p");
@@ -566,6 +653,14 @@ function VeronicaStudio() {
     }
   }
 
+  function chooseModality(f: Format) {
+    setFormat(f);
+    setModalityChosen(true);
+    window.setTimeout(() => {
+      document.getElementById("gerar")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+
   function handleGenerate() {
     if (!prompt.trim() || generating) return;
     if (!user) {
@@ -599,7 +694,9 @@ function VeronicaStudio() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
+      <StudioSidebar format={format} modalityChosen={modalityChosen} onSelect={chooseModality} />
 
+      <div className="md:pl-60">
       {authOpen && !user && (
         <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
           <div className="mx-auto max-w-7xl">
@@ -736,15 +833,77 @@ function VeronicaStudio() {
         </div>
       )}
 
+      {/* Banner + 4 modalidades — porta de entrada do Studio Criativo.
+          O compositor (workspace de verdade) só aparece depois de escolher
+          uma modalidade, em vez de despejar tudo de uma vez. */}
+      {!modalityChosen && (
+        <section className="relative overflow-hidden">
+          <div
+            className="relative flex min-h-[360px] flex-col items-center justify-center gap-2 px-6 py-20 text-center"
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, rgba(5,8,12,.4), rgba(5,8,12,.85)), url(/images/ecosystem/studio.webp)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/50 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+              Studio Criativo
+            </div>
+            <h1
+              className="mt-5 font-display text-4xl text-white sm:text-6xl"
+              style={{ letterSpacing: "-0.03em", lineHeight: "0.98" }}
+            >
+              Sua ideia, em execução.
+            </h1>
+            <p className="mx-auto mt-2 max-w-md text-[15px] leading-[1.6] text-white/80">
+              Escolha o formato — a IA gera, você dirige.
+            </p>
+          </div>
+
+          <div className="relative mx-auto -mt-14 max-w-5xl px-6 pb-20">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {(Object.keys(FORMAT_META) as Format[]).map((f) => {
+                const meta = FORMAT_META[f];
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => chooseModality(f)}
+                    className="group flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-sm border border-border/60 bg-background/95 p-6 text-center shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] backdrop-blur transition hover:-translate-y-1 hover:border-neon-green/60 hover:shadow-glow-green"
+                  >
+                    <meta.icon className="h-8 w-8 text-neon-green transition group-hover:scale-110" />
+                    <span className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                      {meta.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Hero — workspace de geração. Painel com blur/overlay garante
           contraste do texto; o botão de gerar fica sempre visível, sem
           precisar rolar. */}
+      {modalityChosen && (
       <section className="relative overflow-hidden scanlines">
         <HeroFrame />
         <div className="relative mx-auto max-w-5xl px-6 pb-14 pt-10 md:pb-20 md:pt-16">
-          <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-            Veronica Studio · Vídeo · Imagem · Voz · Avatar
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setModalityChosen(false)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
+            >
+              ← Trocar modalidade
+            </button>
+            <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+              Studio Criativo · {FORMAT_META[format].label}
+            </div>
           </div>
 
           <div
@@ -988,6 +1147,7 @@ function VeronicaStudio() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Vitrine — comandos que ensinam a técnica por trás do que se gera aqui */}
       <section className="border-t border-border/40 py-24 cv-auto">
@@ -1165,6 +1325,7 @@ function VeronicaStudio() {
           </ul>
         </div>
       </section>
+      </div>
 
       <SiteFooter />
     </div>

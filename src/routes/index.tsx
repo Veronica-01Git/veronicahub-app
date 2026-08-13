@@ -27,12 +27,10 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ogImage from "@/assets/og-veronica-hub.jpg";
-import { useReveal, useCountUp } from "@/hooks/use-reveal";
+import { useReveal } from "@/hooks/use-reveal";
 import { useParallax } from "@/hooks/use-parallax";
-import { TerminalBoot } from "@/components/TerminalBoot";
-import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS, HeroFrame } from "@/components/SiteChrome";
-import { VeronicaHero } from "@/components/VeronicaHero";
-import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
+import { SOCIAL_LINKS, EcosystemMenu, ECOSYSTEM_LINKS } from "@/components/SiteChrome";
+import { HudAccent } from "@/components/HoloOrbits";
 import { courses } from "@/lib/courses";
 
 const HUB_URL = "https://veronicahub.com";
@@ -46,6 +44,7 @@ type EcosystemItem = {
   to?: string;
   note?: string;
   external?: boolean;
+  image?: string;
 };
 
 const ecosystem: EcosystemItem[] = [
@@ -56,6 +55,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Imagem, vídeo e voz gerados com IA. Do prompt à entrega, um pipeline pro que roda em qualquer nicho.",
     ready: true,
     to: "/video-ia",
+    image: "/images/ecosystem/studio.webp",
   },
   {
     icon: FileText,
@@ -64,6 +64,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Otimização de currículo pra passar em ATS, chamar recrutador e virar entrevista.",
     ready: true,
     to: "/veronica-curriculo-certo",
+    image: "/images/ecosystem/curriculo.webp",
   },
   {
     icon: BarChart3,
@@ -72,6 +73,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Calculadora de engajamento e plano de ação pra vender mais no TikTok Shop.",
     ready: true,
     to: "/veronica-analytics",
+    image: "/images/ecosystem/analytics.webp",
   },
   {
     icon: ShieldCheck,
@@ -80,6 +82,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Triagem gratuita de segurança em linguagem simples, mais diagnóstico completo sob demanda.",
     ready: true,
     to: "/veronica-security",
+    image: "/images/ecosystem/security.webp",
   },
   {
     icon: Layers,
@@ -88,6 +91,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Documentos com prompts prontos pra IA real — Nano Banana Pro, Veo, Midjourney, ElevenLabs.",
     ready: true,
     to: "/prompt-packs",
+    image: "/images/ecosystem/prompt-packs.webp",
   },
   {
     icon: Anchor,
@@ -106,6 +110,7 @@ const ecosystem: EcosystemItem[] = [
     ready: true,
     to: "https://negociodachina.veronicahub.com",
     external: true,
+    image: "/images/ecosystem/china-exchange.webp",
   },
 ];
 
@@ -213,52 +218,42 @@ function Index() {
   const faqR = useReveal<HTMLElement>();
   const ctaR = useReveal<HTMLElement>();
 
-  const c1 = useCountUp(11, stats.visible);
-  const c2 = useCountUp(100, stats.visible);
-  const c3 = useCountUp(2400, stats.visible, 1800);
-
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="home-hybrid min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Grão cinematográfico — textura estática (sem jitter quadro a quadro),
           mesmo vocabulário do .scanlines da hero, cobrindo a página inteira. */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-40 film-grain opacity-[0.05]" />
-      {/* Nav */}
-      <header className="relative sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
-        {/* Sutil linha vermelha de ponta a ponta no topo */}
-        <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-destructive/60 to-transparent" />
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <a href="#" className="flex items-center gap-2 font-mono-tech text-sm uppercase tracking-widest">
-            <span className="h-2 w-2 rounded-full bg-neon-green animate-pulse-dot" />
-            <span className="font-display text-base tracking-tight">Veronica</span>
-            <span className="text-muted-foreground">·</span>
+      {/* Nav — mantido no tom escuro/cinematográfico da hero (mesma lógica do
+          home-hero-dark abaixo): fica sticky por cima da hero e continua
+          legível quando o usuário rola pro corpo claro da página. */}
+      <header className="home-hero-dark relative sticky top-0 z-30 border-b border-border/40 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+          <a href="#" className="flex items-center gap-2 text-[15px] font-medium">
+            <span className="text-foreground">Veronica</span>
             <span className="text-muted-foreground">Hub</span>
           </a>
-          <nav className="hidden items-center gap-1 text-xs font-mono-tech uppercase tracking-wider md:flex">
-            <Link to="/comandos" className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green">
+          <nav className="hidden items-center gap-1 text-[13px] text-muted-foreground md:flex">
+            <Link to="/comandos" className="rounded-full px-3 py-1.5 transition hover:text-foreground">
               Comandos
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
-            <a href="#sobre" className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green">
+            <a href="#sobre" className="rounded-full px-3 py-1.5 transition hover:text-foreground">
               Sobre
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </a>
             <EcosystemMenu />
           </nav>
           <div className="flex items-center gap-3">
             <Link
               to="/blog"
-              className="group relative hidden px-3 py-2 font-mono-tech text-xs uppercase tracking-wider text-muted-foreground transition hover:text-neon-green sm:block"
+              className="hidden rounded-full px-3 py-1.5 text-[13px] text-muted-foreground transition hover:text-foreground sm:block"
             >
               Blog
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
             <a
               href={HUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative hidden items-center gap-2 rounded-sm bg-neon-green px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-[0_0_0_1px_oklch(0.85_0.22_155),0_8px_24px_-8px_oklch(0.85_0.22_155/0.6)] transition duration-200 hover:-translate-y-0.5 hover:shadow-glow-green active:translate-y-0 active:brightness-95 md:inline-flex"
+              className="hidden items-center rounded-full border border-white/20 px-4 py-1.5 text-[13px] text-foreground/90 transition hover:border-white/40 hover:text-foreground md:inline-flex"
             >
-              <span className="text-[10px] opacity-70 group-hover:opacity-100">▸</span>
               Acessar Hub
             </a>
             <button
@@ -275,12 +270,12 @@ function Index() {
       </header>
 
       {mobileOpen && (
-        <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
-          <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
+        <div className="home-hero-dark fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
+          <nav className="flex flex-col gap-1 px-6 py-6 text-base">
             <Link to="/comandos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Comandos</Link>
             <a href="#sobre" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Sobre</a>
             <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">Blog</Link>
-            <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ecossistema</div>
+            <div className="pt-4 pb-1 text-xs text-muted-foreground">Ecossistema</div>
             {ECOSYSTEM_LINKS.map((item) => {
               const itemContent = (
                 <>
@@ -324,7 +319,7 @@ function Index() {
               href={HUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center justify-center gap-2 rounded-sm bg-neon-green px-4 py-3 text-[11px] text-primary-foreground"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-3 text-[11px] text-foreground/90"
             >
               Acessar Hub
             </a>
@@ -338,86 +333,51 @@ function Index() {
         </div>
       )}
 
-      {/* Hero */}
-      <section className="relative overflow-hidden scanlines">
-        {/* Mesmo backdrop vivo da Veronica Studio — WebGL com rastreio de
-            pupila no desktop, imagem estática no mobile/reduced-motion. */}
-        <VeronicaHero />
-        <HeroFrame />
-        <HeroEyeAccent />
+      {/* Hero — layout centralizado, mesma posição/hierarquia do hero de
+          produto da Apple (título grande → subtítulo → dois botões →
+          espaço de imagem), sem badge nem efeitos de glow/outline. */}
+      <section className="relative overflow-hidden border-b border-border/50">
+        <div className="relative mx-auto max-w-4xl px-6 pb-20 pt-20 text-center md:pb-28 md:pt-24">
+          <h1 className="font-display font-extrabold text-foreground text-5xl sm:text-6xl md:text-7xl" style={{ letterSpacing: "-0.03em", lineHeight: "1.05" }}>
+            O Segredo Tá no Prompt.
+          </h1>
 
-        <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-              Veronica Hub · Laboratório Digital · 2026
-            </div>
+          <p className="mx-auto mt-5 max-w-xl text-lg leading-[1.6] text-muted-foreground">
+            Comandos diretos ao ponto para quem quer entrar no digital sem enrolação,
+            guiados pela Veronica.
+          </p>
 
-            <h1 className="mt-8 font-display text-5xl sm:text-7xl md:text-8xl" style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}>
-              <span className="block text-foreground">O Segredo</span>
-              <span className="block text-foreground">Tá no</span>
-              <span className="block text-outline-neon animate-glow-pulse">
-                Prompt<span className="text-neon-green">_</span>
-              </span>
-            </h1>
-
-            <p className="mt-8 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-              Comandos diretos ao ponto para quem quer entrar no digital sem enrolação,
-              guiados pela Veronica. Do dark content à IA, do tráfego pago ao hacking ético.
-            </p>
-
-            <TerminalBoot />
-
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <a
-                href={HUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_0_60px_oklch(0.85_0.22_155/0.6)] active:translate-y-0 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <span className="text-[10px] transition-transform group-hover:translate-x-0.5">▸</span>
-                Entrar no Hub
-                <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]" />
-              </a>
-              <a
-                href="#ecossistema"
-                className="group inline-flex items-center gap-2 rounded-sm border border-border/60 bg-background/40 px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-muted-foreground backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-neon-cyan/60 hover:bg-neon-cyan/5 hover:text-neon-cyan active:translate-y-0"
-              >
-                Conheça nosso ecossistema <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-              </a>
-            </div>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href={HUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full bg-neon-green px-6 py-2.5 text-[15px] font-medium text-primary-foreground transition hover:brightness-110"
+            >
+              Saiba mais
+            </a>
+            <a
+              href="#ecossistema"
+              className="inline-flex items-center rounded-full border border-neon-green/50 px-6 py-2.5 text-[15px] font-medium text-neon-green transition hover:bg-neon-green/5"
+            >
+              Conheça o ecossistema
+            </a>
           </div>
 
-          {/* Stats */}
+          {/* Espaço reservado pra imagem — mesma proporção/posição do produto
+              em destaque no hero da Apple (ex.: iPhone). Trocar o placeholder
+              por <img src="/images/hero/..." /> quando a imagem final chegar. */}
           <div
             ref={stats.ref}
-            className={`reveal ${stats.visible ? "reveal-visible" : ""} mt-20 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 cv-auto`}
+            className={`reveal ${stats.visible ? "reveal-visible" : ""} mx-auto mt-16 flex aspect-[4/3] w-full max-w-md items-center justify-center rounded-2xl border border-dashed border-border/60 bg-background/40 text-sm text-muted-foreground/70`}
           >
-            {[
-              { value: `${c1}`, suffix: "+", label: "Comandos no hub" },
-              { value: `${c2}`, suffix: "%", label: "Online · vitalício" },
-              { value: `${c3.toLocaleString("pt-BR")}`, suffix: "+", label: "Alunos ativos" },
-              { value: "R$19", suffix: ",90", label: "A partir de" },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="rounded-sm border border-border/60 bg-background/50 p-5 backdrop-blur transition hover:-translate-y-0.5 hover:border-neon-green/50 hover:shadow-glow-green"
-              >
-                <div className="font-display text-3xl text-foreground sm:text-4xl">
-                  {s.value}
-                  <span className="text-neon-green">{s.suffix}</span>
-                </div>
-                <div className="mt-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                  {s.label}
-                </div>
-              </div>
-            ))}
+            Imagem em breve
           </div>
         </div>
       </section>
 
       {/* Marquee */}
-      <section className="relative overflow-hidden border-y border-border/40 bg-surface/60 py-6 cv-auto">
+      <section className="relative overflow-hidden border-b border-border/40 bg-surface/60 py-6 cv-auto">
         <div className="flex animate-marquee gap-10 whitespace-nowrap font-mono-tech text-sm uppercase tracking-widest text-muted-foreground">
           {[...courses, ...courses].map((c, i) => (
             <span key={i} className="flex items-center gap-10">
@@ -428,85 +388,34 @@ function Index() {
         </div>
       </section>
 
-      {/* Guia em vídeo — não é um capítulo numerado como as demais seções
-          (mesmo critério da antiga seção cinematográfica): é a Veronica se
-          apresentando, uma ponte pessoal entre o marquee e a prova real, não
-          mais um "[ 0X ]" da estrutura. Sem autoplay — controles nativos,
-          usuário decide tocar; nada de peso extra no load da página. */}
-      <section className="relative overflow-hidden border-b border-border/40 bg-surface/40 py-24">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1fr_1.15fr] lg:items-center">
-          <div>
-            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-              <span className="h-px w-8 bg-neon-cyan" />
-              Direto da Veronica
-            </div>
-            <h2 className="mt-3 font-display text-4xl sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
-              Ela mesma <span className="text-neon-cyan text-glow-cyan">te guia</span><br />
-              pelo Hub.
-            </h2>
-            <p className="mt-5 max-w-md text-base leading-[1.65] text-muted-foreground">
-              Um tour rápido pela plataforma: como entrar, o que executar primeiro e por onde tirar
-              o primeiro resultado. Direto da voz dela.
-            </p>
-            <a
-              href={HUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group mt-8 inline-flex items-center gap-2 rounded-sm border border-neon-cyan/50 bg-neon-cyan/10 px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-neon-cyan transition duration-200 hover:-translate-y-0.5 hover:bg-neon-cyan hover:text-primary-foreground hover:shadow-glow-cyan"
-            >
-              Entrar no Hub agora <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </a>
-          </div>
-          <div className="relative">
-            <div aria-hidden className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-cyan/20 via-transparent to-neon-green/20 blur-xl" />
-            <div className="relative overflow-hidden rounded-sm border border-neon-cyan/40 bg-black shadow-glow-cyan">
-              <video
-                controls
-                playsInline
-                preload="metadata"
-                poster="/images/vfx/veronica-guia-poster.webp"
-                className="block aspect-video h-auto w-full"
-              >
-                <source src="/videos/veronica-guia.mp4" type="video/mp4" />
-              </video>
-              <div aria-hidden className="pointer-events-none absolute inset-0 scanlines opacity-20" />
-            </div>
-            <div aria-hidden className="pointer-events-none absolute -left-3 -top-3 h-10 w-10 border-l-2 border-t-2 border-neon-cyan/70" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-green/70" />
-          </div>
-        </div>
-      </section>
-
-      {/* Social proof */}
+      {/* Social proof — segunda faixa de cor (ver .home-tint-green) */}
       <section
         ref={proof.ref}
-        className={`reveal ${proof.visible ? "reveal-visible" : ""} relative overflow-hidden mx-auto max-w-7xl px-6 py-24 cv-auto`}
+        className={`home-tint-green bg-background reveal ${proof.visible ? "reveal-visible" : ""} relative overflow-hidden border-b border-border/50 px-6 py-24 cv-auto`}
       >
-        <ProofBackdrop />
-        <div className="relative mb-10 flex flex-wrap items-end justify-between gap-6">
+        <div className="relative mx-auto mb-10 flex max-w-7xl flex-wrap items-end justify-between gap-6">
           <div>
-            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-              <span className="h-px w-8 bg-neon-green" />
-              [ 00 ] Prova real
+            <div className="text-sm font-medium uppercase tracking-wide text-neon-green">
+              Prova real
             </div>
             <h2 className="mt-3 font-display text-3xl sm:text-4xl md:text-5xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
               Quem já entrou no Hub<br />
-              <span className="text-neon-green text-glow-green">colhe resultado</span>.
+              colhe resultado.
             </h2>
           </div>
-          <div className="flex items-center gap-3 rounded-sm border border-border/60 bg-background/60 px-4 py-2.5 backdrop-blur">
+          <div className="flex items-center gap-3 rounded-full border border-border/60 bg-background/60 px-4 py-2.5 backdrop-blur">
             <div className="flex items-center gap-0.5 text-neon-green">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star key={i} className="h-4 w-4 fill-neon-green" />
               ))}
             </div>
-            <div className="font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
-              <span className="text-foreground">4.9</span> · 2.4k avaliações
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">4.9</span> · 2.4k avaliações
             </div>
           </div>
         </div>
 
-        <div className="relative grid gap-4 md:grid-cols-3">
+        <div className="relative mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
           {testimonials.map((t) => (
             <figure
               key={t.name}
@@ -533,12 +442,12 @@ function Index() {
 
       {/* Comandos teaser — enxuto de propósito. A grade completa com filtro
           por categoria mora em /comandos; aqui é só a porta de entrada. */}
-      <section id="comandos" className="relative mx-auto max-w-7xl px-6 py-24">
-        <HudAccent size={72} hue={HOLO_GREEN} className="absolute right-6 top-6" />
+      <section id="comandos" className="home-tint-cyan bg-background relative border-b border-border/50 py-24">
+        <div className="relative mx-auto max-w-7xl px-6">
+        <HudAccent size={72} hue="oklch(0.58 0.17 155)" className="absolute right-6 top-6" />
         <div className="mb-14 flex flex-col gap-3">
-          <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />
-            [ 01 ] Comandos · 11 no catálogo
+          <div className="text-sm font-medium uppercase tracking-wide text-neon-cyan">
+            Comandos · 11 no catálogo
           </div>
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
             Do <span className="text-neon-green text-glow-green">dark content</span>
@@ -596,6 +505,7 @@ function Index() {
           >
             Ver todos os comandos <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
+        </div>
         </div>
       </section>
 
@@ -666,35 +576,15 @@ function Index() {
         </div>
       </section>
 
-      {/* Ecosystem */}
+      {/* Ecosystem — um bloco em tela cheia por produto, alternando lado da
+          imagem, no espírito das páginas de produto da Apple. Itens sem
+          imagem própria (ainda) caem no bloco compacto só-texto no final. */}
       <section
         id="ecossistema"
         ref={ecosystemR.ref}
-        className={`reveal ${ecosystemR.visible ? "reveal-visible" : ""} relative overflow-hidden mx-auto max-w-7xl px-6 py-24 cv-auto`}
+        className={`reveal ${ecosystemR.visible ? "reveal-visible" : ""} relative mx-auto max-w-7xl px-6 py-24 cv-auto`}
       >
-        <EcosystemBackdrop />
-        {/* "Organismo vivo" — pontos sutis pulsando ao fundo, células vivas do
-            ecossistema. Puramente atmosférico, opacidade baixíssima. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <span
-              key={i}
-              className="absolute rounded-full animate-sparkle"
-              style={{
-                left: `${8 + ((i * 17) % 90)}%`,
-                top: `${10 + ((i * 29) % 80)}%`,
-                width: i % 2 === 0 ? 4 : 3,
-                height: i % 2 === 0 ? 4 : 3,
-                background: i % 2 === 0 ? "var(--neon-green)" : "var(--neon-cyan)",
-                opacity: 0.35,
-                animationDelay: `${i * 0.4}s`,
-              }}
-            />
-          ))}
-        </div>
-        <HudAccent size={80} hue={HOLO_CYAN} className="absolute right-4 top-4 lg:right-10" />
-
-        <div className="relative mb-14 flex flex-col gap-3">
+        <div className="mb-20 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
             [ 03 ] O Ecossistema
@@ -709,72 +599,76 @@ function Index() {
           </p>
         </div>
 
-        <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {ecosystem.map((e) => {
-            const cardClass = `group relative overflow-hidden rounded-sm border p-6 backdrop-blur transition duration-300 ${
-              e.ready
-                ? "border-border/60 bg-surface/70 hover:-translate-y-1 hover:border-neon-green/60 hover:bg-surface hover:shadow-glow-green"
-                : "border-border/40 bg-surface/40 opacity-80"
-            }`;
-            const content = (
-              <>
-                <div className="flex items-start justify-between">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-sm border ${e.ready ? "border-neon-green/50 text-neon-green" : "border-border/60 text-muted-foreground"}`}>
-                    <e.icon className="h-5 w-5" />
+        <div className="flex flex-col gap-6">
+          {ecosystem
+            .filter((e) => e.image)
+            .map((e, i) => {
+              const reversed = i % 2 === 1;
+              const inner = (
+                <>
+                  <div className="relative flex-1 overflow-hidden rounded-2xl border border-border/60 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.35)]">
+                    <img
+                      src={e.image}
+                      alt={e.name}
+                      loading="lazy"
+                      className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest ${
-                      e.ready
-                        ? "border border-neon-cyan/40 text-neon-cyan"
-                        : "border border-dashed border-muted-foreground/40 text-muted-foreground/70"
-                    }`}
-                  >
-                    {e.ready ? e.tag : "Em breve"}
-                  </span>
-                </div>
-                <h3 className="mt-6 flex items-center gap-2 font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
-                  {e.name}
-                  {e.note && (
-                    <span className="rounded-full border border-dashed border-muted-foreground/50 px-2 py-0.5 font-mono-tech text-[8px] font-normal uppercase tracking-widest text-muted-foreground">
-                      {e.note}
+                  <div className="flex flex-1 flex-col justify-center py-4 lg:px-6">
+                    <span className="inline-flex w-fit items-center gap-2 rounded-full border border-neon-cyan/40 px-3 py-1 font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">
+                      <e.icon className="h-3 w-3" /> {e.tag}
                     </span>
-                  )}
-                </h3>
-                <p className="mt-3 text-sm leading-[1.6] text-muted-foreground">{e.desc}</p>
-                <div className={`mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest ${e.ready ? "text-muted-foreground transition group-hover:text-neon-green" : "text-muted-foreground/50"}`}>
-                  {e.ready ? (
-                    <>
-                      Explorar <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-                    </>
-                  ) : (
-                    "Em desenvolvimento"
-                  )}
-                </div>
-              </>
-            );
-            if (e.ready && e.to && e.external) {
-              return (
-                <a key={e.name} href={e.to} target="_blank" rel="noopener noreferrer" className={cardClass}>
-                  {content}
-                </a>
+                    <h3 className="mt-5 font-display text-3xl text-foreground sm:text-4xl" style={{ letterSpacing: "-0.03em", lineHeight: "1.02" }}>
+                      {e.name}
+                    </h3>
+                    <p className="mt-4 max-w-md text-[15px] leading-[1.65] text-muted-foreground">{e.desc}</p>
+                    <div className="mt-6 flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest text-foreground transition group-hover:text-neon-green">
+                      Explorar <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
+                </>
               );
-            }
-            return e.ready && e.to ? (
-              <Link key={e.name} to={e.to} className={cardClass}>
-                {content}
-              </Link>
-            ) : (
-              <div key={e.name} className={cardClass}>
-                {content}
-              </div>
-            );
-          })}
+              const rowClass = `group flex flex-col items-center gap-8 lg:flex-row lg:gap-14 ${reversed ? "lg:flex-row-reverse" : ""}`;
+              return e.external ? (
+                <a key={e.name} href={e.to} target="_blank" rel="noopener noreferrer" className={rowClass}>
+                  {inner}
+                </a>
+              ) : (
+                <Link key={e.name} to={e.to!} className={rowClass}>
+                  {inner}
+                </Link>
+              );
+            })}
         </div>
 
-        <div className="relative mt-6 flex flex-col items-start gap-5 rounded-sm border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
+        {/* Compactos — produtos ainda sem imagem própria (ex: em estruturação) */}
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {ecosystem
+            .filter((e) => !e.image)
+            .map((e) => (
+              <div key={e.name} className="flex items-start gap-4 rounded-2xl border border-border/50 bg-surface/40 p-6 opacity-90">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-sm border border-border/60 text-muted-foreground">
+                  <e.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="flex items-center gap-2 font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                    {e.name}
+                    {e.note && (
+                      <span className="rounded-full border border-dashed border-muted-foreground/50 px-2 py-0.5 font-mono-tech text-[8px] font-normal uppercase tracking-widest text-muted-foreground">
+                        {e.note}
+                      </span>
+                    )}
+                  </h3>
+                  <p className="mt-2 text-sm leading-[1.6] text-muted-foreground">{e.desc}</p>
+                </div>
+              </div>
+            ))}
+        </div>
+
+        <div className="relative mt-16 flex flex-col items-start gap-5 rounded-2xl border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
-              Um cadastro. Seis ferramentas. Resultado em cada uma.
+              Um cadastro. Sete ferramentas. Resultado em cada uma.
             </div>
             <p className="mt-1.5 max-w-xl text-sm leading-[1.6] text-muted-foreground">
               Multidisciplinar, atualizado e completo — o ecossistema Veronica te acompanha do conteúdo à venda,
@@ -797,7 +691,7 @@ function Index() {
         className={`reveal ${pricingR.visible ? "reveal-visible" : ""} relative border-t border-border/40 py-24 cv-auto`}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 50% 0%, oklch(0.85 0.22 155 / 0.2), transparent 60%)" }} />
-        <HudAccent size={76} hue={HOLO_GREEN} className="absolute right-6 top-6" />
+        <HudAccent size={76} hue="oklch(0.58 0.17 155)" className="absolute right-6 top-6" />
         <div className="relative mx-auto max-w-7xl px-6">
           <div className="mb-14 flex flex-col gap-3 text-center">
             <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
