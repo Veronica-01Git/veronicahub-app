@@ -6,14 +6,20 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 ## Onde estamos
 
 - Repositório: `~/veronicahub-app` (WSL), GitHub `Veronica-01Git/veronicahub-app`.
-- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `99b006c` (merge do
-  redesign visual: Studio Criativo, Veronica Wire, Veronica Analytics,
-  drawer da assistente Veronica) — deploy feito no Cloudflare Worker
-  (`veronica-01git-veronicahub-app`), confirmado ao vivo em
-  `veronicahub.com`.
+- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `4e3fe89` (merge
+  do redesign visual + feed viral do TikTok Shop no Veronica Analytics)
+  — confirmado ao vivo em `veronicahub.com`.
+- **Worker de produção correto: `veronicahub-app`** (não
+  `veronica-01git-veronicahub-app`). A conta Cloudflare tem os dois —
+  `veronica-01git-veronicahub-app` existe mas NÃO é o que serve o
+  domínio (ficou parado no commit `99b006c`, desatualizado). O deploy
+  automático (Cloudflare Git integration, dispara a cada push em
+  `main`) publica em `veronicahub-app`, confirmado com o usuário abrindo
+  o navegador direto. Se for usar `wrangler secret put` ou qualquer
+  comando `--name`, usar `veronicahub-app`.
 - Branch de trabalho atual: `claude/veronicahub-redesign-cont-k92gt4`
-  (criada a partir de `main` em `99b006c`, ainda não publicada no
-  GitHub) — pra continuar itens pendentes sem mexer direto em `main`.
+  (criada a partir de `main`, já com histórico mesclado em `main` também)
+  — pra continuar itens pendentes sem mexer direto em `main`.
 - Repositório irmão `~/negocio-da-china-app` (China Exchange) não foi
   tocado.
 
