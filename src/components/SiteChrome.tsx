@@ -14,7 +14,10 @@ export const SOCIAL_LINKS = {
 
 // Single source of truth for the ecosystem — the header dropdown and the
 // home page's "O Ecossistema" cards both read from this list.
-export type EcosystemLink = { name: string; tag: string; to: string; ready: boolean };
+// `external: true` marca itens que vivem fora deste app (domínio/subdomínio
+// próprio) — usam <a href> normal em vez do <Link to> do TanStack Router,
+// que só sabe rotear pra dentro deste mesmo app.
+export type EcosystemLink = { name: string; tag: string; to: string; ready: boolean; external?: boolean };
 
 export const ECOSYSTEM_LINKS: EcosystemLink[] = [
   { name: "Veronica Studio", tag: "Imagem, vídeo e voz com IA", to: "/video-ia", ready: true },
@@ -23,6 +26,7 @@ export const ECOSYSTEM_LINKS: EcosystemLink[] = [
   { name: "Veronica Security", tag: "Diagnóstico de segurança", to: "/veronica-security", ready: true },
   { name: "Prompt Packs", tag: "Comandos prontos pra IA real", to: "/prompt-packs", ready: true },
   { name: "Veronica Náutica", tag: "Seguro náutico · em estruturação", to: "/veronica-nautica", ready: true },
+  { name: "Negócio da China", tag: "Marketplace C2C · novo e usado", to: "https://negociodachina.veronicahub.com", ready: true, external: true },
 ];
 
 export function EcosystemMenu() {
@@ -59,19 +63,33 @@ export function EcosystemMenu() {
       </button>
       {open && (
         <div className="absolute left-0 top-full z-40 mt-2 w-64 rounded-sm border border-border/60 bg-background/95 p-1.5 shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)] backdrop-blur">
-          {ECOSYSTEM_LINKS.map((item) =>
-            item.ready ? (
-              <Link
-                key={item.name}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className="group flex flex-col gap-0.5 rounded-sm px-3 py-2.5 transition hover:bg-neon-green/10"
-              >
+          {ECOSYSTEM_LINKS.map((item) => {
+            const linkContent = (
+              <>
                 <span className="font-mono-tech text-[11px] uppercase tracking-widest text-foreground group-hover:text-neon-green">
                   {item.name}
                 </span>
                 <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-              </Link>
+              </>
+            );
+            const linkClass = "group flex flex-col gap-0.5 rounded-sm px-3 py-2.5 transition hover:bg-neon-green/10";
+            return item.ready ? (
+              item.external ? (
+                <a
+                  key={item.name}
+                  href={item.to}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpen(false)}
+                  className={linkClass}
+                >
+                  {linkContent}
+                </a>
+              ) : (
+                <Link key={item.name} to={item.to} onClick={() => setOpen(false)} className={linkClass}>
+                  {linkContent}
+                </Link>
+              )
             ) : (
               <div key={item.name} className="flex flex-col gap-0.5 px-3 py-2.5 opacity-50">
                 <span className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-widest text-foreground">
@@ -82,8 +100,8 @@ export function EcosystemMenu() {
                 </span>
                 <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
               </div>
-            ),
-          )}
+            );
+          })}
         </div>
       )}
     </div>
