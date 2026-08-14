@@ -5,6 +5,13 @@ import { users, walletTopUps, ledgerEntries } from "./schema";
 import { getSessionUserId } from "./session";
 import { createTopUpPreference } from "./mercadopago";
 import { generateNanoBananaImage } from "./higgsfield";
+import {
+  generateAtsResume,
+  extractExperienceLines,
+  applyExperienceRewrite,
+  type AtsResume,
+} from "./resume-tools";
+import { rewriteExperienceBullets } from "./resume-ai";
 
 const MAX_DEPOSIT_CENTS = 200_000; // R$2.000 — anti-abuso simples pra v1
 
@@ -13,8 +20,7 @@ const MAX_DEPOSIT_CENTS = 200_000; // R$2.000 — anti-abuso simples pra v1
 const NANO_BANANA_PRICE_CENTS = 490;
 
 // Preços do Currículo-Certo — mesma regra: fixos no servidor, nunca vêm do
-// cliente. A geração em si (generateAtsResume) é local/determinística, sem
-// chamada externa — só o débito precisa ser real e autoritativo.
+// cliente.
 const CURRICULO_GENERATION_PRICE_CENTS = 990;
 const CURRICULO_RH_SCREEN_PRICE_CENTS = 190;
 const MAX_RH_SCREEN_QTY = 50;
@@ -163,34 +169,67 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
     return { ok: true as const, imageUrl: result.imageUrl, free: usedFree };
   });
 
+const generateCurriculoValidator = (input: unknown) => {
+  const rawText = (input as { rawText?: unknown })?.rawText;
+  if (typeof rawText !== "string" || rawText.trim().length < 30) {
+    throw new Error("Currículo vazio ou muito curto.");
+  }
+  return { rawText: rawText.trim() };
+};
+
 // Débito atômico condicional — só "ganha" se afetar exatamente 1 linha
 // (protege contra duplo-clique/duas-abas). Sem crédito grátis: gerar
-// currículo sempre foi pago, mesmo na versão simulada.
-export const debitCurriculoGeneration = createServerFn({ method: "POST" }).handler(async () => {
-  const userId = await getSessionUserId();
-  if (!userId) {
-    return { ok: false as const, error: "Faça login para gerar." };
-  }
+// currículo sempre foi pago.
+//
+// A formatação ATS em si (cabeçalhos, bullets, seções) continua 100%
+// determinística — nunca falha, então nunca precisa de estorno. A Veronica
+// entra só depois, reescrevendo a REDAÇÃO das linhas de "Experiência
+// Profissional" (nunca os fatos). Se a chamada à IA falhar por qualquer
+// motivo, o usuário ainda recebe o currículo formatado corretamente — só
+// sem o polimento de texto — e por isso não há estorno nesse caso: o que
+// foi cobrado (formatação ATS) foi entregue de qualquer forma. `aiApplied`
+// no retorno avisa o cliente qual dos dois casos aconteceu.
+export const generateCurriculoAts = createServerFn({ method: "POST" })
+  .validator(generateCurriculoValidator)
+  .handler(async ({ data }) => {
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { ok: false as const, error: "Faça login para gerar." };
+    }
 
-  const db = getDb();
-  const [debit] = await db
-    .update(users)
-    .set({ balanceCents: sql`${users.balanceCents} - ${CURRICULO_GENERATION_PRICE_CENTS}` })
-    .where(and(eq(users.id, userId), gte(users.balanceCents, CURRICULO_GENERATION_PRICE_CENTS)))
-    .returning();
+    const db = getDb();
+    const [debit] = await db
+      .update(users)
+      .set({ balanceCents: sql`${users.balanceCents} - ${CURRICULO_GENERATION_PRICE_CENTS}` })
+      .where(and(eq(users.id, userId), gte(users.balanceCents, CURRICULO_GENERATION_PRICE_CENTS)))
+      .returning();
 
-  if (!debit) {
-    return { ok: false as const, error: "insufficient_funds" as const };
-  }
+    if (!debit) {
+      return { ok: false as const, error: "insufficient_funds" as const };
+    }
 
-  await db.insert(ledgerEntries).values({
-    userId,
-    deltaCents: -CURRICULO_GENERATION_PRICE_CENTS,
-    reason: "generation:curriculo",
+    await db.insert(ledgerEntries).values({
+      userId,
+      deltaCents: -CURRICULO_GENERATION_PRICE_CENTS,
+      reason: "generation:curriculo",
+    });
+
+    const base = generateAtsResume(data.rawText);
+    const experienceLines = extractExperienceLines(data.rawText);
+    const bulletTexts = experienceLines.filter((l) => l.isBullet).map((l) => l.text);
+
+    let resume: AtsResume = base;
+    let aiApplied = false;
+    if (bulletTexts.length > 0) {
+      const rewrite = await rewriteExperienceBullets(bulletTexts);
+      if (rewrite.ok) {
+        resume = applyExperienceRewrite(base, experienceLines, rewrite.lines);
+        aiApplied = true;
+      }
+    }
+
+    return { ok: true as const, resume, aiApplied, balanceCents: debit.balanceCents };
   });
-
-  return { ok: true as const, balanceCents: debit.balanceCents };
-});
 
 const debitRhScreeningValidator = (input: unknown) => {
   const qty = (input as { qty?: unknown })?.qty;
