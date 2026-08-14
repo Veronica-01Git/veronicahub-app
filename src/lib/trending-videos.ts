@@ -18,6 +18,7 @@ export type TrendingVideo = {
   growthValue: number;
   gradient: string;
   hook: string;
+  thumbnailUrl?: string;
 };
 
 export type TrendingFeed = {

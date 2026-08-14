@@ -176,6 +176,7 @@ function ViralCard({ video }: { video: TrendingVideo }) {
   const meta = CATEGORY_META[video.category];
   const Icon = CATEGORY_ICON[video.category];
   const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(video.title.split("—")[0].trim())}`;
+  const hasCover = Boolean(video.thumbnailUrl);
 
   return (
     <div
@@ -190,16 +191,24 @@ function ViralCard({ video }: { video: TrendingVideo }) {
         className="relative flex aspect-[9/16] max-h-[250px] flex-col items-center justify-center overflow-hidden"
         style={{ backgroundImage: video.gradient }}
       >
-        {/* Moldura tipo viewfinder — reforça a leitura de "frame de vídeo"
-            sem fingir ser print de um vídeo real específico. */}
-        <span aria-hidden className="absolute left-2 top-9 h-4 w-4 border-l-2 border-t-2" style={{ borderColor: "rgba(14,14,16,0.3)" }} />
-        <span aria-hidden className="absolute right-2 bottom-8 h-4 w-4 border-r-2 border-b-2" style={{ borderColor: "rgba(14,14,16,0.3)" }} />
+        {/* Ícone da categoria fica sempre como camada-base — se a capa (IA,
+            abaixo) não carregar por qualquer motivo, esse fica visível em
+            vez de sobrar um vazio. */}
         <Icon
           aria-hidden
           className="absolute left-1/2 top-[36%] h-12 w-12 -translate-x-1/2 -translate-y-1/2"
           style={{ color: "rgba(14,14,16,0.28)" }}
           strokeWidth={1.25}
         />
+        {/* Capa ilustrativa gerada por IA, por cima do ícone — não é print
+            de nenhum vídeo real (não temos como puxar isso). */}
+        {hasCover && (
+          <img src={video.thumbnailUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        {/* Moldura tipo viewfinder — reforça a leitura de "frame de vídeo"
+            sem fingir ser print de um vídeo real específico. */}
+        <span aria-hidden className="absolute left-2 top-9 h-4 w-4 border-l-2 border-t-2" style={{ borderColor: hasCover ? "rgba(255,255,255,0.75)" : "rgba(14,14,16,0.3)" }} />
+        <span aria-hidden className="absolute right-2 bottom-8 h-4 w-4 border-r-2 border-b-2" style={{ borderColor: hasCover ? "rgba(255,255,255,0.75)" : "rgba(14,14,16,0.3)" }} />
 
         <span
           className="absolute left-2.5 top-2.5 rounded-full px-2 py-1 font-mono-tech text-[10px] font-semibold text-white"
