@@ -1,9 +1,0 @@
-# Só declara bindings que o nitro (preset cloudflare_module, via
-# @lovable.dev/vite-tanstack-config) não sabe gerar sozinho — name, main,
-# compatibility_date etc. continuam vindo do build do nitro. Workers Builds
-# roda `wrangler deploy`/`wrangler versions upload`, que junta este arquivo
-# com o que o nitro gera. Ver ARQUITETURA-STUDIO.md § 4.5.
-
-[[r2_buckets]]
-binding = "GENERATIONS_BUCKET"
-bucket_name = "veronicahub-generations"

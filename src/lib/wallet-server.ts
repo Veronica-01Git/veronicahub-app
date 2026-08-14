@@ -167,13 +167,10 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       return { ok: false as const, error: result.error };
     }
 
-    // A geração já foi cobrada e funcionou — se o upload pro R2 falhar, cai
-    // pra URL da Higgsfield em vez de estornar; o usuário não deve perder o
-    // que já pagou por causa de um problema de storage.
+    // A geração já foi cobrada e funcionou — um problema no download ou no
+    // R2 nunca deve estornar nem quebrar a resposta; na pior das hipóteses
+    // cai pra URL crua da Higgsfield.
     const stored = await storeGeneratedImage({ userId, sourceUrl: result.imageUrl });
-    if (!stored.ok) {
-      console.error("Falha ao guardar geração no R2:", stored.error);
-    }
 
     return {
       ok: true as const,

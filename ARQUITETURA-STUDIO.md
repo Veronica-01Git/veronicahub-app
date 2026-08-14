@@ -162,21 +162,27 @@ Diferença do desenho original: não há `POST /api/studio/generate` assíncrono
 termina (~alguns segundos, viável para imagem; não seria para vídeo).
 
 ### 4.5 Entrega — [~] parcialmente construído (14/08/2026)
-- [x] **Cloudflare R2**: bucket `veronicahub-generations` criado, binding `GENERATIONS_BUCKET`
-  declarado em `wrangler.toml` (raiz do repo — antes não existia nenhum arquivo wrangler; o build do
-  nitro/Workers Builds lê esse arquivo pra bindings e continua gerando `name`/`main`/`compatibility_date`
-  sozinho). `generateNanoBanana` baixa o arquivo da Higgsfield uma vez, sobe pro R2 em
-  `generations/{userId}/{id}` (`src/lib/generations-storage.ts`) e devolve ao cliente um `data:` URI
-  construído a partir dos mesmos bytes — a URL da Higgsfield nunca chega ao navegador. Se o upload
-  falhar, cai de volta pra URL da Higgsfield (loga o erro) em vez de estornar uma geração que já
-  funcionou — decisão de produto, não perder o crédito do usuário por um problema de storage.
-  **Precisa verificar**: o binding só é confirmado quando o build de preview do PR passar — se o
-  Workers Builds não juntar este `wrangler.toml` com a config gerada pelo nitro como esperado, `env`
-  vem sem `GENERATIONS_BUCKET` e cai no fallback (Higgsfield direto), não quebra o app, mas silenciosamente
-  não guarda nada — checar o log do build antes de confiar nisso em produção.
-- [ ] Sem rota de leitura/rota `/api/media/:id`: a imagem fica no R2, mas hoje só é lida de volta no
-  próprio momento da geração (os bytes já estão em memória) — não há como buscar uma geração antiga.
-  Isso é o que a galeria abaixo resolveria.
+- [x] **Bucket R2 criado**: `veronicahub-generations`, na mesma conta Cloudflare do Worker.
+- [x] **Código pronto e defensivo**: `generateNanoBanana` baixa o arquivo da Higgsfield uma vez e
+  devolve ao cliente um `data:` URI construído a partir desses bytes — a URL da Higgsfield não é mais
+  repassada ao navegador quando o download funciona, com ou sem R2. Tenta subir esses mesmos bytes pro
+  bucket (`src/lib/generations-storage.ts`, key `generations/{userId}/{id}`); se o binding não existir
+  ou o `put` falhar por qualquer motivo, captura o erro, loga e segue servindo o `data:` URI normalmente
+  — nunca quebra nem estorna uma geração que já funcionou.
+- [x] **Tentativa de binding via `wrangler.toml` revertida**: declarar `[[r2_buckets]]` num
+  `wrangler.toml` na raiz (primeiro arquivo wrangler do repo) quebrou o build de preview do Workers
+  Builds — sem acesso ao log real (fica atrás de login no dashboard da Cloudflare), não dá pra saber se
+  foi conflito com a config que o nitro gera sozinho ou outra causa, então revertido pra não arriscar
+  contra o pipeline de produção sem conseguir depurar de verdade.
+- [ ] **Binding ainda não conectado** — sem ele, `GENERATIONS_BUCKET` não existe em `env` e toda
+  geração cai no modo degradado (funciona, mas não persiste no R2). Caminho recomendado agora: conectar
+  manualmente pelo painel — Cloudflare Dashboard → Workers & Pages → `veronicahub-app` → Settings →
+  Bindings → Add → R2 Bucket → variable name `GENERATIONS_BUCKET`, bucket `veronicahub-generations` →
+  redeploy. Isso não depende de `wrangler.toml` nenhum. Alternativa: alguém com acesso ao log do build
+  do commit `d5a492a` compartilha o erro real, e aí dá pra tentar o `wrangler.toml` de novo com a causa
+  identificada em vez de tentativa e erro.
+- [ ] Sem rota de leitura/rota `/api/media/:id`: mesmo com o binding conectado, a imagem só é lida de
+  volta no momento da geração (bytes já em memória) — não há como buscar uma geração antiga.
 - [ ] Sem galeria "Minhas gerações": nada persiste qual imagem cada usuário gerou fora do próprio R2 —
   o ledger sabe que houve um débito, não qual arquivo saiu dele. Precisa da tabela `generations` (ver
   4.1) pra listar.
@@ -218,8 +224,9 @@ pacotes de créditos com desconto, assinatura mensal do Studio, histórico compa
 - [x] Decidir banco — Neon Postgres + Drizzle (não D1, não Prisma)
 - [x] Conta Resend (e-mail OTP) — `RESEND_API_KEY`/`EMAIL_FROM` configuradas
 - [x] Credenciais Mercado Pago de produção — mesma conta do negocio-da-china-app
-- [x] Bucket R2 criado (`veronicahub-generations`, binding `GENERATIONS_BUCKET`) — 14/08/2026,
-  pendente confirmar no build de preview que o binding pegou
+- [x] Bucket R2 criado (`veronicahub-generations`) — 14/08/2026
+- [ ] Binding `GENERATIONS_BUCKET` conectado ao Worker — tentativa via `wrangler.toml` quebrou o build
+  e foi revertida; falta conectar pelo painel da Cloudflare (passo a passo em § 4.5)
 - [x] Rate limit por usuário nas rotas de geração/débito (5/min, 60/dia, via `LedgerEntry`) — 14/08/2026
 - [x] Rastro auditável de bloqueios NSFW no ledger (`refund:moderation_nsfw`) — 14/08/2026
 - [ ] Moderação de prompt *antes* da chamada ao provedor (hoje só reage ao `nsfw` que a Higgsfield já processou)

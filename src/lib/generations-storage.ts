@@ -20,7 +20,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 export async function storeGeneratedImage(params: {
   userId: string;
   sourceUrl: string;
-}): Promise<{ ok: true; dataUrl: string } | { ok: false; error: string }> {
+}): Promise<{ ok: true; dataUrl: string; stored: boolean } | { ok: false; error: string }> {
   const res = await fetch(params.sourceUrl);
   if (!res.ok) {
     return { ok: false, error: `Falha ao baixar a imagem gerada (${res.status}).` };
@@ -28,9 +28,20 @@ export async function storeGeneratedImage(params: {
 
   const contentType = res.headers.get("content-type") ?? "image/png";
   const bytes = await res.arrayBuffer();
-  const key = `generations/${params.userId}/${createId()}`;
+  const dataUrl = `data:${contentType};base64,${arrayBufferToBase64(bytes)}`;
 
-  await env.GENERATIONS_BUCKET.put(key, bytes, { httpMetadata: { contentType } });
-
-  return { ok: true, dataUrl: `data:${contentType};base64,${arrayBufferToBase64(bytes)}` };
+  // Se o binding do R2 não existir (ex.: ainda não configurado no Worker),
+  // isso lança — não deixa a geração inteira quebrar por causa disso, o
+  // cliente já recebe o dataUrl computado acima; só não fica persistido.
+  try {
+    const key = `generations/${params.userId}/${createId()}`;
+    await env.GENERATIONS_BUCKET.put(key, bytes, { httpMetadata: { contentType } });
+    return { ok: true, dataUrl, stored: true };
+  } catch (error) {
+    console.error(
+      "Falha ao guardar geração no R2 (binding ausente ou bucket indisponível):",
+      error instanceof Error ? error.message : error,
+    );
+    return { ok: true, dataUrl, stored: false };
+  }
 }
