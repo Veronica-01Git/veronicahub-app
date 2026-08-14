@@ -15,6 +15,13 @@
       "when": 1786657720067,
       "tag": "0001_square_lady_ursula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786692083612,
+      "tag": "0002_petite_baron_zemo",
+      "breakpoints": true
     }
   ]
 }
