@@ -75,7 +75,7 @@ void main(){
 
   // base um pouco mais discreta pra dar contraste ao brilho da pupila —
   // sem isso o glow se perdia no resto do rosto na mesma intensidade.
-  vec3 col = texture2D(tex, suv).rgb * 0.88;
+  vec3 col = texture2D(tex, suv).rgb * 1.3;
 
   // destaque "tecnologia macabra" nos olhos: brilho ciano/verde pulsante +
   // anel fino, tipo mira/scanner — só aparece perto da pupila. Multiplicado
