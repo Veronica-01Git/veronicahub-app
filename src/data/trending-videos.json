@@ -1,0 +1,46 @@
+{
+  "cycleHours": 48,
+  "refreshedAt": "2026-08-14T00:00:00.000Z",
+  "sourceLabel": "Curadoria Veronica Analytics · tendências TikTok Shop",
+  "videos": [
+    {
+      "id": "2026-08-14-01",
+      "rank": 1,
+      "category": "beleza",
+      "title": "Sérum facial com aplicador gelado — antes/depois em 7s",
+      "views": "2.1M visualizações",
+      "gmvLabel": "GMV ~R$ 84K",
+      "gmvValue": 84000,
+      "growthLabel": "+340%",
+      "growthValue": 340,
+      "gradient": "linear-gradient(150deg, #ffd9e2, #ffb3c6)",
+      "hook": "esse gancho de antes/depois em 7s ainda não saturou — quem gravar primeiro fica com a onda."
+    },
+    {
+      "id": "2026-08-14-02",
+      "rank": 2,
+      "category": "casa",
+      "title": "Organizador de cabos magnético — dor da bagunça na mesa",
+      "views": "1.4M visualizações",
+      "gmvLabel": "GMV ~R$ 61K",
+      "gmvValue": 61000,
+      "growthLabel": "+210%",
+      "growthValue": 210,
+      "gradient": "linear-gradient(150deg, #d6fbfa, #a3f0ed)",
+      "hook": "problema universal + solução em 1 corte — o formato mais fácil de copiar hoje."
+    },
+    {
+      "id": "2026-08-14-03",
+      "rank": 3,
+      "category": "saude",
+      "title": "Faixa postural — prova social com 3 depoimentos rápidos",
+      "views": "980K visualizações",
+      "gmvLabel": "GMV ~R$ 47K",
+      "gmvValue": 47000,
+      "growthLabel": "+178%",
+      "growthValue": 178,
+      "gradient": "linear-gradient(150deg, #fff0cc, #ffdd94)",
+      "hook": "prova social rápida converte mais que anúncio — e some do radar em poucos dias."
+    }
+  ]
+}
