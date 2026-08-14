@@ -40,7 +40,11 @@ export const getAdminOverview = createServerFn({ method: "GET" }).handler(async 
 
   const db = getDb();
   const allUsers = await db.select().from(users).orderBy(desc(users.createdAt)).limit(200);
-  const recentTopUps = await db.select().from(walletTopUps).orderBy(desc(walletTopUps.createdAt)).limit(50);
+  const recentTopUps = await db
+    .select()
+    .from(walletTopUps)
+    .orderBy(desc(walletTopUps.createdAt))
+    .limit(50);
 
   return {
     ok: true as const,

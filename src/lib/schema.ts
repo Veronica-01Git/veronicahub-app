@@ -82,7 +82,13 @@ export const ledgerEntries = pgTable(
   (table) => [index("LedgerEntry_userId_createdAt_idx").on(table.userId, table.createdAt)],
 );
 
-export const articleBeat = pgEnum("ArticleBeat", ["ia", "clima", "economia", "geopolitica", "mercado"]);
+export const articleBeat = pgEnum("ArticleBeat", [
+  "ia",
+  "clima",
+  "economia",
+  "geopolitica",
+  "mercado",
+]);
 export const articleStatus = pgEnum("ArticleStatus", ["draft", "published"]);
 
 // Matérias do Veronica Wire (/blog). Rascunho gerado por IA (aiGenerated =

@@ -60,7 +60,9 @@ function ArticlesAdmin() {
   function refresh() {
     listArticlesAdmin()
       .then((res) => setState(res as ListState))
-      .catch((err) => setState({ ok: false, error: err instanceof Error ? err.message : "Falha ao carregar." }));
+      .catch((err) =>
+        setState({ ok: false, error: err instanceof Error ? err.message : "Falha ao carregar." }),
+      );
   }
 
   useEffect(refresh, []);
@@ -168,14 +170,17 @@ function ArticlesAdmin() {
         ) : (
           <div className="flex flex-col gap-10">
             {notice && (
-              <div className="rounded-sm border border-border/60 bg-surface/40 px-4 py-3 text-sm text-foreground">{notice}</div>
+              <div className="rounded-sm border border-border/60 bg-surface/40 px-4 py-3 text-sm text-foreground">
+                {notice}
+              </div>
             )}
 
             <section>
               <h2 className="mb-4 font-display text-xl">Gerar rascunho com IA</h2>
               <p className="mb-4 text-sm text-muted-foreground">
-                A IA pesquisa na web um fato real e recente na editoria escolhida e escreve um rascunho — sempre entra como
-                "draft". Nada publica sozinho: revise o texto e as fontes abaixo antes de publicar.
+                A IA pesquisa na web um fato real e recente na editoria escolhida e escreve um
+                rascunho — sempre entra como "draft". Nada publica sozinho: revise o texto e as
+                fontes abaixo antes de publicar.
               </p>
               <div className="flex flex-wrap gap-2">
                 {BEAT_VALUES.map((beat) => (
@@ -185,7 +190,11 @@ function ArticlesAdmin() {
                     onClick={() => handleGenerate(beat)}
                     className="inline-flex items-center gap-2 rounded-sm border border-border/60 bg-surface/40 px-4 py-2 text-sm transition hover:border-neon-green/50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {generatingBeat === beat ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-neon-green" />}
+                    {generatingBeat === beat ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5 text-neon-green" />
+                    )}
                     {BEAT_LABELS[beat]}
                   </button>
                 ))}
@@ -193,8 +202,13 @@ function ArticlesAdmin() {
             </section>
 
             <section>
-              <h2 className="mb-4 font-display text-xl">{form.id ? "Editar matéria" : "Nova matéria manual"}</h2>
-              <form onSubmit={handleSave} className="flex flex-col gap-3 rounded-sm border border-border/60 bg-surface/30 p-5">
+              <h2 className="mb-4 font-display text-xl">
+                {form.id ? "Editar matéria" : "Nova matéria manual"}
+              </h2>
+              <form
+                onSubmit={handleSave}
+                className="flex flex-col gap-3 rounded-sm border border-border/60 bg-surface/30 p-5"
+              >
                 <div className="grid gap-3 sm:grid-cols-2">
                   <select
                     value={form.beat}
@@ -312,22 +326,36 @@ function ArticlesAdmin() {
                                   a.status === "published"
                                     ? "color-mix(in oklab, var(--neon-green) 15%, transparent)"
                                     : "color-mix(in oklab, var(--muted-foreground) 15%, transparent)",
-                                color: a.status === "published" ? "var(--neon-green)" : "var(--muted-foreground)",
+                                color:
+                                  a.status === "published"
+                                    ? "var(--neon-green)"
+                                    : "var(--muted-foreground)",
                               }}
                             >
                               {a.status === "published" ? "publicado" : "rascunho"}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">{new Date(a.createdAt).toLocaleDateString("pt-BR")}</td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {new Date(a.createdAt).toLocaleDateString("pt-BR")}
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap gap-2">
-                              <button onClick={() => editArticle(a)} className="text-xs text-neon-cyan hover:underline">
+                              <button
+                                onClick={() => editArticle(a)}
+                                className="text-xs text-neon-cyan hover:underline"
+                              >
                                 Editar
                               </button>
-                              <button onClick={() => toggleStatus(a)} className="text-xs text-neon-green hover:underline">
+                              <button
+                                onClick={() => toggleStatus(a)}
+                                className="text-xs text-neon-green hover:underline"
+                              >
                                 {a.status === "published" ? "Despublicar" : "Publicar"}
                               </button>
-                              <button onClick={() => remove(a)} className="text-xs text-destructive hover:underline">
+                              <button
+                                onClick={() => remove(a)}
+                                className="text-xs text-destructive hover:underline"
+                              >
                                 Excluir
                               </button>
                             </div>

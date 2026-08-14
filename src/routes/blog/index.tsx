@@ -18,7 +18,8 @@ export const Route = createFileRoute("/blog")({
       { property: "og:title", content: "Veronica Wire — Cobertura contínua e global" },
       {
         property: "og:description",
-        content: "O jornal digital da Veronica Hub sobre o que está movendo IA, economia e geopolítica.",
+        content:
+          "O jornal digital da Veronica Hub sobre o que está movendo IA, economia e geopolítica.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -43,20 +44,44 @@ const BEAT_COLOR: Record<Beat, string> = {
 };
 
 const BEAT_META = Object.fromEntries(
-  BEAT_VALUES.map((b) => [b, { label: BEAT_LABELS[b], short: BEAT_SHORT[b], color: BEAT_COLOR[b], icon: BEAT_ICON[b] }]),
+  BEAT_VALUES.map((b) => [
+    b,
+    { label: BEAT_LABELS[b], short: BEAT_SHORT[b], color: BEAT_COLOR[b], icon: BEAT_ICON[b] },
+  ]),
 ) as Record<Beat, { label: string; short: string; color: string; icon: typeof Cpu }>;
 
 const DESKS = [
-  { city: "São Paulo", note: "Cobertura de adoção de IA generativa e comércio China-Brasil na América Latina." },
-  { city: "San Francisco", note: "Acompanhamento contínuo dos laboratórios de ponta e da política tecnológica dos EUA." },
-  { city: "Pequim", note: "Monitoramento do yuan digital e do ecossistema asiático de modelos abertos." },
-  { city: "Londres", note: "Análise de políticas regulatórias e mercado de energia limpa europeu." },
+  {
+    city: "São Paulo",
+    note: "Cobertura de adoção de IA generativa e comércio China-Brasil na América Latina.",
+  },
+  {
+    city: "San Francisco",
+    note: "Acompanhamento contínuo dos laboratórios de ponta e da política tecnológica dos EUA.",
+  },
+  {
+    city: "Pequim",
+    note: "Monitoramento do yuan digital e do ecossistema asiático de modelos abertos.",
+  },
+  {
+    city: "Londres",
+    note: "Análise de políticas regulatórias e mercado de energia limpa europeu.",
+  },
 ];
 
 const TAGS = [
-  "#IA-generativa", "#LLM", "#yuan-digital", "#BRICS", "#energia-limpa",
-  "#chips", "#Brasil-China", "#EUA-tech", "#infraestrutura", "#regulação",
-  "#vídeo-IA", "#mercado",
+  "#IA-generativa",
+  "#LLM",
+  "#yuan-digital",
+  "#BRICS",
+  "#energia-limpa",
+  "#chips",
+  "#Brasil-China",
+  "#EUA-tech",
+  "#infraestrutura",
+  "#regulação",
+  "#vídeo-IA",
+  "#mercado",
 ];
 
 type Article = {
@@ -82,7 +107,10 @@ function useLiveClock() {
 
 function formatAgo(publishedAt: string | null, now: Date | null): string {
   if (!publishedAt || !now) return "";
-  const minutes = Math.max(0, Math.round((now.getTime() - new Date(publishedAt).getTime()) / 60000));
+  const minutes = Math.max(
+    0,
+    Math.round((now.getTime() - new Date(publishedAt).getTime()) / 60000),
+  );
   if (minutes < 1) return "agora mesmo";
   if (minutes < 60) return `há ${minutes} min`;
   const hours = Math.floor(minutes / 60);
@@ -96,7 +124,15 @@ function withAlpha(oklch: string, alpha: number): string {
   return oklch.replace(/\)$/, ` / ${alpha})`);
 }
 
-function Thumb({ color, coverImageUrl, className = "" }: { color: string; coverImageUrl?: string | null; className?: string }) {
+function Thumb({
+  color,
+  coverImageUrl,
+  className = "",
+}: {
+  color: string;
+  coverImageUrl?: string | null;
+  className?: string;
+}) {
   if (coverImageUrl) {
     return (
       <div className={`relative overflow-hidden rounded-sm border border-border/40 ${className}`}>
@@ -108,24 +144,40 @@ function Thumb({ color, coverImageUrl, className = "" }: { color: string; coverI
     <div
       aria-hidden
       className={`relative overflow-hidden rounded-sm border border-border/40 ${className}`}
-      style={{ background: `linear-gradient(135deg, ${withAlpha(color, 0.28)}, ${withAlpha(color, 0.06)})` }}
+      style={{
+        background: `linear-gradient(135deg, ${withAlpha(color, 0.28)}, ${withAlpha(color, 0.06)})`,
+      }}
     />
   );
 }
 
 function VeronicaWire() {
   const now = useLiveClock();
-  const [state, setState] = useState<{ ok: true; articles: Article[] } | { ok: false; error: string } | null>(null);
+  const [state, setState] = useState<
+    { ok: true; articles: Article[] } | { ok: false; error: string } | null
+  >(null);
 
   useEffect(() => {
     getPublishedArticles()
       .then((res) => setState(res as typeof state))
-      .catch((err) => setState({ ok: false, error: err instanceof Error ? err.message : "Falha ao carregar matérias." }));
+      .catch((err) =>
+        setState({
+          ok: false,
+          error: err instanceof Error ? err.message : "Falha ao carregar matérias.",
+        }),
+      );
   }, []);
 
   const articles = state?.ok ? state.articles : [];
   const loading = state === null;
   const featured = articles[0] ?? null;
+  // JSX não aceita `<BEAT_META[x].icon>` como tag (acesso computado não é
+  // permitido em nome de componente) — precisa virar variável antes.
+  const featuredMeta = featured ? BEAT_META[featured.beat] : null;
+  // JSX tag position doesn't accept `?.`/`!` either — só identifier puro ou
+  // cadeia de `.membro`. Fallback nunca é usado de fato (só existe quando
+  // `featured` já é truthy), mas precisa satisfazer o tipo JSX.ElementType.
+  const FeaturedIcon = featuredMeta?.icon ?? Cpu;
   const rail = featured ? articles.filter((a) => a.id !== featured.id).slice(0, 5) : [];
   const ticker = articles.slice(0, 8).map((a) => a.headline);
 
@@ -140,7 +192,12 @@ function VeronicaWire() {
             <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-sm bg-destructive px-2 py-0.5 font-mono-tech text-[10px] uppercase tracking-widest text-white">
               <Radio className="h-3 w-3 animate-pulse-dot" /> Ao vivo
             </span>
-            <div className="flex-1 overflow-hidden" style={{ maskImage: "linear-gradient(90deg, transparent, black 5%, black 92%, transparent)" }}>
+            <div
+              className="flex-1 overflow-hidden"
+              style={{
+                maskImage: "linear-gradient(90deg, transparent, black 5%, black 92%, transparent)",
+              }}
+            >
               <div className="flex animate-marquee gap-8 whitespace-nowrap font-mono-tech text-[11px] text-background/75">
                 {[...ticker, ...ticker].map((h, i) => (
                   <span key={i} className="flex items-center gap-8">
@@ -159,7 +216,10 @@ function VeronicaWire() {
         <div className="mx-auto max-w-7xl px-6 py-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="font-display text-3xl text-foreground" style={{ letterSpacing: "-0.02em", lineHeight: 1 }}>
+              <div
+                className="font-display text-3xl text-foreground"
+                style={{ letterSpacing: "-0.02em", lineHeight: 1 }}
+              >
                 VERONICA <span className="text-neon-green">WIRE</span>
               </div>
               <div className="mt-1 font-mono-tech text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
@@ -167,13 +227,24 @@ function VeronicaWire() {
               </div>
             </div>
             <div className="text-right font-mono-tech text-[11px] text-muted-foreground">
-              {now ? now.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "—"}
+              {now
+                ? now
+                    .toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                    .toUpperCase()
+                : "—"}
               <br />
               {now ? now.toLocaleTimeString("pt-BR") : "—"} BRT
             </div>
           </div>
           <nav className="mt-4 flex gap-1 overflow-x-auto border-t border-border/40 pt-3 text-[13px] font-medium">
-            <a href="#topo" className="whitespace-nowrap rounded-sm px-3 py-1.5 text-foreground transition hover:text-neon-green">
+            <a
+              href="#topo"
+              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-foreground transition hover:text-neon-green"
+            >
               Início
             </a>
             {BEAT_VALUES.map((b) => (
@@ -185,10 +256,16 @@ function VeronicaWire() {
                 {BEAT_META[b].short}
               </a>
             ))}
-            <Link to="/comandos" className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground">
+            <Link
+              to="/comandos"
+              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
+            >
               Comandos
             </Link>
-            <Link to="/" className="ml-auto whitespace-nowrap rounded-sm px-3 py-1.5 font-medium text-neon-green">
+            <Link
+              to="/"
+              className="ml-auto whitespace-nowrap rounded-sm px-3 py-1.5 font-medium text-neon-green"
+            >
               Hub ▸
             </Link>
           </nav>
@@ -215,16 +292,28 @@ function VeronicaWire() {
               params={{ slug: featured.slug }}
               className="group block overflow-hidden rounded-sm border border-border/60 bg-surface/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-neon-green/50"
             >
-              <Thumb color={BEAT_META[featured.beat].color} coverImageUrl={featured.coverImageUrl} className="aspect-video" />
+              <Thumb
+                color={featuredMeta!.color}
+                coverImageUrl={featured.coverImageUrl}
+                className="aspect-video"
+              />
               <div className="p-6 sm:p-8">
-                <div className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: BEAT_META[featured.beat].color }}>
-                  <BEAT_META[featured.beat].icon className="h-4 w-4" />
-                  {BEAT_META[featured.beat].label}
+                <div
+                  className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest"
+                  style={{ color: featuredMeta!.color }}
+                >
+                  <FeaturedIcon className="h-4 w-4" />
+                  {featuredMeta!.label}
                 </div>
-                <h1 className="mt-4 max-w-2xl font-display text-3xl text-foreground sm:text-4xl md:text-[42px]" style={{ letterSpacing: "-0.025em", lineHeight: 1.08 }}>
+                <h1
+                  className="mt-4 max-w-2xl font-display text-3xl text-foreground sm:text-4xl md:text-[42px]"
+                  style={{ letterSpacing: "-0.025em", lineHeight: 1.08 }}
+                >
                   {featured.headline}
                 </h1>
-                <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">{featured.excerpt}</p>
+                <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
+                  {featured.excerpt}
+                </p>
                 <div className="mt-4 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
                   {featured.desk} · {formatAgo(featured.publishedAt, now)}
                 </div>
@@ -243,7 +332,10 @@ function VeronicaWire() {
                     params={{ slug: a.slug }}
                     className="group flex items-start gap-3 border-b border-border/40 bg-background px-5 py-4 transition last:border-0 hover:bg-surface/60"
                   >
-                    <span className="font-mono-tech text-[15px] font-bold" style={{ color: BEAT_META[a.beat].color }}>
+                    <span
+                      className="font-mono-tech text-[15px] font-bold"
+                      style={{ color: BEAT_META[a.beat].color }}
+                    >
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="flex-1">
@@ -266,7 +358,10 @@ function VeronicaWire() {
       <section className="mx-auto max-w-7xl px-6 pb-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-sm border border-neon-green/30 bg-neon-green/5 p-6">
-            <h3 className="font-display text-lg text-foreground" style={{ letterSpacing: "-0.01em" }}>
+            <h3
+              className="font-display text-lg text-foreground"
+              style={{ letterSpacing: "-0.01em" }}
+            >
               Drops da Veronica
             </h3>
             <p className="mt-1.5 text-sm text-muted-foreground">
@@ -285,10 +380,15 @@ function VeronicaWire() {
             </form>
           </div>
           <div className="rounded-sm border border-border/60 bg-surface/40 p-6">
-            <h3 className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">Editorias</h3>
+            <h3 className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+              Editorias
+            </h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {TAGS.map((t) => (
-                <span key={t} className="rounded-sm border border-border/60 px-2.5 py-1 font-mono-tech text-[10.5px] text-muted-foreground">
+                <span
+                  key={t}
+                  className="rounded-sm border border-border/60 px-2.5 py-1 font-mono-tech text-[10.5px] text-muted-foreground"
+                >
                   {t}
                 </span>
               ))}
@@ -303,9 +403,16 @@ function VeronicaWire() {
         if (items.length === 0) return null;
         const meta = BEAT_META[beat];
         return (
-          <section key={beat} id={`beat-${beat}`} className="border-t border-border/40 py-16 cv-auto">
+          <section
+            key={beat}
+            id={`beat-${beat}`}
+            className="border-t border-border/40 py-16 cv-auto"
+          >
             <div className="mx-auto max-w-7xl px-6">
-              <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: meta.color }}>
+              <div
+                className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest"
+                style={{ color: meta.color }}
+              >
                 <span className="h-px w-8" style={{ background: meta.color }} />
                 {meta.label}
               </div>
@@ -319,7 +426,11 @@ function VeronicaWire() {
                     onMouseEnter={(e) => (e.currentTarget.style.borderColor = meta.color)}
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = "")}
                   >
-                    <Thumb color={meta.color} coverImageUrl={a.coverImageUrl} className="aspect-[16/10]" />
+                    <Thumb
+                      color={meta.color}
+                      coverImageUrl={a.coverImageUrl}
+                      className="aspect-[16/10]"
+                    />
                     <div className="flex flex-1 flex-col gap-3 p-6">
                       <div className="flex items-center justify-between font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-1.5" style={{ color: meta.color }}>
@@ -328,10 +439,15 @@ function VeronicaWire() {
                         </span>
                         <span>{formatAgo(a.publishedAt, now)}</span>
                       </div>
-                      <h3 className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em", lineHeight: 1.15 }}>
+                      <h3
+                        className="font-display text-xl text-foreground"
+                        style={{ letterSpacing: "-0.02em", lineHeight: 1.15 }}
+                      >
                         {a.headline}
                       </h3>
-                      <p className="text-[13px] leading-[1.55] text-muted-foreground">{a.excerpt}</p>
+                      <p className="text-[13px] leading-[1.55] text-muted-foreground">
+                        {a.excerpt}
+                      </p>
                     </div>
                   </Link>
                 ))}
@@ -350,7 +466,10 @@ function VeronicaWire() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {DESKS.map((d) => (
-              <div key={d.city} className="group rounded-sm border border-border/60 bg-background p-6 backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-neon-cyan/50">
+              <div
+                key={d.city}
+                className="group rounded-sm border border-border/60 bg-background p-6 backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-neon-cyan/50"
+              >
                 <Globe2 className="h-5 w-5 text-neon-cyan transition-transform group-hover:scale-110" />
                 <h3 className="mt-4 font-display text-lg" style={{ letterSpacing: "-0.02em" }}>
                   {d.city}
@@ -366,18 +485,23 @@ function VeronicaWire() {
       <section className="home-hero-dark bg-background py-14">
         <div className="mx-auto flex max-w-7xl flex-col items-start gap-5 px-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-display text-2xl text-foreground sm:text-3xl" style={{ letterSpacing: "-0.02em" }}>
+            <h2
+              className="font-display text-2xl text-foreground sm:text-3xl"
+              style={{ letterSpacing: "-0.02em" }}
+            >
               Leu a notícia. Agora execute.
             </h2>
             <p className="mt-2 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
-              11 comandos práticos no Veronica Hub — do dark content à IA generativa. Acesso vitalício a partir de R$ 19,90.
+              11 comandos práticos no Veronica Hub — do dark content à IA generativa. Acesso
+              vitalício a partir de R$ 19,90.
             </p>
           </div>
           <Link
             to="/"
             className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
           >
-            Entrar no Hub <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+            Entrar no Hub{" "}
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
       </section>

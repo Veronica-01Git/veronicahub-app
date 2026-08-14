@@ -15,9 +15,12 @@ const DRAFT_MAX_TOKENS = 2200;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
-  clima: "energia limpa (solar, eólica, baterias), políticas climáticas e uso de IA em modelagem climática",
-  economia: "yuan digital, moedas digitais de bancos centrais (CBDCs) e política monetária ligada a tecnologia",
-  geopolitica: "geopolítica entre China, EUA e Brasil — comércio, chips, cadeias produtivas e tecnologia",
+  clima:
+    "energia limpa (solar, eólica, baterias), políticas climáticas e uso de IA em modelagem climática",
+  economia:
+    "yuan digital, moedas digitais de bancos centrais (CBDCs) e política monetária ligada a tecnologia",
+  geopolitica:
+    "geopolítica entre China, EUA e Brasil — comércio, chips, cadeias produtivas e tecnologia",
   mercado: "mercado de tecnologia global — investimentos, big techs e infraestrutura de IA",
 };
 
@@ -39,7 +42,11 @@ async function uniqueSlug(db: ReturnType<typeof getDb>, base: string): Promise<s
   // massa) — um loop sequencial de existência é suficiente, sem precisar
   // de índice/constraint especulativa.
   for (;;) {
-    const [existing] = await db.select({ id: articles.id }).from(articles).where(eq(articles.slug, candidate)).limit(1);
+    const [existing] = await db
+      .select({ id: articles.id })
+      .from(articles)
+      .where(eq(articles.slug, candidate))
+      .limit(1);
     if (!existing) return candidate;
     attempt += 1;
     candidate = `${root}-${attempt}`;
@@ -153,13 +160,18 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
     let response: { content: Array<{ type: string; text?: string }> };
     try {
       const anthropic = new Anthropic({ apiKey });
-      response = await (anthropic.messages.create as unknown as CreateMessage).call(anthropic.messages, {
-        model: DRAFT_MODEL,
-        max_tokens: DRAFT_MAX_TOKENS,
-        system: systemPrompt,
-        messages: [{ role: "user", content: "Pesquise e escreva a matéria conforme as instruções." }],
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
-      });
+      response = await (anthropic.messages.create as unknown as CreateMessage).call(
+        anthropic.messages,
+        {
+          model: DRAFT_MODEL,
+          max_tokens: DRAFT_MAX_TOKENS,
+          system: systemPrompt,
+          messages: [
+            { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
+          ],
+          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
+        },
+      );
     } catch (error) {
       return {
         ok: false as const,
@@ -234,11 +246,16 @@ const saveValidator = (input: unknown) => {
     sourceUrls?: unknown;
   };
   if (!isBeat(data?.beat)) throw new Error("Editoria inválida.");
-  if (typeof data?.headline !== "string" || !data.headline.trim()) throw new Error("Manchete obrigatória.");
-  if (typeof data?.excerpt !== "string" || !data.excerpt.trim()) throw new Error("Resumo obrigatório.");
-  if (typeof data?.body !== "string" || !data.body.trim()) throw new Error("Texto da matéria obrigatório.");
+  if (typeof data?.headline !== "string" || !data.headline.trim())
+    throw new Error("Manchete obrigatória.");
+  if (typeof data?.excerpt !== "string" || !data.excerpt.trim())
+    throw new Error("Resumo obrigatório.");
+  if (typeof data?.body !== "string" || !data.body.trim())
+    throw new Error("Texto da matéria obrigatório.");
   if (typeof data?.desk !== "string" || !data.desk.trim()) throw new Error("Desk obrigatório.");
-  const sourceUrls = Array.isArray(data?.sourceUrls) ? data.sourceUrls.filter((u): u is string => typeof u === "string") : [];
+  const sourceUrls = Array.isArray(data?.sourceUrls)
+    ? data.sourceUrls.filter((u): u is string => typeof u === "string")
+    : [];
   return {
     id: typeof data.id === "string" && data.id ? data.id : null,
     beat: data.beat,
@@ -246,7 +263,10 @@ const saveValidator = (input: unknown) => {
     excerpt: data.excerpt.trim(),
     body: data.body.trim(),
     desk: data.desk.trim(),
-    coverImageUrl: typeof data.coverImageUrl === "string" && data.coverImageUrl.trim() ? data.coverImageUrl.trim() : null,
+    coverImageUrl:
+      typeof data.coverImageUrl === "string" && data.coverImageUrl.trim()
+        ? data.coverImageUrl.trim()
+        : null,
     sourceUrls,
   };
 };
