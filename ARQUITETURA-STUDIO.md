@@ -161,12 +161,25 @@ Diferença do desenho original: não há `POST /api/studio/generate` assíncrono
 é uma **server function síncrona** que já faz o poll internamente e só retorna quando a Higgsfield
 termina (~alguns segundos, viável para imagem; não seria para vídeo).
 
-### 4.5 Entrega — [ ] não construído
-- Sem **Cloudflare R2**: a imagem gerada é entregue como a URL da própria Higgsfield, direto ao
-  cliente. Viola o princípio da seção 1 ("o arquivo é seu, servido do seu storage") — ainda não é um
-  problema prático porque só imagem está em produção, mas é o próximo item de dívida técnica antes de
-  escalar.
-- Sem galeria "Minhas gerações": nada persiste qual imagem cada usuário gerou, só o débito no ledger.
+### 4.5 Entrega — [~] parcialmente construído (14/08/2026)
+- [x] **Cloudflare R2**: bucket `veronicahub-generations` criado, binding `GENERATIONS_BUCKET`
+  declarado em `wrangler.toml` (raiz do repo — antes não existia nenhum arquivo wrangler; o build do
+  nitro/Workers Builds lê esse arquivo pra bindings e continua gerando `name`/`main`/`compatibility_date`
+  sozinho). `generateNanoBanana` baixa o arquivo da Higgsfield uma vez, sobe pro R2 em
+  `generations/{userId}/{id}` (`src/lib/generations-storage.ts`) e devolve ao cliente um `data:` URI
+  construído a partir dos mesmos bytes — a URL da Higgsfield nunca chega ao navegador. Se o upload
+  falhar, cai de volta pra URL da Higgsfield (loga o erro) em vez de estornar uma geração que já
+  funcionou — decisão de produto, não perder o crédito do usuário por um problema de storage.
+  **Precisa verificar**: o binding só é confirmado quando o build de preview do PR passar — se o
+  Workers Builds não juntar este `wrangler.toml` com a config gerada pelo nitro como esperado, `env`
+  vem sem `GENERATIONS_BUCKET` e cai no fallback (Higgsfield direto), não quebra o app, mas silenciosamente
+  não guarda nada — checar o log do build antes de confiar nisso em produção.
+- [ ] Sem rota de leitura/rota `/api/media/:id`: a imagem fica no R2, mas hoje só é lida de volta no
+  próprio momento da geração (os bytes já estão em memória) — não há como buscar uma geração antiga.
+  Isso é o que a galeria abaixo resolveria.
+- [ ] Sem galeria "Minhas gerações": nada persiste qual imagem cada usuário gerou fora do próprio R2 —
+  o ledger sabe que houve um débito, não qual arquivo saiu dele. Precisa da tabela `generations` (ver
+  4.1) pra listar.
 
 ### 4.6 Segurança e operação
 - [x] Chaves de API em env vars server-only (`HF_CREDENTIALS`, `MERCADOPAGO_ACCESS_TOKEN`,
@@ -205,7 +218,8 @@ pacotes de créditos com desconto, assinatura mensal do Studio, histórico compa
 - [x] Decidir banco — Neon Postgres + Drizzle (não D1, não Prisma)
 - [x] Conta Resend (e-mail OTP) — `RESEND_API_KEY`/`EMAIL_FROM` configuradas
 - [x] Credenciais Mercado Pago de produção — mesma conta do negocio-da-china-app
-- [ ] Bucket R2 criado no painel Cloudflare
+- [x] Bucket R2 criado (`veronicahub-generations`, binding `GENERATIONS_BUCKET`) — 14/08/2026,
+  pendente confirmar no build de preview que o binding pegou
 - [x] Rate limit por usuário nas rotas de geração/débito (5/min, 60/dia, via `LedgerEntry`) — 14/08/2026
 - [x] Rastro auditável de bloqueios NSFW no ledger (`refund:moderation_nsfw`) — 14/08/2026
 - [ ] Moderação de prompt *antes* da chamada ao provedor (hoje só reage ao `nsfw` que a Higgsfield já processou)

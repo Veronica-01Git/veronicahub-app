@@ -6,6 +6,7 @@ import { getSessionUserId } from "./session";
 import { createTopUpPreference } from "./mercadopago";
 import { generateNanoBananaImage } from "./higgsfield";
 import { checkGenerationRateLimit } from "./rate-limit";
+import { storeGeneratedImage } from "./generations-storage";
 
 const MAX_DEPOSIT_CENTS = 200_000; // R$2.000 — anti-abuso simples pra v1
 
@@ -166,7 +167,19 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       return { ok: false as const, error: result.error };
     }
 
-    return { ok: true as const, imageUrl: result.imageUrl, free: usedFree };
+    // A geração já foi cobrada e funcionou — se o upload pro R2 falhar, cai
+    // pra URL da Higgsfield em vez de estornar; o usuário não deve perder o
+    // que já pagou por causa de um problema de storage.
+    const stored = await storeGeneratedImage({ userId, sourceUrl: result.imageUrl });
+    if (!stored.ok) {
+      console.error("Falha ao guardar geração no R2:", stored.error);
+    }
+
+    return {
+      ok: true as const,
+      imageUrl: stored.ok ? stored.dataUrl : result.imageUrl,
+      free: usedFree,
+    };
   });
 
 // Débito atômico condicional — só "ganha" se afetar exatamente 1 linha
