@@ -16,7 +16,7 @@ function getAdminEmails(): string[] {
     .filter(Boolean);
 }
 
-async function requireAdmin() {
+export async function requireAdmin() {
   const userId = await getSessionUserId();
   if (!userId) return null;
 

@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, Newspaper } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
 import { formatBRL } from "@/lib/account";
@@ -32,9 +32,17 @@ function AdminPanel() {
       <SiteHeader />
 
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-          <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-          Painel admin
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+            <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+            Painel admin
+          </div>
+          <Link
+            to="/admin/artigos"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+          >
+            <Newspaper className="h-4 w-4" /> Artigos do Veronica Wire
+          </Link>
         </div>
 
         {!state ? (

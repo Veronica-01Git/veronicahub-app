@@ -1,4 +1,5 @@
-import { pgTable, text, integer, timestamp, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, timestamp, pgEnum, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 
 export const userRole = pgEnum("UserRole", ["user", "admin"]);
@@ -79,4 +80,39 @@ export const ledgerEntries = pgTable(
     createdAt: timestamp("createdAt").notNull().defaultNow(),
   },
   (table) => [index("LedgerEntry_userId_createdAt_idx").on(table.userId, table.createdAt)],
+);
+
+export const articleBeat = pgEnum("ArticleBeat", ["ia", "clima", "economia", "geopolitica", "mercado"]);
+export const articleStatus = pgEnum("ArticleStatus", ["draft", "published"]);
+
+// Matérias do Veronica Wire (/blog). Rascunho gerado por IA (aiGenerated =
+// true) sempre entra como "draft" — nunca publica sozinho, precisa de um
+// admin revisar e trocar pra "published" em /admin/artigos.
+export const articles = pgTable(
+  "Article",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    slug: text("slug").notNull().unique(),
+    beat: articleBeat("beat").notNull(),
+    headline: text("headline").notNull(),
+    excerpt: text("excerpt").notNull(),
+    body: text("body").notNull(),
+    desk: text("desk").notNull(),
+    coverImageUrl: text("coverImageUrl"),
+    sourceUrls: text("sourceUrls")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    status: articleStatus("status").notNull().default("draft"),
+    aiGenerated: boolean("aiGenerated").notNull().default(false),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+    publishedAt: timestamp("publishedAt"),
+  },
+  (table) => [
+    index("Article_status_publishedAt_idx").on(table.status, table.publishedAt),
+    index("Article_beat_idx").on(table.beat),
+  ],
 );
