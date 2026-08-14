@@ -109,7 +109,7 @@ export const Route = createFileRoute("/")({
       {
         rel: "preload",
         as: "image",
-        href: "/veronica-hero.webp",
+        href: "/images/home/veronica-cyborg-face.webp",
         fetchpriority: "high",
       },
     ],

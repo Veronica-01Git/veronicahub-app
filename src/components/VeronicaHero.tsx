@@ -1,19 +1,31 @@
 import { useEffect, useRef } from "react";
 
 // Coordenadas UV (0–1, origem no canto superior esquerdo, mesmo espaço de
-// `st` no shader abaixo) do centro de cada pupila em /public/veronica-hero.webp,
-// medidas visualmente na imagem-fonte (1200×1200). Se o rastreio parecer
-// desalinhado ao testar, ajuste só estes números — não mexa na lógica do
-// shader.
-const LEFT_EYE_UV: [number, number] = [0.32, 0.27];
-const RIGHT_EYE_UV: [number, number] = [0.72, 0.28];
-const EYE_MOVEMENT_RADIUS = 0.012; // deslocamento máximo da pupila (fração da imagem) — pequeno de propósito
-const EYE_EFFECT_RADIUS = 0.032; // raio da zona de influência ao redor de cada olho (falloff suave)
+// `st` no shader abaixo) do centro de cada pupila em
+// /images/home/veronica-cyborg-face.webp, medidas visualmente na
+// imagem-fonte (1000×1792 — close-up bem mais apertado que o hero antigo,
+// rosto ocupa quase o quadro inteiro). Se o rastreio parecer desalinhado ao
+// testar, ajuste só estes números — não mexa na lógica do shader.
+const LEFT_EYE_UV: [number, number] = [0.215, 0.365]; // olho humano (esquerda da imagem)
+const RIGHT_EYE_UV: [number, number] = [0.795, 0.35]; // olho robótico/lente (direita da imagem)
+const EYE_MOVEMENT_RADIUS = 0.018; // deslocamento máximo da pupila (fração da imagem) — pequeno de propósito
+const EYE_EFFECT_RADIUS = 0.052; // raio da zona de influência ao redor de cada olho — maior que antes porque esse rosto ocupa muito mais do quadro
 // Ponto da imagem que fica alinhado ao centro da tela (o crop, por padrão,
 // centraliza no meio geométrico da imagem — 0.5,0.5 — que fica bem acima
 // dos olhos). Ajuste só este ponto pra reenquadrar sem tocar no resto do
 // shader; Y menor sobe os olhos em relação ao centro da tela.
-const FRAME_CENTER_UV: [number, number] = [0.52, 0.3];
+const FRAME_CENTER_UV: [number, number] = [0.505, 0.37];
+// Fator de zoom do crop (ver uso de `c *= FRAME_CROP` abaixo) — esse rosto já
+// enche o quadro quase todo (sem sobra como o hero antigo tinha), então o
+// crop é mais generoso (mais perto de 1) pra não cortar testa/queixo.
+const FRAME_CROP = 1.04;
+
+// Duração de um piscar completo (fecha + abre), em segundos — rápido, como
+// um piscar humano real.
+const BLINK_DURATION = 0.16;
+// Intervalo entre piscadas alterna 4s/5s (não é aleatório — alternância fixa,
+// como pedido).
+const BLINK_INTERVALS = [4, 5];
 
 const VERT = `
 attribute vec2 p;
@@ -32,7 +44,9 @@ uniform vec2 rightEye;
 uniform float eyeRadius;
 uniform float eyeEffectRadius;
 uniform vec2 frameCenter;
+uniform float frameCrop;
 uniform float time;
+uniform float blink;
 
 void main(){
   vec2 st = uv;
@@ -44,13 +58,15 @@ void main(){
   float ar = res.x / res.y;
   vec2 c = st - frameCenter;
   if (ar > 1.0) { c.y *= 1.0 / ar; } else { c.x *= ar; }
-  c *= 0.92;
+  c *= frameCrop;
   st = c + frameCenter;
 
   // rastreio de pupila — ÚNICO movimento reativo ao mouse (sem parallax
   // geral da cena). Desloca a amostra de textura só perto de cada olho,
   // com falloff suave (eyeEffectRadius) pra não criar costura visível.
-  vec2 gaze = (mouse - 0.5) * 2.0 * eyeRadius;
+  // Fecha um pouco o rastreio durante a piscada (blink) — olho fechado não
+  // acompanha o cursor.
+  vec2 gaze = (mouse - 0.5) * 2.0 * eyeRadius * (1.0 - blink);
   float dL = distance(st, leftEye);
   float dR = distance(st, rightEye);
   float wL = 1.0 - smoothstep(0.0, eyeEffectRadius, dL);
@@ -62,15 +78,28 @@ void main(){
   vec3 col = texture2D(tex, suv).rgb * 0.88;
 
   // destaque "tecnologia macabra" nos olhos: brilho ciano/verde pulsante +
-  // anel fino, tipo mira/scanner — só aparece perto da pupila.
+  // anel fino, tipo mira/scanner — só aparece perto da pupila. Multiplicado
+  // por (1-blink) pra "apagar" junto com a piscada.
   vec3 eyeColor = vec3(0.22, 0.95, 0.68);
   float pulse = 0.6 + 0.4 * sin(time * 1.4);
+  float openness = 1.0 - blink;
   float glow = wL + wR;
-  col += eyeColor * glow * glow * 0.55 * pulse;
+  col += eyeColor * glow * glow * 0.55 * pulse * openness;
 
   float ringL = smoothstep(eyeEffectRadius * 0.48, eyeEffectRadius * 0.56, dL) - smoothstep(eyeEffectRadius * 0.56, eyeEffectRadius * 0.68, dL);
   float ringR = smoothstep(eyeEffectRadius * 0.48, eyeEffectRadius * 0.56, dR) - smoothstep(eyeEffectRadius * 0.56, eyeEffectRadius * 0.68, dR);
-  col += eyeColor * (ringL + ringR) * (0.5 + 0.5 * pulse);
+  col += eyeColor * (ringL + ringR) * (0.5 + 0.5 * pulse) * openness;
+
+  // piscada — sombra de "pálpebra" cresce verticalmente a partir do centro
+  // de cada olho conforme `blink` vai de 0 (aberto) a 1 (fechado). Usa o
+  // próprio tom já amostrado da pele ao redor (escurecido), então acompanha
+  // a iluminação da cena sem precisar de uma textura de "olho fechado".
+  float lidReachL = blink * eyeEffectRadius * 0.75;
+  float lidReachR = blink * eyeEffectRadius * 0.75;
+  float lidL = wL * (1.0 - smoothstep(lidReachL - 0.003, lidReachL, abs(st.y - leftEye.y)));
+  float lidR = wR * (1.0 - smoothstep(lidReachR - 0.003, lidReachR, abs(st.y - rightEye.y)));
+  vec3 lidShadow = col * 0.32;
+  col = mix(col, lidShadow, clamp(lidL + lidR, 0.0, 1.0));
 
   // vinheta um pouco mais funda — contraste dramático pros olhos se destacarem
   float v = 1.0 - length((st - 0.5) * vec2(1.15, 1.05));
@@ -130,6 +159,7 @@ export function VeronicaHero() {
     const uMouse = gl.getUniformLocation(prog, "mouse");
     const uRes = gl.getUniformLocation(prog, "res");
     const uTime = gl.getUniformLocation(prog, "time");
+    const uBlink = gl.getUniformLocation(prog, "blink");
 
     // Constantes de calibração dos olhos — declaradas uma vez, fora do loop.
     gl.uniform2f(gl.getUniformLocation(prog, "leftEye"), LEFT_EYE_UV[0], LEFT_EYE_UV[1]);
@@ -137,6 +167,7 @@ export function VeronicaHero() {
     gl.uniform1f(gl.getUniformLocation(prog, "eyeRadius"), EYE_MOVEMENT_RADIUS);
     gl.uniform1f(gl.getUniformLocation(prog, "eyeEffectRadius"), EYE_EFFECT_RADIUS);
     gl.uniform2f(gl.getUniformLocation(prog, "frameCenter"), FRAME_CENTER_UV[0], FRAME_CENTER_UV[1]);
+    gl.uniform1f(gl.getUniformLocation(prog, "frameCrop"), FRAME_CROP);
 
     const mkTex = (unit: number) => {
       const t = gl.createTexture();
@@ -177,7 +208,7 @@ export function VeronicaHero() {
     };
 
     const small = window.innerWidth < 900;
-    load(small ? "/veronica-hero-sm.webp" : "/veronica-hero.webp", t0, 0);
+    load(small ? "/images/home/veronica-cyborg-face-sm.webp" : "/images/home/veronica-cyborg-face.webp", t0, 0);
 
     // Mesmo padrão de smoothing (lerp) já usado antes pro parallax geral —
     // reaproveitado como está pro rastreio de pupila, sem novo estado.
@@ -207,6 +238,19 @@ export function VeronicaHero() {
     const ro = new ResizeObserver(resize);
     ro.observe(cv);
 
+    // Piscada natural — intervalo entre piscadas alterna 4s/5s (não
+    // aleatório, alternância fixa). Curva rápida: fecha em 40% da duração,
+    // abre nos 60% restantes, como um piscar humano real (fecha mais rápido
+    // do que abre).
+    const smooth01 = (k: number) => k * k * (3 - 2 * k);
+    const blinkCurve = (t: number) => {
+      if (t < 0.4) return smooth01(t / 0.4);
+      return 1 - smooth01((t - 0.4) / 0.6);
+    };
+    let blinkToggle = 0;
+    let nextBlinkAt = BLINK_INTERVALS[0];
+    let blinkStartedAt = -1;
+
     let raf = 0;
     const start = performance.now();
     const loop = () => {
@@ -214,9 +258,27 @@ export function VeronicaHero() {
       if (ready < 1) return;
       mouse.x += (target.x - mouse.x) * 0.05;
       mouse.y += (target.y - mouse.y) * 0.05;
+      const elapsed = (performance.now() - start) / 1000;
+
+      let blinkValue = 0;
+      if (blinkStartedAt < 0 && elapsed >= nextBlinkAt) {
+        blinkStartedAt = elapsed;
+      }
+      if (blinkStartedAt >= 0) {
+        const t = (elapsed - blinkStartedAt) / BLINK_DURATION;
+        if (t >= 1) {
+          blinkStartedAt = -1;
+          blinkToggle = blinkToggle === 0 ? 1 : 0;
+          nextBlinkAt = elapsed + BLINK_INTERVALS[blinkToggle];
+        } else {
+          blinkValue = blinkCurve(t);
+        }
+      }
+
       gl.uniform2f(uMouse, mouse.x, mouse.y);
       gl.uniform2f(uRes, cv.width, cv.height);
-      gl.uniform1f(uTime, (performance.now() - start) / 1000);
+      gl.uniform1f(uTime, elapsed);
+      gl.uniform1f(uBlink, blinkValue);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     loop();
@@ -247,7 +309,7 @@ export function VeronicaHero() {
         aria-hidden
         className="pointer-events-none absolute inset-0 block bg-contain bg-center bg-no-repeat opacity-[0.42] md:hidden motion-reduce:md:block"
         style={{
-          backgroundImage: "url(/veronica-hero-sm.webp)",
+          backgroundImage: "url(/images/home/veronica-cyborg-face-sm.webp)",
           filter: "contrast(1.08) saturate(0.85) brightness(0.95)",
           mixBlendMode: "screen",
         }}
