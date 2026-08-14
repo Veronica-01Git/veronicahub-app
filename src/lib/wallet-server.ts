@@ -155,7 +155,7 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       await db.insert(ledgerEntries).values({
         userId,
         deltaCents: usedFree ? 0 : NANO_BANANA_PRICE_CENTS,
-        reason: "refund:generation_failed",
+        reason: result.reason === "nsfw" ? "refund:moderation_nsfw" : "refund:generation_failed",
       });
       return { ok: false as const, error: result.error };
     }

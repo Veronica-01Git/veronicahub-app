@@ -133,7 +133,13 @@ negocio-da-china-app:
 Real hoje só para **Nano Banana Pro** via `generateNanoBanana` (`src/lib/wallet-server.ts` +
 `src/lib/higgsfield.ts`). O fluxo implementado:
 1. [x] Sessão válida?
-2. [ ] **Moderação** — não implementado; nenhuma chamada de moderação de prompt.
+2. [~] **Moderação** — a Higgsfield já roda filtro de segurança em duas etapas (prompt e imagem
+   gerada) e devolve status `nsfw`, que o código trata como falha com estorno automático (14/08/2026:
+   agora com mensagem amigável ao usuário e `LedgerEntry` com motivo `refund:moderation_nsfw`,
+   separado de `refund:generation_failed`, para dar rastro auditável de tentativas bloqueadas por
+   usuário). Decisão do produto: só registrar, não bloquear a conta automaticamente — revisão de abuso
+   fica manual. Continua faltando: uma checagem **antes** da chamada à Higgsfield, que evitaria gastar
+   a chamada (e o tempo do usuário) num prompt que sabidamente vai ser recusado.
 3. [ ] **Rate limit** — não implementado; sem Upstash Ratelimit nem equivalente.
 4. [x] Preço fixo no servidor (`NANO_BANANA_PRICE_CENTS = 490`), nunca confia no preço do front.
 5. [x] Débito condicional atômico (crédito grátis primeiro, senão saldo) + `INSERT LedgerEntry` —
@@ -196,6 +202,7 @@ pacotes de créditos com desconto, assinatura mensal do Studio, histórico compa
 - [x] Credenciais Mercado Pago de produção — mesma conta do negocio-da-china-app
 - [ ] Bucket R2 criado no painel Cloudflare
 - [ ] Rate limit por usuário nas rotas de geração/débito
-- [ ] Moderação de prompt antes da chamada ao provedor
+- [x] Rastro auditável de bloqueios NSFW no ledger (`refund:moderation_nsfw`) — 14/08/2026
+- [ ] Moderação de prompt *antes* da chamada ao provedor (hoje só reage ao `nsfw` que a Higgsfield já processou)
 - [ ] Tabela `generations` + galeria "Minhas gerações"
 - [ ] Logs de custo real vs. cobrado por job (monitorar margem)
