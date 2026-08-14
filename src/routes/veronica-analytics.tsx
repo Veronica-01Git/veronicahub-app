@@ -1,6 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Sparkles, ShoppingBag, RotateCcw, ArrowRight, Flame, Play, Clock } from "lucide-react";
+import {
+  Sparkles,
+  ShoppingBag,
+  RotateCcw,
+  ArrowRight,
+  Flame,
+  Play,
+  Clock,
+  Droplet,
+  Cable,
+  HeartPulse,
+  Shirt,
+  PawPrint,
+  Zap,
+  ExternalLink,
+  type LucideIcon,
+} from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { calcEngagement, TIER_META, type EngagementResult, type Tier } from "@/lib/tiktok-engagement";
 import {
@@ -78,6 +94,19 @@ const CATEGORY_META: Record<FeedCategory, { label: string; color: string }> = {
   eletronicos: { label: "eletrônicos", color: "var(--tt-gold)" },
 };
 
+// Ícone por categoria pro "frame" do card — não é screenshot de nenhum
+// vídeo real (não temos como puxar isso), é uma moldura ilustrativa que só
+// sinaliza o tipo de produto. Quem clica no frame vai pra busca real desse
+// formato no TikTok, não pra um vídeo específico inventado.
+const CATEGORY_ICON: Record<FeedCategory, LucideIcon> = {
+  beleza: Droplet,
+  casa: Cable,
+  saude: HeartPulse,
+  moda: Shirt,
+  pet: PawPrint,
+  eletronicos: Zap,
+};
+
 type SortKey = "gmv" | "recente" | "crescimento";
 
 function Sparkles8() {
@@ -145,13 +174,33 @@ function NumberField({
 
 function ViralCard({ video }: { video: TrendingVideo }) {
   const meta = CATEGORY_META[video.category];
+  const Icon = CATEGORY_ICON[video.category];
+  const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(video.title.split("—")[0].trim())}`;
+
   return (
-    <Link
-      to="/video-ia"
+    <div
       className="group flex flex-col overflow-hidden rounded-2xl border transition hover:-translate-y-1"
       style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}
     >
-      <div className="relative flex aspect-[9/16] max-h-[250px] items-center justify-center" style={{ backgroundImage: video.gradient }}>
+      <a
+        href={tiktokSearchUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Ver exemplos reais desse formato no TikTok: ${video.title}`}
+        className="relative flex aspect-[9/16] max-h-[250px] flex-col items-center justify-center overflow-hidden"
+        style={{ backgroundImage: video.gradient }}
+      >
+        {/* Moldura tipo viewfinder — reforça a leitura de "frame de vídeo"
+            sem fingir ser print de um vídeo real específico. */}
+        <span aria-hidden className="absolute left-2 top-9 h-4 w-4 border-l-2 border-t-2" style={{ borderColor: "rgba(14,14,16,0.3)" }} />
+        <span aria-hidden className="absolute right-2 bottom-8 h-4 w-4 border-r-2 border-b-2" style={{ borderColor: "rgba(14,14,16,0.3)" }} />
+        <Icon
+          aria-hidden
+          className="absolute left-1/2 top-[36%] h-12 w-12 -translate-x-1/2 -translate-y-1/2"
+          style={{ color: "rgba(14,14,16,0.28)" }}
+          strokeWidth={1.25}
+        />
+
         <span
           className="absolute left-2.5 top-2.5 rounded-full px-2 py-1 font-mono-tech text-[10px] font-semibold text-white"
           style={{ background: "var(--tt-ink)" }}
@@ -164,7 +213,7 @@ function ViralCard({ video }: { video: TrendingVideo }) {
         >
           {video.rank}
         </span>
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/85 shadow-md">
+        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/85 shadow-md transition group-hover:scale-110">
           <Play className="ml-0.5 h-3.5 w-3.5" style={{ color: "var(--tt-ink)", fill: "var(--tt-ink)" }} />
         </span>
         <span
@@ -173,7 +222,17 @@ function ViralCard({ video }: { video: TrendingVideo }) {
         >
           <Flame className="h-2.5 w-2.5" /> {video.growthLabel}
         </span>
-      </div>
+        <span
+          className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 font-mono-tech text-[9.5px] font-semibold"
+          style={{ color: "var(--tt-ink)" }}
+        >
+          tiktok <ExternalLink className="h-2.5 w-2.5" />
+        </span>
+        {/* Barra de progresso simulada — vídeo "pausado" no frame. */}
+        <span aria-hidden className="absolute inset-x-2.5 bottom-1 h-[3px] overflow-hidden rounded-full bg-white/40">
+          <span className="block h-full w-[38%] rounded-full bg-white/90" />
+        </span>
+      </a>
       <div className="flex flex-1 flex-col p-4">
         <p className="text-[13.5px] font-semibold leading-[1.35]" style={{ color: "var(--tt-ink)" }}>{video.title}</p>
         <div className="mt-1.5 flex items-center justify-between font-mono-tech text-[10.5px]" style={{ color: "var(--tt-ink-faint)" }}>
@@ -185,14 +244,15 @@ function ViralCard({ video }: { video: TrendingVideo }) {
         <p className="mt-2.5 text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-soft)" }}>
           {video.hook}
         </p>
-        <div
-          className="mt-auto flex items-center gap-1.5 border-t pt-2.5 font-mono-tech text-[11px] font-semibold transition group-hover:text-[var(--tt-pink)]"
+        <Link
+          to="/video-ia"
+          className="mt-auto flex items-center gap-1.5 border-t pt-2.5 font-mono-tech text-[11px] font-semibold transition hover:text-[var(--tt-pink)]"
           style={{ borderColor: "var(--tt-line)", color: "var(--tt-ink)", marginTop: "10px" }}
         >
           refazer esse estilo no studio <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-        </div>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
