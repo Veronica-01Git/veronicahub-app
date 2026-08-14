@@ -330,12 +330,24 @@ export function generateAtsResume(rawText: string): AtsResume {
 
 export type ExperienceLine = { text: string; isBullet: boolean };
 
-// Linha de fato ("Dev Sênior - Yo Lab - Fev 2024") costuma ser curta e/ou já
-// vinha marcada como bullet quando extraída; linha de conquista costuma ser
-// uma frase mais longa. Nem todo currículo colado marca bullets com "-", daí
-// o corte por tamanho como segundo sinal.
+// Testado contra um currículo real: "Analista de Marketing Pleno - Grupo
+// Solar - Jan 2022 - Atual" tem 62 caracteres — mais longo que muita linha
+// de conquista curta. Sem essa exclusão, o corte por tamanho classificava
+// esse tipo de cabeçalho como bullet e mandava fato (cargo/empresa/período)
+// pra IA reescrever, que é exatamente o que este motor existe pra impedir.
+const HEADER_SHAPE_RE = /\b(19|20)\d{2}\b|\batual\b|\bpresente\b|\bcursando\b/i;
+
 function looksLikeBullet(rawLine: string, stripped: string): boolean {
-  return /^([-•*▪●]|\d+[.)])\s+/.test(rawLine) || stripped.length > 45;
+  // Marcador explícito de bullet na origem sempre vence — é o sinal mais
+  // confiável que existe.
+  if (/^([-•*▪●]|\d+[.)])\s+/.test(rawLine)) return true;
+  // Sem marcador: se a linha tem cara de cabeçalho de vaga (ano ou
+  // "atual"/"presente"/"cursando"), nunca trata como bullet, mesmo que seja
+  // longa — o pior caso de errar pra esse lado é uma conquista sem marcador
+  // que também cita um ano não ser polida pela IA; o pior caso de errar pro
+  // outro lado é mandar cargo/empresa/data pra reescrita. Prefere o primeiro.
+  if (HEADER_SHAPE_RE.test(stripped)) return false;
+  return stripped.length > 45;
 }
 
 export function extractExperienceLines(rawText: string): ExperienceLine[] {
