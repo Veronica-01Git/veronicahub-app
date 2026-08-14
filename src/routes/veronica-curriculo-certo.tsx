@@ -9,18 +9,13 @@ import {
 } from "react";
 import { Menu, X } from "lucide-react";
 import { HUB_URL } from "@/components/SiteChrome";
-import {
-  evaluateResume,
-  generateAtsResume,
-  type AtsResume,
-  type EvalResult,
-} from "@/lib/resume-tools";
+import { evaluateResume, type AtsResume, type EvalResult } from "@/lib/resume-tools";
 import { extractTextFromFile, ACCEPT_ATTR } from "@/lib/resume-parsers";
 import { downloadTxt, downloadPdf, downloadDocx } from "@/lib/resume-export";
 import { HoloResumeOrbit } from "@/components/HoloResumeOrbit";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
 import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
-import { createDeposit, debitCurriculoGeneration } from "@/lib/wallet-server";
+import { createDeposit, generateCurriculoAts } from "@/lib/wallet-server";
 
 type Wallet = {
   id: string;
@@ -301,6 +296,7 @@ function CurriculoCerto() {
   const [fileParsing, setFileParsing] = useState(false);
   const [result, setResult] = useState<EvalResult | null>(null);
   const [generated, setGenerated] = useState<AtsResume | null>(null);
+  const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState<"txt" | "pdf" | "docx" | null>(null);
 
   const [user, setUser] = useState<Wallet | null>(null);
@@ -524,16 +520,25 @@ function CurriculoCerto() {
   }
 
   async function runGeneration() {
-    const res = await debitCurriculoGeneration();
-    if (res.ok) {
-      setGenerated(generateAtsResume(activeText));
-      await refreshUser();
-      setToast(`Currículo gerado. ${formatBRL(GENERATION_PRICE_CENTS)} debitado do saldo.`);
-    } else if (res.error === "insufficient_funds") {
-      setDepositError(null);
-      setDepositOpen(true);
-    } else {
-      setToast(`Erro ao gerar: ${res.error}`);
+    setGenerating(true);
+    try {
+      const res = await generateCurriculoAts({ data: { rawText: activeText } });
+      if (res.ok) {
+        setGenerated(res.resume);
+        await refreshUser();
+        setToast(
+          res.aiApplied
+            ? `Currículo gerado com redação otimizada pela Veronica. ${formatBRL(GENERATION_PRICE_CENTS)} debitado.`
+            : `Currículo gerado no padrão ATS. ${formatBRL(GENERATION_PRICE_CENTS)} debitado.`,
+        );
+      } else if (res.error === "insufficient_funds") {
+        setDepositError(null);
+        setDepositOpen(true);
+      } else {
+        setToast(`Erro ao gerar: ${res.error}`);
+      }
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -598,7 +603,7 @@ function CurriculoCerto() {
   }
 
   async function handleGenerate() {
-    if (!canEvaluate) return;
+    if (!canEvaluate || generating) return;
     if (!user) {
       openAuth("generate");
       return;
@@ -1454,7 +1459,7 @@ function CurriculoCerto() {
 
                 <button
                   onClick={handleGenerate}
-                  disabled={!canEvaluate}
+                  disabled={!canEvaluate || generating}
                   className="mt-2 self-start rounded-[2px] px-7 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-40"
                   style={{
                     background: "var(--doc-accent)",
@@ -1462,11 +1467,13 @@ function CurriculoCerto() {
                     border: "1px solid var(--doc-accent)",
                   }}
                 >
-                  {!user
-                    ? "Entrar para gerar"
-                    : user.balanceCents < GENERATION_PRICE_CENTS
-                      ? `Depositar para gerar · faltam ${formatBRL(GENERATION_PRICE_CENTS - user.balanceCents)}`
-                      : `Gerar meu currículo ATS · ${formatBRL(GENERATION_PRICE_CENTS)}`}
+                  {generating
+                    ? "Veronica está gerando…"
+                    : !user
+                      ? "Entrar para gerar"
+                      : user.balanceCents < GENERATION_PRICE_CENTS
+                        ? `Depositar para gerar · faltam ${formatBRL(GENERATION_PRICE_CENTS - user.balanceCents)}`
+                        : `Gerar meu currículo ATS · ${formatBRL(GENERATION_PRICE_CENTS)}`}
                 </button>
                 {!canEvaluate && (
                   <p className="text-[12px]" style={{ color: "var(--doc-ink-faint)" }}>
@@ -1666,14 +1673,17 @@ function CurriculoCerto() {
                 {user && user.balanceCents >= GENERATION_PRICE_CENTS && (
                   <button
                     onClick={handleGenerate}
-                    className="rounded-[2px] px-5 py-2.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition duration-150 hover:-translate-y-0.5"
+                    disabled={generating}
+                    className="rounded-[2px] px-5 py-2.5 font-mono-tech text-[10.5px] uppercase tracking-widest transition duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
                     style={{
                       background: "var(--doc-accent)",
                       color: "var(--doc-paper)",
                       border: "1px solid var(--doc-accent)",
                     }}
                   >
-                    Gerar currículo ATS · {formatBRL(GENERATION_PRICE_CENTS)}
+                    {generating
+                      ? "Veronica está gerando…"
+                      : `Gerar currículo ATS · ${formatBRL(GENERATION_PRICE_CENTS)}`}
                   </button>
                 )}
               </div>

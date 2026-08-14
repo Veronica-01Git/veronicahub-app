@@ -1,6 +1,9 @@
 // ---------------------------------------------------------------------------
-// Currículo-Certo — motor de avaliação e geração, 100% determinístico.
-// Sem IA, sem backend: roda inteiro no navegador.
+// Currículo-Certo — motor de avaliação e geração. Roda inteiro no navegador,
+// 100% determinístico: sem IA, sem backend. A reescrita por IA (ver
+// extractExperienceLines/applyExperienceRewrite mais abaixo, e
+// src/lib/resume-ai.ts) é uma camada opcional por cima deste motor — nunca
+// substitui a extração de fatos, só a redação das linhas de conquista.
 // ---------------------------------------------------------------------------
 
 const ACTION_VERBS = [
@@ -260,10 +263,10 @@ function normalizeBody(title: string, body: string[]): string {
     .join("\n");
 }
 
-export function generateAtsResume(rawText: string): AtsResume {
-  const clean = rawText.replace(ICON_GLYPH_REPLACE, "").trim();
-  const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-
+// Compartilhado entre generateAtsResume() e extractExperienceLines() — as
+// duas precisam enxergar exatamente as mesmas seções brutas (mesmos índices
+// de linha), senão a reescrita por IA pode ser aplicada na seção errada.
+function findRawSections(lines: string[]): { title: string; body: string[] }[] {
   // A resume's first line is conventionally the candidate's name — never
   // treat it (or the contact block right under it) as a section header,
   // even if it happens to look like title case ("João Silva").
@@ -272,6 +275,19 @@ export function generateAtsResume(rawText: string): AtsResume {
   const headerIdx: number[] = [];
   for (let i = scanStart; i < lines.length; i++) if (isHeaderLine(lines[i])) headerIdx.push(i);
 
+  const rawSections: { title: string; body: string[] }[] = [];
+  for (let i = 0; i < headerIdx.length; i++) {
+    const start = headerIdx[i] + 1;
+    const end = headerIdx[i + 1] ?? lines.length;
+    rawSections.push({ title: lines[headerIdx[i]], body: lines.slice(start, end) });
+  }
+  return rawSections;
+}
+
+export function generateAtsResume(rawText: string): AtsResume {
+  const clean = rawText.replace(ICON_GLYPH_REPLACE, "").trim();
+  const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+
   const name = lines[0] ?? "Seu nome";
 
   const emailMatch = clean.match(EMAIL_RE)?.[0];
@@ -279,13 +295,7 @@ export function generateAtsResume(rawText: string): AtsResume {
   const linkedinMatch = clean.match(LINKEDIN_RE)?.[0];
   const contactLine = [emailMatch, phoneMatch, linkedinMatch].filter(Boolean).join(" · ");
 
-  const rawSections: { title: string; body: string[] }[] = [];
-  for (let i = 0; i < headerIdx.length; i++) {
-    const start = headerIdx[i] + 1;
-    const end = headerIdx[i + 1] ?? lines.length;
-    rawSections.push({ title: lines[headerIdx[i]], body: lines.slice(start, end) });
-  }
-
+  const rawSections = findRawSections(lines);
   const order = ["EXPERIÊNCIA PROFISSIONAL", "FORMAÇÃO", "HABILIDADES"];
   const canonical = rawSections.map((s) => ({ title: canonicalTitle(s.title), body: s.body }));
   const sections: AtsSection[] = [
@@ -306,6 +316,89 @@ export function generateAtsResume(rawText: string): AtsResume {
   ].join("\n").trim();
 
   return { name, contactLine, sections, text };
+}
+
+// ---------------------------------------------------------------------------
+// Reescrita por IA — a Veronica só reescreve a REDAÇÃO das linhas de
+// resultado/conquista dentro de "Experiência Profissional". Linhas de fato
+// (cargo, empresa, período) nunca são enviadas a nenhum modelo e nunca são
+// alteradas: quem decide o que é fato e o que é redação é esta heurística,
+// e ela é a MESMA fonte usada depois pra recolocar a reescrita no lugar
+// certo (ver applyExperienceRewrite) — nunca recalculada duas vezes, pra
+// não correr o risco das duas heurísticas divergirem.
+// ---------------------------------------------------------------------------
+
+export type ExperienceLine = { text: string; isBullet: boolean };
+
+// Testado contra um currículo real: "Analista de Marketing Pleno - Grupo
+// Solar - Jan 2022 - Atual" tem 62 caracteres — mais longo que muita linha
+// de conquista curta. Sem essa exclusão, o corte por tamanho classificava
+// esse tipo de cabeçalho como bullet e mandava fato (cargo/empresa/período)
+// pra IA reescrever, que é exatamente o que este motor existe pra impedir.
+const HEADER_SHAPE_RE = /\b(19|20)\d{2}\b|\batual\b|\bpresente\b|\bcursando\b/i;
+
+function looksLikeBullet(rawLine: string, stripped: string): boolean {
+  // Marcador explícito de bullet na origem sempre vence — é o sinal mais
+  // confiável que existe.
+  if (/^([-•*▪●]|\d+[.)])\s+/.test(rawLine)) return true;
+  // Sem marcador: se a linha tem cara de cabeçalho de vaga (ano ou
+  // "atual"/"presente"/"cursando"), nunca trata como bullet, mesmo que seja
+  // longa — o pior caso de errar pra esse lado é uma conquista sem marcador
+  // que também cita um ano não ser polida pela IA; o pior caso de errar pro
+  // outro lado é mandar cargo/empresa/data pra reescrita. Prefere o primeiro.
+  if (HEADER_SHAPE_RE.test(stripped)) return false;
+  return stripped.length > 45;
+}
+
+export function extractExperienceLines(rawText: string): ExperienceLine[] {
+  const clean = rawText.replace(ICON_GLYPH_REPLACE, "").trim();
+  const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const rawSections = findRawSections(lines);
+  const expSection = rawSections.find((s) => EXP_HEADER_RE.test(s.title));
+  if (!expSection) return [];
+  return expSection.body.map((l) => ({
+    text: stripBullet(l),
+    isBullet: looksLikeBullet(l, stripBullet(l)),
+  }));
+}
+
+// Recoloca as linhas reescritas pela IA nas MESMAS posições identificadas por
+// extractExperienceLines (mesmo texto de origem, mesma ordem, 1 reescrita por
+// bullet, na ordem em que apareceram). Se a seção não bate em tamanho com o
+// que foi extraído — currículo mudou entre a extração e a resposta da IA, por
+// exemplo — não aplica nada e devolve o currículo determinístico original,
+// nunca arrisca colar uma reescrita na linha errada.
+export function applyExperienceRewrite(
+  resume: AtsResume,
+  experienceLines: ExperienceLine[],
+  rewrittenBullets: string[],
+): AtsResume {
+  const expIdx = resume.sections.findIndex((s) => s.title === "EXPERIÊNCIA PROFISSIONAL");
+  if (expIdx < 0) return resume;
+
+  const normalizedLines = resume.sections[expIdx].body.split("\n");
+  if (normalizedLines.length !== experienceLines.length) return resume;
+
+  let cursor = 0;
+  const merged = normalizedLines.map((line, i) => {
+    if (experienceLines[i].isBullet && cursor < rewrittenBullets.length) {
+      return `- ${rewrittenBullets[cursor++]}`;
+    }
+    return line;
+  });
+  if (cursor !== rewrittenBullets.length) return resume;
+
+  const newSections = resume.sections.map((s, i) =>
+    i === expIdx ? { ...s, body: merged.join("\n") } : s,
+  );
+  const text = [
+    resume.name,
+    resume.contactLine,
+    "",
+    ...newSections.flatMap((s) => [s.title, s.body, ""]),
+  ].join("\n").trim();
+
+  return { ...resume, sections: newSections, text };
 }
 
 // ---------------------------------------------------------------------------

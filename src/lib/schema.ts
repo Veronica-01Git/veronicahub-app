@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, pgEnum, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 
 export const userRole = pgEnum("UserRole", ["user", "admin"]);
@@ -79,4 +79,30 @@ export const ledgerEntries = pgTable(
     createdAt: timestamp("createdAt").notNull().defaultNow(),
   },
   (table) => [index("LedgerEntry_userId_createdAt_idx").on(table.userId, table.createdAt)],
+);
+
+// Memória da Veronica — fatos curtos que ela mesma extrai da conversa (nunca
+// a conversa inteira), um valor por chave. skillId registra onde o fato foi
+// aprendido, mas a leitura (ver veronica-server.ts) busca por usuário sem
+// filtrar por skill — é assim que um fato aprendido numa página vira
+// contexto numa outra. Upsert por (userId, skillId, key): a Veronica nunca
+// duplica o mesmo fato, só atualiza.
+export const veronicaMemories = pgTable(
+  "VeronicaMemory",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id),
+    skillId: text("skillId").notNull(),
+    key: text("key").notNull(),
+    value: text("value").notNull(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("VeronicaMemory_userId_idx").on(table.userId),
+    uniqueIndex("VeronicaMemory_userId_skillId_key_idx").on(table.userId, table.skillId, table.key),
+  ],
 );
