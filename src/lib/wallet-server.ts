@@ -6,7 +6,7 @@ import { getSessionUserId } from "./session";
 import { createTopUpPreference } from "./mercadopago";
 import { generateNanoBananaImage } from "./higgsfield";
 import { checkGenerationRateLimit } from "./rate-limit";
-import { storeGeneratedImage } from "./generations-storage";
+import { fetchImageAsDataUrl } from "./generations-storage";
 
 const MAX_DEPOSIT_CENTS = 200_000; // R$2.000 — anti-abuso simples pra v1
 
@@ -167,14 +167,14 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       return { ok: false as const, error: result.error };
     }
 
-    // A geração já foi cobrada e funcionou — um problema no download ou no
-    // R2 nunca deve estornar nem quebrar a resposta; na pior das hipóteses
-    // cai pra URL crua da Higgsfield.
-    const stored = await storeGeneratedImage({ userId, sourceUrl: result.imageUrl });
+    // A geração já foi cobrada e funcionou — um problema no download nunca
+    // deve estornar nem quebrar a resposta; na pior das hipóteses cai pra
+    // URL crua da Higgsfield.
+    const fetched = await fetchImageAsDataUrl(result.imageUrl);
 
     return {
       ok: true as const,
-      imageUrl: stored.ok ? stored.dataUrl : result.imageUrl,
+      imageUrl: fetched.ok ? fetched.dataUrl : result.imageUrl,
       free: usedFree,
     };
   });
