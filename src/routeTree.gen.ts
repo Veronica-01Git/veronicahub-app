@@ -19,8 +19,10 @@ import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analyti
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as ComandosRouteImport } from './routes/comandos'
-import { Route as BlogRouteImport } from './routes/blog'
-import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as IndexRouteImport } from './routes/index'
 
 const VideoIaRoute = VideoIaRouteImport.update({
@@ -74,14 +76,24 @@ const ComandosRoute = ComandosRouteImport.update({
   path: '/comandos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogRoute = BlogRouteImport.update({
+const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog',
   path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminArtigosRoute = AdminArtigosRouteImport.update({
+  id: '/admin/artigos',
+  path: '/admin/artigos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -92,8 +104,10 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/blog': typeof BlogRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/artigos': typeof AdminArtigosRoute
+  '/blog': typeof BlogIndexRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -107,8 +121,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/blog': typeof BlogRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/artigos': typeof AdminArtigosRoute
+  '/blog': typeof BlogIndexRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -123,8 +139,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/blog': typeof BlogRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/artigos': typeof AdminArtigosRoute
+  '/blog': typeof BlogIndexRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -141,7 +159,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/admin/artigos'
     | '/blog'
+    | '/blog/$slug'
     | '/comandos'
     | '/prompt-packs'
     | '/selo-demo'
@@ -156,7 +176,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/admin/artigos'
     | '/blog'
+    | '/blog/$slug'
     | '/comandos'
     | '/prompt-packs'
     | '/selo-demo'
@@ -171,7 +193,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/admin/artigos'
     | '/blog'
+    | '/blog/$slug'
     | '/comandos'
     | '/prompt-packs'
     | '/selo-demo'
@@ -186,8 +210,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
-  BlogRoute: typeof BlogRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminArtigosRoute: typeof AdminArtigosRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   ComandosRoute: typeof ComandosRoute
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
@@ -276,14 +302,28 @@ declare module '@tanstack/react-router' {
       id: '/blog'
       path: '/blog'
       fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
       id: '/admin'
       path: '/admin'
       fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/artigos': {
+      id: '/admin/artigos'
+      path: '/admin/artigos'
+      fullPath: '/admin/artigos'
+      preLoaderRoute: typeof AdminArtigosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -298,8 +338,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
-  BlogRoute: BlogRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminArtigosRoute: AdminArtigosRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  BlogSlugRoute: BlogSlugRoute,
   ComandosRoute: ComandosRoute,
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
