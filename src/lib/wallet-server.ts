@@ -5,6 +5,7 @@ import { users, walletTopUps, ledgerEntries } from "./schema";
 import { getSessionUserId } from "./session";
 import { createTopUpPreference } from "./mercadopago";
 import { generateNanoBananaImage } from "./higgsfield";
+import { checkGenerationRateLimit } from "./rate-limit";
 
 const MAX_DEPOSIT_CENTS = 200_000; // R$2.000 — anti-abuso simples pra v1
 
@@ -106,6 +107,11 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Faça login para gerar." };
     }
 
+    const rateLimit = await checkGenerationRateLimit(userId);
+    if (!rateLimit.ok) {
+      return { ok: false as const, error: rateLimit.error };
+    }
+
     const db = getDb();
 
     // Crédito grátis primeiro — update condicional de uma instrução só,
@@ -172,6 +178,11 @@ export const debitCurriculoGeneration = createServerFn({ method: "POST" }).handl
     return { ok: false as const, error: "Faça login para gerar." };
   }
 
+  const rateLimit = await checkGenerationRateLimit(userId);
+  if (!rateLimit.ok) {
+    return { ok: false as const, error: rateLimit.error };
+  }
+
   const db = getDb();
   const [debit] = await db
     .update(users)
@@ -206,6 +217,11 @@ export const debitCurriculoRhScreening = createServerFn({ method: "POST" })
     const userId = await getSessionUserId();
     if (!userId) {
       return { ok: false as const, error: "Faça login para triar." };
+    }
+
+    const rateLimit = await checkGenerationRateLimit(userId);
+    if (!rateLimit.ok) {
+      return { ok: false as const, error: rateLimit.error };
     }
 
     const amountCents = data.qty * CURRICULO_RH_SCREEN_PRICE_CENTS;

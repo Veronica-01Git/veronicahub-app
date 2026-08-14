@@ -140,7 +140,12 @@ Real hoje só para **Nano Banana Pro** via `generateNanoBanana` (`src/lib/wallet
    usuário). Decisão do produto: só registrar, não bloquear a conta automaticamente — revisão de abuso
    fica manual. Continua faltando: uma checagem **antes** da chamada à Higgsfield, que evitaria gastar
    a chamada (e o tempo do usuário) num prompt que sabidamente vai ser recusado.
-3. [ ] **Rate limit** — não implementado; sem Upstash Ratelimit nem equivalente.
+3. [x] **Rate limit** — implementado em `src/lib/rate-limit.ts` (14/08/2026), sem Redis/Upstash: conta
+   linhas recentes do próprio usuário em `LedgerEntry` (índice já existente `userId, createdAt`) em vez
+   de infra nova. Dois limites: 5 tentativas/minuto (rajada) e 60/dia (custo), aplicados nas três rotas
+   de débito — `generateNanoBanana`, `debitCurriculoGeneration`, `debitCurriculoRhScreening` — antes de
+   qualquer débito. Protege contra abuso de volume, não contra duplo-gasto (isso já era o `UPDATE`
+   condicional). Limites são fixos no código, não configuráveis por env var ainda.
 4. [x] Preço fixo no servidor (`NANO_BANANA_PRICE_CENTS = 490`), nunca confia no preço do front.
 5. [x] Débito condicional atômico (crédito grátis primeiro, senão saldo) + `INSERT LedgerEntry` —
    antes da chamada ao provedor, não depois.
@@ -201,7 +206,7 @@ pacotes de créditos com desconto, assinatura mensal do Studio, histórico compa
 - [x] Conta Resend (e-mail OTP) — `RESEND_API_KEY`/`EMAIL_FROM` configuradas
 - [x] Credenciais Mercado Pago de produção — mesma conta do negocio-da-china-app
 - [ ] Bucket R2 criado no painel Cloudflare
-- [ ] Rate limit por usuário nas rotas de geração/débito
+- [x] Rate limit por usuário nas rotas de geração/débito (5/min, 60/dia, via `LedgerEntry`) — 14/08/2026
 - [x] Rastro auditável de bloqueios NSFW no ledger (`refund:moderation_nsfw`) — 14/08/2026
 - [ ] Moderação de prompt *antes* da chamada ao provedor (hoje só reage ao `nsfw` que a Higgsfield já processou)
 - [ ] Tabela `generations` + galeria "Minhas gerações"
