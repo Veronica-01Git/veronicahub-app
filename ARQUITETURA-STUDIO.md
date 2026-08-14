@@ -1,35 +1,43 @@
 # Veronica Studio — Arquitetura de Produção
 ## De simulado a real: usuários pagantes gerando vídeo, imagem e voz dentro do VeronicaHub
 
-Data: 05/08/2026 · Base analisada: `src/routes/video-ia.tsx`, `src/lib/account.ts`
+Data: 05/08/2026 · Atualizado: 14/08/2026 · Base analisada: `src/routes/video-ia.tsx`, `src/lib/*-server.ts`, `src/lib/schema.ts`
+
+> **Atualização 14/08/2026:** boa parte da Fase 1 deste documento já foi construída — banco, auth real,
+> carteira com ledger e webhook do Mercado Pago estão em produção. O que ainda falta está marcado
+> `[ ]` ao longo do documento; o que já existe está marcado `[x]` com o arquivo correspondente.
+> Detalhes na seção 4 e no checklist da seção 6.
 
 ---
 
 ## 1. Visão geral
 
-O front do Studio já está pronto e bem estruturado. O que falta é a camada de servidor:
+O front do Studio já estava pronto desde o início. A camada de servidor **já existe**, mas cobre hoje só
+um provedor de geração:
 
 ```
 Usuário (video-ia.tsx)
-   │  POST /api/studio/generate
+   │  server function (RPC, cookie de sessão selado)
    ▼
-Backend VeronicaHub (TanStack Start server routes, Cloudflare Workers)
-   │  1. valida sessão (auth real)
-   │  2. modera o prompt
-   │  3. verifica e debita saldo (ledger transacional)
-   │  4. cria job no provedor
+Backend VeronicaHub (TanStack Start server functions, Worker Cloudflare — src/server.ts)
+   │  1. valida sessão                         [x] session.ts
+   │  2. modera o prompt                       [ ] não implementado
+   │  3. verifica e debita saldo (ledger)       [x] wallet-server.ts
+   │  4. cria job no provedor                   [x] só Nano Banana Pro — higgsfield.ts
    ▼
-Higgsfield API (agregador: Seedance, Veo, Kling, Nano Banana, FLUX, voz)
-   │  job assíncrono (30s–5min)
+Higgsfield API — hoje só Nano Banana Pro (text2image/soul) está integrada.
+Seedance, Veo, Kling, Sora, Midjourney, FLUX e voz continuam simulados no cliente.
+   │  job síncrono com poll interno (a chamada ao servidor só retorna quando termina)
    ▼
-Backend recebe/consulta o resultado
-   │  5. baixa o arquivo → salva no R2 (storage próprio)
-   │  6. marca o job como concluído no banco
+Backend recebe o resultado
+   │  5. baixa o arquivo → salva no R2 (storage próprio)   [ ] não implementado
+   │  6. marca o job como concluído no banco               [ ] não há tabela `generations` ainda
    ▼
-Usuário vê o resultado na galeria "Minhas gerações" (polling ou SSE)
+Usuário recebe a imageUrl direto da Higgsfield na resposta do RPC — sem galeria "Minhas gerações"
 ```
 
 Princípio central: **o arquivo gerado é SEU, servido do SEU storage**. Nunca entregue a URL do provedor direto ao usuário (expira, vaza infra, sem controle).
+**Esse princípio ainda não está implementado** — a única geração real hoje devolve a URL da Higgsfield direto ao cliente. Fica como o item mais importante em aberto da Fase 1 (ver 4.5).
 
 ---
 
@@ -78,82 +86,146 @@ Sua tabela de preços atual é viável com folga. Risco a controlar: usuário ge
 
 ## 4. O que precisa ser construído (backend)
 
-### 4.1 Banco de dados
-O veronicahub-app hoje não tem banco (a "sessão" vive no localStorage). Como o deploy é Cloudflare Workers (wrangler), as opções naturais:
+### 4.1 Banco de dados — [x] construído
+Decisão tomada: **Neon Postgres + Drizzle** (não D1, não Prisma). Driver HTTP do Neon
+(`drizzle-orm/neon-http`, ver `src/lib/db.ts`) — sem WebSocket/TCP, roda em Cloudflare Workers.
+Prisma foi descartado porque o engine WASM não instancia no build real de Workers.
 
-- **Cloudflare D1** (SQLite gerenciado, nativo do Workers) — mais simples, zero infra nova; ou
-- **Neon Postgres + Prisma** — mesmo stack do negocio-da-china-app, você já domina.
-
-Tabelas mínimas:
+Tabelas reais hoje (`src/lib/schema.ts`), compartilhadas por Studio, Currículo-Certo e Currículo-Certo RH:
 
 ```
-users          (id, email/phone, created_at, free_video_credits, free_image_credits)
-ledger         (id, user_id, type[deposit|debit|refund|bonus], amount_cents, ref, created_at)
-generations    (id, user_id, format, engine, tier, prompt, status[queued|running|done|failed],
-                provider_job_id, price_cents, r2_key, created_at, finished_at)
-otp_codes      (id, identifier, code_hash, expires_at, used)
+User          (id, email, role, balanceCents, freeVideoCredits, freeImageCredits, createdAt, updatedAt)
+EmailOtp      (id, email, codeHash, expiresAt, consumedAt, attempts, createdAt)
+WalletTopUp   (id, userId, amountCents, status[PENDENTE|PAGO|CANCELADO], gatewayPaymentId, createdAt, paidAt)
+LedgerEntry   (id, userId, deltaCents, reason, createdAt)
 ```
 
-Saldo do usuário = SUM(ledger) — nunca um campo editável.
+Sem `generations` ainda — a geração de imagem não fica registrada no banco, só o débito no ledger.
+Sem `otp_codes` genérico por telefone — só e-mail. Saldo é um campo (`balanceCents`) debitado com
+`UPDATE … WHERE balanceCents >= preço` condicional, não `SUM(ledger)`; o ledger existe como auditoria
+paralela, não como fonte da verdade do saldo — divergência entre os dois é o sinal de alerta a monitorar.
 
-### 4.2 Auth real
-O fluxo de código por e-mail/SMS que você desenhou é ótimo — só precisa sair do client:
-- `POST /api/auth/request-code` → gera OTP, envia por e-mail (Resend, grátis até 3k/mês) ou SMS (Twilio); salva hash com expiração de 10min.
-- `POST /api/auth/verify` → valida, cria sessão (cookie httpOnly assinado, JWT ou session token no banco).
-- Créditos grátis (1 vídeo 1080p + 2 imagens NB Pro) creditados no ledger na criação da conta — exatamente como o site promete.
+### 4.2 Auth real — [x] construído
+Implementado em `src/lib/auth-server.ts` e `src/lib/session.ts`, só por e-mail (sem SMS):
+- `requestEmailCode` → gera OTP de 6 dígitos, hash SHA-256, envia por **Resend**; cooldown de 60s entre
+  pedidos, expira em 10min, máx. 5 tentativas erradas.
+- `verifyEmailCode` → valida hash, cria o `User` se não existir, abre sessão via
+  `@tanstack/react-start/server` `useSession` (cookie `httpOnly`/`secure`/`sameSite=lax`, selado com
+  `SESSION_SECRET` — não é JWT nem session token em tabela própria).
+- Créditos grátis (1 vídeo + 2 imagens) vêm do `default` da coluna em `User`, creditados na criação da
+  conta — não passam pelo ledger nesse momento.
 
-### 4.3 Pagamentos (depósito real)
-- **Mercado Pago** (você já integra no negocio-da-china-app — reusar conhecimento e conta): Pix + cartão, ideal pra público BR.
-- Fluxo: `POST /api/deposits` cria preferência → usuário paga → **webhook** do MP confirma → credita no ledger. Nunca creditar no retorno do navegador, só no webhook.
-- Depósito mínimo R$ 25 (como no site).
+### 4.3 Pagamentos (depósito real) — [x] construído
+Implementado em `src/lib/mercadopago.ts` e `src/lib/mercadopago-webhook.ts`, mesma conta de produção do
+negocio-da-china-app:
+- `createDeposit` cria a preferência (Checkout Pro, Pix + cartão) com `external_reference` = id do
+  `WalletTopUp`.
+- Webhook em rota fixa `/api/mercadopago-webhook`, interceptada em `src/server.ts` **antes** do handler
+  SSR do TanStack (a URL com hash de RPC não serve para registrar no painel do MP). Aceita os dois
+  formatos do MP (assinatura `x-signature` do painel novo e IPN legado por query string); quando não há
+  assinatura, confia só porque rebusca o pagamento de verdade na API do MP antes de creditar.
+- Credita o ledger **só** na transição `PENDENTE → PAGO` via `UPDATE … WHERE status = 'PENDENTE'`
+  condicional — replay do mesmo evento vira no-op (idempotência pelo próprio WHERE, sem tabela de locks).
+- Sem depósito mínimo de R$ 25 configurado no código — só um teto de R$ 2.000 por depósito
+  (`MAX_DEPOSIT_CENTS`, anti-abuso).
 
-### 4.4 Geração
-`POST /api/studio/generate`:
-1. Sessão válida? Prompt não vazio?
-2. **Moderação**: bloquear conteúdo proibido (uma chamada barata a um modelo de moderação, ou as flags da própria Higgsfield).
-3. **Rate limit** por usuário (Upstash Ratelimit — você já usa no outro projeto): ex. 5 jobs simultâneos, 60/dia.
-4. Preço do servidor (NUNCA confiar no preço vindo do front).
-5. Débito transacional no ledger + criação do registro em `generations`.
-6. Chamada à Higgsfield API com a chave secreta (env var no Wrangler: `HIGGSFIELD_API_KEY` — jamais no client).
-7. Retorna `generation_id` pro front.
+### 4.4 Geração — [~] parcialmente construído
+Real hoje só para **Nano Banana Pro** via `generateNanoBanana` (`src/lib/wallet-server.ts` +
+`src/lib/higgsfield.ts`). O fluxo implementado:
+1. [x] Sessão válida?
+2. [~] **Moderação** — a Higgsfield já roda filtro de segurança em duas etapas (prompt e imagem
+   gerada) e devolve status `nsfw`, que o código trata como falha com estorno automático (14/08/2026:
+   agora com mensagem amigável ao usuário e `LedgerEntry` com motivo `refund:moderation_nsfw`,
+   separado de `refund:generation_failed`, para dar rastro auditável de tentativas bloqueadas por
+   usuário). Decisão do produto: só registrar, não bloquear a conta automaticamente — revisão de abuso
+   fica manual. Continua faltando: uma checagem **antes** da chamada à Higgsfield, que evitaria gastar
+   a chamada (e o tempo do usuário) num prompt que sabidamente vai ser recusado.
+3. [x] **Rate limit** — implementado em `src/lib/rate-limit.ts` (14/08/2026), sem Redis/Upstash: conta
+   linhas recentes do próprio usuário em `LedgerEntry` (índice já existente `userId, createdAt`) em vez
+   de infra nova. Dois limites: 5 tentativas/minuto (rajada) e 60/dia (custo), aplicados nas três rotas
+   de débito — `generateNanoBanana`, `debitCurriculoGeneration`, `debitCurriculoRhScreening` — antes de
+   qualquer débito. Protege contra abuso de volume, não contra duplo-gasto (isso já era o `UPDATE`
+   condicional). Limites são fixos no código, não configuráveis por env var ainda.
+4. [x] Preço fixo no servidor (`NANO_BANANA_PRICE_CENTS = 490`), nunca confia no preço do front.
+5. [x] Débito condicional atômico (crédito grátis primeiro, senão saldo) + `INSERT LedgerEntry` —
+   antes da chamada ao provedor, não depois.
+6. [x] Chamada à Higgsfield com `HF_CREDENTIALS` (env var, nunca no client) — `fetch` cru em vez do SDK
+   oficial (`@higgsfield/client` monta o body sem o wrapper `params` que a API exige e retorna 422).
+7. [x] Se a Higgsfield falhar: **estorno automático** do que foi debitado + novo `LedgerEntry` de refund.
 
-`GET /api/studio/generations/:id` (polling do front a cada 3-5s) ou SSE:
-- Consulta status no provedor; quando pronto, baixa o arquivo → `R2.put()` → atualiza registro.
-- Se o job falhar: **refund automático** no ledger + status failed.
+Vídeo (Seedance/Veo/Kling/Sora), Midjourney, FLUX além de Nano Banana, voz e avatar seguem simulados
+no cliente — mesmo padrão de débito real que a imagem já usa pode ser reaproveitado quando cada um for
+integrado.
 
-### 4.5 Entrega
-- **Cloudflare R2** (sem custo de egress, nativo do Workers) com URLs assinadas ou rota `/api/media/:id` que valida dono.
-- Galeria "Minhas gerações" no Studio: lista `generations` do usuário com preview, download e prompt usado.
+Diferença do desenho original: não há `POST /api/studio/generate` assíncrono com `generation_id` —
+é uma **server function síncrona** que já faz o poll internamente e só retorna quando a Higgsfield
+termina (~alguns segundos, viável para imagem; não seria para vídeo).
+
+### 4.5 Entrega — [~] parcialmente construído (14/08/2026)
+- [x] **Bucket R2 criado**: `veronicahub-generations`, na mesma conta Cloudflare do Worker. Nada no
+  código sobe arquivo pra ele ainda — ver abaixo por quê.
+- [x] **Fix real, sem depender do R2**: `generateNanoBanana` baixa o arquivo da Higgsfield uma vez no
+  servidor e devolve ao cliente um `data:` URI construído a partir desses bytes
+  (`src/lib/generations-storage.ts`, `fetchImageAsDataUrl`) — a URL da Higgsfield não é mais repassada
+  ao navegador. Isso sozinho já resolve a parte "não vaza a URL do provedor" do princípio da seção 1,
+  mesmo sem storage próprio ainda.
+- [ ] **Upload pro R2 tentado duas vezes e revertido nas duas**: `import { env } from
+  "cloudflare:workers"` (o jeito documentado pela própria Cloudflare pra acessar bindings em server
+  functions do TanStack Start) quebrou o build de preview do Workers Builds nas duas tentativas —
+  primeiro com um `wrangler.toml` novo declarando o binding, depois sem ele (só o import já bastou pra
+  quebrar, o que descarta o `wrangler.toml` como causa e aponta pro import em si). Sem acesso ao log real
+  do build (fica atrás de login no dashboard da Cloudflare), não dá pra confirmar a causa exata — palpite
+  mais provável é o bundler deste projeto (Vite/nitro, não `wrangler` puro) não estar tratando
+  `cloudflare:*` como specifier externo. Falta descobrir a forma certa de configurar isso nesse stack
+  específico (provavelmente algo em `vite.config.ts`/config do nitro) antes de tentar de novo — ou pedir
+  pra alguém com acesso ao dashboard compartilhar o erro real dos builds dos commits `d5a492a` e
+  `b5254a0`.
+- [ ] Sem galeria "Minhas gerações": nada persiste qual imagem cada usuário gerou — nem no R2 (ainda não
+  conectado) nem em tabela nenhuma, só o débito no ledger. Precisa da tabela `generations` (ver 4.1).
 
 ### 4.6 Segurança e operação
-- Chaves de API só em secrets do Wrangler (`wrangler secret put`).
-- Logs de cada job (custo real vs. cobrado) — monitorar margem.
-- Alerta de saldo baixo na conta Higgsfield (cron do Workers).
-- Termos de uso do Studio: propriedade do conteúdo, conteúdo proibido, política de reembolso.
+- [x] Chaves de API em env vars server-only (`HF_CREDENTIALS`, `MERCADOPAGO_ACCESS_TOKEN`,
+  `MERCADOPAGO_WEBHOOK_SECRET`, `SESSION_SECRET`, `RESEND_API_KEY`) — nunca expostas ao client.
+- [x] Assinatura do webhook do Mercado Pago validada (`WebhookSignatureValidator`).
+- [ ] Logs de custo real vs. cobrado por job — não implementado; sem monitoramento de margem.
+- [ ] Alerta de saldo baixo na conta Higgsfield — não implementado.
+- [ ] Termos de uso do Studio (propriedade de conteúdo, conteúdo proibido, reembolso) — não verificado no repo.
 
 ---
 
 ## 5. Fases de implementação
 
-**Fase 1 — MVP real (1-2 semanas de trabalho):**
-banco + auth real + Mercado Pago + geração de imagem (Nano Banana Pro via Higgsfield) + galeria. Imagem primeiro porque é barato, rápido (segundos) e valida o fluxo inteiro de ponta a ponta.
+**Fase 1 — MVP real:** ✅ concluída, exceto a galeria.
+banco (Neon+Drizzle) + auth real (OTP por e-mail) + Mercado Pago (webhook assinado) + geração de imagem
+(Nano Banana Pro via Higgsfield) já estão em produção. Falta só: galeria "Minhas gerações" + storage
+próprio (R2) — o item que fecha o princípio "o arquivo é seu" da seção 1.
 
-**Fase 2 — Vídeo:**
-Seedance/Veo/Kling via Higgsfield, polling de jobs longos, refund automático.
+**Fase 2 — Vídeo:** não iniciada.
+Seedance/Veo/Kling via Higgsfield, polling de jobs longos (a versão síncrona atual de `generateNanoBanana`
+não escala para vídeo — precisa virar assíncrono com `generation_id` + polling/SSE), refund automático
+(o padrão de estorno já existe e é reaproveitável).
 
-**Fase 3 — Voz e avatar:**
+**Fase 3 — Voz e avatar:** não iniciada.
 ElevenLabs; depois HeyGen/Synthesia se a demanda justificar.
 
-**Fase 4 — Crescimento:**
+**Fase 4 — Crescimento:** não iniciada.
 pacotes de créditos com desconto, assinatura mensal do Studio, histórico compartilhado com o resto do ecossistema Veronica.
 
 ---
 
-## 6. Checklist antes de codar
+## 6. Checklist
 
-- [ ] Criar chave de API no painel de developer da Higgsfield e confirmar preços por modelo
+- [x] Criar chave de API no painel de developer da Higgsfield — `HF_CREDENTIALS` configurada, Nano Banana Pro em produção
 - [ ] Confirmar termos da API para uso comercial/revenda
-- [ ] Decidir banco: D1 (nativo) ou Neon+Prisma (familiar)
-- [ ] Conta Resend (e-mail OTP) — grátis pra começar
-- [ ] Credenciais Mercado Pago de produção
-- [ ] Bucket R2 criado no painel Cloudflare
+- [x] Decidir banco — Neon Postgres + Drizzle (não D1, não Prisma)
+- [x] Conta Resend (e-mail OTP) — `RESEND_API_KEY`/`EMAIL_FROM` configuradas
+- [x] Credenciais Mercado Pago de produção — mesma conta do negocio-da-china-app
+- [x] Bucket R2 criado (`veronicahub-generations`) — 14/08/2026
+- [x] URL da Higgsfield não é mais repassada ao cliente — servida como `data:` URI (sem depender do R2)
+- [ ] Upload pro R2 conectado no código — `import "cloudflare:workers"` quebrou o build duas vezes,
+  revertido nas duas; causa exata não confirmada (sem acesso ao log do build), ver § 4.5
+- [x] Rate limit por usuário nas rotas de geração/débito (5/min, 60/dia, via `LedgerEntry`) — 14/08/2026
+- [x] Rastro auditável de bloqueios NSFW no ledger (`refund:moderation_nsfw`) — 14/08/2026
+- [ ] Moderação de prompt *antes* da chamada ao provedor (hoje só reage ao `nsfw` que a Higgsfield já processou)
+- [ ] Tabela `generations` + galeria "Minhas gerações"
+- [ ] Logs de custo real vs. cobrado por job (monitorar margem)

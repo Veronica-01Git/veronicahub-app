@@ -5,6 +5,8 @@ import { users, walletTopUps, ledgerEntries } from "./schema";
 import { getSessionUserId } from "./session";
 import { createTopUpPreference } from "./mercadopago";
 import { generateNanoBananaImage } from "./higgsfield";
+import { checkGenerationRateLimit } from "./rate-limit";
+import { fetchImageAsDataUrl } from "./generations-storage";
 
 const MAX_DEPOSIT_CENTS = 200_000; // R$2.000 — anti-abuso simples pra v1
 
@@ -106,6 +108,11 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Faça login para gerar." };
     }
 
+    const rateLimit = await checkGenerationRateLimit(userId);
+    if (!rateLimit.ok) {
+      return { ok: false as const, error: rateLimit.error };
+    }
+
     const db = getDb();
 
     // Crédito grátis primeiro — update condicional de uma instrução só,
@@ -155,12 +162,21 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       await db.insert(ledgerEntries).values({
         userId,
         deltaCents: usedFree ? 0 : NANO_BANANA_PRICE_CENTS,
-        reason: "refund:generation_failed",
+        reason: result.reason === "nsfw" ? "refund:moderation_nsfw" : "refund:generation_failed",
       });
       return { ok: false as const, error: result.error };
     }
 
-    return { ok: true as const, imageUrl: result.imageUrl, free: usedFree };
+    // A geração já foi cobrada e funcionou — um problema no download nunca
+    // deve estornar nem quebrar a resposta; na pior das hipóteses cai pra
+    // URL crua da Higgsfield.
+    const fetched = await fetchImageAsDataUrl(result.imageUrl);
+
+    return {
+      ok: true as const,
+      imageUrl: fetched.ok ? fetched.dataUrl : result.imageUrl,
+      free: usedFree,
+    };
   });
 
 // Débito atômico condicional — só "ganha" se afetar exatamente 1 linha
@@ -170,6 +186,11 @@ export const debitCurriculoGeneration = createServerFn({ method: "POST" }).handl
   const userId = await getSessionUserId();
   if (!userId) {
     return { ok: false as const, error: "Faça login para gerar." };
+  }
+
+  const rateLimit = await checkGenerationRateLimit(userId);
+  if (!rateLimit.ok) {
+    return { ok: false as const, error: rateLimit.error };
   }
 
   const db = getDb();
@@ -206,6 +227,11 @@ export const debitCurriculoRhScreening = createServerFn({ method: "POST" })
     const userId = await getSessionUserId();
     if (!userId) {
       return { ok: false as const, error: "Faça login para triar." };
+    }
+
+    const rateLimit = await checkGenerationRateLimit(userId);
+    if (!rateLimit.ok) {
+      return { ok: false as const, error: rateLimit.error };
     }
 
     const amountCents = data.qty * CURRICULO_RH_SCREEN_PRICE_CENTS;

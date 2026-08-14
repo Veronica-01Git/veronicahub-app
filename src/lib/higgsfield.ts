@@ -21,7 +21,7 @@ type V2StatusResponse = {
 // request. Confirmado direto contra a API real.
 export async function generateNanoBananaImage(params: {
   prompt: string;
-}): Promise<{ ok: true; imageUrl: string } | { ok: false; error: string }> {
+}): Promise<{ ok: true; imageUrl: string } | { ok: false; error: string; reason?: "nsfw" }> {
   const credentials = process.env.HF_CREDENTIALS;
   if (!credentials) {
     return { ok: false, error: "HF_CREDENTIALS não configurada." };
@@ -75,6 +75,13 @@ export async function generateNanoBananaImage(params: {
       job = (await pollRes.json()) as V2StatusResponse;
     }
 
+    if (job.status === "nsfw") {
+      return {
+        ok: false,
+        error: "prompt bloqueado pela checagem de segurança da Higgsfield — você não foi cobrado.",
+        reason: "nsfw",
+      };
+    }
     if (job.status !== "completed") {
       return { ok: false, error: `Job terminou com status: ${job.status}` };
     }
