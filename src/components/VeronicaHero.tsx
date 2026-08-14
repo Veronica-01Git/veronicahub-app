@@ -91,7 +91,7 @@ void main(){
   col += eyeColor * (ringL + ringR) * (0.5 + 0.5 * pulse) * openness;
 
   // piscada — sombra de "pálpebra" cresce verticalmente a partir do centro
-  // de cada olho conforme `blink` vai de 0 (aberto) a 1 (fechado). Usa o
+  // de cada olho conforme 'blink' vai de 0 (aberto) a 1 (fechado). Usa o
   // próprio tom já amostrado da pele ao redor (escurecido), então acompanha
   // a iluminação da cena sem precisar de uma textura de "olho fechado".
   float lidReachL = blink * eyeEffectRadius * 0.75;
