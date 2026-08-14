@@ -231,7 +231,7 @@ export function VeronicaDrawer({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Pergunte sobre este passo…"
+            placeholder={step ? "Pergunte sobre este passo…" : "Digite sua pergunta…"}
             disabled={sending}
             className="min-w-0 flex-1 rounded-sm border border-border/60 bg-background/60 px-3 py-2 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-neon-green/50 disabled:opacity-50"
           />

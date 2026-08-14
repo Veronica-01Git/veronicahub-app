@@ -13,8 +13,9 @@ import {
   type StudioCriativoStep,
   type StudioCriativoStepId,
 } from "./studio-criativo";
+import { curriculoCertoSteps, curriculoCertoSystemPrompt } from "./curriculo-certo";
 
-export type VeronicaSkillId = "studio-criativo";
+export type VeronicaSkillId = "studio-criativo" | "curriculo-certo";
 
 export type VeronicaSkill = {
   id: VeronicaSkillId;
@@ -29,6 +30,12 @@ export const VERONICA_SKILLS: Record<VeronicaSkillId, VeronicaSkill> = {
     label: "Studio Criativo",
     steps: studioCriativoSteps,
     systemPrompt: studioCriativoSystemPrompt,
+  },
+  "curriculo-certo": {
+    id: "curriculo-certo",
+    label: "Currículo-Certo",
+    steps: curriculoCertoSteps,
+    systemPrompt: curriculoCertoSystemPrompt,
   },
 };
 

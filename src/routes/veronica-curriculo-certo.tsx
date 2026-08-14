@@ -18,6 +18,7 @@ import {
 import { extractTextFromFile, ACCEPT_ATTR } from "@/lib/resume-parsers";
 import { downloadTxt, downloadPdf, downloadDocx } from "@/lib/resume-export";
 import { HoloResumeOrbit } from "@/components/HoloResumeOrbit";
+import { VeronicaDrawer } from "@/components/VeronicaDrawer";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
 import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
 import { createDeposit, debitCurriculoGeneration } from "@/lib/wallet-server";
@@ -318,6 +319,7 @@ function CurriculoCerto() {
   const [depositLoading, setDepositLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [veronicaOpen, setVeronicaOpen] = useState(false);
 
   const [jobCity, setJobCity] = useState("");
   const [jobUf, setJobUf] = useState("SP");
@@ -646,6 +648,12 @@ function CurriculoCerto() {
         fontFamily: sansStack,
       }}
     >
+      <VeronicaDrawer
+        skillId="curriculo-certo"
+        open={veronicaOpen}
+        stepId={null}
+        onClose={() => setVeronicaOpen(false)}
+      />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0 hidden md:block"
@@ -699,6 +707,20 @@ function CurriculoCerto() {
           >
             Área RH
           </Link>
+          <button
+            type="button"
+            onClick={() => setVeronicaOpen(true)}
+            className="flex items-center gap-1.5 border-b border-transparent pb-0.5 transition hover:border-current"
+            style={{ color: "#22c55e" }}
+          >
+            <span
+              className="flex h-4 w-4 items-center justify-center rounded-full border font-display text-[9px]"
+              style={{ borderColor: "#22c55e88", background: "#22c55e14" }}
+            >
+              V
+            </span>
+            Perguntar
+          </button>
           <a
             href={HUB_URL}
             target="_blank"
@@ -803,6 +825,23 @@ function CurriculoCerto() {
             >
               Hub
             </a>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                setVeronicaOpen(true);
+              }}
+              className="flex items-center gap-2 border-b py-3.5 text-left"
+              style={{ borderColor: "var(--doc-line)", color: "#22c55e" }}
+            >
+              <span
+                className="flex h-4 w-4 items-center justify-center rounded-full border font-display text-[9px]"
+                style={{ borderColor: "#22c55e88", background: "#22c55e14" }}
+              >
+                V
+              </span>
+              Perguntar à Veronica
+            </button>
 
             <div className="mt-6 flex flex-col gap-3">
               {user ? (
@@ -1610,6 +1649,41 @@ function CurriculoCerto() {
                   </div>
                 ))}
               </div>
+
+              <button
+                type="button"
+                onClick={() => setVeronicaOpen(true)}
+                className="mt-6 flex w-full items-center gap-4 border p-4 text-left transition hover:border-[var(--doc-accent)]"
+                style={{ borderColor: "var(--doc-line)", background: "var(--doc-paper-raised)" }}
+              >
+                <span
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border font-display text-sm"
+                  style={{ borderColor: "#22c55e88", color: "#22c55e", background: "#22c55e14" }}
+                >
+                  V
+                </span>
+                <span className="flex-1">
+                  <span
+                    className="block text-[14px] font-medium"
+                    style={{ color: "var(--doc-ink)" }}
+                  >
+                    Não entendeu por que perdeu pontos?
+                  </span>
+                  <span
+                    className="mt-0.5 block text-[12.5px] leading-[1.5]"
+                    style={{ color: "var(--doc-ink-soft)" }}
+                  >
+                    Pergunta pra Veronica — ela explica cada item da lista acima e ajuda a
+                    reescrever o trecho certo do seu currículo.
+                  </span>
+                </span>
+                <span
+                  className="font-mono-tech text-[11px] uppercase tracking-widest"
+                  style={{ color: "var(--doc-accent)" }}
+                >
+                  Falar →
+                </span>
+              </button>
 
               <div
                 className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t pt-5"
