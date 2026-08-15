@@ -1,4 +1,3 @@
-import { HoloOrbits } from "@/components/HoloOrbits";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -127,7 +126,6 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
-        <HoloOrbits />
         <Scripts />
       </body>
     </html>

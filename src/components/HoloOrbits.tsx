@@ -1,4 +1,3 @@
-import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 export const GREEN = "oklch(0.85 0.22 155)";
@@ -105,9 +104,8 @@ export function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: s
 }
 
 // HudScanner posicionado como acento decorativo dentro do conteúdo de uma
-// página (diferente do overlay global HoloOrbits, que é fixed site-wide).
-// SMIL não é coberto pela regra CSS global de prefers-reduced-motion, então
-// checa e some por completo quando a preferência está ativa.
+// página. SMIL não é coberto pela regra CSS global de prefers-reduced-motion,
+// então checa e some por completo quando a preferência está ativa.
 export function HudAccent({ size = 68, hue = GREEN, className = "" }: { size?: number; hue?: string; className?: string }) {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -117,40 +115,6 @@ export function HudAccent({ size = 68, hue = GREEN, className = "" }: { size?: n
   return (
     <div aria-hidden className={`pointer-events-none hidden opacity-70 sm:block ${className}`}>
       <HudScanner size={size} hue={hue} />
-    </div>
-  );
-}
-
-// Routes with their own light "paper" identity, or a deliberately sober
-// institutional tone, opt out of this dark-cyber overlay.
-const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo", "/veronica-nautica"];
-
-export function HoloOrbits() {
-  const [on, setOn] = useState(false);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isLightRoute = LIGHT_THEME_ROUTES.some((r) => pathname.startsWith(r));
-
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const small = window.matchMedia("(max-width: 1023px)").matches;
-    setOn(!reduced && !small);
-  }, []);
-
-  if (!on || isLightRoute) return null;
-
-  return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-10 hidden lg:block">
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 120% 80% at 50% 50%, transparent 55%, oklch(0.14 0.015 200 / 0.55) 100%)",
-      }} />
-      <div className="absolute inset-x-0 h-[2px]" style={{
-        background: `linear-gradient(90deg, transparent, ${GREEN}, transparent)`,
-        filter: "blur(1.5px)", opacity: 0.4, animation: "holo-beam 16s cubic-bezier(0.4,0,0.2,1) infinite",
-      }} />
-      <div className="absolute right-[3.5%] top-[27%] opacity-[0.34]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
-      <div className="absolute right-[6%] bottom-[19%] opacity-[0.26]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
-      <div className="absolute left-5 top-20 h-14 w-14 border-l-2 border-t-2" style={{ borderColor: `${GREEN}`, opacity: 0.3 }} />
-      <div className="absolute right-5 bottom-20 h-14 w-14 border-r-2 border-b-2" style={{ borderColor: `${CYAN}`, opacity: 0.3 }} />
     </div>
   );
 }
