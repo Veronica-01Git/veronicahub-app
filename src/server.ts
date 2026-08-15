@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
+import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -53,6 +54,24 @@ export default {
         return await handleMercadoPagoWebhook(request);
       } catch (error) {
         console.error("Erro no webhook do Mercado Pago:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/sitemap.xml") {
+      try {
+        return await handleSitemap();
+      } catch (error) {
+        console.error("Erro ao gerar sitemap.xml:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/feed.xml") {
+      try {
+        return await handleRssFeed();
+      } catch (error) {
+        console.error("Erro ao gerar feed.xml:", error);
         return new Response("error", { status: 500 });
       }
     }

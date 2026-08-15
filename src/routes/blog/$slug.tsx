@@ -1,45 +1,71 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getArticleBySlug } from "@/lib/articles-server";
-import { BEAT_LABELS, type Beat } from "@/lib/beats";
+import { BEAT_LABELS } from "@/lib/beats";
+
+const SITE_URL = "https://veronicahub.com";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: ArticlePage,
+  loader: ({ params }) => getArticleBySlug({ data: { slug: params.slug } }),
+  head: ({ loaderData, params }) => {
+    if (!loaderData?.ok) {
+      return {
+        meta: [{ title: "Matéria não encontrada | Veronica Wire" }],
+      };
+    }
+    const { article } = loaderData;
+    const canonical = `${SITE_URL}/blog/${params.slug}`;
+    return {
+      meta: [
+        { title: `${article.headline} | Veronica Wire` },
+        { name: "description", content: article.excerpt },
+        { property: "og:title", content: article.headline },
+        { property: "og:description", content: article.excerpt },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: canonical },
+        ...(article.coverImageUrl
+          ? [{ property: "og:image", content: article.coverImageUrl }]
+          : []),
+        ...(article.publishedAt
+          ? [{ property: "article:published_time", content: article.publishedAt }]
+          : []),
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: article.headline },
+        { name: "twitter:description", content: article.excerpt },
+        ...(article.coverImageUrl
+          ? [{ name: "twitter:image", content: article.coverImageUrl }]
+          : []),
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            headline: article.headline,
+            description: article.excerpt,
+            image: article.coverImageUrl ? [article.coverImageUrl] : undefined,
+            datePublished: article.publishedAt ?? undefined,
+            dateModified: article.publishedAt ?? undefined,
+            author: { "@type": "Organization", name: "Veronica Wire" },
+            publisher: {
+              "@type": "Organization",
+              name: "Veronica Hub",
+              logo: { "@type": "ImageObject", url: `${SITE_URL}/favicon.ico` },
+            },
+            mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+          }),
+        },
+      ],
+    };
+  },
 });
 
-type Article = {
-  id: string;
-  slug: string;
-  beat: Beat;
-  headline: string;
-  excerpt: string;
-  body: string;
-  desk: string;
-  coverImageUrl: string | null;
-  sourceUrls: string[];
-  aiGenerated: boolean;
-  publishedAt: string | null;
-};
-
 function ArticlePage() {
-  const { slug } = Route.useParams();
-  const [state, setState] = useState<
-    { ok: true; article: Article } | { ok: false; error: string } | null
-  >(null);
-
-  useEffect(() => {
-    setState(null);
-    getArticleBySlug({ data: { slug } })
-      .then((res) => setState(res as typeof state))
-      .catch((err) =>
-        setState({
-          ok: false,
-          error: err instanceof Error ? err.message : "Falha ao carregar matéria.",
-        }),
-      );
-  }, [slug]);
+  const state = Route.useLoaderData();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -53,9 +79,7 @@ function ArticlePage() {
           <ArrowLeft className="h-4 w-4" /> Voltar pro Veronica Wire
         </Link>
 
-        {state === null ? (
-          <p className="mt-8 text-muted-foreground">Carregando…</p>
-        ) : !state.ok ? (
+        {!state.ok ? (
           <div className="mt-8 rounded-sm border border-border/60 bg-surface/40 p-8 text-center">
             <h1 className="font-display text-xl text-foreground">Matéria não encontrada</h1>
             <p className="mt-2 text-sm text-muted-foreground">{state.error}</p>

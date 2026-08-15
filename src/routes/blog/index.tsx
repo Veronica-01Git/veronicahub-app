@@ -7,6 +7,7 @@ import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 
 export const Route = createFileRoute("/blog")({
   component: VeronicaWire,
+  loader: () => getPublishedArticles(),
   head: () => ({
     meta: [
       { title: "Veronica Wire — Cobertura contínua e global | Veronica Hub" },
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/blog")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://veronicahub.com/blog" }],
   }),
 });
 
@@ -84,17 +86,6 @@ const TAGS = [
   "#mercado",
 ];
 
-type Article = {
-  id: string;
-  slug: string;
-  beat: Beat;
-  headline: string;
-  excerpt: string;
-  desk: string;
-  coverImageUrl: string | null;
-  publishedAt: string | null;
-};
-
 function useLiveClock() {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
@@ -153,23 +144,8 @@ function Thumb({
 
 function VeronicaWire() {
   const now = useLiveClock();
-  const [state, setState] = useState<
-    { ok: true; articles: Article[] } | { ok: false; error: string } | null
-  >(null);
+  const { articles } = Route.useLoaderData();
 
-  useEffect(() => {
-    getPublishedArticles()
-      .then((res) => setState(res as typeof state))
-      .catch((err) =>
-        setState({
-          ok: false,
-          error: err instanceof Error ? err.message : "Falha ao carregar matérias.",
-        }),
-      );
-  }, []);
-
-  const articles = state?.ok ? state.articles : [];
-  const loading = state === null;
   const featured = articles[0] ?? null;
   // JSX não aceita `<BEAT_META[x].icon>` como tag (acesso computado não é
   // permitido em nome de componente) — precisa virar variável antes.
@@ -274,11 +250,7 @@ function VeronicaWire() {
 
       {/* Lead + mais lidas */}
       <section id="topo" className="mx-auto max-w-7xl px-6 py-14 cv-auto">
-        {loading ? (
-          <p className="text-muted-foreground">Carregando matérias…</p>
-        ) : state && !state.ok ? (
-          <p className="text-muted-foreground">{state.error}</p>
-        ) : !featured ? (
+        {!featured ? (
           <div className="rounded-sm border border-border/60 bg-surface/40 p-8 text-center">
             <h1 className="font-display text-2xl text-foreground">Primeiras matérias a caminho</h1>
             <p className="mx-auto mt-2 max-w-md text-[15px] text-muted-foreground">
