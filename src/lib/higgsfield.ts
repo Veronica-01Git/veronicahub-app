@@ -20,11 +20,9 @@ type V2StatusResponse = {
 // body sem o wrapper `params` que a API exige, causando 422 em todo
 // request. Confirmado direto contra a API real.
 //
-// quality: "4k" — pedido explícito do usuário (a API só tinha sido testada
-// com "1080p" até aqui). "4k" é o mesmo nome de tier já usado pros vídeos
-// Higgsfield deste projeto (ver PRECOS-STUDIO.md), mas NÃO foi confirmado
-// contra a API real de imagem ainda — se `generateNanoBananaImage` passar a
-// retornar erro em produção, o primeiro suspeito é este valor.
+// quality: CONFIRMADO contra a API real (erro 422 em produção) — só aceita
+// "720p" ou "1080p" nesse endpoint. Não existe tier "4k" pra Nano Banana Pro
+// via /v1/text2image/soul — "1080p" é o máximo real disponível aqui.
 export async function generateNanoBananaImage(params: {
   prompt: string;
 }): Promise<{ ok: true; imageUrl: string } | { ok: false; error: string; reason?: "nsfw" }> {
@@ -46,7 +44,7 @@ export async function generateNanoBananaImage(params: {
         params: {
           prompt: params.prompt,
           width_and_height: "1536x1536",
-          quality: "4k",
+          quality: "1080p",
           batch_size: 1,
         },
       }),

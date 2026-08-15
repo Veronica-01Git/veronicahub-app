@@ -31,8 +31,11 @@ const COVER_PROMPT_MAX_TOKENS = 400;
 // banco de imagem. Gerada via generateNanoBananaImage (higgsfield.ts) —
 // Nano Banana Pro, único motor de imagem integrado de verdade hoje.
 // Deliberadamente SEM estilo cinematográfico/gráfico futurista — pedido do
-// usuário é foto real de notícia, com gente de verdade em cena, 4K.
-const COVER_HOUSE_STYLE = `Real photojournalism — an authentic, unstaged press photograph exactly like a real AP/Reuters news wire image, not a stylized graphic or illustration. Real people genuinely present and active in the scene (workers, professionals, crowds, officials — always generic/anonymous, never a specific real person). Natural available light, true-to-life color and texture, candid documentary framing, ultra-sharp 4K photographic detail. NO cinematic color grading, NO futuristic holograms or digital overlays, NO glowing HUD/broadcast-graphic elements, NO readable text, NO logos, NO national flags or emblems.`;
+// usuário é foto real de notícia, com gente de verdade em cena. Sem "4K" no
+// texto: a API da Higgsfield usada aqui (quality) só entrega até 1080p de
+// verdade (ver higgsfield.ts) — pedir 4K no prompt prometeria nitidez que o
+// motor não gera.
+const COVER_HOUSE_STYLE = `Real photojournalism — an authentic, unstaged press photograph exactly like a real AP/Reuters news wire image, not a stylized graphic or illustration. Real people genuinely present and active in the scene (workers, professionals, crowds, officials — always generic/anonymous, never a specific real person). Natural available light, true-to-life color and texture, candid documentary framing, sharp and highly detailed photographic quality. NO cinematic color grading, NO futuristic holograms or digital overlays, NO glowing HUD/broadcast-graphic elements, NO readable text, NO logos, NO national flags or emblems.`;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
