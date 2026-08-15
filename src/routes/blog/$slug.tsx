@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, VeronicaMark } from "@/components/SiteChrome";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS, type Beat } from "@/lib/beats";
 import { extractYoutubeId, findYoutubeUrl } from "@/lib/youtube";
@@ -43,7 +43,10 @@ function ArticlePage() {
   }, [slug]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="home-hybrid min-h-screen bg-background text-foreground">
+      {/* Barra vermelha fixa no topo — mesma assinatura visual de telejornal
+          sério (CNN/G1) em toda matéria, não só no destaque do /blog. */}
+      <div className="h-[3px] w-full" style={{ background: "oklch(0.5 0.2 25)" }} />
       <SiteHeader />
 
       <div className="mx-auto max-w-3xl px-6 py-14">
@@ -63,20 +66,26 @@ function ArticlePage() {
           </div>
         ) : (
           <article className="mt-8">
-            <div className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+            <span
+              className="inline-flex items-center gap-1.5 bg-[oklch(0.5_0.2_25)] px-2.5 py-1 font-mono-tech text-[10px] font-bold uppercase tracking-widest text-white"
+              style={{ clipPath: "polygon(0 0, 100% 0, 92% 100%, 0% 100%)" }}
+            >
               {BEAT_LABELS[state.article.beat]}
-            </div>
+            </span>
             <h1
-              className="mt-3 font-display text-3xl text-foreground sm:text-4xl"
+              className="mt-4 font-display text-3xl font-bold text-foreground sm:text-[2.6rem]"
               style={{ letterSpacing: "-0.02em", lineHeight: 1.1 }}
             >
               {state.article.headline}
             </h1>
-            <p className="mt-4 text-[15px] leading-[1.6] text-muted-foreground">
+            <p className="mt-4 text-[17px] leading-[1.6] text-muted-foreground">
               {state.article.excerpt}
             </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-              <span>{state.article.desk}</span>
+            <div
+              className="mt-5 flex flex-wrap items-center gap-3 border-t pt-4 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+              style={{ borderTopColor: "oklch(0.5 0.2 25 / 0.35)" }}
+            >
+              <span className="font-bold text-foreground">{state.article.desk}</span>
               {state.article.publishedAt && (
                 <>
                   <span className="opacity-40">·</span>
@@ -104,7 +113,7 @@ function ArticlePage() {
               const videoId = videoUrl ? extractYoutubeId(videoUrl) : null;
               if (videoId) {
                 return (
-                  <div className="mt-6 aspect-video w-full overflow-hidden rounded-sm border border-border/40">
+                  <div className="relative mt-6 aspect-video w-full overflow-hidden rounded-sm border border-border/40">
                     <iframe
                       src={`https://www.youtube-nocookie.com/embed/${videoId}`}
                       title={state.article.headline}
@@ -112,22 +121,26 @@ function ArticlePage() {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
+                    <VeronicaMark />
                   </div>
                 );
               }
               if (state.article.coverImageUrl) {
                 return (
-                  <img
-                    src={state.article.coverImageUrl}
-                    alt=""
-                    className="mt-6 aspect-video w-full rounded-sm border border-border/40 object-cover"
-                  />
+                  <div className="relative mt-6 aspect-video w-full overflow-hidden rounded-sm border border-border/40">
+                    <img
+                      src={state.article.coverImageUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                    <VeronicaMark />
+                  </div>
                 );
               }
               return null;
             })()}
 
-            <div className="mt-8 flex flex-col gap-4 text-[15px] leading-[1.75] text-foreground/90">
+            <div className="mt-8 flex flex-col gap-4 text-[16px] leading-[1.8] text-foreground/90">
               {state.article.body
                 .split(/\n{2,}/)
                 .map((p) => p.trim())

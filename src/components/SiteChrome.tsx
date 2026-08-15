@@ -6,6 +6,21 @@ import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib
 
 export const HUB_URL = "https://veronicahub.com";
 
+// Selo fixo sobre toda capa/vídeo do Veronica Wire — mesma posição, mesmo
+// visual, em toda matéria. É repetição deliberada (não decoração pontual):
+// o objetivo é reconhecimento de marca por exposição repetida, então não
+// varia por editoria nem por tema de cor da página.
+export function VeronicaMark({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`pointer-events-none absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-sm bg-black/55 px-2 py-1 font-mono-tech text-[9.5px] font-medium uppercase tracking-widest text-white backdrop-blur-sm ${className}`}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-neon-green" />
+      Veronica Wire
+    </span>
+  );
+}
+
 export const SOCIAL_LINKS = {
   youtube: "https://youtube.com/@veronica-hub",
   instagram: "https://instagram.com/veronicahub_",

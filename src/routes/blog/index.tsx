@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Radio, Globe2, Cpu, TrendingUp, Cloud, Landmark, ArrowRight } from "lucide-react";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, VeronicaMark } from "@/components/SiteChrome";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 
@@ -147,6 +147,7 @@ function Thumb({
       <div className={`relative overflow-hidden rounded-sm border border-border/40 ${className}`}>
         {flag}
         <img src={coverImageUrl} alt="" className="h-full w-full object-cover" />
+        <VeronicaMark />
       </div>
     );
   }
