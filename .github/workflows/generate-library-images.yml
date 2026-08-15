@@ -1,0 +1,43 @@
+name: Biblioteca de imagens do Veronica Wire
+
+# Roda de 6 em 6h, chamando /api/cron/generate-library-image uma vez por
+# editoria (autenticado por CRON_SECRET — ver src/lib/image-library-cron.ts).
+# Preferido a Cloudflare Cron Triggers/wrangler.toml de propósito: bindings
+# do Worker (cloudflare:workers) já quebraram o build deste projeto duas
+# vezes antes (ver git log) — esse workflow só faz HTTP request pra um
+# endpoint normal, sem tocar em nada do lado do Worker.
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+env:
+  # Quantas imagens novas por editoria a cada rodada. Pra aumentar, só
+  # sobe esse número (cada unidade = 5 chamadas a mais por rodada, uma
+  # por editoria).
+  IMAGES_PER_BEAT: 1
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gera imagens novas por editoria
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://veronicahub.com' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET não configurada nos secrets do repositório — abortando." >&2
+            exit 1
+          fi
+          for beat in ia clima economia geopolitica mercado; do
+            for i in $(seq 1 "$IMAGES_PER_BEAT"); do
+              echo "Gerando imagem $i/$IMAGES_PER_BEAT pra editoria: $beat"
+              curl -sS --fail --max-time 240 \
+                -X POST "$SITE_URL/api/cron/generate-library-image" \
+                -H "Authorization: Bearer $CRON_SECRET" \
+                -H "Content-Type: application/json" \
+                -d "{\"beat\": \"$beat\"}" \
+                || echo "Falhou pra $beat (rodada $i) — seguindo pros próximos"
+            done
+          done

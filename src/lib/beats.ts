@@ -24,3 +24,17 @@ export const BEAT_SHORT: Record<Beat, string> = {
   geopolitica: "Geopolítica",
   mercado: "Mercado",
 };
+
+// Resumo de cada editoria usado tanto no prompt do rascunho de matéria
+// quanto no prompt de imagem (capa por matéria e biblioteca por tópico) —
+// fonte única pra manter os dois em sincronia.
+export const BEAT_BRIEF: Record<Beat, string> = {
+  ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
+  clima:
+    "energia limpa (solar, eólica, baterias), políticas climáticas e uso de IA em modelagem climática",
+  economia:
+    "yuan digital, moedas digitais de bancos centrais (CBDCs) e política monetária ligada a tecnologia",
+  geopolitica:
+    "geopolítica entre China, EUA e Brasil — comércio, chips, cadeias produtivas e tecnologia",
+  mercado: "mercado de tecnologia global — investimentos, big techs e infraestrutura de IA",
+};

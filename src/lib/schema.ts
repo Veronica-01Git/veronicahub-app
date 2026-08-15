@@ -122,3 +122,29 @@ export const articles = pgTable(
     index("Article_beat_idx").on(table.beat),
   ],
 );
+
+export const libraryImageSource = pgEnum("LibraryImageSource", ["cron", "manual"]);
+
+// Banco de imagens do Veronica Wire, separado por editoria (beat) — a
+// rodada automática de 6h (ver src/lib/image-library-cron.ts) gera imagens
+// "de estoque" com source "cron"; o botão manual no admin gera com
+// "manual". generateCoverImageAI (articles-server.ts) consome daqui antes
+// de gastar créditos gerando uma nova: usedByArticleId marca qual matéria
+// já consumiu a imagem, pra não reusar a mesma em duas matérias.
+export const libraryImages = pgTable(
+  "LibraryImage",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    beat: articleBeat("beat").notNull(),
+    imageUrl: text("imageUrl").notNull(),
+    prompt: text("prompt").notNull(),
+    source: libraryImageSource("source").notNull().default("manual"),
+    usedByArticleId: text("usedByArticleId").references(() => articles.id),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("LibraryImage_beat_usedByArticleId_idx").on(table.beat, table.usedByArticleId),
+  ],
+);

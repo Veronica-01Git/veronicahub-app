@@ -4,9 +4,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getDb } from "./db";
 import { articles } from "./schema";
 import { requireAdmin } from "./admin-server";
-import { BEAT_LABELS, isBeat, type Beat } from "./beats";
+import { BEAT_LABELS, BEAT_BRIEF, isBeat } from "./beats";
 import { generateNanoBananaImage } from "./higgsfield";
 import { findYoutubeUrl } from "./youtube";
+import { COVER_HOUSE_STYLE, NO_REAL_PERSON_RULE } from "./cover-style";
+import { claimLibraryImage, insertLibraryImage } from "./image-library-server";
 
 // Rascunhos gerados por IA usam um modelo mais forte que o chat da Veronica
 // (veronica-server.ts usa Haiku pro drawer, custo baixo) porque aqui o
@@ -25,28 +27,6 @@ const SOCIAL_MAX_TOKENS = 500;
 // Prompt de capa também usa o modelo barato (SOCIAL_MODEL) — só reescreve a
 // matéria já revisada num prompt de imagem, não pesquisa nada.
 const COVER_PROMPT_MAX_TOKENS = 400;
-
-// Identidade visual fixa do Veronica Wire, aplicada em toda capa gerada por
-// IA — mantém as matérias com a mesma "cara" em vez de imagens soltas de
-// banco de imagem. Gerada via generateNanoBananaImage (higgsfield.ts) —
-// Nano Banana Pro, único motor de imagem integrado de verdade hoje.
-// Deliberadamente SEM estilo cinematográfico/gráfico futurista — pedido do
-// usuário é foto real de notícia, com gente de verdade em cena. Sem "4K" no
-// texto: a API da Higgsfield usada aqui (quality) só entrega até 1080p de
-// verdade (ver higgsfield.ts) — pedir 4K no prompt prometeria nitidez que o
-// motor não gera.
-const COVER_HOUSE_STYLE = `Real photojournalism — an authentic, unstaged press photograph exactly like a real AP/Reuters news wire image, not a stylized graphic or illustration. Real people genuinely present and active in the scene (workers, professionals, crowds, officials — always generic/anonymous, never a specific real person). Natural available light, true-to-life color and texture, candid documentary framing, sharp and highly detailed photographic quality. NO cinematic color grading, NO futuristic holograms or digital overlays, NO glowing HUD/broadcast-graphic elements, NO readable text, NO logos, NO national flags or emblems.`;
-
-const BEAT_BRIEF: Record<Beat, string> = {
-  ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
-  clima:
-    "energia limpa (solar, eólica, baterias), políticas climáticas e uso de IA em modelagem climática",
-  economia:
-    "yuan digital, moedas digitais de bancos centrais (CBDCs) e política monetária ligada a tecnologia",
-  geopolitica:
-    "geopolítica entre China, EUA e Brasil — comércio, chips, cadeias produtivas e tecnologia",
-  mercado: "mercado de tecnologia global — investimentos, big techs e infraestrutura de IA",
-};
 
 function slugify(text: string): string {
   return text
@@ -351,21 +331,21 @@ Responda SOMENTE com um objeto JSON válido (sem markdown), exatamente: {"captio
   });
 
 const coverImageValidator = (input: unknown) => {
-  const data = input as { id?: unknown };
+  const data = input as { id?: unknown; forceNew?: unknown };
   if (typeof data?.id !== "string" || !data.id) throw new Error("id obrigatório.");
-  return { id: data.id };
+  return { id: data.id, forceNew: data.forceNew === true };
 };
 
-// Gera a capa via IA em duas etapas: a Claude lê a matéria já revisada e
-// escreve um prompt de imagem adaptado ao assunto — decide sozinha se a
-// cena pede uma figura humana em destaque (perfil de liderança, força de
-// trabalho, impacto social direto) ou uma cena institucional/abstrata
-// (gráficos, redes, skylines, telas), sempre dentro do estilo de casa
-// (COVER_HOUSE_STYLE). REGRA FIXA: nunca retrata uma pessoa real ou
-// nomeada — só figuras genéricas/ilustrativas, pra não gerar a semelhança
-// de ninguém de verdade. Depois chama a Higgsfield (generateNanoBananaImage,
-// única integração real hoje — ver higgsfield.ts) e salva a URL retornada
-// direto em coverImageUrl, mesmo campo que já aceita URL colada manualmente.
+// Gera a capa em duas etapas: primeiro tenta puxar uma imagem pronta da
+// biblioteca do tópico (image-library-server.ts — abastecida pela rodada
+// automática de 6h e pelo botão manual), sem gastar Higgsfield de novo. Só
+// gera uma nova via IA (Claude escreve o prompt adaptado ao assunto,
+// depois generateNanoBananaImage) se a biblioteca estiver vazia pro beat ou
+// se `forceNew` pedir explicitamente uma diferente ("Regerar capa", quando
+// já existe uma capa e o admin quer trocar). Toda imagem nova também entra
+// na biblioteca (já marcada como usada por esta matéria), pra manter tudo
+// num só catálogo. REGRA FIXA: nunca retrata pessoa real/nomeada — só
+// figuras genéricas/ilustrativas (NO_REAL_PERSON_RULE).
 export const generateCoverImageAI = createServerFn({ method: "POST" })
   .validator(coverImageValidator)
   .handler(async ({ data }) => {
@@ -380,6 +360,18 @@ export const generateCoverImageAI = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Matéria não encontrada." };
     }
 
+    if (!data.forceNew) {
+      const claimed = await claimLibraryImage(row.beat, row.id);
+      if (claimed) {
+        const [updated] = await db
+          .update(articles)
+          .set({ coverImageUrl: claimed.imageUrl, updatedAt: new Date() })
+          .where(eq(articles.id, data.id))
+          .returning();
+        return { ok: true as const, article: mapArticle(updated) };
+      }
+    }
+
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       return { ok: false as const, error: "ANTHROPIC_API_KEY não configurada." };
@@ -388,7 +380,7 @@ export const generateCoverImageAI = createServerFn({ method: "POST" })
     const systemPrompt = `Você escreve prompts de imagem de capa para o Veronica Wire, editoria "${BEAT_LABELS[row.beat]}".
 Leia a matéria e descreva uma cena de foto de notícia REAL, com gente de verdade fazendo algo ligado ao assunto (trabalhando, numa reunião, numa fábrica, num escritório, numa rua, num evento, operando um equipamento etc.) — sempre prefira ter pessoas em cena. Só descreva um lugar/objeto sem gente (prédio, equipamento, documento) se a matéria genuinamente não render nenhuma cena humana plausível.
 PROIBIDO: elementos gráficos futuristas, holograma, overlay digital, tela de dados flutuante, ou qualquer estética "de tela/HUD" — é foto de fotojornalismo real, não ilustração nem infográfico.
-REGRA FIXA E INEGOCIÁVEL: toda pessoa descrita precisa ser genérica e não identificável — NUNCA descreva uma pessoa real, nomeada ou reconhecível (nenhum político, executivo ou figura pública específica).
+${NO_REAL_PERSON_RULE}
 Responda SOMENTE com um objeto JSON válido (sem markdown): {"prompt": "cena em inglês, um parágrafo, bem específica ao assunto da matéria, sem mencionar nomes reais de pessoas"}`;
 
     type CreateMessage = (params: Record<string, unknown>) => Promise<{
@@ -448,6 +440,17 @@ Responda SOMENTE com um objeto JSON válido (sem markdown): {"prompt": "cena em 
     if (!image.ok) {
       return { ok: false as const, error: image.error };
     }
+
+    // Entra na biblioteca já usada por esta matéria — mantém o catálogo
+    // completo (toda imagem gerada, veio da fila automática ou não) sem
+    // ficar disponível de novo pra outra matéria consumir.
+    await insertLibraryImage({
+      beat: row.beat,
+      imageUrl: image.imageUrl,
+      prompt: scenePrompt,
+      source: "manual",
+      usedByArticleId: row.id,
+    });
 
     const [updated] = await db
       .update(articles)

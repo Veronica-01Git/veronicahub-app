@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
+import { handleGenerateLibraryImageCron } from "./lib/image-library-cron";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -53,6 +54,15 @@ export default {
         return await handleMercadoPagoWebhook(request);
       } catch (error) {
         console.error("Erro no webhook do Mercado Pago:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/generate-library-image") {
+      try {
+        return await handleGenerateLibraryImageCron(request);
+      } catch (error) {
+        console.error("Erro no cron da biblioteca de imagens:", error);
         return new Response("error", { status: 500 });
       }
     }

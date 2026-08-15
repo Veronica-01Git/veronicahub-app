@@ -11,6 +11,7 @@ import {
   setArticleStatusAdmin,
   deleteArticleAdmin,
 } from "@/lib/articles-server";
+import { listLibraryImagesAdmin, generateLibraryImageAdmin } from "@/lib/image-library-server";
 import { BEAT_VALUES, BEAT_LABELS, type Beat } from "@/lib/beats";
 
 // Rota não listada em ECOSYSTEM_LINKS de propósito, mesmo padrão de
@@ -41,6 +42,18 @@ type Article = {
 
 type ListState = { ok: true; articles: Article[] } | { ok: false; error: string } | null;
 
+type LibraryImage = {
+  id: string;
+  beat: Beat;
+  imageUrl: string;
+  prompt: string;
+  source: "cron" | "manual";
+  usedByArticleId: string | null;
+  createdAt: string;
+};
+
+type LibraryState = { ok: true; images: LibraryImage[] } | { ok: false; error: string } | null;
+
 const emptyForm = {
   id: null as string | null,
   beat: "ia" as Beat,
@@ -66,6 +79,8 @@ function ArticlesAdmin() {
   const [share, setShare] = useState<ShareState | null>(null);
   const [copied, setCopied] = useState<"caption" | "video" | null>(null);
   const [coverGeneratingId, setCoverGeneratingId] = useState<string | null>(null);
+  const [libraryState, setLibraryState] = useState<LibraryState>(null);
+  const [libraryGeneratingBeat, setLibraryGeneratingBeat] = useState<Beat | null>(null);
 
   function refresh() {
     listArticlesAdmin()
@@ -75,7 +90,37 @@ function ArticlesAdmin() {
       );
   }
 
+  function refreshLibrary() {
+    listLibraryImagesAdmin()
+      .then((res) => setLibraryState(res as LibraryState))
+      .catch((err) =>
+        setLibraryState({
+          ok: false,
+          error: err instanceof Error ? err.message : "Falha ao carregar biblioteca.",
+        }),
+      );
+  }
+
   useEffect(refresh, []);
+  useEffect(refreshLibrary, []);
+
+  async function handleGenerateLibraryImage(beat: Beat) {
+    setLibraryGeneratingBeat(beat);
+    setNotice(null);
+    try {
+      const res = await generateLibraryImageAdmin({ data: { beat } });
+      if (!res.ok) {
+        setNotice(`Erro ao gerar imagem pra "${BEAT_LABELS[beat]}": ${res.error}`);
+      } else {
+        setNotice(`Nova imagem na biblioteca de "${BEAT_LABELS[beat]}".`);
+        refreshLibrary();
+      }
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Falha ao gerar imagem.");
+    } finally {
+      setLibraryGeneratingBeat(null);
+    }
+  }
 
   async function handleGenerate(beat: Beat) {
     setGeneratingBeat(beat);
@@ -101,22 +146,24 @@ function ArticlesAdmin() {
   }
 
   async function handleGenerateCover(a: Article, opts?: { silent?: boolean }) {
-    if (
-      a.coverImageUrl &&
-      !opts?.silent &&
-      !window.confirm(`"${a.headline}" já tem capa. Gerar outra e substituir?`)
-    ) {
+    const hasExisting = Boolean(a.coverImageUrl);
+    if (hasExisting && !opts?.silent && !window.confirm(`"${a.headline}" já tem capa. Gerar outra e substituir?`)) {
       return;
     }
     setCoverGeneratingId(a.id);
     if (!opts?.silent) setNotice(null);
     try {
-      const res = await generateCoverImageAI({ data: { id: a.id } });
+      // Sem capa ainda: puxa da biblioteca do tópico se tiver estoque (mais
+      // rápido, sem gastar Higgsfield de novo). Já tem capa e o admin pediu
+      // "Regerar": pula a biblioteca, sempre gera uma nova sob medida pra
+      // esta matéria.
+      const res = await generateCoverImageAI({ data: { id: a.id, forceNew: hasExisting } });
       if (!res.ok) {
         setNotice(`Erro ao gerar capa de "${a.headline}": ${res.error}`);
       } else {
         setNotice(`Capa gerada para "${a.headline}".`);
         refresh();
+        refreshLibrary();
       }
     } catch (err) {
       setNotice(err instanceof Error ? err.message : "Falha ao gerar capa.");
@@ -455,6 +502,84 @@ function ArticlesAdmin() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </section>
+
+            <section>
+              <h2 className="mb-1 font-display text-xl">Biblioteca de Imagens</h2>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Uma biblioteca por tópico do Veronica Wire. Abastecida sozinha a cada 6h (workflow
+                no GitHub, ver <code>.github/workflows/generate-library-images.yml</code>) e pelo
+                botão "Gerar mais" abaixo. "Gerar capa (IA)" numa matéria consome daqui primeiro,
+                antes de gastar Higgsfield gerando uma nova.
+              </p>
+              {libraryState && !libraryState.ok ? (
+                <p className="text-sm text-destructive">{libraryState.error}</p>
+              ) : (
+                <div className="flex flex-col gap-6">
+                  {BEAT_VALUES.map((beat) => {
+                    const images = libraryState?.ok
+                      ? libraryState.images.filter((img) => img.beat === beat)
+                      : [];
+                    const available = images.filter((img) => !img.usedByArticleId).length;
+                    return (
+                      <div key={beat}>
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <div className="flex items-baseline gap-2">
+                            <h3 className="font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
+                              {BEAT_LABELS[beat]}
+                            </h3>
+                            <span className="text-[11px] text-muted-foreground">
+                              {available} livre{available === 1 ? "" : "s"} · {images.length} no
+                              total
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleGenerateLibraryImage(beat)}
+                            disabled={libraryGeneratingBeat === beat}
+                            className="inline-flex items-center gap-1 text-xs text-neon-cyan hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {libraryGeneratingBeat === beat ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <ImagePlus className="h-3 w-3" />
+                            )}
+                            Gerar mais
+                          </button>
+                        </div>
+                        {images.length === 0 ? (
+                          <p className="text-[13px] text-muted-foreground">
+                            Nenhuma imagem ainda — clique em "Gerar mais" ou espere a próxima
+                            rodada automática.
+                          </p>
+                        ) : (
+                          <div className="flex gap-2 overflow-x-auto pb-1">
+                            {images.map((img) => (
+                              <div key={img.id} className="relative flex-shrink-0">
+                                <img
+                                  src={img.imageUrl}
+                                  alt=""
+                                  title={img.prompt}
+                                  className={`h-16 w-28 rounded-sm border object-cover ${
+                                    img.usedByArticleId
+                                      ? "border-border/30 opacity-40"
+                                      : "border-border/60"
+                                  }`}
+                                />
+                                <span
+                                  className="absolute bottom-1 left-1 rounded-full bg-background/80 px-1.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground"
+                                  title={img.source === "cron" ? "Gerada pela rodada de 6h" : "Gerada manualmente"}
+                                >
+                                  {img.source === "cron" ? "6h" : "manual"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>
