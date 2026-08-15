@@ -349,6 +349,20 @@
   animation: rede-particle-rise 10s ease-in-out infinite;
 }
 
+/* Drift lento (zoom + pan) nas imagens de fundo cinematográficas da Veronica
+   Rede — roda sozinho, independente do scroll. Somado ao useParallax (que
+   desloca o wrapper em Y conforme rola a página), dá o efeito de "cena viva"
+   tanto parada quanto rolando. prefers-reduced-motion já zera isso via regra
+   global (animation-duration 0.001ms). */
+@keyframes cine-drift {
+  0%, 100% { transform: scale(1.06) translate3d(0, 0, 0); }
+  50% { transform: scale(1.14) translate3d(-1.2%, -1%, 0); }
+}
+
+@utility animate-cine-drift {
+  animation: cine-drift 28s ease-in-out infinite;
+}
+
 @utility animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }

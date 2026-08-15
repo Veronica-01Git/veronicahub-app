@@ -1,19 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, MessageCircle, UserPlus, Package, Megaphone, Wallet, Flame } from "lucide-react";
-import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
+import { useEffect, useState } from "react";
+import { SiteHeader, SiteFooter, SOCIAL_LINKS, ECOSYSTEM_LINKS } from "@/components/SiteChrome";
 import { HudAccent, GOLD } from "@/components/HoloOrbits";
+import { useReveal } from "@/hooks/use-reveal";
+import { useParallax } from "@/hooks/use-parallax";
 
 export const Route = createFileRoute("/veronica-rede")({
   component: VeronicaRede,
   head: () => ({
     meta: [
-      { title: "Veronica Rede — Programa em formação | Veronica Hub" },
+      { title: "Veronica Rede — Programa de afiliados ativo | Veronica Hub" },
       {
         name: "description",
-        content: "Uma rede de revendedores usando o ecossistema Veronica pra divulgar e vender produtos em alta. Programa em formação — cadastro antecipado aberto.",
+        content: "A rede oficial de afiliados do ecossistema Veronica. Divulgue o catálogo em alta e as ferramentas do Hub, receba comissão em cada venda. Cadastro aberto agora.",
       },
-      { property: "og:title", content: "Veronica Rede — Programa em formação" },
-      { property: "og:description", content: "Escolha o produto, divulgue com as ferramentas Veronica, receba sua comissão." },
+      { property: "og:title", content: "Veronica Rede — Programa de afiliados ativo" },
+      { property: "og:description", content: "Escolha o que divulgar, use as ferramentas Veronica pra vender, receba sua comissão." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -57,11 +60,56 @@ function RedeParticles() {
   );
 }
 
+// Camada de fundo cinematográfica: imagem de /images/cinematic com drift
+// contínuo (zoom+pan via CSS) + parallax de scroll (useParallax desloca o
+// wrapper em Y proporcional à posição na tela). As duas animações somadas
+// são o "background em movimento ao rolar a página" pedido — sem vídeo,
+// sem canvas, só uma imagem estática fazendo dois movimentos diferentes.
+// Some em mobile (peso) e em prefers-reduced-motion (useParallax já checa
+// isso sozinho, mas o cine-drift via CSS depende da regra global no
+// styles.css — por isso o hook `active` cobre os dois casos aqui).
+function CineBackdrop({
+  image,
+  speed = 0.06,
+  opacity = "opacity-[0.2]",
+  maskPosition = "50% 42%",
+}: {
+  image: string;
+  speed?: number;
+  opacity?: string;
+  maskPosition?: string;
+}) {
+  const [active, setActive] = useState(false);
+  const parallaxRef = useParallax<HTMLDivElement>(speed);
+  useEffect(() => {
+    setActive(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+  if (!active) return null;
+  const mask = `radial-gradient(ellipse 75% 65% at ${maskPosition}, black 30%, transparent 80%)`;
+  return (
+    <div
+      ref={parallaxRef}
+      aria-hidden
+      className={`pointer-events-none absolute inset-0 hidden overflow-hidden md:block ${opacity}`}
+      style={{ mixBlendMode: "screen", maskImage: mask, WebkitMaskImage: mask }}
+    >
+      <img
+        src={`/images/cinematic/${image}-1920.webp`}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full animate-cine-drift object-cover"
+      />
+    </div>
+  );
+}
+
 // Fundo "ambiente rico" — gradiente animado de 3 cores + partículas + acento
 // holográfico dourado. Reaproveitado no hero e no CTA final.
-function RichEnvironment({ accentClassName }: { accentClassName: string }) {
+function RichEnvironment({ accentClassName, cineImage, maskPosition }: { accentClassName: string; cineImage: string; maskPosition?: string }) {
   return (
     <>
+      <CineBackdrop image={cineImage} maskPosition={maskPosition} />
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-rede-aurora md:animate-rede-aurora" />
       <RedeParticles />
       <HudAccent size={92} hue={GOLD} className={accentClassName} />
@@ -70,8 +118,8 @@ function RichEnvironment({ accentClassName }: { accentClassName: string }) {
 }
 
 const STEPS = [
-  { icon: UserPlus, title: "Cadastro antecipado", desc: "Entre na lista agora e garanta prioridade quando o programa abrir oficialmente." },
-  { icon: Package, title: "Escolha os produtos", desc: "Catálogo com itens em alta, já com preço de revenda definido — sem estoque parado." },
+  { icon: UserPlus, title: "Cadastro", desc: "Fale com a gente no WhatsApp e entre pra rede — resposta rápida, sem burocracia." },
+  { icon: Package, title: "Escolha o que divulgar", desc: "Produtos em alta com comissão definida, ou qualquer ferramenta do ecossistema Veronica." },
   { icon: Megaphone, title: "Divulgue com o ecossistema", desc: "Use Veronica Studio e Analytics pra criar o conteúdo e otimizar suas vendas." },
   { icon: Wallet, title: "Receba sua comissão", desc: "Cada venda feita pela sua rede cai direto — sem burocracia, sem enrolação." },
 ];
@@ -95,37 +143,49 @@ const PRODUCTS: Product[] = [
   { name: "Mochila Anti-Furto", price: "69,90", original: "119,90", discount: "-42%" },
 ];
 
+// Todo o ecossistema Veronica vira coisa pra divulgar, não só o catálogo
+// físico — reaproveita a mesma lista que já alimenta o menu "Ecossistema"
+// do cabeçalho (fonte única, sem duplicar dados).
+const PROMOTABLE_ECOSYSTEM = ECOSYSTEM_LINKS.filter((l) => l.to !== "/veronica-rede");
+
 function buildWhatsappUrl(): string {
-  const msg = "Quero saber mais sobre a Veronica Rede";
+  const msg = "Quero entrar na Veronica Rede";
   return `${SOCIAL_LINKS.whatsapp}?text=${encodeURIComponent(msg)}`;
 }
 
 function VeronicaRede() {
+  const como = useReveal<HTMLElement>();
+  const ecossistema = useReveal<HTMLElement>();
+  const produtos = useReveal<HTMLElement>();
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {/* Hero — ambiente rico: gradiente animado + partículas + holograma dourado */}
+      {/* Hero — ambiente rico: fundo cinematográfico com drift + parallax,
+          gradiente animado, partículas e holograma dourado. */}
       <section className="relative overflow-hidden">
-        <RichEnvironment accentClassName="absolute right-6 top-6 lg:right-14" />
+        <RichEnvironment accentClassName="absolute right-6 top-6 lg:right-14" cineImage="cine-02-energia" maskPosition="62% 38%" />
         <div className="relative mx-auto max-w-4xl px-6 py-20 text-center md:py-28">
           <div className="mx-auto inline-flex items-center gap-3 rounded-full border border-gold/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-gold backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-dot" />
-            Programa em formação
+            Programa ativo · cadastro aberto
           </div>
           <h1 className="mx-auto mt-8 font-display text-5xl sm:text-6xl md:text-7xl text-gradient-rede" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
             Veronica Rede
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-            Uma rede de revendedores usando o ecossistema Veronica pra divulgar produtos em alta e vender todo dia —
-            sem estoque, sem complicação.
+            A rede oficial de afiliados do ecossistema Veronica — já ativa. Divulgue produtos em alta ou qualquer
+            ferramenta do Hub e venda todo dia, sem estoque, sem complicação.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <a
-              href="#participar"
+              href={buildWhatsappUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group relative inline-flex items-center gap-3 overflow-hidden rounded-sm bg-gold px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-gold transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
             >
-              Quero entrar na lista <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              Quero ser afiliado <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]" />
             </a>
             <a
@@ -141,10 +201,12 @@ function VeronicaRede() {
       {/* Como funciona — transição gradual: dourado ainda presente, fundo
           diluindo em direção ao neutro conforme desce. */}
       <section
-        className="relative py-24"
+        ref={como.ref}
+        className={`reveal ${como.visible ? "reveal-visible" : ""} relative overflow-hidden py-24`}
         style={{ background: "linear-gradient(180deg, oklch(0.75 0.15 85 / 0.1) 0%, var(--background) 85%)" }}
       >
-        <div className="mx-auto max-w-6xl px-6">
+        <CineBackdrop image="cine-05-nucleo" speed={0.05} opacity="opacity-[0.14]" maskPosition="50% 30%" />
+        <div className="relative mx-auto max-w-6xl px-6">
           <div className="mb-14 flex flex-col gap-3 text-center">
             <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-gold">
               <span className="h-px w-8 bg-gold" />
@@ -160,7 +222,7 @@ function VeronicaRede() {
             {STEPS.map((s, i) => (
               <div
                 key={s.title}
-                className="flex flex-col gap-3 rounded-sm border p-6 backdrop-blur transition duration-300 hover:-translate-y-1"
+                className="flex flex-col gap-3 rounded-sm border bg-background/50 p-6 backdrop-blur transition duration-300 hover:-translate-y-1"
                 style={{ borderColor: "oklch(0.75 0.15 85 / 0.3)", boxShadow: "0 0 24px -12px oklch(0.75 0.15 85 / 0.35)" }}
               >
                 <div className="flex items-center justify-between">
@@ -175,9 +237,50 @@ function VeronicaRede() {
         </div>
       </section>
 
+      {/* Um ecossistema inteiro pra divulgar — não é só o catálogo físico:
+          cada ferramenta do Hub também vira produto de indicação. Reaproveita
+          ECOSYSTEM_LINKS (mesma fonte do menu do cabeçalho). */}
+      <section
+        ref={ecossistema.ref}
+        className={`reveal ${ecossistema.visible ? "reveal-visible" : ""} border-t border-border/40 bg-background py-24`}
+      >
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-10 flex flex-col gap-3 text-center">
+            <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-gold">
+              <span className="h-px w-8 bg-gold" />
+              Um ecossistema inteiro
+              <span className="h-px w-8 bg-gold" />
+            </div>
+            <h2 className="mx-auto max-w-2xl font-display text-3xl sm:text-4xl md:text-5xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
+              Não é só produto físico.
+            </h2>
+            <p className="mx-auto max-w-xl leading-[1.65] text-muted-foreground">
+              Do Studio Criativo ao Currículo-Certo, cada ferramenta do Hub também é algo que sua rede pode divulgar.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {PROMOTABLE_ECOSYSTEM.map((item) => (
+              <div
+                key={item.name}
+                className="flex flex-col gap-1 rounded-sm border border-border/60 bg-surface/60 p-5 transition hover:border-gold/50 hover:-translate-y-0.5"
+              >
+                <span className="font-mono-tech text-[12px] uppercase tracking-widest text-foreground">{item.name}</span>
+                <span className="text-[12.5px] text-muted-foreground">{item.tag}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Grade de produtos — muda de registro: fundo sólido, denso, sem
-          holograma nem animação. Só função: preço, desconto, decisão rápida. */}
-      <section id="produtos" className="border-t border-border/40 bg-background py-20">
+          holograma nem animação contínua (só reveal ao entrar na tela). Só
+          função: preço, desconto, decisão rápida. */}
+      <section
+        ref={produtos.ref}
+        id="produtos"
+        className={`reveal ${produtos.visible ? "reveal-visible" : ""} border-t border-border/40 bg-background py-20`}
+      >
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
             <span className="h-px w-8 bg-border" />
@@ -209,21 +312,20 @@ function VeronicaRede() {
             ))}
           </div>
           <p className="mt-6 text-center text-[12px] text-muted-foreground/70">
-            Catálogo ilustrativo — os produtos definitivos são liberados na abertura oficial do programa.
+            Catálogo ilustrativo — produtos, preços e comissão definitiva são confirmados no seu cadastro pelo WhatsApp.
           </p>
         </div>
       </section>
 
       {/* Quero participar — retoma a energia do hero, mesmo componente reaproveitado */}
       <section id="participar" className="relative overflow-hidden py-24">
-        <RichEnvironment accentClassName="absolute left-6 bottom-6 lg:left-14" />
+        <RichEnvironment accentClassName="absolute left-6 bottom-6 lg:left-14" cineImage="cine-06-sistema" maskPosition="38% 55%" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
-            Quero <span className="text-gradient-rede">participar</span>.
+            Comece a <span className="text-gradient-rede">vender</span> hoje.
           </h2>
           <p className="mx-auto mt-5 max-w-lg leading-[1.65] text-muted-foreground">
-            Entre na lista de espera da Veronica Rede pelo WhatsApp — sem compromisso, você é avisado assim que o
-            programa abrir oficialmente.
+            O programa está ativo — fale com a gente no WhatsApp, confirme seu cadastro e comece a divulgar ainda hoje.
           </p>
           <a
             href={buildWhatsappUrl()}

@@ -28,6 +28,7 @@ export const ECOSYSTEM_LINKS: EcosystemLink[] = [
   { name: "Prompt Packs", tag: "Comandos prontos pra IA real", to: "/prompt-packs", ready: true },
   { name: "Veronica Náutica", tag: "Seguro náutico · em estruturação", to: "/veronica-nautica", ready: true },
   { name: "Negócio da China", tag: "Marketplace C2C · novo e usado", to: "https://negociodachina.veronicahub.com", ready: true, external: true },
+  { name: "Veronica Rede", tag: "Programa de afiliados · ativo", to: "/veronica-rede", ready: true },
 ];
 
 export function EcosystemMenu() {

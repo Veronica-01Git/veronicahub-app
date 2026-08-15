@@ -141,6 +141,35 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   manual pela versão canônica — não deve dar conflito, só confirma que
   ficou certo.
 
+### Veronica Rede — relançamento visual (branch `claude/veronica-affiliate-program-g3i88g`)
+- **Só o front-end/copy, nada de backend.** A Veronica Rede continua sendo
+  uma landing page de captura de lead via WhatsApp — não existe (ainda)
+  código de indicação, tabela de comissão nem cálculo de payout no
+  `schema.ts`. "Ativar" aqui significa: tirar a linguagem de "programa em
+  formação"/lista de espera e tratar como programa já aberto, com um
+  visual cinematográfico condizente.
+- **Descoberta importante:** a rota nunca esteve em `ECOSYSTEM_LINKS`
+  (`SiteChrome.tsx`) — ninguém achava a página a não ser digitando a URL
+  direto. Agora está listada lá (aparece no menu "Ecossistema" do
+  cabeçalho, desktop e mobile).
+- Visual: fundo cinematográfico com movimento reaproveitando as imagens
+  que já existiam em `public/images/cinematic/` (nunca usadas em rota
+  nenhuma antes) — `useParallax` (desloca a camada em Y conforme rola,
+  hook já existente em `src/hooks/use-parallax.ts`) somado a uma animação
+  CSS nova de drift lento (`animate-cine-drift` em `styles.css`), dando
+  movimento tanto parado quanto rolando. `useReveal` (também já existente)
+  nas seções pra fade-in ao entrar na tela.
+- Nova seção "Um ecossistema inteiro" — reaproveita `ECOSYSTEM_LINKS` pra
+  deixar claro que dá pra divulgar qualquer ferramenta do Hub, não só o
+  catálogo físico (pedido do usuário: todo o ecossistema como fonte de
+  receita pra quem divulga).
+- **Pendência real pro "programa de afiliados" completo:** código de
+  indicação por usuário, tabela de comissão, cálculo/payout — isso mexe em
+  schema e fica perto de carteira/Mercado Pago, então precisa de decisão e
+  confirmação explícitas antes de começar (ver regras de segurança no
+  fim deste arquivo). Não foi feito nesta sessão, por escolha do usuário
+  (visual primeiro, backend depois).
+
 ## Pendências conhecidas
 
 1. Adicionar `ANTHROPIC_API_KEY` em `.env.local` pra o chat da Veronica
