@@ -128,14 +128,24 @@ function Thumb({
   color,
   coverImageUrl,
   className = "",
+  breakingLabel,
 }: {
   color: string;
   coverImageUrl?: string | null;
   className?: string;
+  /** Selo estilo telejornal ("ÚLTIMA HORA" etc.) no canto da capa — só usado no destaque. */
+  breakingLabel?: string;
 }) {
+  const flag = breakingLabel ? (
+    <span className="absolute left-0 top-4 z-10 flex items-center gap-1.5 bg-[oklch(0.5_0.2_25)] px-3 py-1 font-mono-tech text-[10px] font-bold uppercase tracking-widest text-white shadow-lg">
+      <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-white animate-pulse-dot" />
+      {breakingLabel}
+    </span>
+  ) : null;
   if (coverImageUrl) {
     return (
       <div className={`relative overflow-hidden rounded-sm border border-border/40 ${className}`}>
+        {flag}
         <img src={coverImageUrl} alt="" className="h-full w-full object-cover" />
       </div>
     );
@@ -147,7 +157,9 @@ function Thumb({
       style={{
         background: `linear-gradient(135deg, ${withAlpha(color, 0.28)}, ${withAlpha(color, 0.06)})`,
       }}
-    />
+    >
+      {flag}
+    </div>
   );
 }
 
@@ -291,19 +303,29 @@ function VeronicaWire() {
               to="/blog/$slug"
               params={{ slug: featured.slug }}
               className="group block overflow-hidden rounded-sm border border-border/60 bg-surface/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-neon-green/50"
+              style={{ borderTop: "3px solid oklch(0.5 0.2 25)" }}
             >
               <Thumb
                 color={featuredMeta!.color}
                 coverImageUrl={featured.coverImageUrl}
                 className="aspect-video"
+                breakingLabel="ÚLTIMA HORA"
               />
               <div className="p-6 sm:p-8">
-                <div
-                  className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest"
-                  style={{ color: featuredMeta!.color }}
-                >
-                  <FeaturedIcon className="h-4 w-4" />
-                  {featuredMeta!.label}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span
+                    className="inline-flex items-center gap-1.5 bg-[oklch(0.5_0.2_25)] px-2.5 py-1 font-mono-tech text-[10px] font-bold uppercase tracking-widest text-white"
+                    style={{ clipPath: "polygon(0 0, 100% 0, 92% 100%, 0% 100%)" }}
+                  >
+                    Reportagem especial
+                  </span>
+                  <div
+                    className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest"
+                    style={{ color: featuredMeta!.color }}
+                  >
+                    <FeaturedIcon className="h-4 w-4" />
+                    {featuredMeta!.label}
+                  </div>
                 </div>
                 <h1
                   className="mt-4 max-w-2xl font-display text-3xl text-foreground sm:text-4xl md:text-[42px]"
@@ -314,7 +336,11 @@ function VeronicaWire() {
                 <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
                   {featured.excerpt}
                 </p>
-                <div className="mt-4 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                <div
+                  className="mt-5 flex items-center gap-2 border-t pt-4 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+                  style={{ borderTopColor: "oklch(0.5 0.2 25 / 0.35)" }}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.5_0.2_25)]" />
                   {featured.desk} · {formatAgo(featured.publishedAt, now)}
                 </div>
               </div>

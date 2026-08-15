@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { ShieldAlert, Sparkles, Loader2 } from "lucide-react";
+import { ShieldAlert, Sparkles, Loader2, Instagram, Copy, Check, X } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import {
   listArticlesAdmin,
   generateArticleDraftAI,
+  generateSocialShareAI,
   saveArticleAdmin,
   setArticleStatusAdmin,
   deleteArticleAdmin,
@@ -50,12 +51,19 @@ const emptyForm = {
   sourceUrls: "",
 };
 
+type ShareState =
+  | { status: "loading"; article: Article }
+  | { status: "ready"; article: Article; caption: string; videoUrl: string | null }
+  | { status: "error"; article: Article; error: string };
+
 function ArticlesAdmin() {
   const [state, setState] = useState<ListState>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [generatingBeat, setGeneratingBeat] = useState<Beat | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [share, setShare] = useState<ShareState | null>(null);
+  const [copied, setCopied] = useState<"caption" | "video" | null>(null);
 
   function refresh() {
     listArticlesAdmin()
@@ -145,6 +153,24 @@ function ArticlesAdmin() {
     const res = await deleteArticleAdmin({ data: { id: a.id } });
     if (!res.ok) setNotice(`Erro: ${res.error}`);
     else refresh();
+  }
+
+  async function openShare(a: Article) {
+    setCopied(null);
+    setShare({ status: "loading", article: a });
+    const res = await generateSocialShareAI({ data: { id: a.id } });
+    if (!res.ok) {
+      setShare({ status: "error", article: a, error: res.error });
+    } else {
+      setShare({ status: "ready", article: a, caption: res.caption, videoUrl: res.videoUrl });
+    }
+  }
+
+  function copyText(text: string, which: "caption" | "video") {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(which);
+      window.setTimeout(() => setCopied(null), 2000);
+    });
   }
 
   return (
@@ -353,6 +379,12 @@ function ArticlesAdmin() {
                                 {a.status === "published" ? "Despublicar" : "Publicar"}
                               </button>
                               <button
+                                onClick={() => openShare(a)}
+                                className="inline-flex items-center gap-1 text-xs text-neon-cyan hover:underline"
+                              >
+                                <Instagram className="h-3 w-3" /> Repostar
+                              </button>
+                              <button
                                 onClick={() => remove(a)}
                                 className="text-xs text-destructive hover:underline"
                               >
@@ -372,6 +404,107 @@ function ArticlesAdmin() {
       </div>
 
       <SiteFooter />
+
+      {share && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setShare(null)}
+        >
+          <div
+            className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-sm border border-border/60 bg-background"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+              <div className="flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
+                <Instagram className="h-4 w-4" /> Repostar — {share.article.headline}
+              </div>
+              <button
+                onClick={() => setShare(null)}
+                className="text-muted-foreground transition hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+              {share.status === "loading" ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> A Veronica está escrevendo a
+                  legenda…
+                </div>
+              ) : share.status === "error" ? (
+                <p className="text-sm text-destructive">{share.error}</p>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {share.article.coverImageUrl && (
+                    <img
+                      src={share.article.coverImageUrl}
+                      alt=""
+                      className="aspect-video w-full rounded-sm border border-border/40 object-cover"
+                    />
+                  )}
+
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                        Legenda pra Instagram
+                      </span>
+                      <button
+                        onClick={() => copyText(share.caption, "caption")}
+                        className="inline-flex items-center gap-1 text-xs text-neon-green hover:underline"
+                      >
+                        {copied === "caption" ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                        {copied === "caption" ? "Copiado" : "Copiar"}
+                      </button>
+                    </div>
+                    <p className="whitespace-pre-wrap rounded-sm border border-border/60 bg-surface/40 p-3 text-[13px] leading-[1.6] text-foreground">
+                      {share.caption}
+                    </p>
+                  </div>
+
+                  {share.videoUrl && (
+                    <div>
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                          Link do YouTube encontrado pela Veronica
+                        </span>
+                        <button
+                          onClick={() => copyText(share.videoUrl!, "video")}
+                          className="inline-flex items-center gap-1 text-xs text-neon-green hover:underline"
+                        >
+                          {copied === "video" ? (
+                            <Check className="h-3 w-3" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                          {copied === "video" ? "Copiado" : "Copiar"}
+                        </button>
+                      </div>
+                      <a
+                        href={share.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block truncate rounded-sm border border-border/60 bg-surface/40 p-3 text-[13px] text-neon-cyan hover:underline"
+                      >
+                        {share.videoUrl}
+                      </a>
+                    </div>
+                  )}
+
+                  <p className="text-[11.5px] leading-[1.5] text-muted-foreground">
+                    Sem publicação automática no Instagram — cole a legenda e a imagem/vídeo
+                    direto no app do Instagram. {!share.videoUrl && "Nenhum link do YouTube foi encontrado nesta matéria; cole um manualmente no campo \"Fontes\" acima e gere de novo se quiser incluir um."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

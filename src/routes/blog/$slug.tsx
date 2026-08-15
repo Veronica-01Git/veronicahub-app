@@ -4,6 +4,7 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS, type Beat } from "@/lib/beats";
+import { extractYoutubeId, findYoutubeUrl } from "@/lib/youtube";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: ArticlePage,
@@ -98,13 +99,33 @@ function ArticlePage() {
               )}
             </div>
 
-            {state.article.coverImageUrl && (
-              <img
-                src={state.article.coverImageUrl}
-                alt=""
-                className="mt-6 aspect-video w-full rounded-sm border border-border/40 object-cover"
-              />
-            )}
+            {(() => {
+              const videoUrl = findYoutubeUrl(state.article.sourceUrls);
+              const videoId = videoUrl ? extractYoutubeId(videoUrl) : null;
+              if (videoId) {
+                return (
+                  <div className="mt-6 aspect-video w-full overflow-hidden rounded-sm border border-border/40">
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                      title={state.article.headline}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                );
+              }
+              if (state.article.coverImageUrl) {
+                return (
+                  <img
+                    src={state.article.coverImageUrl}
+                    alt=""
+                    className="mt-6 aspect-video w-full rounded-sm border border-border/40 object-cover"
+                  />
+                );
+              }
+              return null;
+            })()}
 
             <div className="mt-8 flex flex-col gap-4 text-[15px] leading-[1.75] text-foreground/90">
               {state.article.body

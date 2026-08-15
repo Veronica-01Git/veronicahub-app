@@ -5,6 +5,7 @@ import { getDb } from "./db";
 import { articles } from "./schema";
 import { requireAdmin } from "./admin-server";
 import { BEAT_LABELS, isBeat, type Beat } from "./beats";
+import { findYoutubeUrl } from "./youtube";
 
 // Rascunhos gerados por IA usam um modelo mais forte que o chat da Veronica
 // (veronica-server.ts usa Haiku pro drawer, custo baixo) porque aqui o
@@ -12,6 +13,13 @@ import { BEAT_LABELS, isBeat, type Beat } from "./beats";
 // e de busca na web pra reduzir alucinação.
 const DRAFT_MODEL = "claude-sonnet-5";
 const DRAFT_MAX_TOKENS = 2200;
+
+// Legenda de repostagem usa um modelo mais barato que o rascunho: só
+// resume/reescreve texto já revisado por um admin, não pesquisa nada novo
+// nem entra no ar sozinha (mesmo padrão de baixo custo do chat da Veronica
+// em veronica-server.ts).
+const SOCIAL_MODEL = "claude-haiku-4-5-20251001";
+const SOCIAL_MAX_TOKENS = 500;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
@@ -143,9 +151,10 @@ export const generateArticleDraftAI = createServerFn({ method: "POST" })
 
     const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[data.beat]}" (${BEAT_BRIEF[data.beat]}).
 Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, recente e verificável nessa editoria — não invente nada.
+Se durante a pesquisa você encontrar um vídeo do YouTube oficial e diretamente relevante (cobertura em vídeo, entrevista, transmissão do evento etc.), inclua a URL dele em "sourceUrls" — não é obrigatório, só inclua se existir e for realmente relevante.
 Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, sem texto antes ou depois), exatamente neste formato:
 {"headline": "manchete curta e direta em português, sem clickbait", "excerpt": "1-2 frases de resumo", "body": "matéria completa em português, 3-5 parágrafos, tom jornalístico factual, sem opinião", "desk": "Desk de <algo específico da matéria>", "sourceUrls": ["https://...", "https://..."]}
-"sourceUrls" deve conter as URLs reais que você usou na pesquisa. Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
+"sourceUrls" deve conter as URLs reais que você usou na pesquisa (e o vídeo do YouTube, se houver um relevante). Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
 
     // web_search_20250305 é uma tool server-side (a Anthropic executa a
     // busca e injeta o resultado na mesma resposta) — pode não estar no
@@ -232,6 +241,97 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
       .returning();
 
     return { ok: true as const, article: mapArticle(row) };
+  });
+
+const socialShareValidator = (input: unknown) => {
+  const data = input as { id?: unknown };
+  if (typeof data?.id !== "string" || !data.id) throw new Error("id obrigatório.");
+  return { id: data.id };
+};
+
+// Escreve a legenda de repostagem (Instagram) a partir de uma matéria já
+// existente — não pesquisa nada novo, só resume/reescreve texto que um
+// admin já revisou (ou vai revisar antes de publicar). Não persiste no
+// banco: é barato o suficiente pra gerar de novo a cada clique, e assim
+// não precisa de coluna/migração nova.
+export const generateSocialShareAI = createServerFn({ method: "POST" })
+  .validator(socialShareValidator)
+  .handler(async ({ data }) => {
+    const admin = await requireAdmin();
+    if (!admin) {
+      return { ok: false as const, error: "Acesso restrito." };
+    }
+
+    const db = getDb();
+    const [row] = await db.select().from(articles).where(eq(articles.id, data.id)).limit(1);
+    if (!row) {
+      return { ok: false as const, error: "Matéria não encontrada." };
+    }
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return { ok: false as const, error: "ANTHROPIC_API_KEY não configurada." };
+    }
+
+    const videoUrl = findYoutubeUrl(row.sourceUrls);
+
+    const systemPrompt = `Você é a Veronica, social media do Veronica Wire (${BEAT_LABELS[row.beat]}).
+Escreva uma legenda pronta pra postar no Instagram sobre a matéria abaixo — gancho forte na primeira linha, 2-3 frases de resumo em tom direto (nada de linguagem corporativa), quebras de linha entre ideias, 5-8 hashtags relevantes em português no final.
+Não invente nenhum fato novo — use só o que está na matéria.
+
+Manchete: ${row.headline}
+Resumo: ${row.excerpt}
+Matéria: ${row.body}
+
+Responda SOMENTE com um objeto JSON válido (sem markdown), exatamente: {"caption": "legenda completa pronta pra colar, com quebras de linha \\n"}`;
+
+    type CreateMessage = (params: Record<string, unknown>) => Promise<{
+      content: Array<{ type: string; text?: string }>;
+    }>;
+
+    let response: { content: Array<{ type: string; text?: string }> };
+    try {
+      const anthropic = new Anthropic({ apiKey });
+      response = await (anthropic.messages.create as unknown as CreateMessage).call(
+        anthropic.messages,
+        {
+          model: SOCIAL_MODEL,
+          max_tokens: SOCIAL_MAX_TOKENS,
+          system: systemPrompt,
+          messages: [{ role: "user", content: "Escreva a legenda conforme as instruções." }],
+        },
+      );
+    } catch (error) {
+      return {
+        ok: false as const,
+        error: error instanceof Error ? error.message : "Falha ao gerar legenda.",
+      };
+    }
+
+    const text = response.content
+      .filter((block) => block.type === "text")
+      .map((block) => block.text)
+      .join("\n")
+      .trim();
+
+    const jsonStart = text.indexOf("{");
+    const jsonEnd = text.lastIndexOf("}");
+    if (jsonStart === -1 || jsonEnd === -1) {
+      return { ok: false as const, error: "IA não retornou uma legenda válida. Tente de novo." };
+    }
+
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+    } catch {
+      return { ok: false as const, error: "IA não retornou uma legenda válida. Tente de novo." };
+    }
+
+    if (typeof parsed.caption !== "string" || !parsed.caption.trim()) {
+      return { ok: false as const, error: "IA retornou um formato inesperado. Tente de novo." };
+    }
+
+    return { ok: true as const, caption: parsed.caption.trim(), videoUrl };
   });
 
 const saveValidator = (input: unknown) => {
