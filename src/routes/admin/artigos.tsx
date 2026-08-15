@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { ShieldAlert, Sparkles, Loader2, Instagram, Copy, Check, X } from "lucide-react";
+import { ShieldAlert, Sparkles, Loader2, Instagram, Copy, Check, X, ImagePlus } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import {
   listArticlesAdmin,
   generateArticleDraftAI,
   generateSocialShareAI,
+  generateCoverImageAI,
   saveArticleAdmin,
   setArticleStatusAdmin,
   deleteArticleAdmin,
@@ -64,6 +65,7 @@ function ArticlesAdmin() {
   const [notice, setNotice] = useState<string | null>(null);
   const [share, setShare] = useState<ShareState | null>(null);
   const [copied, setCopied] = useState<"caption" | "video" | null>(null);
+  const [coverGeneratingId, setCoverGeneratingId] = useState<string | null>(null);
 
   function refresh() {
     listArticlesAdmin()
@@ -83,13 +85,43 @@ function ArticlesAdmin() {
       if (!res.ok) {
         setNotice(`Erro ao gerar: ${res.error}`);
       } else {
-        setNotice(`Rascunho gerado: "${res.article.headline}" — revise antes de publicar.`);
+        setNotice(
+          `Rascunho gerado: "${res.article.headline}" — gerando capa com IA, revise antes de publicar.`,
+        );
         refresh();
+        // Encadeia a geração de capa automaticamente pra todo rascunho novo de
+        // IA — o admin ainda revisa texto e imagem antes de publicar.
+        await handleGenerateCover(res.article, { silent: true });
       }
     } catch (err) {
       setNotice(err instanceof Error ? err.message : "Falha ao gerar rascunho.");
     } finally {
       setGeneratingBeat(null);
+    }
+  }
+
+  async function handleGenerateCover(a: Article, opts?: { silent?: boolean }) {
+    if (
+      a.coverImageUrl &&
+      !opts?.silent &&
+      !window.confirm(`"${a.headline}" já tem capa. Gerar outra e substituir?`)
+    ) {
+      return;
+    }
+    setCoverGeneratingId(a.id);
+    if (!opts?.silent) setNotice(null);
+    try {
+      const res = await generateCoverImageAI({ data: { id: a.id } });
+      if (!res.ok) {
+        setNotice(`Erro ao gerar capa de "${a.headline}": ${res.error}`);
+      } else {
+        setNotice(`Capa gerada para "${a.headline}".`);
+        refresh();
+      }
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Falha ao gerar capa.");
+    } finally {
+      setCoverGeneratingId(null);
     }
   }
 
@@ -336,12 +368,27 @@ function ArticlesAdmin() {
                       {state.articles.map((a) => (
                         <tr key={a.id} className="border-b border-border/30 last:border-0">
                           <td className="px-4 py-3">
-                            <span className="line-clamp-2">{a.headline}</span>
-                            {a.aiGenerated && (
-                              <span className="ml-1.5 inline-flex items-center gap-1 text-[10px] text-neon-cyan">
-                                <Sparkles className="h-3 w-3" /> IA
-                              </span>
-                            )}
+                            <div className="flex items-start gap-2.5">
+                              {a.coverImageUrl ? (
+                                <img
+                                  src={a.coverImageUrl}
+                                  alt=""
+                                  className="h-10 w-16 flex-shrink-0 rounded-sm border border-border/40 object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-10 w-16 flex-shrink-0 items-center justify-center rounded-sm border border-dashed border-border/50 text-muted-foreground">
+                                  <ImagePlus className="h-3.5 w-3.5" />
+                                </div>
+                              )}
+                              <div>
+                                <span className="line-clamp-2">{a.headline}</span>
+                                {a.aiGenerated && (
+                                  <span className="ml-1.5 inline-flex items-center gap-1 text-[10px] text-neon-cyan">
+                                    <Sparkles className="h-3 w-3" /> IA
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{BEAT_LABELS[a.beat]}</td>
                           <td className="px-4 py-3">
@@ -371,6 +418,18 @@ function ArticlesAdmin() {
                                 className="text-xs text-neon-cyan hover:underline"
                               >
                                 Editar
+                              </button>
+                              <button
+                                onClick={() => handleGenerateCover(a)}
+                                disabled={coverGeneratingId === a.id}
+                                className="inline-flex items-center gap-1 text-xs text-neon-cyan hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {coverGeneratingId === a.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <ImagePlus className="h-3 w-3" />
+                                )}
+                                {a.coverImageUrl ? "Regerar capa" : "Gerar capa (IA)"}
                               </button>
                               <button
                                 onClick={() => toggleStatus(a)}

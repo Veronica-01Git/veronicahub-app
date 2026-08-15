@@ -5,6 +5,7 @@ import { getDb } from "./db";
 import { articles } from "./schema";
 import { requireAdmin } from "./admin-server";
 import { BEAT_LABELS, isBeat, type Beat } from "./beats";
+import { generateNanoBananaImage } from "./higgsfield";
 import { findYoutubeUrl } from "./youtube";
 
 // Rascunhos gerados por IA usam um modelo mais forte que o chat da Veronica
@@ -20,6 +21,15 @@ const DRAFT_MAX_TOKENS = 2200;
 // em veronica-server.ts).
 const SOCIAL_MODEL = "claude-haiku-4-5-20251001";
 const SOCIAL_MAX_TOKENS = 500;
+
+// Prompt de capa também usa o modelo barato (SOCIAL_MODEL) — só reescreve a
+// matéria já revisada num prompt de imagem, não pesquisa nada.
+const COVER_PROMPT_MAX_TOKENS = 400;
+
+// Identidade visual fixa do Veronica Wire, aplicada em toda capa gerada por
+// IA — mantém as matérias com a mesma "cara" de canal de notícia sério em
+// vez de imagens soltas de banco de imagem.
+const COVER_HOUSE_STYLE = `Cinematic photojournalism, serious global news-network broadcast quality (Bloomberg/BBC International standard): deep navy blue, steel gray, gold and digital cyan palette; volumetric cinematic lighting; ultra-realistic sharp textures; NO readable text, NO logos, NO national flags or emblems.`;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
@@ -332,6 +342,113 @@ Responda SOMENTE com um objeto JSON válido (sem markdown), exatamente: {"captio
     }
 
     return { ok: true as const, caption: parsed.caption.trim(), videoUrl };
+  });
+
+const coverImageValidator = (input: unknown) => {
+  const data = input as { id?: unknown };
+  if (typeof data?.id !== "string" || !data.id) throw new Error("id obrigatório.");
+  return { id: data.id };
+};
+
+// Gera a capa via IA em duas etapas: a Claude lê a matéria já revisada e
+// escreve um prompt de imagem adaptado ao assunto — decide sozinha se a
+// cena pede uma figura humana em destaque (perfil de liderança, força de
+// trabalho, impacto social direto) ou uma cena institucional/abstrata
+// (gráficos, redes, skylines, telas), sempre dentro do estilo de casa
+// (COVER_HOUSE_STYLE). REGRA FIXA: nunca retrata uma pessoa real ou
+// nomeada — só figuras genéricas/ilustrativas, pra não gerar a semelhança
+// de ninguém de verdade. Depois chama a Higgsfield (generateNanoBananaImage,
+// única integração real hoje — ver higgsfield.ts) e salva a URL retornada
+// direto em coverImageUrl, mesmo campo que já aceita URL colada manualmente.
+export const generateCoverImageAI = createServerFn({ method: "POST" })
+  .validator(coverImageValidator)
+  .handler(async ({ data }) => {
+    const admin = await requireAdmin();
+    if (!admin) {
+      return { ok: false as const, error: "Acesso restrito." };
+    }
+
+    const db = getDb();
+    const [row] = await db.select().from(articles).where(eq(articles.id, data.id)).limit(1);
+    if (!row) {
+      return { ok: false as const, error: "Matéria não encontrada." };
+    }
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return { ok: false as const, error: "ANTHROPIC_API_KEY não configurada." };
+    }
+
+    const systemPrompt = `Você escreve prompts de imagem de capa para o Veronica Wire, editoria "${BEAT_LABELS[row.beat]}".
+Leia a matéria e decida a cena mais forte pra ilustrá-la: uma figura humana genérica em destaque (quando a matéria for sobre trabalho, liderança, impacto social/humano direto) OU uma cena institucional/abstrata — gráficos, redes de dados, skylines, telas, símbolos do setor (quando a matéria for sobre política monetária, infraestrutura, números, acordos).
+REGRA FIXA E INEGOCIÁVEL: se usar pessoa, ela precisa ser genérica e não identificável — NUNCA descreva uma pessoa real, nomeada ou reconhecível (nenhum político, executivo ou figura pública específica).
+Responda SOMENTE com um objeto JSON válido (sem markdown): {"prompt": "cena em inglês, um parágrafo, bem específica ao assunto da matéria, sem mencionar nomes reais de pessoas"}`;
+
+    type CreateMessage = (params: Record<string, unknown>) => Promise<{
+      content: Array<{ type: string; text?: string }>;
+    }>;
+
+    let response: { content: Array<{ type: string; text?: string }> };
+    try {
+      const anthropic = new Anthropic({ apiKey });
+      response = await (anthropic.messages.create as unknown as CreateMessage).call(
+        anthropic.messages,
+        {
+          model: SOCIAL_MODEL,
+          max_tokens: COVER_PROMPT_MAX_TOKENS,
+          system: systemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: `Manchete: ${row.headline}\nResumo: ${row.excerpt}\nTrecho: ${row.body.slice(0, 1000)}`,
+            },
+          ],
+        },
+      );
+    } catch (error) {
+      return {
+        ok: false as const,
+        error: error instanceof Error ? error.message : "Falha ao gerar prompt de imagem.",
+      };
+    }
+
+    const text = response.content
+      .filter((block) => block.type === "text")
+      .map((block) => block.text)
+      .join("\n")
+      .trim();
+
+    const jsonStart = text.indexOf("{");
+    const jsonEnd = text.lastIndexOf("}");
+    if (jsonStart === -1 || jsonEnd === -1) {
+      return { ok: false as const, error: "IA não retornou um prompt válido. Tente de novo." };
+    }
+
+    let scenePrompt: string;
+    try {
+      const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1)) as { prompt?: unknown };
+      if (typeof parsed.prompt !== "string" || !parsed.prompt.trim()) {
+        throw new Error("vazio");
+      }
+      scenePrompt = parsed.prompt.trim();
+    } catch {
+      return { ok: false as const, error: "IA não retornou um prompt válido. Tente de novo." };
+    }
+
+    const image = await generateNanoBananaImage({
+      prompt: `${scenePrompt} ${COVER_HOUSE_STYLE}`,
+    });
+    if (!image.ok) {
+      return { ok: false as const, error: image.error };
+    }
+
+    const [updated] = await db
+      .update(articles)
+      .set({ coverImageUrl: image.imageUrl, updatedAt: new Date() })
+      .where(eq(articles.id, data.id))
+      .returning();
+
+    return { ok: true as const, article: mapArticle(updated) };
   });
 
 const saveValidator = (input: unknown) => {
