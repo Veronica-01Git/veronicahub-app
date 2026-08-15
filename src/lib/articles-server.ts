@@ -28,8 +28,10 @@ const COVER_PROMPT_MAX_TOKENS = 400;
 
 // Identidade visual fixa do Veronica Wire, aplicada em toda capa gerada por
 // IA — mantém as matérias com a mesma "cara" de canal de notícia sério em
-// vez de imagens soltas de banco de imagem.
-const COVER_HOUSE_STYLE = `Cinematic photojournalism, serious global news-network broadcast quality (Bloomberg/BBC International standard): deep navy blue, steel gray, gold and digital cyan palette; volumetric cinematic lighting; ultra-realistic sharp textures; NO readable text, NO logos, NO national flags or emblems.`;
+// vez de imagens soltas de banco de imagem. Gerada via generateNanoBananaImage
+// (higgsfield.ts) — Nano Banana Pro, único motor de imagem integrado de
+// verdade hoje — por isso o reforço explícito de ultra-realismo/foto aqui.
+const COVER_HOUSE_STYLE = `Ultra-realistic, photorealistic cinematic photojournalism, serious global news-network broadcast quality (Bloomberg/BBC International standard): deep navy blue, steel gray, gold and digital cyan palette; volumetric cinematic lighting; physically accurate reflections; sharp ultra-detailed textures, 8k-grade render; NO readable text, NO logos, NO national flags or emblems.`;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
