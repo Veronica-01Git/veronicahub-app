@@ -19,6 +19,12 @@ type V2StatusResponse = {
 // fetch cru em vez do SDK @higgsfield/client: o pacote (v0.2.1) monta o
 // body sem o wrapper `params` que a API exige, causando 422 em todo
 // request. Confirmado direto contra a API real.
+//
+// quality: "4k" — pedido explícito do usuário (a API só tinha sido testada
+// com "1080p" até aqui). "4k" é o mesmo nome de tier já usado pros vídeos
+// Higgsfield deste projeto (ver PRECOS-STUDIO.md), mas NÃO foi confirmado
+// contra a API real de imagem ainda — se `generateNanoBananaImage` passar a
+// retornar erro em produção, o primeiro suspeito é este valor.
 export async function generateNanoBananaImage(params: {
   prompt: string;
 }): Promise<{ ok: true; imageUrl: string } | { ok: false; error: string; reason?: "nsfw" }> {
@@ -40,7 +46,7 @@ export async function generateNanoBananaImage(params: {
         params: {
           prompt: params.prompt,
           width_and_height: "1536x1536",
-          quality: "1080p",
+          quality: "4k",
           batch_size: 1,
         },
       }),

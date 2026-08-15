@@ -27,11 +27,12 @@ const SOCIAL_MAX_TOKENS = 500;
 const COVER_PROMPT_MAX_TOKENS = 400;
 
 // Identidade visual fixa do Veronica Wire, aplicada em toda capa gerada por
-// IA — mantém as matérias com a mesma "cara" de canal de notícia sério em
-// vez de imagens soltas de banco de imagem. Gerada via generateNanoBananaImage
-// (higgsfield.ts) — Nano Banana Pro, único motor de imagem integrado de
-// verdade hoje — por isso o reforço explícito de ultra-realismo/foto aqui.
-const COVER_HOUSE_STYLE = `Ultra-realistic, photorealistic cinematic photojournalism, serious global news-network broadcast quality (Bloomberg/BBC International standard): deep navy blue, steel gray, gold and digital cyan palette; volumetric cinematic lighting; physically accurate reflections; sharp ultra-detailed textures, 8k-grade render; NO readable text, NO logos, NO national flags or emblems.`;
+// IA — mantém as matérias com a mesma "cara" em vez de imagens soltas de
+// banco de imagem. Gerada via generateNanoBananaImage (higgsfield.ts) —
+// Nano Banana Pro, único motor de imagem integrado de verdade hoje.
+// Deliberadamente SEM estilo cinematográfico/gráfico futurista — pedido do
+// usuário é foto real de notícia, com gente de verdade em cena, 4K.
+const COVER_HOUSE_STYLE = `Real photojournalism — an authentic, unstaged press photograph exactly like a real AP/Reuters news wire image, not a stylized graphic or illustration. Real people genuinely present and active in the scene (workers, professionals, crowds, officials — always generic/anonymous, never a specific real person). Natural available light, true-to-life color and texture, candid documentary framing, ultra-sharp 4K photographic detail. NO cinematic color grading, NO futuristic holograms or digital overlays, NO glowing HUD/broadcast-graphic elements, NO readable text, NO logos, NO national flags or emblems.`;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
@@ -382,8 +383,9 @@ export const generateCoverImageAI = createServerFn({ method: "POST" })
     }
 
     const systemPrompt = `Você escreve prompts de imagem de capa para o Veronica Wire, editoria "${BEAT_LABELS[row.beat]}".
-Leia a matéria e decida a cena mais forte pra ilustrá-la: uma figura humana genérica em destaque (quando a matéria for sobre trabalho, liderança, impacto social/humano direto) OU uma cena institucional/abstrata — gráficos, redes de dados, skylines, telas, símbolos do setor (quando a matéria for sobre política monetária, infraestrutura, números, acordos).
-REGRA FIXA E INEGOCIÁVEL: se usar pessoa, ela precisa ser genérica e não identificável — NUNCA descreva uma pessoa real, nomeada ou reconhecível (nenhum político, executivo ou figura pública específica).
+Leia a matéria e descreva uma cena de foto de notícia REAL, com gente de verdade fazendo algo ligado ao assunto (trabalhando, numa reunião, numa fábrica, num escritório, numa rua, num evento, operando um equipamento etc.) — sempre prefira ter pessoas em cena. Só descreva um lugar/objeto sem gente (prédio, equipamento, documento) se a matéria genuinamente não render nenhuma cena humana plausível.
+PROIBIDO: elementos gráficos futuristas, holograma, overlay digital, tela de dados flutuante, ou qualquer estética "de tela/HUD" — é foto de fotojornalismo real, não ilustração nem infográfico.
+REGRA FIXA E INEGOCIÁVEL: toda pessoa descrita precisa ser genérica e não identificável — NUNCA descreva uma pessoa real, nomeada ou reconhecível (nenhum político, executivo ou figura pública específica).
 Responda SOMENTE com um objeto JSON válido (sem markdown): {"prompt": "cena em inglês, um parágrafo, bem específica ao assunto da matéria, sem mencionar nomes reais de pessoas"}`;
 
     type CreateMessage = (params: Record<string, unknown>) => Promise<{
