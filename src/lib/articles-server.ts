@@ -361,7 +361,16 @@ export const generateCoverImageAI = createServerFn({ method: "POST" })
     }
 
     if (!data.forceNew) {
-      const claimed = await claimLibraryImage(row.beat, row.id);
+      // try/catch isolado: se a migração da tabela LibraryImage ainda não
+      // rodou em produção (deploy pode chegar antes da migração manual),
+      // isso não pode derrubar o caminho que já funciona hoje — só cai
+      // pra gerar uma capa nova, como se a biblioteca estivesse vazia.
+      let claimed: Awaited<ReturnType<typeof claimLibraryImage>> = null;
+      try {
+        claimed = await claimLibraryImage(row.beat, row.id);
+      } catch (error) {
+        console.error("Falha ao consultar a biblioteca de imagens:", error);
+      }
       if (claimed) {
         const [updated] = await db
           .update(articles)
@@ -443,14 +452,20 @@ Responda SOMENTE com um objeto JSON válido (sem markdown): {"prompt": "cena em 
 
     // Entra na biblioteca já usada por esta matéria — mantém o catálogo
     // completo (toda imagem gerada, veio da fila automática ou não) sem
-    // ficar disponível de novo pra outra matéria consumir.
-    await insertLibraryImage({
-      beat: row.beat,
-      imageUrl: image.imageUrl,
-      prompt: scenePrompt,
-      source: "manual",
-      usedByArticleId: row.id,
-    });
+    // ficar disponível de novo pra outra matéria consumir. Mesmo try/catch
+    // isolado do claim acima: a capa em si (coverImageUrl da matéria) não
+    // pode falhar só porque a tabela da biblioteca ainda não existe.
+    try {
+      await insertLibraryImage({
+        beat: row.beat,
+        imageUrl: image.imageUrl,
+        prompt: scenePrompt,
+        source: "manual",
+        usedByArticleId: row.id,
+      });
+    } catch (error) {
+      console.error("Falha ao salvar na biblioteca de imagens:", error);
+    }
 
     const [updated] = await db
       .update(articles)
