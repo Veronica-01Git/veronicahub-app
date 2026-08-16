@@ -1,12 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq, sql, and, gt, gte } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
 import { getDb } from "./db";
-import { users, walletTopUps, ledgerEntries } from "./schema";
+import { users, walletTopUps, ledgerEntries, generations } from "./schema";
 import { getSessionUserId } from "./session";
 import { createTopUpPreference } from "./mercadopago";
 import { generateNanoBananaImage } from "./higgsfield";
 import { checkGenerationRateLimit } from "./rate-limit";
-import { fetchImageAsDataUrl } from "./generations-storage";
+import { persistGeneration } from "./generations-storage";
+import { precheckPrompt } from "./moderation";
 
 const MAX_DEPOSIT_CENTS = 200_000; // R$2.000 — anti-abuso simples pra v1
 
@@ -108,6 +110,16 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Faça login para gerar." };
     }
 
+    // Checagem antes de qualquer débito ou chamada à Higgsfield — evita
+    // gastar a chamada num prompt sabidamente recusado. Ver src/lib/moderation.ts.
+    const precheck = precheckPrompt(data.prompt);
+    if (!precheck.ok) {
+      await getDb()
+        .insert(ledgerEntries)
+        .values({ userId, deltaCents: 0, reason: "moderation:blocked_precheck" });
+      return { ok: false as const, error: precheck.error };
+    }
+
     const rateLimit = await checkGenerationRateLimit(userId);
     if (!rateLimit.ok) {
       return { ok: false as const, error: rateLimit.error };
@@ -164,17 +176,62 @@ export const generateNanoBanana = createServerFn({ method: "POST" })
         deltaCents: usedFree ? 0 : NANO_BANANA_PRICE_CENTS,
         reason: result.reason === "nsfw" ? "refund:moderation_nsfw" : "refund:generation_failed",
       });
+
+      try {
+        await db.insert(generations).values({
+          userId,
+          provider: "higgsfield:nanobanana",
+          prompt: data.prompt,
+          status: result.reason === "nsfw" ? "blocked" : "failed",
+          priceCents: 0,
+        });
+      } catch (error) {
+        console.error("Falha ao registrar geração com erro (não afeta a resposta):", error);
+      }
+
       return { ok: false as const, error: result.error };
     }
 
-    // A geração já foi cobrada e funcionou — um problema no download nunca
-    // deve estornar nem quebrar a resposta; na pior das hipóteses cai pra
-    // URL crua da Higgsfield.
-    const fetched = await fetchImageAsDataUrl(result.imageUrl);
+    // A geração já foi cobrada e funcionou — um problema no download/upload
+    // nunca deve estornar nem quebrar a resposta; na pior das hipóteses cai
+    // pra URL crua da Higgsfield.
+    const generationId = createId();
+    const persisted = await persistGeneration(result.imageUrl, `generations/${generationId}.png`);
+    const priceCents = usedFree ? 0 : NANO_BANANA_PRICE_CENTS;
+
+    // "Logs de custo real": preço cobrado do usuário ao lado do que a
+    // Higgsfield reportou ter consumido (quando reporta) — consultável nos
+    // Workers Logs / `wrangler tail`. Ver também a tabela Generation abaixo,
+    // que alimenta a seção de margem no painel admin.
+    console.log(
+      JSON.stringify({
+        event: "generation_cost",
+        provider: "higgsfield:nanobanana",
+        userId,
+        priceCents,
+        costCreditsUsed: result.creditsUsed,
+      }),
+    );
+
+    try {
+      await db.insert(generations).values({
+        id: generationId,
+        userId,
+        provider: "higgsfield:nanobanana",
+        prompt: data.prompt,
+        status: "completed",
+        priceCents,
+        costCreditsUsed: result.creditsUsed,
+        storageKey: persisted.storageKey,
+        publicUrl: persisted.publicUrl,
+      });
+    } catch (error) {
+      console.error("Falha ao registrar geração (não afeta a resposta ao usuário):", error);
+    }
 
     return {
       ok: true as const,
-      imageUrl: fetched.ok ? fetched.dataUrl : result.imageUrl,
+      imageUrl: persisted.publicUrl ?? persisted.dataUrl ?? result.imageUrl,
       free: usedFree,
     };
   });

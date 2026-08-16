@@ -82,6 +82,36 @@ export const ledgerEntries = pgTable(
   (table) => [index("LedgerEntry_userId_createdAt_idx").on(table.userId, table.createdAt)],
 );
 
+export const generationStatus = pgEnum("GenerationStatus", ["completed", "failed", "blocked"]);
+
+// Registro de cada geração cobrada (hoje só Nano Banana Pro). Fecha dois
+// itens em aberto do checklist da ARQUITETURA-STUDIO.md: onde o arquivo
+// ficou (storageKey/publicUrl, quando o upload pro R2 dá certo — ver
+// src/lib/r2-storage.ts) e o custo real ao lado do preço cobrado
+// (costCreditsUsed, quando a Higgsfield reporta). Nunca é a fonte da
+// verdade do saldo — isso continua sendo o LedgerEntry; esta tabela é só
+// registro/auditoria e alimenta a galeria "Minhas gerações" e o painel admin.
+export const generations = pgTable(
+  "Generation",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id),
+    provider: text("provider").notNull(),
+    prompt: text("prompt").notNull(),
+    status: generationStatus("status").notNull(),
+    priceCents: integer("priceCents").notNull(),
+    costCreditsUsed: integer("costCreditsUsed"),
+    storageKey: text("storageKey"),
+    publicUrl: text("publicUrl"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [index("Generation_userId_createdAt_idx").on(table.userId, table.createdAt)],
+);
+
 export const articleBeat = pgEnum("ArticleBeat", [
   "ia",
   "clima",

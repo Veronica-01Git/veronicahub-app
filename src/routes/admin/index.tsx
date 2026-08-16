@@ -155,6 +155,60 @@ function AdminPanel() {
                 </table>
               </div>
             </section>
+
+            <section>
+              <h2 className="mb-4 font-display text-xl">
+                Gerações recentes ({state.generations.length})
+              </h2>
+              <p className="mb-3 text-[13px] text-muted-foreground">
+                Preço cobrado do usuário ao lado do que a Higgsfield reportou ter consumido — quando
+                ela reporta (créditos consumidos pode ficar em branco).
+              </p>
+              <div className="overflow-x-auto rounded-sm border border-border/60">
+                <table className="w-full min-w-[720px] border-collapse text-left text-[13px]">
+                  <thead>
+                    <tr className="border-b border-border/60 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                      <th className="px-4 py-3">Usuário</th>
+                      <th className="px-4 py-3">Provedor</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Preço cobrado</th>
+                      <th className="px-4 py-3">Créditos consumidos</th>
+                      <th className="px-4 py-3">Criado em</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {state.generations.map((g) => (
+                      <tr key={g.id} className="border-b border-border/30 last:border-0">
+                        <td className="px-4 py-3 text-muted-foreground">{g.userId}</td>
+                        <td className="px-4 py-3">{g.provider}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className="rounded-full px-2 py-0.5 font-mono-tech text-[10px] uppercase tracking-widest"
+                            style={{
+                              background:
+                                g.status === "completed"
+                                  ? "color-mix(in oklab, var(--neon-green) 15%, transparent)"
+                                  : "color-mix(in oklab, var(--destructive) 15%, transparent)",
+                              color:
+                                g.status === "completed"
+                                  ? "var(--neon-green)"
+                                  : "var(--destructive)",
+                            }}
+                          >
+                            {g.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 tabular-nums">{formatBRL(g.priceCents)}</td>
+                        <td className="px-4 py-3 tabular-nums">{g.costCreditsUsed ?? "—"}</td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {new Date(g.createdAt).toLocaleString("pt-BR")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
         )}
       </div>

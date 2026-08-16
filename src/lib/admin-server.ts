@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "./db";
-import { users, walletTopUps } from "./schema";
+import { users, walletTopUps, generations } from "./schema";
 import { getSessionUserId } from "./session";
 
 // Painel admin simples — sem tabela/rota nova de permissões, só um e-mail
@@ -46,9 +46,27 @@ export const getAdminOverview = createServerFn({ method: "GET" }).handler(async 
     .orderBy(desc(walletTopUps.createdAt))
     .limit(50);
 
+  // Monitoramento de margem (ARQUITETURA-STUDIO.md § 4.6): preço cobrado do
+  // usuário ao lado do que a Higgsfield reportou ter consumido, quando
+  // reporta (costCreditsUsed pode vir null — ver src/lib/higgsfield.ts).
+  const recentGenerations = await db
+    .select()
+    .from(generations)
+    .orderBy(desc(generations.createdAt))
+    .limit(50);
+
   return {
     ok: true as const,
     admin: { email: admin.email },
+    generations: recentGenerations.map((g) => ({
+      id: g.id,
+      userId: g.userId,
+      provider: g.provider,
+      status: g.status,
+      priceCents: g.priceCents,
+      costCreditsUsed: g.costCreditsUsed,
+      createdAt: g.createdAt.toISOString(),
+    })),
     users: allUsers.map((u) => ({
       id: u.id,
       email: u.email,

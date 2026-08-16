@@ -9,6 +9,11 @@ type V2StatusResponse = {
   status: V2RequestStatus;
   request_id: string;
   images?: { url: string }[];
+  // Nome do campo não confirmado contra uma resposta real da API (sem
+  // acesso à documentação de créditos da Higgsfield daqui) — capturamos se
+  // vier, sem quebrar nada se não vier. Confirmar o nome exato (ou se esse
+  // dado existe mesmo) antes de confiar nesse número pra relatório de margem.
+  credits_used?: number;
 };
 
 // Só a Nano Banana Pro (text2image/soul) está integrada de verdade — é a
@@ -21,7 +26,10 @@ type V2StatusResponse = {
 // request. Confirmado direto contra a API real.
 export async function generateNanoBananaImage(params: {
   prompt: string;
-}): Promise<{ ok: true; imageUrl: string } | { ok: false; error: string; reason?: "nsfw" }> {
+}): Promise<
+  | { ok: true; imageUrl: string; creditsUsed: number | null }
+  | { ok: false; error: string; reason?: "nsfw" }
+> {
   const credentials = process.env.HF_CREDENTIALS;
   if (!credentials) {
     return { ok: false, error: "HF_CREDENTIALS não configurada." };
@@ -91,7 +99,11 @@ export async function generateNanoBananaImage(params: {
       return { ok: false, error: "Job completou mas não retornou URL de imagem." };
     }
 
-    return { ok: true, imageUrl };
+    return {
+      ok: true,
+      imageUrl,
+      creditsUsed: typeof job.credits_used === "number" ? job.credits_used : null,
+    };
   } catch (error) {
     return {
       ok: false,

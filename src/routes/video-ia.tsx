@@ -16,6 +16,7 @@ import {
   Wand2,
   Clapperboard,
   BookOpen,
+  GalleryHorizontalEnd,
 } from "lucide-react";
 import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
@@ -24,6 +25,7 @@ import { courses } from "@/lib/courses";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
 import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
 import { createDeposit, generateNanoBanana } from "@/lib/wallet-server";
+import { getMyGenerations } from "@/lib/generations-server";
 
 const NANO_BANANA_PRICE_CENTS = 490;
 
@@ -363,11 +365,13 @@ function StudioSidebar({
   modalityChosen,
   onSelect,
   onOpenVeronica,
+  onOpenGallery,
 }: {
   format: Format;
   modalityChosen: boolean;
   onSelect: (f: Format) => void;
   onOpenVeronica: () => void;
+  onOpenGallery: () => void;
 }) {
   const modalities: { key: Format; label: string; icon: typeof Video }[] = [
     { key: "image", label: "Imagem", icon: ImageIcon },
@@ -407,6 +411,13 @@ function StudioSidebar({
             </button>
           );
         })}
+        <button
+          type="button"
+          onClick={onOpenGallery}
+          className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-muted-foreground transition hover:bg-background/60 hover:text-foreground"
+        >
+          <GalleryHorizontalEnd className="h-4 w-4" /> Minhas gerações
+        </button>
       </nav>
       <div className="mx-3 my-1 h-px bg-border/40" />
       <nav className="flex flex-col gap-0.5 p-3">
@@ -467,12 +478,18 @@ function VeronicaStudio() {
   const [authCode, setAuthCode] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"generate" | null>(null);
+  const [pendingAction, setPendingAction] = useState<"generate" | "gallery" | null>(null);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositValue, setDepositValue] = useState(String(MIN_DEPOSIT_CENTS / 100));
   const [depositError, setDepositError] = useState<string | null>(null);
   const [depositLoading, setDepositLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryItems, setGalleryItems] = useState<Awaited<ReturnType<typeof getMyGenerations>>>(
+    [],
+  );
 
   async function refreshUser() {
     const u = await getCurrentUser();
@@ -525,11 +542,30 @@ function VeronicaStudio() {
     return 0;
   }, [user, format, currentVideoTier, imageEngine]);
 
-  function openAuth(action: "generate" | null) {
+  function openAuth(action: "generate" | "gallery" | null) {
     setPendingAction(action);
     setAuthOpen(true);
     setAuthStep("identify");
     setAuthError(null);
+  }
+
+  async function loadGallery() {
+    setGalleryOpen(true);
+    setGalleryLoading(true);
+    try {
+      const items = await getMyGenerations();
+      setGalleryItems(items);
+    } finally {
+      setGalleryLoading(false);
+    }
+  }
+
+  function openGallery() {
+    if (!user) {
+      openAuth("gallery");
+      return;
+    }
+    loadGallery();
   }
 
   function closeAuth() {
@@ -624,6 +660,9 @@ function VeronicaStudio() {
       }
       setUser(res.user);
       closeAuth();
+      if (pendingAction === "gallery") {
+        await loadGallery();
+      }
       if (pendingAction === "generate" && prompt.trim()) {
         if (!isRealPath) {
           performSimulatedGeneration();
@@ -723,6 +762,7 @@ function VeronicaStudio() {
         modalityChosen={modalityChosen}
         onSelect={chooseModality}
         onOpenVeronica={() => openVeronica()}
+        onOpenGallery={openGallery}
       />
       <VeronicaDrawer
         skillId="studio-criativo"
@@ -859,6 +899,59 @@ function VeronicaStudio() {
               </span>
             )}
           </form>
+        </div>
+      )}
+
+      {galleryOpen && user && (
+        <div className="border-b border-border/40 bg-surface/80 px-6 py-5 backdrop-blur">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                Minhas gerações
+              </span>
+              <button
+                type="button"
+                onClick={() => setGalleryOpen(false)}
+                className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+              >
+                Fechar
+              </button>
+            </div>
+            {galleryLoading ? (
+              <p className="font-mono-tech text-[11px] text-muted-foreground">Carregando…</p>
+            ) : galleryItems.length === 0 ? (
+              <p className="font-mono-tech text-[11px] text-muted-foreground">
+                Nenhuma geração ainda.
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+                {galleryItems.map((g) => (
+                  <div
+                    key={g.id}
+                    className="overflow-hidden rounded-sm border border-border/50 bg-black"
+                  >
+                    {g.previewUrl ? (
+                      <img
+                        src={g.previewUrl}
+                        alt={g.prompt}
+                        className="aspect-square w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-square w-full flex-col items-center justify-center gap-1 p-2 text-center text-muted-foreground/50">
+                        <ImageIcon className="h-5 w-5" />
+                        <span className="font-mono-tech text-[8px] uppercase tracking-widest">
+                          {g.status === "completed" ? "não persistido" : g.status}
+                        </span>
+                      </div>
+                    )}
+                    <p className="truncate px-2 py-1.5 font-mono-tech text-[9px] text-muted-foreground">
+                      {g.prompt}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

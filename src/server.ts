@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
+import { runWithCloudflareEnv } from "./lib/cloudflare-context";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -47,26 +48,36 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
-    const url = new URL(request.url);
-    if (url.pathname === "/api/mercadopago-webhook") {
-      try {
-        return await handleMercadoPagoWebhook(request);
-      } catch (error) {
-        console.error("Erro no webhook do Mercado Pago:", error);
-        return new Response("error", { status: 500 });
-      }
-    }
-
-    try {
-      const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
-    } catch (error) {
-      console.error(error);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
-    }
+    // Disponibiliza os bindings do Worker (R2, etc.) pra qualquer código
+    // rodando dentro desta request via getCloudflareEnv() — ver
+    // src/lib/cloudflare-context.ts e src/lib/r2-storage.ts. Envolve a
+    // mesma lógica de sempre, sem mudar nenhum comportamento existente.
+    return runWithCloudflareEnv((env as Record<string, unknown>) ?? {}, () =>
+      handleFetch(request, env, ctx),
+    );
   },
 };
+
+async function handleFetch(request: Request, env: unknown, ctx: unknown): Promise<Response> {
+  const url = new URL(request.url);
+  if (url.pathname === "/api/mercadopago-webhook") {
+    try {
+      return await handleMercadoPagoWebhook(request);
+    } catch (error) {
+      console.error("Erro no webhook do Mercado Pago:", error);
+      return new Response("error", { status: 500 });
+    }
+  }
+
+  try {
+    const handler = await getServerEntry();
+    const response = await handler.fetch(request, env, ctx);
+    return await normalizeCatastrophicSsrResponse(response);
+  } catch (error) {
+    console.error(error);
+    return new Response(renderErrorPage(), {
+      status: 500,
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }
+}
