@@ -20,6 +20,7 @@
   --font-display: "Bricolage Grotesque", "Archivo Black", system-ui, sans-serif;
   --font-sans: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-logo: "Bagel Fat One", "Bricolage Grotesque", system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

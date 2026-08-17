@@ -44,6 +44,7 @@ type EcosystemItem = {
   ready: boolean;
   to?: string;
   note?: string;
+  image?: string;
 };
 
 const ecosystem: EcosystemItem[] = [
@@ -54,6 +55,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Imagem, vídeo e voz gerados com IA. Do prompt à entrega, um pipeline pro que roda em qualquer nicho.",
     ready: true,
     to: "/video-ia",
+    image: "/images/ecosystem/studio.webp",
   },
   {
     icon: FileText,
@@ -62,6 +64,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Otimização de currículo pra passar em ATS, chamar recrutador e virar entrevista.",
     ready: true,
     to: "/veronica-curriculo-certo",
+    image: "/images/ecosystem/curriculo.webp",
   },
   {
     icon: BarChart3,
@@ -70,6 +73,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Calculadora de engajamento e plano de ação pra vender mais no TikTok Shop.",
     ready: true,
     to: "/veronica-analytics",
+    image: "/images/ecosystem/analytics.webp",
   },
   {
     icon: ShieldCheck,
@@ -78,6 +82,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Triagem gratuita de segurança em linguagem simples, mais diagnóstico completo sob demanda.",
     ready: true,
     to: "/veronica-security",
+    image: "/images/ecosystem/security.webp",
   },
   {
     icon: Layers,
@@ -86,6 +91,7 @@ const ecosystem: EcosystemItem[] = [
     desc: "Documentos com prompts prontos pra IA real — Nano Banana Pro, Veo, Midjourney, ElevenLabs.",
     ready: true,
     to: "/prompt-packs",
+    image: "/images/ecosystem/prompt-packs.webp",
   },
   {
     icon: Anchor,
@@ -696,7 +702,19 @@ function Index() {
             }`;
             const content = (
               <>
-                <div className="flex items-start justify-between">
+                {e.image && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 z-0 opacity-30 transition-[opacity,filter] duration-300 group-hover:opacity-45"
+                    style={{
+                      backgroundImage: `linear-gradient(180deg, rgba(5,8,12,.5), rgba(5,8,12,.94)), url(${e.image})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      filter: "saturate(0.9)",
+                    }}
+                  />
+                )}
+                <div className="relative z-10 flex items-start justify-between">
                   <div className={`flex h-11 w-11 items-center justify-center rounded-sm border ${e.ready ? "border-neon-green/50 text-neon-green" : "border-border/60 text-muted-foreground"}`}>
                     <e.icon className="h-5 w-5" />
                   </div>
@@ -710,7 +728,7 @@ function Index() {
                     {e.ready ? e.tag : "Em breve"}
                   </span>
                 </div>
-                <h3 className="mt-6 flex items-center gap-2 font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+                <h3 className="relative z-10 mt-6 flex items-center gap-2 font-display text-2xl text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
                   {e.name}
                   {e.note && (
                     <span className="rounded-full border border-dashed border-muted-foreground/50 px-2 py-0.5 font-mono-tech text-[8px] font-normal uppercase tracking-widest text-muted-foreground">
@@ -718,8 +736,8 @@ function Index() {
                     </span>
                   )}
                 </h3>
-                <p className="mt-3 text-sm leading-[1.6] text-muted-foreground">{e.desc}</p>
-                <div className={`mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest ${e.ready ? "text-muted-foreground transition group-hover:text-neon-green" : "text-muted-foreground/50"}`}>
+                <p className="relative z-10 mt-3 text-sm leading-[1.6] text-muted-foreground">{e.desc}</p>
+                <div className={`relative z-10 mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest ${e.ready ? "text-muted-foreground transition group-hover:text-neon-green" : "text-muted-foreground/50"}`}>
                   {e.ready ? (
                     <>
                       Explorar <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />

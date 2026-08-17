@@ -78,25 +78,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Veronica Hub — Cursos + Vídeo AI · Um único hub" },
+      { title: "Veronica Hub · Laboratório Digital" },
       {
         name: "description",
         content:
-          "11 cursos diretos ao ponto: dark content, IA, tráfego pago, VSL, hacking ético. Acesso vitalício a partir de R$ 19,90.",
+          "O segredo tá no prompt. Comandos diretos ao ponto para quem quer entrar no digital sem enrolação: IA, dark content, tráfego pago e hacking ético.",
       },
       { name: "author", content: "Veronica Hub" },
-      { property: "og:title", content: "Veronica Hub — Laboratório Digital" },
+      { property: "og:title", content: "Veronica Hub · Laboratório Digital" },
       {
         property: "og:description",
         content:
-          "11 cursos diretos ao ponto: dark content, IA, tráfego pago, VSL, hacking ético. Acesso vitalício.",
+          "O segredo tá no prompt. Comandos diretos ao ponto para quem quer entrar no digital sem enrolação.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Veronica Hub — Laboratório Digital" },
+      { name: "twitter:title", content: "Veronica Hub · Laboratório Digital" },
       {
         name: "twitter:description",
-        content: "Cursos + Vídeo AI · Um único hub. A partir de R$ 19,90.",
+        content:
+          "O segredo tá no prompt. Comandos diretos ao ponto para quem quer entrar no digital sem enrolação.",
       },
     ],
     links: [
@@ -109,7 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=Bagel+Fat+One&family=Inter:wght@300;400;500;600;700;800;900&display=swap",
       },
     ],
   }),
