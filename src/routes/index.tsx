@@ -36,6 +36,7 @@ import {
   HeroFrame,
   AuthWidget,
 } from "@/components/SiteChrome";
+import { VeronicaHero } from "@/components/VeronicaHero";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { IntentPortal } from "@/components/home/IntentPortal";
 import { StudioShowcase } from "@/components/home/StudioShowcase";
@@ -129,6 +130,14 @@ export const Route = createFileRoute("/")({
     meta: [
       { property: "og:image", content: ogImage },
       { name: "twitter:image", content: ogImage },
+    ],
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: "/images/home/veronica-hero-poster.webp",
+        fetchpriority: "high",
+      },
     ],
     scripts: [
       {
@@ -452,8 +461,10 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
-        {/* Sem retrato da Veronica no fundo: a hero fica só com o enquadramento
-            cinematográfico (gradientes + cantoneiras neon) e as scanlines. */}
+        {/* Backdrop vivo: loop de vídeo da Veronica (piscada e gotas gravadas)
+            entrando como textura de WebGL, com rastreio de pupila no desktop e
+            pôster estático no mobile/reduced-motion. */}
+        <VeronicaHero />
         <HeroFrame />
         <HeroEyeAccent />
 
