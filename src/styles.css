@@ -150,11 +150,11 @@
 }
 
 /* Re-pins a subtree back to the original dark-native palette inside
-   .home-hybrid — used on the hero band (+ its header/menu), since
-   VeronicaHero's WebGL canvas and the eye/particle accents use
-   mix-blend-mode: screen, calibrated against a near-black backdrop. On white
-   that blend mode washes out to nothing, so the hero stays a deliberate dark
-   "cinematic" band while the rest of the page is the new light body. */
+   .home-hybrid — used on the hero band (+ its header/menu), since the
+   eye/particle accents use mix-blend-mode: screen, calibrated against a
+   near-black backdrop. On white that blend mode washes out to nothing, so the
+   hero stays a deliberate dark "cinematic" band while the rest of the page is
+   the new light body. */
 .home-hero-dark {
   --background: oklch(0.14 0.015 200);
   --foreground: oklch(0.97 0.01 180);

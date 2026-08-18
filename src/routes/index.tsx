@@ -36,7 +36,6 @@ import {
   HeroFrame,
   AuthWidget,
 } from "@/components/SiteChrome";
-import { VeronicaHero } from "@/components/VeronicaHero";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { IntentPortal } from "@/components/home/IntentPortal";
 import { StudioShowcase } from "@/components/home/StudioShowcase";
@@ -130,14 +129,6 @@ export const Route = createFileRoute("/")({
     meta: [
       { property: "og:image", content: ogImage },
       { name: "twitter:image", content: ogImage },
-    ],
-    links: [
-      {
-        rel: "preload",
-        as: "image",
-        href: "/images/home/veronica-cyborg-face.webp",
-        fetchpriority: "high",
-      },
     ],
     scripts: [
       {
@@ -461,9 +452,8 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
-        {/* Mesmo backdrop vivo da Veronica Studio — WebGL com rastreio de
-            pupila no desktop, imagem estática no mobile/reduced-motion. */}
-        <VeronicaHero />
+        {/* Sem retrato da Veronica no fundo: a hero fica só com o enquadramento
+            cinematográfico (gradientes + cantoneiras neon) e as scanlines. */}
         <HeroFrame />
         <HeroEyeAccent />
 
