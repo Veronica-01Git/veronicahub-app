@@ -124,10 +124,57 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
   return s;
 }
 
-export function VeronicaHero() {
+// Variante em vídeo — preview lado a lado com a versão WebGL atual, ativada
+// só por ?hero=video na URL (ver src/routes/index.tsx). Nada muda pra quem
+// acessa a home normalmente; existe pra comparação antes de decidir qual vai
+// pra produção. Mesmo tratamento visual do canvas (screen blend, vinheta via
+// máscara CSS, fallback estático no mobile/reduced-motion).
+function VeronicaHeroVideo() {
+  return (
+    <>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 hidden overflow-hidden md:block motion-reduce:md:hidden"
+        style={{
+          mixBlendMode: "screen",
+          opacity: 0.85,
+          maskImage:
+            "radial-gradient(ellipse 78% 82% at 50% 42%, black 45%, transparent 88%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 78% 82% at 50% 42%, black 45%, transparent 88%)",
+        }}
+      >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/images/home/veronica-cyborg-hero-poster.webp"
+          className="absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 object-cover"
+        >
+          <source src="/videos/veronica-cyborg-hero.mp4" type="video/mp4" />
+        </video>
+      </div>
+      {/* Fallback estático: mobile sempre, e desktop com prefers-reduced-motion —
+          mesmo poster do vídeo, sem autoplay, sem custo de decode. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 block bg-cover bg-center bg-no-repeat opacity-[0.42] md:hidden motion-reduce:md:block"
+        style={{
+          backgroundImage: "url(/images/home/veronica-cyborg-hero-poster.webp)",
+          filter: "contrast(1.08) saturate(0.85) brightness(0.95)",
+          mixBlendMode: "screen",
+        }}
+      />
+    </>
+  );
+}
+
+export function VeronicaHero({ variant = "shader" }: { variant?: "shader" | "video" }) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (variant !== "shader") return;
     const cv = ref.current;
     if (!cv) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -289,7 +336,9 @@ export function VeronicaHero() {
       window.removeEventListener("resize", resize);
       ro.disconnect();
     };
-  }, []);
+  }, [variant]);
+
+  if (variant === "video") return <VeronicaHeroVideo />;
 
   return (
     <>

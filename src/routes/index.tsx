@@ -275,6 +275,16 @@ function Index() {
     };
   }, [mobileOpen]);
 
+  // Preview local da variante em vídeo do hero — ?hero=video na URL. Default
+  // fica no shader atual (comportamento inalterado pra quem não passar o
+  // parâmetro).
+  const [heroVariant, setHeroVariant] = useState<"shader" | "video">("shader");
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("hero") === "video") {
+      setHeroVariant("video");
+    }
+  }, []);
+
   const stats = useReveal<HTMLDivElement>();
   const proof = useReveal<HTMLElement>();
   const featuresR = useReveal<HTMLElement>();
@@ -462,10 +472,12 @@ function Index() {
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
         {/* Mesmo backdrop vivo da Veronica Studio — WebGL com rastreio de
-            pupila no desktop, imagem estática no mobile/reduced-motion. */}
-        <VeronicaHero />
+            pupila no desktop, imagem estática no mobile/reduced-motion.
+            ?hero=video troca pra variante em vídeo (comparação local, não
+            afeta ninguém acessando a home sem esse parâmetro). */}
+        <VeronicaHero variant={heroVariant} />
         <HeroFrame />
-        <HeroEyeAccent />
+        {heroVariant === "shader" && <HeroEyeAccent />}
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
           <div className="max-w-3xl">
