@@ -129,6 +129,10 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
 // acessa a home normalmente; existe pra comparação antes de decidir qual vai
 // pra produção. Mesmo tratamento visual do canvas (screen blend, vinheta via
 // máscara CSS, fallback estático no mobile/reduced-motion).
+// object-contain (não cover) em vídeo e fallback: o frame-fonte já enquadra o
+// rosto inteiro (testa ao queixo, olho humano ao robótico) sem sobra — cover
+// cortava esse enquadramento já apertado pra preencher o retângulo do hero,
+// cortando pedaço do rosto. Mesmo motivo do bg-contain no fallback do shader.
 function VeronicaHeroVideo() {
   return (
     <>
@@ -139,9 +143,9 @@ function VeronicaHeroVideo() {
           mixBlendMode: "screen",
           opacity: 0.85,
           maskImage:
-            "radial-gradient(ellipse 78% 82% at 50% 42%, black 45%, transparent 88%)",
+            "radial-gradient(ellipse 78% 82% at 50% 50%, black 45%, transparent 88%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 78% 82% at 50% 42%, black 45%, transparent 88%)",
+            "radial-gradient(ellipse 78% 82% at 50% 50%, black 45%, transparent 88%)",
         }}
       >
         <video
@@ -150,7 +154,7 @@ function VeronicaHeroVideo() {
           muted
           playsInline
           poster="/images/home/veronica-cyborg-hero-poster.webp"
-          className="absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 object-cover"
+          className="absolute inset-0 h-full w-full object-contain"
         >
           <source src="/videos/veronica-cyborg-hero.mp4" type="video/mp4" />
         </video>
@@ -159,7 +163,7 @@ function VeronicaHeroVideo() {
           mesmo poster do vídeo, sem autoplay, sem custo de decode. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 block bg-cover bg-center bg-no-repeat opacity-[0.42] md:hidden motion-reduce:md:block"
+        className="pointer-events-none absolute inset-0 block bg-contain bg-center bg-no-repeat opacity-[0.42] md:hidden motion-reduce:md:block"
         style={{
           backgroundImage: "url(/images/home/veronica-cyborg-hero-poster.webp)",
           filter: "contrast(1.08) saturate(0.85) brightness(0.95)",
