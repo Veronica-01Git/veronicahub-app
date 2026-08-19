@@ -135,7 +135,7 @@ export const Route = createFileRoute("/")({
       {
         rel: "preload",
         as: "image",
-        href: "/images/home/veronica-cyborg-face.webp",
+        href: "/images/home/veronica-cyborg-hero-poster.webp",
         fetchpriority: "high",
       },
     ],
@@ -274,16 +274,6 @@ function Index() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
-
-  // Preview local da variante em vídeo do hero — ?hero=video na URL. Default
-  // fica no shader atual (comportamento inalterado pra quem não passar o
-  // parâmetro).
-  const [heroVariant, setHeroVariant] = useState<"shader" | "video">("shader");
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("hero") === "video") {
-      setHeroVariant("video");
-    }
-  }, []);
 
   const stats = useReveal<HTMLDivElement>();
   const proof = useReveal<HTMLElement>();
@@ -471,13 +461,10 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
-        {/* Mesmo backdrop vivo da Veronica Studio — WebGL com rastreio de
-            pupila no desktop, imagem estática no mobile/reduced-motion.
-            ?hero=video troca pra variante em vídeo (comparação local, não
-            afeta ninguém acessando a home sem esse parâmetro). */}
-        <VeronicaHero variant={heroVariant} />
+        {/* Vídeo em loop da cyborg — rosto humano/robótico, screen blend,
+            fallback estático no mobile/reduced-motion. */}
+        <VeronicaHero />
         <HeroFrame />
-        {heroVariant === "shader" && <HeroEyeAccent />}
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
           <div className="max-w-3xl">
@@ -1283,29 +1270,6 @@ function EcosystemBackdrop() {
         className="absolute left-1/2 top-1/2 w-[85%] max-w-3xl -translate-x-1/2 -translate-y-1/2 blur-[2px]"
       />
     </div>
-  );
-}
-
-// Acento no canto da hero — olho com nuvem de partículas, bem discreto.
-// Só desktop grande: em telas menores o espaço ao lado do texto some.
-function HeroEyeAccent() {
-  const [active, setActive] = useState(false);
-  const parallaxRef = useParallax<HTMLImageElement>(0.04);
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const small = window.matchMedia("(max-width: 1023px)").matches;
-    setActive(!reduced && !small);
-  }, []);
-  if (!active) return null;
-  return (
-    <img
-      ref={parallaxRef}
-      aria-hidden
-      src="/images/vfx/eye-particles-nobg.webp"
-      alt=""
-      className="pointer-events-none absolute right-[6%] top-[16%] w-[150px] opacity-[0.2] xl:w-[190px]"
-      style={{ mixBlendMode: "screen" }}
-    />
   );
 }
 
