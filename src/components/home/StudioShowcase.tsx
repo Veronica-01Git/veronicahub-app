@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Wallet, Sparkles, Clock } from "lucide-react";
+import { LazyVideo } from "@/components/media/LazyVideo";
 
 // Vitrine comercial real da Veronica Studio — só claims verificáveis no
 // código de src/routes/video-ia.tsx: geração de imagem via Nano Banana Pro
@@ -85,15 +86,14 @@ export function StudioShowcase() {
             className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-cyan/20 via-transparent to-neon-green/20 blur-xl"
           />
           <div className="relative overflow-hidden rounded-sm border border-neon-cyan/40 bg-black shadow-glow-cyan">
-            <video
-              controls
-              playsInline
-              preload="metadata"
+            <LazyVideo
+              src="/videos/veronica-guia.mp4"
               poster="/images/vfx/veronica-guia-poster.webp"
               className="block aspect-video h-auto w-full"
-            >
-              <source src="/videos/veronica-guia.mp4" type="video/mp4" />
-            </video>
+              controls
+              autoPlay={false}
+              muted={false}
+            />
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 scanlines opacity-20"

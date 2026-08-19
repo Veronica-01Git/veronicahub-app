@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { X, Send, Play } from "lucide-react";
 import { veronicaChat } from "@/lib/veronica-server";
-import { getVeronicaSkill, getVeronicaStep, type VeronicaSkillId, type StudioCriativoStepId } from "@/veronica/skills";
+import { LazyImage } from "@/components/media/LazyImage";
+import {
+  getVeronicaSkill,
+  getVeronicaStep,
+  type VeronicaSkillId,
+  type StudioCriativoStepId,
+} from "@/veronica/skills";
 
 type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -167,13 +173,15 @@ export function VeronicaDrawer({
           </>
         ) : (
           <div className="relative aspect-video w-full flex-shrink-0 overflow-hidden border-b border-border/50 bg-black">
-            <img
+            <LazyImage
               src="/images/assistente/avatar-hologram.webp"
               alt="Avatar da assistente Veronica materializando em holograma"
               className="h-full w-full object-cover"
-              loading="lazy"
             />
-            <div aria-hidden className="pointer-events-none absolute inset-0 scanlines opacity-20" />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 scanlines opacity-20"
+            />
           </div>
         )}
 
@@ -226,7 +234,10 @@ export function VeronicaDrawer({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-border/50 p-3">
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center gap-2 border-t border-border/50 p-3"
+        >
           <input
             type="text"
             value={input}
@@ -248,11 +259,7 @@ export function VeronicaDrawer({
 
       {/* Backdrop mobile — fecha ao tocar fora */}
       {open && (
-        <div
-          className="fixed inset-0 z-[55] bg-black/40 sm:hidden"
-          onClick={onClose}
-          aria-hidden
-        />
+        <div className="fixed inset-0 z-[55] bg-black/40 sm:hidden" onClick={onClose} aria-hidden />
       )}
     </>
   );

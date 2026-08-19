@@ -16,6 +16,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { SiteHeader, SiteFooter, SOCIAL_LINKS, HeroFrame } from "@/components/SiteChrome";
+import { LazyImage } from "@/components/media/LazyImage";
 import { courses } from "@/lib/courses";
 
 // Backdrop temático da hero — central de operações de cibersegurança,
@@ -46,10 +47,14 @@ export const Route = createFileRoute("/veronica-security")({
       { title: "Veronica Security — Triagem gratuita de segurança | Veronica Hub" },
       {
         name: "description",
-        content: "Checklist gratuito pra descobrir riscos reais de segurança no seu projeto, em linguagem simples. Diagnóstico completo feito por um desenvolvedor humano, sob demanda.",
+        content:
+          "Checklist gratuito pra descobrir riscos reais de segurança no seu projeto, em linguagem simples. Diagnóstico completo feito por um desenvolvedor humano, sob demanda.",
       },
       { property: "og:title", content: "Veronica Security — Triagem gratuita de segurança" },
-      { property: "og:description", content: "Sem varredura automática. Você responde, a gente te mostra o que isso significa." },
+      {
+        property: "og:description",
+        content: "Sem varredura automática. Você responde, a gente te mostra o que isso significa.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -141,24 +146,30 @@ const CATEGORY_META: Record<RiskCategory, { icon: typeof Github; title: string; 
 
 type RiskTier = "baixo" | "medio" | "alto";
 
-const TIER_META: Record<RiskTier, { label: string; icon: typeof ShieldCheck; color: string; summary: string }> = {
+const TIER_META: Record<
+  RiskTier,
+  { label: string; icon: typeof ShieldCheck; color: string; summary: string }
+> = {
   baixo: {
     label: "Risco Baixo",
     icon: ShieldCheck,
     color: "var(--neon-green)",
-    summary: "Suas respostas não indicam falhas óbvias. Isso não é uma garantia de segurança total, mas é um bom sinal.",
+    summary:
+      "Suas respostas não indicam falhas óbvias. Isso não é uma garantia de segurança total, mas é um bom sinal.",
   },
   medio: {
     label: "Risco Médio",
     icon: ShieldAlert,
     color: "oklch(0.78 0.17 80)",
-    summary: "Você tem pontos reais de atenção. Nenhum é raro — mas juntos, facilitam bastante a vida de quem quiser invadir.",
+    summary:
+      "Você tem pontos reais de atenção. Nenhum é raro — mas juntos, facilitam bastante a vida de quem quiser invadir.",
   },
   alto: {
     label: "Risco Alto",
     icon: ShieldX,
     color: "var(--destructive)",
-    summary: "Várias portas destrancadas ao mesmo tempo. São vulnerabilidades comuns, reais, e vale corrigir antes que alguém encontre primeiro.",
+    summary:
+      "Várias portas destrancadas ao mesmo tempo. São vulnerabilidades comuns, reais, e vale corrigir antes que alguém encontre primeiro.",
   },
 };
 
@@ -179,8 +190,8 @@ const RAIO_X_MESSAGE = "Olá! Quero contratar o Raio-X Veronica Security (R$9,90
 const raioXWhatsappUrl = `${SOCIAL_LINKS.whatsapp}?text=${encodeURIComponent(RAIO_X_MESSAGE)}`;
 
 function VeronicaSecurity() {
-  const [answers, setAnswers] = useState<Record<string, boolean | null>>(
-    () => Object.fromEntries(CHECKLIST_ITEMS.map((i) => [i.id, null])),
+  const [answers, setAnswers] = useState<Record<string, boolean | null>>(() =>
+    Object.fromEntries(CHECKLIST_ITEMS.map((i) => [i.id, null])),
   );
   const [submitted, setSubmitted] = useState(false);
 
@@ -211,23 +222,30 @@ function VeronicaSecurity() {
               <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
               Veronica Security · Diagnóstico manual
             </div>
-            <h1 className="mt-8 font-display text-5xl sm:text-6xl md:text-7xl" style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}>
+            <h1
+              className="mt-8 font-display text-5xl sm:text-6xl md:text-7xl"
+              style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}
+            >
               <span className="block text-foreground">Seu projeto está</span>
               <span className="block text-outline-neon animate-glow-pulse">
                 mais exposto<span className="text-neon-green">_</span>
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-              Um checklist rápido e gratuito, em linguagem simples, pra saber onde estão os riscos reais.
-              Sem varredura automática — só o que você mesmo sabe sobre o seu projeto.
+              Um checklist rápido e gratuito, em linguagem simples, pra saber onde estão os riscos
+              reais. Sem varredura automática — só o que você mesmo sabe sobre o seu projeto.
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <a
                 href="#triagem"
                 className="group relative inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-7 py-4 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
               >
-                Fazer a triagem grátis <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]" />
+                Fazer a triagem grátis{" "}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]"
+                />
               </a>
             </div>
             <p className="mt-4 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground/70">
@@ -241,15 +259,17 @@ function VeronicaSecurity() {
       <section id="triagem" className="border-b border-border/40 bg-surface/40 py-20 md:py-24">
         <div className="mx-auto max-w-3xl px-6">
           <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-            <span className="h-px w-8 bg-neon-cyan" />
-            [ 01 ] Triagem gratuita
+            <span className="h-px w-8 bg-neon-cyan" />[ 01 ] Triagem gratuita
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+          <h2
+            className="font-display text-3xl sm:text-4xl"
+            style={{ letterSpacing: "-0.03em", lineHeight: "1" }}
+          >
             Responda com sinceridade.
           </h2>
           <p className="mt-3 max-w-xl text-sm leading-[1.6] text-muted-foreground">
-            Isso não acessa, testa ou varre nada do seu projeto — é só o que você mesmo responde sobre suas
-            próprias práticas.
+            Isso não acessa, testa ou varre nada do seu projeto — é só o que você mesmo responde
+            sobre suas próprias práticas.
           </p>
 
           <div className="mt-8 flex flex-col gap-3">
@@ -296,7 +316,8 @@ function VeronicaSecurity() {
             disabled={!allAnswered}
             className="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-sm bg-neon-green px-7 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Ver meu resultado <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            Ver meu resultado{" "}
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </button>
           {!allAnswered && (
             <p className="mt-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground/70">
@@ -310,13 +331,25 @@ function VeronicaSecurity() {
       {submitted && allAnswered && (
         <section className="border-b border-border/40 py-20 md:py-24">
           <div className="mx-auto max-w-3xl px-6">
-            <div className="flex flex-col items-start gap-6 rounded-sm border p-6 backdrop-blur sm:p-8" style={{ borderColor: `color-mix(in oklab, ${TIER_META[tier].color} 45%, var(--border))`, background: "var(--surface)" }}>
+            <div
+              className="flex flex-col items-start gap-6 rounded-sm border p-6 backdrop-blur sm:p-8"
+              style={{
+                borderColor: `color-mix(in oklab, ${TIER_META[tier].color} 45%, var(--border))`,
+                background: "var(--surface)",
+              }}
+            >
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-sm border" style={{ borderColor: TIER_META[tier].color, color: TIER_META[tier].color }}>
+                <div
+                  className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-sm border"
+                  style={{ borderColor: TIER_META[tier].color, color: TIER_META[tier].color }}
+                >
                   <TierIcon className="h-7 w-7" />
                 </div>
                 <div>
-                  <div className="font-display text-2xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                  <div
+                    className="font-display text-2xl text-foreground"
+                    style={{ letterSpacing: "-0.02em" }}
+                  >
                     {TIER_META[tier].label}
                   </div>
                   <div className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
@@ -324,7 +357,9 @@ function VeronicaSecurity() {
                   </div>
                 </div>
               </div>
-              <p className="text-[15px] leading-[1.65] text-foreground/90">{TIER_META[tier].summary}</p>
+              <p className="text-[15px] leading-[1.65] text-foreground/90">
+                {TIER_META[tier].summary}
+              </p>
 
               {flaggedCategories.length > 0 && (
                 <div className="w-full">
@@ -336,11 +371,16 @@ function VeronicaSecurity() {
                       const meta = CATEGORY_META[cat];
                       const CatIcon = meta.icon;
                       return (
-                        <div key={cat} className="flex items-start gap-3 rounded-sm border border-border/60 bg-background/60 p-4">
+                        <div
+                          key={cat}
+                          className="flex items-start gap-3 rounded-sm border border-border/60 bg-background/60 p-4"
+                        >
                           <CatIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-cyan" />
                           <div>
                             <div className="text-[14px] text-foreground">{meta.title}</div>
-                            <p className="mt-1 text-[13px] leading-[1.55] text-muted-foreground">{meta.body}</p>
+                            <p className="mt-1 text-[13px] leading-[1.55] text-muted-foreground">
+                              {meta.body}
+                            </p>
                           </div>
                         </div>
                       );
@@ -358,21 +398,25 @@ function VeronicaSecurity() {
         <div className="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-              <span className="h-px w-8 bg-neon-green" />
-              [ 02 ] Raio-X profissional
+              <span className="h-px w-8 bg-neon-green" />[ 02 ] Raio-X profissional
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+            <h2
+              className="font-display text-3xl sm:text-4xl"
+              style={{ letterSpacing: "-0.03em", lineHeight: "1" }}
+            >
               Quer o diagnóstico completo, feito por um especialista?
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-[1.6] text-muted-foreground">
-              A triagem acima é uma autoavaliação. O Raio-X vai além: um desenvolvedor humano — o próprio
-              administrador da Veronica Hub — analisa seu projeto manualmente e entrega um documento oficial,
-              pronto pra protocolar ou arquivar.
+              A triagem acima é uma autoavaliação. O Raio-X vai além: um desenvolvedor humano — o
+              próprio administrador da Veronica Hub — analisa seu projeto manualmente e entrega um
+              documento oficial, pronto pra protocolar ou arquivar.
             </p>
 
             <div className="mt-8 flex flex-col gap-4 rounded-sm border border-neon-green/30 bg-gradient-to-br from-neon-green/8 via-background/60 to-background p-6 backdrop-blur sm:p-8">
               <div className="flex flex-wrap items-end gap-2">
-                <span className="font-display text-5xl text-neon-green text-glow-green">R$9,90</span>
+                <span className="font-display text-5xl text-neon-green text-glow-green">
+                  R$9,90
+                </span>
                 <span className="mb-1.5 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
                   pagamento único · via Pix
                 </span>
@@ -399,26 +443,38 @@ function VeronicaSecurity() {
                 Chamar no WhatsApp
               </a>
               <p className="text-[12px] leading-[1.5] text-muted-foreground">
-                O pagamento (Pix) é combinado direto no WhatsApp — nada é cobrado automaticamente aqui.
+                O pagamento (Pix) é combinado direto no WhatsApp — nada é cobrado automaticamente
+                aqui.
               </p>
             </div>
           </div>
 
           <div className="relative hidden lg:block">
-            <div aria-hidden className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-green/20 via-transparent to-neon-cyan/20 blur-xl" />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-green/20 via-transparent to-neon-cyan/20 blur-xl"
+            />
             <div className="relative overflow-hidden rounded-sm border border-neon-green/40 shadow-glow-green">
-              <img
+              <LazyImage
                 src="/images/security/security-hacker.webp"
                 alt="Desenvolvedor analisando vulnerabilidades em múltiplas telas de terminal"
                 className="block h-auto w-full"
-                loading="lazy"
                 width={1376}
                 height={768}
               />
-              <div aria-hidden className="pointer-events-none absolute inset-0 scanlines opacity-20" />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 scanlines opacity-20"
+              />
             </div>
-            <div aria-hidden className="pointer-events-none absolute -left-3 -top-3 h-10 w-10 border-l-2 border-t-2 border-neon-green/70" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-cyan/70" />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -left-3 -top-3 h-10 w-10 border-l-2 border-t-2 border-neon-green/70"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-cyan/70"
+            />
           </div>
         </div>
       </section>
@@ -428,15 +484,18 @@ function VeronicaSecurity() {
         <section className="py-20 md:py-24">
           <div className="mx-auto max-w-3xl px-6">
             <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-              <span className="h-px w-8 bg-neon-cyan" />
-              [ 03 ] Vá além
+              <span className="h-px w-8 bg-neon-cyan" />[ 03 ] Vá além
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl" style={{ letterSpacing: "-0.03em", lineHeight: "1" }}>
+            <h2
+              className="font-display text-3xl sm:text-4xl"
+              style={{ letterSpacing: "-0.03em", lineHeight: "1" }}
+            >
               Quer entender esses riscos por dentro, não só de fora?
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-[1.6] text-muted-foreground">
-              O comando <strong className="text-foreground">Hacking Ético</strong> te ensina exatamente isso —
-              pentesting real, bug bounty e laboratório dedicado pra você mesmo achar as falhas antes de alguém achar por você.
+              O comando <strong className="text-foreground">Hacking Ético</strong> te ensina
+              exatamente isso — pentesting real, bug bounty e laboratório dedicado pra você mesmo
+              achar as falhas antes de alguém achar por você.
             </p>
             <Link
               to="/comandos"
@@ -448,7 +507,10 @@ function VeronicaSecurity() {
                   <GraduationCap className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                  <h3
+                    className="font-display text-xl text-foreground"
+                    style={{ letterSpacing: "-0.02em" }}
+                  >
                     {HACKING_ETICO.title}
                   </h3>
                   <div className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -457,7 +519,8 @@ function VeronicaSecurity() {
                 </div>
               </div>
               <span className="flex flex-shrink-0 items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
-                Ver comando <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                Ver comando{" "}
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           </div>

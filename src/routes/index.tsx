@@ -37,6 +37,7 @@ import {
   AuthWidget,
 } from "@/components/SiteChrome";
 import { VeronicaHero } from "@/components/VeronicaHero";
+import { LazyImage } from "@/components/media/LazyImage";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { IntentPortal } from "@/components/home/IntentPortal";
 import { StudioShowcase } from "@/components/home/StudioShowcase";
@@ -1264,7 +1265,7 @@ function EcosystemBackdrop() {
         WebkitMaskImage: "radial-gradient(ellipse 55% 60% at 50% 45%, black 30%, transparent 78%)",
       }}
     >
-      <img
+      <LazyImage
         src="/images/vfx/particle-sphere-nobg.webp"
         alt=""
         className="absolute left-1/2 top-1/2 w-[85%] max-w-3xl -translate-x-1/2 -translate-y-1/2 blur-[2px]"
