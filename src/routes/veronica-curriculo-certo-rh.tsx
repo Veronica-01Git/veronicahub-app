@@ -14,6 +14,7 @@ import { extractTextFromFile, ACCEPT_ATTR } from "@/lib/resume-parsers";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
 import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
 import { createDeposit, debitCurriculoRhScreening } from "@/lib/wallet-server";
+import { MERCADOPAGO_ENABLED } from "@/lib/mercadopago-flag";
 
 type Wallet = {
   id: string;
@@ -612,7 +613,28 @@ function CurriculoCertoRH() {
         </div>
       )}
 
-      {depositOpen && user && (
+      {depositOpen && user && !MERCADOPAGO_ENABLED && (
+        <div
+          className="flex flex-wrap items-center gap-2.5 border-b px-6 py-4 md:pl-[92px] md:pr-10"
+          style={{ borderColor: "var(--doc-line)", background: "var(--doc-accent-soft)" }}
+        >
+          <span
+            className="font-mono-tech text-[10.5px] uppercase tracking-widest"
+            style={{ color: "var(--doc-red)" }}
+          >
+            Recarga temporariamente indisponível.
+          </span>
+          <button
+            type="button"
+            onClick={() => setDepositOpen(false)}
+            className="font-mono-tech text-[10.5px] uppercase tracking-widest"
+            style={{ color: "var(--doc-ink-faint)" }}
+          >
+            Fechar
+          </button>
+        </div>
+      )}
+      {depositOpen && user && MERCADOPAGO_ENABLED && (
         <form
           onSubmit={handleDeposit}
           className="flex flex-wrap items-center gap-2.5 border-b px-6 py-4 md:pl-[92px] md:pr-10"
