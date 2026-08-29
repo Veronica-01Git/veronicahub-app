@@ -24,7 +24,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { useParallax } from "@/hooks/use-parallax";
@@ -33,10 +33,8 @@ import {
   SOCIAL_LINKS,
   EcosystemMenu,
   ECOSYSTEM_LINKS,
-  HeroFrame,
   AuthWidget,
 } from "@/components/SiteChrome";
-import { VeronicaHero } from "@/components/VeronicaHero";
 import { LazyImage } from "@/components/media/LazyImage";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { IntentPortal } from "@/components/home/IntentPortal";
@@ -460,13 +458,22 @@ function Index() {
         </div>
       )}
 
-      {/* Hero */}
-      <section className="relative overflow-hidden scanlines">
-        {/* Vídeo em loop da cyborg — rosto humano/robótico, screen blend,
-            fallback estático no mobile/reduced-motion. */}
-        <VeronicaHero />
-        <HeroFrame />
-
+      {/* Hero — fundo branco escopado só a esta section (o resto da home
+          continua no tema escuro padrão). Sem vídeo da cyborg de fundo. */}
+      <section
+        className="relative overflow-hidden scanlines"
+        style={
+          {
+            "--background": "oklch(1 0 0)",
+            "--foreground": "oklch(0.16 0.01 250)",
+            "--surface": "oklch(0.975 0.003 90)",
+            "--muted-foreground": "oklch(0.46 0.012 250)",
+            "--border": "oklch(0.88 0.006 90 / 0.9)",
+            background: "var(--background)",
+            color: "var(--foreground)",
+          } as CSSProperties
+        }
+      >
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
