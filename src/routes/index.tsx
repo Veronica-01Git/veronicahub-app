@@ -902,7 +902,6 @@ function Index() {
         ref={proof.ref}
         className={`reveal ${proof.visible ? "reveal-visible" : ""} relative overflow-hidden mx-auto max-w-7xl px-6 py-24 cv-auto`}
       >
-        <ProofBackdrop />
         <ProofSection />
       </section>
 
@@ -1212,42 +1211,6 @@ function Index() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-// Crânio wireframe holográfico em loop, fundo já removido — reforça o eixo
-// "laboratório digital" atrás dos depoimentos. Some em mobile/reduced-motion
-// (vídeo decorativo pesado não compensa em tela pequena).
-function ProofBackdrop() {
-  const [active, setActive] = useState(false);
-  const parallaxRef = useParallax<HTMLDivElement>(0.06);
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const small = window.matchMedia("(max-width: 767px)").matches;
-    setActive(!reduced && !small);
-  }, []);
-  if (!active) return null;
-  return (
-    <div
-      ref={parallaxRef}
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.16] lg:opacity-[0.2]"
-      style={{
-        mixBlendMode: "screen",
-        maskImage: "radial-gradient(ellipse 65% 60% at 50% 38%, black 35%, transparent 82%)",
-        WebkitMaskImage: "radial-gradient(ellipse 65% 60% at 50% 38%, black 35%, transparent 82%)",
-      }}
-    >
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute left-1/2 top-1/2 h-full w-auto min-w-full -translate-x-1/2 -translate-y-1/2 object-cover blur-[1px]"
-      >
-        <source src="/videos/skull-reference-nobg.webm" type="video/webm" />
-      </video>
     </div>
   );
 }
