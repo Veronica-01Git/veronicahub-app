@@ -213,10 +213,11 @@ function VeronicaSecurity() {
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {/* Hero — mesmo padrão visual da Studio, com backdrop temático de Security */}
-      <section className="relative overflow-hidden scanlines">
+      {/* Hero — mesmo padrão visual da Studio, com backdrop temático de Security.
+          Direção "Sinal": sem scanlines (menos ruído de fundo), mais respiro vertical. */}
+      <section className="relative overflow-hidden">
         <SecurityBackdrop />
-        <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-16 md:pb-28 md:pt-24">
+        <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-36 md:pt-32">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
@@ -255,11 +256,12 @@ function VeronicaSecurity() {
         </div>
       </section>
 
-      {/* Etapa 1 — Checklist */}
-      <section id="triagem" className="border-b border-border/40 bg-surface/40 py-20 md:py-24">
+      {/* Etapa 1 — Checklist. Direção "Sinal": um accent só (verde) em todos os
+          rótulos de seção — antes alternava verde/ciano sem motivo. */}
+      <section id="triagem" className="border-b border-border/40 bg-surface/40 py-24 md:py-32">
         <div className="mx-auto max-w-3xl px-6">
-          <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-            <span className="h-px w-8 bg-neon-cyan" />[ 01 ] Triagem gratuita
+          <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+            <span className="h-px w-8 bg-neon-green" />[ 01 ] Triagem gratuita
           </div>
           <h2
             className="font-display text-3xl sm:text-4xl"
@@ -272,7 +274,7 @@ function VeronicaSecurity() {
             sobre suas próprias práticas.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3">
+          <div className="mt-10 flex flex-col gap-3">
             {CHECKLIST_ITEMS.map((item) => {
               const answer = answers[item.id];
               return (
@@ -298,8 +300,8 @@ function VeronicaSecurity() {
                       onClick={() => setAnswer(item.id, false)}
                       className={`flex items-center gap-1.5 rounded-full border px-4 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition ${
                         answer === false
-                          ? "border-neon-cyan bg-neon-cyan/10 text-neon-cyan"
-                          : "border-border/60 text-muted-foreground hover:border-neon-cyan/40 hover:text-foreground"
+                          ? "border-foreground/50 bg-foreground/10 text-foreground"
+                          : "border-border/60 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                       }`}
                     >
                       <X className="h-3 w-3" /> Não
@@ -329,7 +331,7 @@ function VeronicaSecurity() {
 
       {/* Resultado da triagem */}
       {submitted && allAnswered && (
-        <section className="border-b border-border/40 py-20 md:py-24">
+        <section className="border-b border-border/40 py-24 md:py-32">
           <div className="mx-auto max-w-3xl px-6">
             <div
               className="flex flex-col items-start gap-6 rounded-sm border p-6 backdrop-blur sm:p-8"
@@ -375,7 +377,7 @@ function VeronicaSecurity() {
                           key={cat}
                           className="flex items-start gap-3 rounded-sm border border-border/60 bg-background/60 p-4"
                         >
-                          <CatIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-cyan" />
+                          <CatIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
                           <div>
                             <div className="text-[14px] text-foreground">{meta.title}</div>
                             <p className="mt-1 text-[13px] leading-[1.55] text-muted-foreground">
@@ -394,7 +396,7 @@ function VeronicaSecurity() {
       )}
 
       {/* Etapa 2 — Raio-X profissional */}
-      <section className="border-b border-border/40 bg-surface/40 py-20 md:py-24">
+      <section className="border-b border-border/40 bg-surface/40 py-24 md:py-32">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
@@ -452,7 +454,7 @@ function VeronicaSecurity() {
           <div className="relative hidden lg:block">
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-green/20 via-transparent to-neon-cyan/20 blur-xl"
+              className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-green/20 via-transparent to-neon-green/5 blur-xl"
             />
             <div className="relative overflow-hidden rounded-sm border border-neon-green/40 shadow-glow-green">
               <LazyImage
@@ -462,10 +464,6 @@ function VeronicaSecurity() {
                 width={1376}
                 height={768}
               />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 scanlines opacity-20"
-              />
             </div>
             <div
               aria-hidden
@@ -473,7 +471,7 @@ function VeronicaSecurity() {
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-cyan/70"
+              className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-green/35"
             />
           </div>
         </div>
@@ -481,10 +479,10 @@ function VeronicaSecurity() {
 
       {/* Indução — Hacking Ético */}
       {HACKING_ETICO && (
-        <section className="py-20 md:py-24">
+        <section className="py-24 md:py-32">
           <div className="mx-auto max-w-3xl px-6">
-            <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-              <span className="h-px w-8 bg-neon-cyan" />[ 03 ] Vá além
+            <div className="mb-3 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <span className="h-px w-8 bg-neon-green" />[ 03 ] Vá além
             </div>
             <h2
               className="font-display text-3xl sm:text-4xl"
@@ -500,10 +498,10 @@ function VeronicaSecurity() {
             <Link
               to="/comandos"
               hash="hacking-etico"
-              className="group relative mt-8 flex items-center justify-between gap-6 overflow-hidden rounded-sm border border-border/60 bg-surface/70 p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/60 hover:shadow-[0_0_30px_-8px_oklch(0.88_0.15_195/0.5)]"
+              className="group relative mt-8 flex items-center justify-between gap-6 overflow-hidden rounded-sm border border-border/60 bg-surface/70 p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-neon-green/60 hover:shadow-glow-green"
             >
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-sm border border-neon-cyan/40 text-neon-cyan">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-sm border border-neon-green/40 text-neon-green">
                   <GraduationCap className="h-6 w-6" />
                 </div>
                 <div>
@@ -518,7 +516,7 @@ function VeronicaSecurity() {
                   </div>
                 </div>
               </div>
-              <span className="flex flex-shrink-0 items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
+              <span className="flex flex-shrink-0 items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
                 Ver comando{" "}
                 <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
               </span>
