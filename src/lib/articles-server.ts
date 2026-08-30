@@ -66,6 +66,7 @@ function mapArticle(row: typeof articles.$inferSelect) {
     sourceUrls: row.sourceUrls,
     status: row.status,
     aiGenerated: row.aiGenerated,
+    autoPublished: row.autoPublished,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
@@ -289,6 +290,7 @@ export async function publishArticleFromCron(
       sourceUrls: draft.content.sourceUrls,
       status: "published",
       aiGenerated: true,
+      autoPublished: true,
       publishedAt: new Date(),
     })
     .returning();

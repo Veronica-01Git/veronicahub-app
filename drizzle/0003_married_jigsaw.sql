@@ -1,0 +1,1 @@
+ALTER TABLE "Article" ADD COLUMN "autoPublished" boolean DEFAULT false NOT NULL;
