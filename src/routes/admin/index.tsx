@@ -9,7 +9,7 @@ import { formatBRL } from "@/lib/account";
 // direta, e mesmo assim protegido de verdade no servidor (getAdminOverview
 // só retorna dado pra quem já é admin na sessão). Sem isso, é só uma
 // página em branco pedindo login.
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   component: AdminPanel,
   head: () => ({
     meta: [{ title: "Painel Admin | Veronica Hub" }],

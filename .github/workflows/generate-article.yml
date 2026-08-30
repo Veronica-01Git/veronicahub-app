@@ -1,0 +1,17 @@
+name: Gera e publica matéria (Veronica Wire)
+
+on:
+  schedule:
+    - cron: "0 */5 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chama o endpoint de geração automática
+        run: |
+          curl --fail --silent --show-error \
+            --max-time 120 \
+            -X POST "https://veronicahub.com/api/cron/generate-article" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

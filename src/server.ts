@@ -4,6 +4,8 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleImageTransform } from "./lib/image-transform-server";
+import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
+import { handleGenerateArticleCron } from "./lib/article-cron";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -62,6 +64,33 @@ export default {
         return await handleImageTransform(request);
       } catch (error) {
         console.error("Erro na transformação de imagem:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/sitemap.xml") {
+      try {
+        return await handleSitemap();
+      } catch (error) {
+        console.error("Erro ao gerar sitemap.xml:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/feed.xml") {
+      try {
+        return await handleRssFeed();
+      } catch (error) {
+        console.error("Erro ao gerar feed.xml:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/generate-article" && request.method === "POST") {
+      try {
+        return await handleGenerateArticleCron(request);
+      } catch (error) {
+        console.error("Erro no cron de geração de matéria:", error);
         return new Response("error", { status: 500 });
       }
     }

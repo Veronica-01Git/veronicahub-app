@@ -124,6 +124,106 @@ const beatValidator = (input: unknown) => {
   return { beat: data.beat };
 };
 
+type DraftContent = {
+  headline: string;
+  excerpt: string;
+  body: string;
+  desk: string;
+  sourceUrls: string[];
+};
+
+// Núcleo de "pede pra IA pesquisar e escrever a matéria" — sem tocar no
+// banco nem checar quem está chamando. Usado tanto pelo fluxo manual
+// (generateArticleDraftAI, admin logado, sempre vira rascunho) quanto pelo
+// cron automático (publishArticleFromCron, autenticado por CRON_SECRET,
+// publica direto — ver comentário lá).
+async function draftArticleContent(
+  beat: Beat,
+): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "ANTHROPIC_API_KEY não configurada." };
+  }
+
+  const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
+Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, recente e verificável nessa editoria — não invente nada.
+Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, sem texto antes ou depois), exatamente neste formato:
+{"headline": "manchete curta e direta em português, sem clickbait", "excerpt": "1-2 frases de resumo", "body": "matéria completa em português, 3-5 parágrafos, tom jornalístico factual, sem opinião", "desk": "Desk de <algo específico da matéria>", "sourceUrls": ["https://...", "https://..."]}
+"sourceUrls" deve conter as URLs reais que você usou na pesquisa. Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
+
+  // web_search_20250305 é uma tool server-side (a Anthropic executa a
+  // busca e injeta o resultado na mesma resposta) — pode não estar no
+  // union type de `tools`/overloads desta versão do SDK. Em vez de tentar
+  // casar com o tipo exato de `messages.create` (arriscado sem compilador
+  // à mão pra conferir), chamamos por uma assinatura mínima com só o que
+  // de fato usamos da resposta.
+  type CreateMessage = (params: Record<string, unknown>) => Promise<{
+    content: Array<{ type: string; text?: string }>;
+  }>;
+
+  let response: { content: Array<{ type: string; text?: string }> };
+  try {
+    const anthropic = new Anthropic({ apiKey });
+    response = await (anthropic.messages.create as unknown as CreateMessage).call(
+      anthropic.messages,
+      {
+        model: DRAFT_MODEL,
+        max_tokens: DRAFT_MAX_TOKENS,
+        system: systemPrompt,
+        messages: [
+          { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
+        ],
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
+      },
+    );
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Falha ao gerar rascunho com IA.",
+    };
+  }
+
+  const text = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n")
+    .trim();
+
+  const jsonStart = text.indexOf("{");
+  const jsonEnd = text.lastIndexOf("}");
+  if (jsonStart === -1 || jsonEnd === -1) {
+    return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo." };
+  }
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+  } catch {
+    return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo." };
+  }
+
+  if (typeof parsed.error === "string") {
+    return { ok: false, error: parsed.error };
+  }
+
+  const { headline, excerpt, body, desk, sourceUrls } = parsed;
+  if (
+    typeof headline !== "string" ||
+    typeof excerpt !== "string" ||
+    typeof body !== "string" ||
+    typeof desk !== "string" ||
+    !Array.isArray(sourceUrls) ||
+    !sourceUrls.every((u) => typeof u === "string")
+  ) {
+    return { ok: false, error: "IA retornou um formato inesperado. Tente de novo." };
+  }
+
+  return {
+    ok: true,
+    content: { headline, excerpt, body, desk, sourceUrls: sourceUrls as string[] },
+  };
+}
+
 // Gera SEMPRE como rascunho (status "draft") — nunca publica sozinho. Um
 // admin revisa em /admin/artigos e decide publicar ou descartar. Isso é
 // deliberado: um LLM com busca na web ainda pode errar fato/data/citação, e
@@ -136,96 +236,23 @@ export const generateArticleDraftAI = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Acesso restrito." };
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      return { ok: false as const, error: "ANTHROPIC_API_KEY não configurada." };
-    }
-
-    const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[data.beat]}" (${BEAT_BRIEF[data.beat]}).
-Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, recente e verificável nessa editoria — não invente nada.
-Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, sem texto antes ou depois), exatamente neste formato:
-{"headline": "manchete curta e direta em português, sem clickbait", "excerpt": "1-2 frases de resumo", "body": "matéria completa em português, 3-5 parágrafos, tom jornalístico factual, sem opinião", "desk": "Desk de <algo específico da matéria>", "sourceUrls": ["https://...", "https://..."]}
-"sourceUrls" deve conter as URLs reais que você usou na pesquisa. Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
-
-    // web_search_20250305 é uma tool server-side (a Anthropic executa a
-    // busca e injeta o resultado na mesma resposta) — pode não estar no
-    // union type de `tools`/overloads desta versão do SDK. Em vez de tentar
-    // casar com o tipo exato de `messages.create` (arriscado sem compilador
-    // à mão pra conferir), chamamos por uma assinatura mínima com só o que
-    // de fato usamos da resposta.
-    type CreateMessage = (params: Record<string, unknown>) => Promise<{
-      content: Array<{ type: string; text?: string }>;
-    }>;
-
-    let response: { content: Array<{ type: string; text?: string }> };
-    try {
-      const anthropic = new Anthropic({ apiKey });
-      response = await (anthropic.messages.create as unknown as CreateMessage).call(
-        anthropic.messages,
-        {
-          model: DRAFT_MODEL,
-          max_tokens: DRAFT_MAX_TOKENS,
-          system: systemPrompt,
-          messages: [
-            { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
-          ],
-          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
-        },
-      );
-    } catch (error) {
-      return {
-        ok: false as const,
-        error: error instanceof Error ? error.message : "Falha ao gerar rascunho com IA.",
-      };
-    }
-
-    const text = response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("\n")
-      .trim();
-
-    const jsonStart = text.indexOf("{");
-    const jsonEnd = text.lastIndexOf("}");
-    if (jsonStart === -1 || jsonEnd === -1) {
-      return { ok: false as const, error: "IA não retornou um rascunho válido. Tente de novo." };
-    }
-
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
-    } catch {
-      return { ok: false as const, error: "IA não retornou um rascunho válido. Tente de novo." };
-    }
-
-    if (typeof parsed.error === "string") {
-      return { ok: false as const, error: parsed.error };
-    }
-
-    const { headline, excerpt, body, desk, sourceUrls } = parsed;
-    if (
-      typeof headline !== "string" ||
-      typeof excerpt !== "string" ||
-      typeof body !== "string" ||
-      typeof desk !== "string" ||
-      !Array.isArray(sourceUrls) ||
-      !sourceUrls.every((u) => typeof u === "string")
-    ) {
-      return { ok: false as const, error: "IA retornou um formato inesperado. Tente de novo." };
+    const draft = await draftArticleContent(data.beat);
+    if (!draft.ok) {
+      return { ok: false as const, error: draft.error };
     }
 
     const db = getDb();
-    const slug = await uniqueSlug(db, headline);
+    const slug = await uniqueSlug(db, draft.content.headline);
     const [row] = await db
       .insert(articles)
       .values({
         slug,
         beat: data.beat,
-        headline,
-        excerpt,
-        body,
-        desk,
-        sourceUrls: sourceUrls as string[],
+        headline: draft.content.headline,
+        excerpt: draft.content.excerpt,
+        body: draft.content.body,
+        desk: draft.content.desk,
+        sourceUrls: draft.content.sourceUrls,
         status: "draft",
         aiGenerated: true,
       })
@@ -233,6 +260,41 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
 
     return { ok: true as const, article: mapArticle(row) };
   });
+
+// Chamado direto do endpoint /api/cron/generate-article (src/server.ts),
+// autenticado por CRON_SECRET em vez de sessão de admin — quem aciona é o
+// GitHub Actions, não um humano logado. Por isso PUBLICA direto (sem passar
+// por "draft"): decisão explícita do usuário, trocando a salvaguarda de
+// revisão manual por atualização automática a cada 5h. Ver
+// generateArticleDraftAI acima pro fluxo manual com revisão.
+export async function publishArticleFromCron(
+  beat: Beat,
+): Promise<{ ok: true; article: ReturnType<typeof mapArticle> } | { ok: false; error: string }> {
+  const draft = await draftArticleContent(beat);
+  if (!draft.ok) {
+    return { ok: false, error: draft.error };
+  }
+
+  const db = getDb();
+  const slug = await uniqueSlug(db, draft.content.headline);
+  const [row] = await db
+    .insert(articles)
+    .values({
+      slug,
+      beat,
+      headline: draft.content.headline,
+      excerpt: draft.content.excerpt,
+      body: draft.content.body,
+      desk: draft.content.desk,
+      sourceUrls: draft.content.sourceUrls,
+      status: "published",
+      aiGenerated: true,
+      publishedAt: new Date(),
+    })
+    .returning();
+
+  return { ok: true, article: mapArticle(row) };
+}
 
 const saveValidator = (input: unknown) => {
   const data = input as {
