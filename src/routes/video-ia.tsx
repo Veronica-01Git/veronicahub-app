@@ -25,6 +25,7 @@ import { courses } from "@/lib/courses";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
 import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
 import { createDeposit, generateNanoBanana } from "@/lib/wallet-server";
+import { MERCADOPAGO_ENABLED } from "@/lib/mercadopago-flag";
 
 const NANO_BANANA_PRICE_CENTS = 490;
 
@@ -828,7 +829,23 @@ function VeronicaStudio() {
           </div>
         )}
 
-        {depositOpen && user && (
+        {depositOpen && user && !MERCADOPAGO_ENABLED && (
+          <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2.5">
+              <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
+                Recarga temporariamente indisponível.
+              </span>
+              <button
+                type="button"
+                onClick={() => setDepositOpen(false)}
+                className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        )}
+        {depositOpen && user && MERCADOPAGO_ENABLED && (
           <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
             <form
               onSubmit={handleDeposit}

@@ -33,10 +33,53 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 - Branch de trabalho atual: `claude/veronicahub-redesign-cont-k92gt4`
   (criada a partir de `main`, já com histórico mesclado em `main` também)
   — pra continuar itens pendentes sem mexer direto em `main`.
+- **Conta do Mercado Pago bloqueada permanentemente** (decisão interna
+  de risco do MP, não é bloqueio regulatório do Bacen/DICT — a chave
+  Pix do usuário segue funcionando normalmente fora do MP). Recarga de
+  créditos foi desligada via kill switch na branch
+  `claude/psp-mercado-pago-strategy-2cwlcl` — ver seção "Mercado Pago
+  desligado" abaixo. Próximo passo (ainda não iniciado): integrar API
+  Pix de um banco onde já existe conta PJ ativa (Efí, Inter ou Cora),
+  em vez de cadastro a frio em gateway (Asaas/Pagar.me).
 - Repositório irmão `~/negocio-da-china-app` (China Exchange) não foi
   tocado.
 
 ## O que já foi feito
+
+### Mercado Pago desligado (branch `claude/psp-mercado-pago-strategy-2cwlcl`)
+Conta do MP foi bloqueada permanentemente pelo próprio Mercado Pago
+(decisão interna de risco deles). Investigação prévia confirmou que não
+é marcação de fraude do Bacen/DICT — se fosse, o Pix do usuário estaria
+travado em qualquer instituição, e não está. Decisão: não vale perseguir
+reversão (recurso interno de risco quase nunca reverte); desligar a
+recarga agora e trocar de provedor depois, usando a API Pix de um banco
+onde já existe conta PJ ativa em vez de recadastro a frio em gateway.
+
+Kill switch implementado **sem mexer em schema/migration**:
+- `src/lib/mercadopago-flag.ts` (**novo arquivo**) —
+  `MERCADOPAGO_ENABLED = false`. É a única fonte da verdade da flag;
+  reativar (quando fizer sentido) é só virar pra `true` aqui.
+- `src/lib/wallet-server.ts` — `createDeposit` checa a flag **primeiro**
+  e retorna erro tratado (`"Recarga temporariamente indisponível."`)
+  antes de tocar em sessão/DB. É o único ponto tocado neste arquivo.
+- `src/lib/mercadopago-webhook.ts` — com a flag desligada, responde
+  `{ received: true }` (200) e sai sem processar o payload.
+- `src/routes/video-ia.tsx`, `veronica-curriculo-certo.tsx`,
+  `veronica-curriculo-certo-rh.tsx` — o formulário de depósito só
+  renderiza com `MERCADOPAGO_ENABLED` ligada; com ela desligada mostra
+  "Recarga temporariamente indisponível." e um botão de fechar.
+- `src/lib/mercadopago.ts` **não foi tocado** — continua intacto, pronto
+  pra reativar ou servir de referência quando o novo provedor Pix entrar.
+- Confirmado explicitamente que o **gasto de crédito continua
+  funcionando**: `generateNanoBanana`, `debitCurriculoGeneration` e
+  `debitCurriculoRhScreening` (todos em `wallet-server.ts`) só mexem em
+  `users.balanceCents`/créditos grátis via SQL condicional — nenhum
+  depende de `mercadopago.ts` ou da preference.
+- `npx vite build` e `npx eslint` passam limpos com essas mudanças
+  (rodado depois de `npm install`, que não tinha sido feito ainda neste
+  ambiente).
+- Ainda **não commitado nem enviado** (`git push`) — aguardando
+  confirmação do usuário a cada etapa, ver regras de segurança abaixo.
 
 ### Veronica Rede no menu hambúrguer (PR #7, mesclado em `main`)
 - `/veronica-rede` (página do programa de afiliados/revendedores) já
@@ -201,10 +244,18 @@ continuar isso:**
 - **Nunca** dar `git push`, publicar ou fazer deploy sem confirmação
   explícita do usuário a cada vez — é o mesmo repositório que roda
   carteira e Mercado Pago reais em produção (`veronicahub.com`).
-- Nunca mexer em `src/lib/wallet-server.ts`, `src/lib/auth-server.ts`,
-  `src/lib/mercadopago.ts`, `src/lib/higgsfield.ts`, nem no schema do
-  banco — essas partes já estão validadas em produção com dinheiro
-  real. Mudanças nessa área pedem confirmação extra, sempre.
+- **Atualizado (conta MP bloqueada permanentemente):** a regra abaixo de
+  nunca mexer em `mercadopago.ts`/`wallet-server.ts` deixou de valer como
+  bloqueio absoluto pra essa dupla — a recarga foi desligada via kill
+  switch (`MERCADOPAGO_ENABLED`, ver "Mercado Pago desligado" acima).
+  `wallet-server.ts` teve uma edição mínima (checagem da flag em
+  `createDeposit`, antes de tocar em sessão/DB); `mercadopago.ts`
+  continua intocado. Ainda assim, qualquer mudança nova nessa área
+  (inclusive religar a flag ou integrar o próximo provedor Pix) pede
+  confirmação extra do usuário, sempre. `src/lib/auth-server.ts`,
+  `src/lib/higgsfield.ts` e o schema do banco continuam 100% na regra
+  original: nunca mexer sem confirmação — essas partes já estão
+  validadas em produção com dinheiro real.
 - Não mexer no repositório irmão `~/negocio-da-china-app` nem no app
   principal `~/veronicahub-app` fora do que está documentado aqui sem
   perguntar antes.

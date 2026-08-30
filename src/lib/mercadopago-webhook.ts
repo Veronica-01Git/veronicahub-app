@@ -6,6 +6,7 @@ import {
   WebhookSignatureValidator,
   InvalidWebhookSignatureError,
 } from "./mercadopago";
+import { MERCADOPAGO_ENABLED } from "./mercadopago-flag";
 
 type MpWebhookBody = {
   type?: string;
@@ -17,6 +18,12 @@ type MpWebhookBody = {
 // TanStack) — precisa de URL fixa/previsível pra registrar no painel do
 // Mercado Pago, o que a URL de RPC com hash do createServerFn não permite.
 export async function handleMercadoPagoWebhook(request: Request): Promise<Response> {
+  // Conta bloqueada — não deveria mais chegar notificação nenhuma, mas se
+  // chegar, confirma recebimento sem tocar em pagamento/DB.
+  if (!MERCADOPAGO_ENABLED) {
+    return Response.json({ received: true });
+  }
+
   const url = new URL(request.url);
 
   // O Mercado Pago manda esse evento de duas formas: a assinatura de

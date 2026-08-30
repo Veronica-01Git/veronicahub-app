@@ -4,6 +4,7 @@ import { getDb } from "./db";
 import { users, walletTopUps, ledgerEntries } from "./schema";
 import { getSessionUserId } from "./session";
 import { createTopUpPreference } from "./mercadopago";
+import { MERCADOPAGO_ENABLED } from "./mercadopago-flag";
 import { generateNanoBananaImage } from "./higgsfield";
 import { checkGenerationRateLimit } from "./rate-limit";
 import { fetchImageAsDataUrl } from "./generations-storage";
@@ -50,6 +51,10 @@ const createDepositValidator = (input: unknown) => {
 export const createDeposit = createServerFn({ method: "POST" })
   .validator(createDepositValidator)
   .handler(async ({ data }) => {
+    if (!MERCADOPAGO_ENABLED) {
+      return { ok: false as const, error: "Recarga temporariamente indisponível." };
+    }
+
     const userId = await getSessionUserId();
     if (!userId) {
       return { ok: false as const, error: "Faça login para depositar." };
