@@ -11,7 +11,14 @@ jobs:
     steps:
       - name: Chama o endpoint de geração automática
         run: |
-          curl --fail --silent --show-error \
+          status=$(curl --silent --show-error \
             --max-time 120 \
+            -o response.json -w "%{http_code}" \
             -X POST "https://veronicahub.com/api/cron/generate-article" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          echo "HTTP status: $status"
+          cat response.json
+          echo
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi
