@@ -117,7 +117,10 @@ function ArticlePage() {
                 <>
                   <span className="opacity-40">·</span>
                   <span className="inline-flex items-center gap-1 text-neon-cyan">
-                    <Sparkles className="h-3 w-3" /> rascunho com IA, revisado pela redação
+                    <Sparkles className="h-3 w-3" />
+                    {state.article.autoPublished
+                      ? "gerado e publicado por IA, sem revisão humana"
+                      : "rascunho com IA, revisado pela redação"}
                   </span>
                 </>
               )}

@@ -91,9 +91,11 @@ export const articleBeat = pgEnum("ArticleBeat", [
 ]);
 export const articleStatus = pgEnum("ArticleStatus", ["draft", "published"]);
 
-// Matérias do Veronica Wire (/blog). Rascunho gerado por IA (aiGenerated =
-// true) sempre entra como "draft" — nunca publica sozinho, precisa de um
-// admin revisar e trocar pra "published" em /admin/artigos.
+// Matérias do Veronica Wire (/blog). Duas formas de virar "published": um
+// admin gera rascunho com IA em /admin/artigos e revisa antes de publicar
+// (autoPublished = false), ou o cron de /api/cron/generate-article publica
+// direto, sem revisão humana (autoPublished = true) — usado pra diferenciar
+// o selo "revisado pela redação" na página da matéria.
 export const articles = pgTable(
   "Article",
   {
@@ -113,6 +115,7 @@ export const articles = pgTable(
       .default(sql`'{}'::text[]`),
     status: articleStatus("status").notNull().default("draft"),
     aiGenerated: boolean("aiGenerated").notNull().default(false),
+    autoPublished: boolean("autoPublished").notNull().default(false),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
     publishedAt: timestamp("publishedAt"),
