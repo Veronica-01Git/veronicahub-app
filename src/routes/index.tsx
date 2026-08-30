@@ -263,6 +263,7 @@ const faqs = [
 
 function Index() {
   const [mobileOpen, setMobileOpen] = useState(false);
+    const [veronicaOpen, setVeronicaOpen] = useState(false);
   useEffect(() => {
     if (!mobileOpen) return;
     function onKeyDown(e: KeyboardEvent) {
@@ -290,6 +291,25 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+            <VeronicaDrawer
+        skillId="home"
+        open={veronicaOpen}
+        stepId={null}
+        onClose={() => setVeronicaOpen(false)}
+      />
+      {!veronicaOpen && (
+        <button
+          type="button"
+          onClick={() => setVeronicaOpen(true)}
+          aria-label="Perguntar à Veronica"
+          className="group fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-full border border-neon-green/50 bg-background/90 py-3 pl-3 pr-4 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green shadow-glow-green backdrop-blur transition hover:-translate-y-0.5 hover:brightness-110"
+        >
+          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-neon-green/50 bg-neon-green/10 font-display text-sm">
+            V
+          </span>
+          <span className="hidden sm:inline">Perguntar à Veronica</span>
+        </button>
+      )}
       {/* Grão cinematográfico — textura estática (sem jitter quadro a quadro),
           mesmo vocabulário do .scanlines da hero, cobrindo a página inteira. */}
       <div
@@ -365,6 +385,19 @@ function Index() {
         <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
           <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
             <AuthWidget variant="mobile" />
+                        <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                setVeronicaOpen(true);
+              }}
+              className="flex items-center gap-2 border-b border-border/40 py-3.5 text-left text-neon-green"
+            >
+              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-neon-green/50 bg-neon-green/10 font-display text-[9px]">
+                V
+              </span>
+              Perguntar à Veronica
+            </button>
             <Link
               to="/comandos"
               onClick={() => setMobileOpen(false)}
