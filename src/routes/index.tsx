@@ -37,7 +37,7 @@ import {
   AuthWidget,
 } from "@/components/SiteChrome";
 import { VeronicaHero } from "@/components/VeronicaHero";
-import { LazyImage } from "@/components/media/LazyImage";
+import { VeronicaDrawer } from "@/components/VeronicaDrawer";import { LazyImage } from "@/components/media/LazyImage";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { IntentPortal } from "@/components/home/IntentPortal";
 import { StudioShowcase } from "@/components/home/StudioShowcase";
