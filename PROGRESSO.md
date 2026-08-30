@@ -6,9 +6,10 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 ## Onde estamos
 
 - Repositório: `~/veronicahub-app` (WSL), GitHub `Veronica-01Git/veronicahub-app`.
-- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `4e3fe89` (merge
-  do redesign visual + feed viral do TikTok Shop no Veronica Analytics)
-  — confirmado ao vivo em `veronicahub.com`.
+- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `a24d7c9`
+  (PR #7 — link "Veronica Rede" adicionado ao menu hambúrguer mobile,
+  ver seção abaixo) — deploy automático do Cloudflare deve ter
+  disparado a partir desse push em `main`.
 - **Worker de produção correto: `veronicahub-app`** (não
   `veronica-01git-veronicahub-app`). A conta Cloudflare tem os dois —
   `veronica-01git-veronicahub-app` existe mas NÃO é o que serve o
@@ -36,6 +37,19 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
   tocado.
 
 ## O que já foi feito
+
+### Veronica Rede no menu hambúrguer (PR #7, mesclado em `main`)
+- `/veronica-rede` (página do programa de afiliados/revendedores) já
+  existia no código desde antes, mas era uma rota **órfã**: nenhum lugar
+  do site linkava pra ela (nem menu, nem rodapé, nem outra página) —
+  só acessível digitando a URL direto.
+- Adicionado um `<Link to="/veronica-rede">Veronica Rede</Link>` no menu
+  hambúrguer mobile (`src/components/SiteChrome.tsx`, dentro de
+  `SiteHeader`), logo depois de "Blog" e antes da seção "Ecossistema".
+  Não mexeu no dropdown desktop (`EcosystemMenu`) nem nos cards
+  "O Ecossistema" da home — só no menu mobile, por pedido explícito.
+- PR: https://github.com/Veronica-01Git/veronicahub-app/pull/7 —
+  mesclado (squash) em `main` no commit `a24d7c9`.
 
 ### Home (`src/routes/index.tsx`) — REVERTIDA
 Por pedido do usuário, a home voltou a ser exatamente a versão publicada

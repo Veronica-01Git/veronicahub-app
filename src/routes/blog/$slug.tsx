@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { LazyImage } from "@/components/media/LazyImage";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
 
@@ -123,9 +124,11 @@ function ArticlePage() {
             </div>
 
             {state.article.coverImageUrl && (
-              <img
+              <LazyImage
                 src={state.article.coverImageUrl}
                 alt=""
+                priority
+                useCfResize={false}
                 className="mt-6 aspect-video w-full rounded-sm border border-border/40 object-cover"
               />
             )}

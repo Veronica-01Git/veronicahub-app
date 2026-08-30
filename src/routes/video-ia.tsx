@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
+import { LazyImage } from "@/components/media/LazyImage";
 import type { StudioCriativoStepId } from "@/veronica/skills";
 import { courses } from "@/lib/courses";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
@@ -243,7 +244,12 @@ function GenerationPreview({ result }: { result: GenerationResult }) {
     if (result.imageUrl) {
       return (
         <div className="relative w-full max-w-xs overflow-hidden rounded-sm border border-neon-cyan/40 bg-black">
-          <img src={result.imageUrl} alt={result.prompt} className="w-full" />
+          <LazyImage
+            src={result.imageUrl}
+            alt={result.prompt}
+            useCfResize={false}
+            className="w-full"
+          />
           <span className="absolute left-3 top-3 rounded-sm border border-neon-cyan/40 bg-background/70 px-2 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
             {IMAGE_ENGINES.nanobanana.label}
           </span>
@@ -731,642 +737,681 @@ function VeronicaStudio() {
         onClose={() => setVeronicaOpen(false)}
       />
 
-      <div className={`transition-[padding] duration-300 ease-out md:pl-60 ${veronicaOpen ? "sm:pr-[420px]" : ""}`}>
-      {authOpen && !user && (
-        <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
-          <div className="mx-auto max-w-7xl">
-            {authStep === "identify" ? (
-              <form onSubmit={requestCode} className="flex flex-wrap items-center gap-2.5">
-                <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  Entrar ou criar conta —
-                </span>
-                <input
-                  type="email"
-                  required
-                  autoFocus
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-[13px] outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
-                >
-                  {authLoading ? "Enviando…" : "Enviar código"}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeAuth}
-                  className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
-                >
-                  Cancelar
-                </button>
-                {authError && (
-                  <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
-                    {authError}
+      <div
+        className={`transition-[padding] duration-300 ease-out md:pl-60 ${veronicaOpen ? "sm:pr-[420px]" : ""}`}
+      >
+        {authOpen && !user && (
+          <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
+            <div className="mx-auto max-w-7xl">
+              {authStep === "identify" ? (
+                <form onSubmit={requestCode} className="flex flex-wrap items-center gap-2.5">
+                  <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                    Entrar ou criar conta —
                   </span>
-                )}
-              </form>
-            ) : (
-              <form onSubmit={confirmCode} className="flex flex-wrap items-center gap-2.5">
-                <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  Código enviado para {authEmail} —
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  required
-                  autoFocus
-                  value={authCode}
-                  onChange={(e) => setAuthCode(e.target.value.replace(/\D/g, ""))}
-                  placeholder="000000"
-                  className="w-28 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-center text-[15px] font-mono-tech tracking-[0.3em] outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
-                >
-                  {authLoading ? "Confirmando…" : "Confirmar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthStep("identify");
-                    setAuthError(null);
-                  }}
-                  className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
-                >
-                  Trocar e-mail
-                </button>
-                <button
-                  type="button"
-                  onClick={closeAuth}
-                  className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
-                >
-                  Cancelar
-                </button>
-                {authError && (
-                  <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
-                    {authError}
+                  <input
+                    type="email"
+                    required
+                    autoFocus
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                    className="rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-[13px] outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
+                  >
+                    {authLoading ? "Enviando…" : "Enviar código"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeAuth}
+                    className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+                  >
+                    Cancelar
+                  </button>
+                  {authError && (
+                    <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
+                      {authError}
+                    </span>
+                  )}
+                </form>
+              ) : (
+                <form onSubmit={confirmCode} className="flex flex-wrap items-center gap-2.5">
+                  <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                    Código enviado para {authEmail} —
                   </span>
-                )}
-              </form>
-            )}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                    autoFocus
+                    value={authCode}
+                    onChange={(e) => setAuthCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="000000"
+                    className="w-28 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-center text-[15px] font-mono-tech tracking-[0.3em] outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
+                  >
+                    {authLoading ? "Confirmando…" : "Confirmar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthStep("identify");
+                      setAuthError(null);
+                    }}
+                    className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+                  >
+                    Trocar e-mail
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeAuth}
+                    className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+                  >
+                    Cancelar
+                  </button>
+                  {authError && (
+                    <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
+                      {authError}
+                    </span>
+                  )}
+                </form>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {depositOpen && user && (
-        <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
-          <form
-            onSubmit={handleDeposit}
-            className="mx-auto flex max-w-7xl flex-wrap items-center gap-2.5"
-          >
-            <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-              Depositar via Mercado Pago — mínimo {formatBRL(MIN_DEPOSIT_CENTS)}
-            </span>
-            <span className="font-mono-tech text-[12px]">R$</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              required
-              autoFocus
-              value={depositValue}
-              onChange={(e) => setDepositValue(e.target.value)}
-              className="w-24 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-[13px] outline-none"
-            />
-            <button
-              type="submit"
-              disabled={depositLoading}
-              className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
+        {depositOpen && user && (
+          <div className="border-b border-border/40 bg-surface/80 px-6 py-4 backdrop-blur">
+            <form
+              onSubmit={handleDeposit}
+              className="mx-auto flex max-w-7xl flex-wrap items-center gap-2.5"
             >
-              {depositLoading ? "Criando…" : "Ir para pagamento"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDepositOpen(false)}
-              className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
-            >
-              Cancelar
-            </button>
-            {depositError && (
-              <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
-                {depositError}
+              <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                Depositar via Mercado Pago — mínimo {formatBRL(MIN_DEPOSIT_CENTS)}
               </span>
-            )}
-          </form>
-        </div>
-      )}
+              <span className="font-mono-tech text-[12px]">R$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                required
+                autoFocus
+                value={depositValue}
+                onChange={(e) => setDepositValue(e.target.value)}
+                className="w-24 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 text-[13px] outline-none"
+              />
+              <button
+                type="submit"
+                disabled={depositLoading}
+                className="rounded-sm bg-neon-green px-4 py-1.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
+              >
+                {depositLoading ? "Criando…" : "Ir para pagamento"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDepositOpen(false)}
+                className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground"
+              >
+                Cancelar
+              </button>
+              {depositError && (
+                <span className="w-full font-mono-tech text-[10.5px] uppercase tracking-widest text-destructive">
+                  {depositError}
+                </span>
+              )}
+            </form>
+          </div>
+        )}
 
-      {toast && (
-        <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-sm border border-neon-green/50 bg-background/95 px-4 py-2.5 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green shadow-glow-green backdrop-blur">
-          {toast}
-        </div>
-      )}
+        {toast && (
+          <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-sm border border-neon-green/50 bg-background/95 px-4 py-2.5 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green shadow-glow-green backdrop-blur">
+            {toast}
+          </div>
+        )}
 
-      {/* Banner + 4 modalidades — porta de entrada do Studio Criativo.
+        {/* Banner + 4 modalidades — porta de entrada do Studio Criativo.
           O compositor (workspace de verdade) só aparece depois de escolher
           uma modalidade, em vez de despejar tudo de uma vez. */}
-      {!modalityChosen && (
-        <section className="relative overflow-hidden">
-          <div
-            className="relative flex min-h-[360px] flex-col items-center justify-center gap-2 px-6 py-20 text-center"
-            style={{
-              backgroundImage:
-                "linear-gradient(180deg, rgba(5,8,12,.4), rgba(5,8,12,.85)), url(/images/studio/studio-film-set.webp)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/50 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-              Studio Criativo
-            </div>
-            <h1
-              className="mt-5 font-display text-4xl text-white sm:text-6xl"
-              style={{ letterSpacing: "-0.03em", lineHeight: "0.98" }}
+        {!modalityChosen && (
+          <section className="relative overflow-hidden">
+            <div
+              className="relative flex min-h-[360px] flex-col items-center justify-center gap-2 px-6 py-20 text-center"
+              style={{
+                backgroundImage:
+                  "linear-gradient(180deg, rgba(5,8,12,.4), rgba(5,8,12,.85)), url(/images/studio/studio-film-set.webp)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
             >
-              Sua ideia, em execução.
-            </h1>
-            <p className="mx-auto mt-2 max-w-md text-[15px] leading-[1.6] text-white/80">
-              Escolha o formato — a IA gera, você dirige.
-            </p>
-          </div>
+              <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/50 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
+                <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+                Studio Criativo
+              </div>
+              <h1
+                className="mt-5 font-display text-4xl text-white sm:text-6xl"
+                style={{ letterSpacing: "-0.03em", lineHeight: "0.98" }}
+              >
+                Sua ideia, em execução.
+              </h1>
+              <p className="mx-auto mt-2 max-w-md text-[15px] leading-[1.6] text-white/80">
+                Escolha o formato — a IA gera, você dirige.
+              </p>
+            </div>
 
-          <div className="relative mx-auto -mt-14 max-w-5xl px-6 pb-20">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {(Object.keys(FORMAT_META) as Format[]).map((f) => {
-                const meta = FORMAT_META[f];
-                return (
+            <div className="relative mx-auto -mt-14 max-w-5xl px-6 pb-20">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {(Object.keys(FORMAT_META) as Format[]).map((f) => {
+                  const meta = FORMAT_META[f];
+                  return (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => chooseModality(f)}
+                      className="group flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-sm border border-border/60 bg-background/95 p-6 text-center shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] backdrop-blur transition hover:-translate-y-1 hover:border-neon-green/60 hover:shadow-glow-green"
+                    >
+                      <meta.icon className="h-8 w-8 text-neon-green transition group-hover:scale-110" />
+                      <span
+                        className="font-display text-xl text-foreground"
+                        style={{ letterSpacing: "-0.02em" }}
+                      >
+                        {meta.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Hero — workspace de geração. Painel com blur/overlay garante
+          contraste do texto; o botão de gerar fica sempre visível, sem
+          precisar rolar. */}
+        {modalityChosen && (
+          <section className="relative overflow-hidden scanlines">
+            <HeroFrame />
+            <div className="relative mx-auto max-w-5xl px-6 pb-14 pt-10 md:pb-20 md:pt-16">
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setModalityChosen(false)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
+                >
+                  ← Trocar modalidade
+                </button>
+                <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
+                  <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+                  Studio Criativo · {FORMAT_META[format].label}
+                </div>
+              </div>
+
+              <div
+                id="gerar"
+                className="relative rounded-sm border border-border/60 bg-background/55 p-5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7"
+              >
+                {/* formato */}
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(FORMAT_META) as Format[]).map((f) => {
+                    const meta = FORMAT_META[f];
+                    const active = format === f;
+                    return (
+                      <button
+                        key={f}
+                        onClick={() => setFormat(f)}
+                        className={`flex items-center gap-2 rounded-full border px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest transition ${
+                          active
+                            ? "border-neon-green bg-neon-green/15 text-neon-green shadow-[0_0_20px_-4px_oklch(0.85_0.22_155/0.7)]"
+                            : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
+                        }`}
+                      >
+                        <meta.icon className="h-3.5 w-3.5" />
+                        {meta.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* prompt — em destaque */}
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder={PROMPT_PLACEHOLDER[format]}
+                  rows={4}
+                  className="mt-4 w-full resize-y rounded-sm border border-border/60 bg-background/70 p-4 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/50 sm:p-5 sm:text-base"
+                />
+
+                {/* opções avançadas — sempre visível no desktop, recolhe no mobile */}
+                <button
+                  type="button"
+                  onClick={() => setAdvancedOpen((v) => !v)}
+                  className="mt-4 flex min-h-[44px] w-full items-center justify-between rounded-sm border border-border/60 px-4 py-2.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground md:hidden"
+                >
+                  Opções avançadas
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                <div
+                  className={`${advancedOpen ? "mt-4 flex" : "hidden"} flex-wrap gap-x-6 gap-y-4 md:mt-5 md:flex`}
+                >
+                  {format === "video" && (
+                    <>
+                      <PillGroup label="Motor">
+                        {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).map((m) => (
+                          <Pill
+                            key={m}
+                            tone="cyan"
+                            active={videoModel === m}
+                            onClick={() => {
+                              setVideoModel(m);
+                              setVideoTier(
+                                VIDEO_MODELS[m].tiers.find((t) => t.freeEligible)?.key ??
+                                  VIDEO_MODELS[m].tiers[0].key,
+                              );
+                            }}
+                          >
+                            {VIDEO_MODELS[m].label}
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                      <PillGroup label="Qualidade">
+                        {VIDEO_MODELS[videoModel].tiers.map((t) => (
+                          <Pill
+                            key={t.key}
+                            active={videoTier === t.key}
+                            onClick={() => setVideoTier(t.key)}
+                          >
+                            {t.label}
+                            <span
+                              className={
+                                videoTier === t.key
+                                  ? "text-neon-green/80"
+                                  : "text-muted-foreground/70"
+                              }
+                            >
+                              em breve
+                            </span>
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                      <PillGroup label="Proporção">
+                        {ASPECT_RATIOS.map((r) => (
+                          <Pill
+                            key={r}
+                            active={aspectRatio === r}
+                            onClick={() => setAspectRatio(r)}
+                          >
+                            {r}
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                      <PillGroup label="Duração">
+                        {VIDEO_DURATIONS.map((d) => (
+                          <Pill key={d} active={duration === d} onClick={() => setDuration(d)}>
+                            {d}
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                    </>
+                  )}
+
+                  {format === "image" && (
+                    <>
+                      <PillGroup label="Motor">
+                        {(Object.keys(IMAGE_ENGINES) as ImageEngineKey[]).map((k) => {
+                          const e = IMAGE_ENGINES[k];
+                          const isReal = k === "nanobanana";
+                          const freeNow = isReal && (user?.freeImageCredits ?? 0) > 0;
+                          return (
+                            <Pill
+                              key={k}
+                              active={imageEngine === k}
+                              onClick={() => setImageEngine(k)}
+                            >
+                              {e.label}
+                              <span
+                                className={
+                                  imageEngine === k
+                                    ? "text-neon-green/80"
+                                    : "text-muted-foreground/70"
+                                }
+                              >
+                                {!isReal
+                                  ? "em breve"
+                                  : freeNow
+                                    ? "grátis"
+                                    : formatBRL(e.priceCents)}
+                              </span>
+                            </Pill>
+                          );
+                        })}
+                      </PillGroup>
+                      <PillGroup label="Proporção">
+                        {ASPECT_RATIOS.map((r) => (
+                          <Pill
+                            key={r}
+                            active={aspectRatio === r}
+                            onClick={() => setAspectRatio(r)}
+                          >
+                            {r}
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                    </>
+                  )}
+
+                  {format === "voice" && (
+                    <PillGroup label="Motor">
+                      {(Object.keys(VOICE_ENGINES) as VoiceEngineKey[]).map((k) => {
+                        const e = VOICE_ENGINES[k];
+                        return (
+                          <Pill
+                            key={k}
+                            active={voiceEngine === k}
+                            onClick={() => setVoiceEngine(k)}
+                          >
+                            {e.label}
+                            <span
+                              className={
+                                voiceEngine === k
+                                  ? "text-neon-green/80"
+                                  : "text-muted-foreground/70"
+                              }
+                            >
+                              {formatBRL(e.priceCents)}
+                            </span>
+                          </Pill>
+                        );
+                      })}
+                    </PillGroup>
+                  )}
+
+                  {format === "avatar" && (
+                    <>
+                      <PillGroup label="Motor">
+                        {(Object.keys(AVATAR_ENGINES) as AvatarEngineKey[]).map((k) => {
+                          const e = AVATAR_ENGINES[k];
+                          return (
+                            <Pill
+                              key={k}
+                              active={avatarEngine === k}
+                              onClick={() => setAvatarEngine(k)}
+                            >
+                              {e.label}
+                              <span
+                                className={
+                                  avatarEngine === k
+                                    ? "text-neon-green/80"
+                                    : "text-muted-foreground/70"
+                                }
+                              >
+                                {formatBRL(e.priceCents)}
+                              </span>
+                            </Pill>
+                          );
+                        })}
+                      </PillGroup>
+                      <PillGroup label="Proporção">
+                        {ASPECT_RATIOS.map((r) => (
+                          <Pill
+                            key={r}
+                            active={aspectRatio === r}
+                            onClick={() => setAspectRatio(r)}
+                          >
+                            {r}
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                      <PillGroup label="Duração">
+                        {VIDEO_DURATIONS.map((d) => (
+                          <Pill key={d} active={duration === d} onClick={() => setDuration(d)}>
+                            {d}
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                    </>
+                  )}
+                </div>
+
+                {/* gerar — sempre visível, nunca compete com o fundo */}
+                <div className="mt-5 flex flex-col gap-3 border-t border-border/50 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                    {format === "video"
+                      ? `${VIDEO_MODELS[videoModel].label} · ${currentVideoTier.label}`
+                      : format === "image"
+                        ? IMAGE_ENGINES[imageEngine].label
+                        : format === "voice"
+                          ? VOICE_ENGINES[voiceEngine].label
+                          : AVATAR_ENGINES[avatarEngine].label}{" "}
+                    · {user ? formatBRL(user.balanceCents) + " de saldo" : "grátis pra começar"}
+                  </span>
                   <button
-                    key={f}
-                    type="button"
-                    onClick={() => chooseModality(f)}
-                    className="group flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-sm border border-border/60 bg-background/95 p-6 text-center shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] backdrop-blur transition hover:-translate-y-1 hover:border-neon-green/60 hover:shadow-glow-green"
+                    onClick={handleGenerate}
+                    disabled={!prompt.trim() || generating || userLoading}
+                    className="group relative inline-flex min-h-[44px] w-full items-center justify-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                   >
-                    <meta.icon className="h-8 w-8 text-neon-green transition group-hover:scale-110" />
-                    <span className="font-display text-xl text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                      {meta.label}
-                    </span>
+                    {generating ? "Gerando…" : generateLabel}
                   </button>
-                );
-              })}
+                </div>
+                <p className="mt-3 text-[11.5px] leading-[1.5] text-muted-foreground">
+                  Imagem via Nano Banana Pro já gera de verdade (Higgsfield), com saldo real. Os
+                  demais motores (Seedance, Veo, Kling, Sora, Midjourney, FLUX, ElevenLabs, HeyGen,
+                  Synthesia) ainda são só prévia, sem cobrança, até entrarem na integração real.
+                </p>
+
+                {result && (
+                  <div className="mt-6 flex flex-col items-start gap-4 rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur sm:p-8">
+                    <div className="flex w-full flex-wrap items-center justify-between gap-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                      <span>
+                        Gerado às {result.createdAt}{" "}
+                        {result.free && <span className="text-neon-green">· crédito grátis</span>}
+                      </span>
+                      <span className="text-neon-cyan">
+                        "{result.prompt.slice(0, 60)}
+                        {result.prompt.length > 60 ? "…" : ""}"
+                      </span>
+                    </div>
+                    <GenerationPreview result={result} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Vitrine — comandos que ensinam a técnica por trás do que se gera aqui */}
+        <section className="border-t border-border/40 py-24 cv-auto">
+          <div className="mx-auto max-w-5xl px-6">
+            <div className="mb-4 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <span className="h-px w-8 bg-neon-green" />[ 01 ] Domine a técnica
+            </div>
+            <h2
+              className="font-display text-3xl sm:text-4xl md:text-5xl"
+              style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
+            >
+              A IA gera. <span className="text-neon-green text-glow-green">Você dirige.</span>
+            </h2>
+            <p className="mt-4 max-w-2xl leading-[1.65] text-muted-foreground">
+              Prompt bom nasce de roteiro bom. É a mesma ordem pra vender qualquer produto — a
+              Veronica te guia passo a passo, do produto escolhido até a VSL cinematográfica pronta
+              pra rodar.
+            </p>
+
+            <div className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+              {STUDIO_PLAYBOOK.map((s) => (
+                <div key={s.n} className="flex gap-4">
+                  <span
+                    className="font-display text-2xl text-neon-green/70"
+                    style={{ letterSpacing: "-0.02em" }}
+                  >
+                    {s.n}
+                  </span>
+                  <div>
+                    <h3
+                      className="font-display text-base text-foreground"
+                      style={{ letterSpacing: "-0.02em" }}
+                    >
+                      {s.title}
+                    </h3>
+                    <p className="mt-1.5 text-[13.5px] leading-[1.6] text-muted-foreground">
+                      {s.body}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => openVeronica(s.stepId)}
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-neon-green/30 bg-neon-green/5 px-3 py-1.5 font-mono-tech text-[10.5px] text-neon-green transition hover:border-neon-green/60"
+                    >
+                      ✦ perguntar à veronica
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-14 flex items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">
+              <span className="h-px w-8 bg-neon-cyan" />
+              Quer se aprofundar em cada etapa?
+            </div>
+            <p className="mt-3 max-w-2xl leading-[1.65] text-muted-foreground">
+              Esses comandos ensinam exatamente o que fazer render aqui dentro — do roteiro de VSL
+              ao VFX que separa amador de profissional.
+            </p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {STUDIO_COMMANDS.map((c) => (
+                <Link
+                  key={c.title}
+                  to="/comandos"
+                  className="group relative overflow-hidden rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/60 hover:shadow-[0_0_30px_-8px_oklch(0.88_0.15_195/0.5)]"
+                >
+                  <span className="rounded-full border border-border/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
+                    {c.tag}
+                  </span>
+                  <h3
+                    className="mt-5 font-display text-xl text-foreground"
+                    style={{ letterSpacing: "-0.03em" }}
+                  >
+                    {c.title}
+                  </h3>
+                  <p className="mt-2 text-[13px] leading-[1.5] text-muted-foreground">
+                    {c.perks[0]}
+                  </p>
+                  <div className="mt-5 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
+                    Ver comando{" "}
+                    <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-col items-start gap-4 rounded-sm border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div
+                  className="font-display text-lg text-foreground"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
+                  Comando aprendido, execução na hora.
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Termine o comando e volte pra cá — o gerador já tá esperando.
+                </p>
+              </div>
+              <Link
+                to="/comandos"
+                className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm border border-neon-cyan/60 bg-background/60 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.18em] text-neon-cyan transition duration-200 hover:-translate-y-0.5 hover:bg-neon-cyan/10 active:translate-y-0"
+              >
+                Ver todos os comandos{" "}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              </Link>
             </div>
           </div>
         </section>
-      )}
 
-      {/* Hero — workspace de geração. Painel com blur/overlay garante
-          contraste do texto; o botão de gerar fica sempre visível, sem
-          precisar rolar. */}
-      {modalityChosen && (
-      <section className="relative overflow-hidden scanlines">
-        <HeroFrame />
-        <div className="relative mx-auto max-w-5xl px-6 pb-14 pt-10 md:pb-20 md:pt-16">
-          <div className="mb-6 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setModalityChosen(false)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
-            >
-              ← Trocar modalidade
-            </button>
-            <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-              Studio Criativo · {FORMAT_META[format].label}
+        {/* Pricing transparency */}
+        <section className="border-t border-border/40 py-24 cv-auto">
+          <div className="mx-auto max-w-5xl px-6">
+            <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <span className="h-px w-8 bg-neon-green" />[ 02 ] Como funciona o custo
             </div>
-          </div>
-
-          <div
-            id="gerar"
-            className="relative rounded-sm border border-border/60 bg-background/55 p-5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7"
-          >
-            {/* formato */}
-            <div className="flex flex-wrap gap-2">
-              {(Object.keys(FORMAT_META) as Format[]).map((f) => {
-                const meta = FORMAT_META[f];
-                const active = format === f;
+            <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
+              {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).flatMap((m) =>
+                VIDEO_MODELS[m].tiers.map((t) => (
+                  <div key={`${m}-${t.key}`} className="flex flex-col gap-1 bg-background/70 p-5">
+                    <span className="text-[13px] text-foreground">
+                      {VIDEO_MODELS[m].label} · {t.label}
+                    </span>
+                    <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                      {t.freeEligible
+                        ? `${formatBRL(t.priceCents)} · 1º grátis no cadastro`
+                        : formatBRL(t.priceCents)}
+                    </span>
+                  </div>
+                )),
+              )}
+              {(Object.keys(IMAGE_ENGINES) as ImageEngineKey[]).map((k) => {
+                const e = IMAGE_ENGINES[k];
                 return (
-                  <button
-                    key={f}
-                    onClick={() => setFormat(f)}
-                    className={`flex items-center gap-2 rounded-full border px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest transition ${
-                      active
-                        ? "border-neon-green bg-neon-green/15 text-neon-green shadow-[0_0_20px_-4px_oklch(0.85_0.22_155/0.7)]"
-                        : "border-border/60 text-muted-foreground hover:border-neon-green/40 hover:text-foreground"
-                    }`}
-                  >
-                    <meta.icon className="h-3.5 w-3.5" />
-                    {meta.label}
-                  </button>
+                  <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
+                    <span className="text-[13px] text-foreground">Imagem · {e.label}</span>
+                    <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                      {e.freeEligible
+                        ? `${formatBRL(e.priceCents)} · 2 grátis no cadastro`
+                        : formatBRL(e.priceCents)}
+                    </span>
+                  </div>
                 );
               })}
-            </div>
-
-            {/* prompt — em destaque */}
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={PROMPT_PLACEHOLDER[format]}
-              rows={4}
-              className="mt-4 w-full resize-y rounded-sm border border-border/60 bg-background/70 p-4 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/50 sm:p-5 sm:text-base"
-            />
-
-            {/* opções avançadas — sempre visível no desktop, recolhe no mobile */}
-            <button
-              type="button"
-              onClick={() => setAdvancedOpen((v) => !v)}
-              className="mt-4 flex min-h-[44px] w-full items-center justify-between rounded-sm border border-border/60 px-4 py-2.5 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground md:hidden"
-            >
-              Opções avançadas
-              <ChevronDown
-                className={`h-3.5 w-3.5 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            <div
-              className={`${advancedOpen ? "mt-4 flex" : "hidden"} flex-wrap gap-x-6 gap-y-4 md:mt-5 md:flex`}
-            >
-              {format === "video" && (
-                <>
-                  <PillGroup label="Motor">
-                    {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).map((m) => (
-                      <Pill
-                        key={m}
-                        tone="cyan"
-                        active={videoModel === m}
-                        onClick={() => {
-                          setVideoModel(m);
-                          setVideoTier(
-                            VIDEO_MODELS[m].tiers.find((t) => t.freeEligible)?.key ??
-                              VIDEO_MODELS[m].tiers[0].key,
-                          );
-                        }}
-                      >
-                        {VIDEO_MODELS[m].label}
-                      </Pill>
-                    ))}
-                  </PillGroup>
-                  <PillGroup label="Qualidade">
-                    {VIDEO_MODELS[videoModel].tiers.map((t) => (
-                      <Pill
-                        key={t.key}
-                        active={videoTier === t.key}
-                        onClick={() => setVideoTier(t.key)}
-                      >
-                        {t.label}
-                        <span
-                          className={
-                            videoTier === t.key ? "text-neon-green/80" : "text-muted-foreground/70"
-                          }
-                        >
-                          em breve
-                        </span>
-                      </Pill>
-                    ))}
-                  </PillGroup>
-                  <PillGroup label="Proporção">
-                    {ASPECT_RATIOS.map((r) => (
-                      <Pill key={r} active={aspectRatio === r} onClick={() => setAspectRatio(r)}>
-                        {r}
-                      </Pill>
-                    ))}
-                  </PillGroup>
-                  <PillGroup label="Duração">
-                    {VIDEO_DURATIONS.map((d) => (
-                      <Pill key={d} active={duration === d} onClick={() => setDuration(d)}>
-                        {d}
-                      </Pill>
-                    ))}
-                  </PillGroup>
-                </>
-              )}
-
-              {format === "image" && (
-                <>
-                  <PillGroup label="Motor">
-                    {(Object.keys(IMAGE_ENGINES) as ImageEngineKey[]).map((k) => {
-                      const e = IMAGE_ENGINES[k];
-                      const isReal = k === "nanobanana";
-                      const freeNow = isReal && (user?.freeImageCredits ?? 0) > 0;
-                      return (
-                        <Pill key={k} active={imageEngine === k} onClick={() => setImageEngine(k)}>
-                          {e.label}
-                          <span
-                            className={
-                              imageEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"
-                            }
-                          >
-                            {!isReal ? "em breve" : freeNow ? "grátis" : formatBRL(e.priceCents)}
-                          </span>
-                        </Pill>
-                      );
-                    })}
-                  </PillGroup>
-                  <PillGroup label="Proporção">
-                    {ASPECT_RATIOS.map((r) => (
-                      <Pill key={r} active={aspectRatio === r} onClick={() => setAspectRatio(r)}>
-                        {r}
-                      </Pill>
-                    ))}
-                  </PillGroup>
-                </>
-              )}
-
-              {format === "voice" && (
-                <PillGroup label="Motor">
-                  {(Object.keys(VOICE_ENGINES) as VoiceEngineKey[]).map((k) => {
-                    const e = VOICE_ENGINES[k];
-                    return (
-                      <Pill key={k} active={voiceEngine === k} onClick={() => setVoiceEngine(k)}>
-                        {e.label}
-                        <span
-                          className={
-                            voiceEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"
-                          }
-                        >
-                          {formatBRL(e.priceCents)}
-                        </span>
-                      </Pill>
-                    );
-                  })}
-                </PillGroup>
-              )}
-
-              {format === "avatar" && (
-                <>
-                  <PillGroup label="Motor">
-                    {(Object.keys(AVATAR_ENGINES) as AvatarEngineKey[]).map((k) => {
-                      const e = AVATAR_ENGINES[k];
-                      return (
-                        <Pill
-                          key={k}
-                          active={avatarEngine === k}
-                          onClick={() => setAvatarEngine(k)}
-                        >
-                          {e.label}
-                          <span
-                            className={
-                              avatarEngine === k ? "text-neon-green/80" : "text-muted-foreground/70"
-                            }
-                          >
-                            {formatBRL(e.priceCents)}
-                          </span>
-                        </Pill>
-                      );
-                    })}
-                  </PillGroup>
-                  <PillGroup label="Proporção">
-                    {ASPECT_RATIOS.map((r) => (
-                      <Pill key={r} active={aspectRatio === r} onClick={() => setAspectRatio(r)}>
-                        {r}
-                      </Pill>
-                    ))}
-                  </PillGroup>
-                  <PillGroup label="Duração">
-                    {VIDEO_DURATIONS.map((d) => (
-                      <Pill key={d} active={duration === d} onClick={() => setDuration(d)}>
-                        {d}
-                      </Pill>
-                    ))}
-                  </PillGroup>
-                </>
-              )}
-            </div>
-
-            {/* gerar — sempre visível, nunca compete com o fundo */}
-            <div className="mt-5 flex flex-col gap-3 border-t border-border/50 pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <span className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                {format === "video"
-                  ? `${VIDEO_MODELS[videoModel].label} · ${currentVideoTier.label}`
-                  : format === "image"
-                    ? IMAGE_ENGINES[imageEngine].label
-                    : format === "voice"
-                      ? VOICE_ENGINES[voiceEngine].label
-                      : AVATAR_ENGINES[avatarEngine].label}{" "}
-                · {user ? formatBRL(user.balanceCents) + " de saldo" : "grátis pra começar"}
-              </span>
-              <button
-                onClick={handleGenerate}
-                disabled={!prompt.trim() || generating || userLoading}
-                className="group relative inline-flex min-h-[44px] w-full items-center justify-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-              >
-                {generating ? "Gerando…" : generateLabel}
-              </button>
-            </div>
-            <p className="mt-3 text-[11.5px] leading-[1.5] text-muted-foreground">
-              Imagem via Nano Banana Pro já gera de verdade (Higgsfield), com saldo real. Os demais
-              motores (Seedance, Veo, Kling, Sora, Midjourney, FLUX, ElevenLabs, HeyGen, Synthesia)
-              ainda são só prévia, sem cobrança, até entrarem na integração real.
-            </p>
-
-            {result && (
-              <div className="mt-6 flex flex-col items-start gap-4 rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur sm:p-8">
-                <div className="flex w-full flex-wrap items-center justify-between gap-2 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  <span>
-                    Gerado às {result.createdAt}{" "}
-                    {result.free && <span className="text-neon-green">· crédito grátis</span>}
-                  </span>
-                  <span className="text-neon-cyan">
-                    "{result.prompt.slice(0, 60)}
-                    {result.prompt.length > 60 ? "…" : ""}"
-                  </span>
-                </div>
-                <GenerationPreview result={result} />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-      )}
-
-      {/* Vitrine — comandos que ensinam a técnica por trás do que se gera aqui */}
-      <section className="border-t border-border/40 py-24 cv-auto">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="mb-4 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />[ 01 ] Domine a técnica
-          </div>
-          <h2
-            className="font-display text-3xl sm:text-4xl md:text-5xl"
-            style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
-          >
-            A IA gera. <span className="text-neon-green text-glow-green">Você dirige.</span>
-          </h2>
-          <p className="mt-4 max-w-2xl leading-[1.65] text-muted-foreground">
-            Prompt bom nasce de roteiro bom. É a mesma ordem pra vender qualquer produto — a
-            Veronica te guia passo a passo, do produto escolhido até a VSL cinematográfica pronta
-            pra rodar.
-          </p>
-
-          <div className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-            {STUDIO_PLAYBOOK.map((s) => (
-              <div key={s.n} className="flex gap-4">
-                <span
-                  className="font-display text-2xl text-neon-green/70"
-                  style={{ letterSpacing: "-0.02em" }}
-                >
-                  {s.n}
+              {(Object.keys(VOICE_ENGINES) as VoiceEngineKey[]).map((k) => {
+                const e = VOICE_ENGINES[k];
+                return (
+                  <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
+                    <span className="text-[13px] text-foreground">Voz · {e.label}</span>
+                    <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                      {formatBRL(e.priceCents)}
+                    </span>
+                  </div>
+                );
+              })}
+              {(Object.keys(AVATAR_ENGINES) as AvatarEngineKey[]).map((k) => {
+                const e = AVATAR_ENGINES[k];
+                return (
+                  <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
+                    <span className="text-[13px] text-foreground">Avatar · {e.label}</span>
+                    <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                      {formatBRL(e.priceCents)}
+                    </span>
+                  </div>
+                );
+              })}
+              <div className="flex flex-col gap-1 bg-background/70 p-5">
+                <span className="text-[13px] text-foreground">Depósito mínimo</span>
+                <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                  {formatBRL(MIN_DEPOSIT_CENTS)}
                 </span>
-                <div>
-                  <h3
-                    className="font-display text-base text-foreground"
-                    style={{ letterSpacing: "-0.02em" }}
-                  >
-                    {s.title}
-                  </h3>
-                  <p className="mt-1.5 text-[13.5px] leading-[1.6] text-muted-foreground">
-                    {s.body}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => openVeronica(s.stepId)}
-                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-neon-green/30 bg-neon-green/5 px-3 py-1.5 font-mono-tech text-[10.5px] text-neon-green transition hover:border-neon-green/60"
-                  >
-                    ✦ perguntar à veronica
-                  </button>
-                </div>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-14 flex items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">
-            <span className="h-px w-8 bg-neon-cyan" />
-            Quer se aprofundar em cada etapa?
-          </div>
-          <p className="mt-3 max-w-2xl leading-[1.65] text-muted-foreground">
-            Esses comandos ensinam exatamente o que fazer render aqui dentro — do roteiro de VSL ao
-            VFX que separa amador de profissional.
-          </p>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {STUDIO_COMMANDS.map((c) => (
-              <Link
-                key={c.title}
-                to="/comandos"
-                className="group relative overflow-hidden rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/60 hover:shadow-[0_0_30px_-8px_oklch(0.88_0.15_195/0.5)]"
-              >
-                <span className="rounded-full border border-border/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
-                  {c.tag}
-                </span>
-                <h3
-                  className="mt-5 font-display text-xl text-foreground"
-                  style={{ letterSpacing: "-0.03em" }}
-                >
-                  {c.title}
-                </h3>
-                <p className="mt-2 text-[13px] leading-[1.5] text-muted-foreground">{c.perks[0]}</p>
-                <div className="mt-5 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
-                  Ver comando{" "}
-                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-6 flex flex-col items-start gap-4 rounded-sm border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/8 via-surface/60 to-surface p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div
-                className="font-display text-lg text-foreground"
-                style={{ letterSpacing: "-0.02em" }}
-              >
-                Comando aprendido, execução na hora.
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Termine o comando e volte pra cá — o gerador já tá esperando.
-              </p>
             </div>
-            <Link
-              to="/comandos"
-              className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm border border-neon-cyan/60 bg-background/60 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.18em] text-neon-cyan transition duration-200 hover:-translate-y-0.5 hover:bg-neon-cyan/10 active:translate-y-0"
-            >
-              Ver todos os comandos{" "}
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </Link>
+            <ul className="mt-8 space-y-2.5">
+              {[
+                "Sem mensalidade — paga só quando gera",
+                "Conta compartilhada com o resto do ecossistema Veronica",
+                "Créditos grátis valem uma vez por conta, só na qualidade 1080p",
+              ].map((p) => (
+                <li key={p} className="flex items-start gap-3 text-sm text-foreground/90">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-green" />
+                  {p}
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </section>
-
-      {/* Pricing transparency */}
-      <section className="border-t border-border/40 py-24 cv-auto">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />[ 02 ] Como funciona o custo
-          </div>
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
-            {(Object.keys(VIDEO_MODELS) as VideoModelKey[]).flatMap((m) =>
-              VIDEO_MODELS[m].tiers.map((t) => (
-                <div key={`${m}-${t.key}`} className="flex flex-col gap-1 bg-background/70 p-5">
-                  <span className="text-[13px] text-foreground">
-                    {VIDEO_MODELS[m].label} · {t.label}
-                  </span>
-                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-                    {t.freeEligible
-                      ? `${formatBRL(t.priceCents)} · 1º grátis no cadastro`
-                      : formatBRL(t.priceCents)}
-                  </span>
-                </div>
-              )),
-            )}
-            {(Object.keys(IMAGE_ENGINES) as ImageEngineKey[]).map((k) => {
-              const e = IMAGE_ENGINES[k];
-              return (
-                <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
-                  <span className="text-[13px] text-foreground">Imagem · {e.label}</span>
-                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-                    {e.freeEligible
-                      ? `${formatBRL(e.priceCents)} · 2 grátis no cadastro`
-                      : formatBRL(e.priceCents)}
-                  </span>
-                </div>
-              );
-            })}
-            {(Object.keys(VOICE_ENGINES) as VoiceEngineKey[]).map((k) => {
-              const e = VOICE_ENGINES[k];
-              return (
-                <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
-                  <span className="text-[13px] text-foreground">Voz · {e.label}</span>
-                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-                    {formatBRL(e.priceCents)}
-                  </span>
-                </div>
-              );
-            })}
-            {(Object.keys(AVATAR_ENGINES) as AvatarEngineKey[]).map((k) => {
-              const e = AVATAR_ENGINES[k];
-              return (
-                <div key={k} className="flex flex-col gap-1 bg-background/70 p-5">
-                  <span className="text-[13px] text-foreground">Avatar · {e.label}</span>
-                  <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-                    {formatBRL(e.priceCents)}
-                  </span>
-                </div>
-              );
-            })}
-            <div className="flex flex-col gap-1 bg-background/70 p-5">
-              <span className="text-[13px] text-foreground">Depósito mínimo</span>
-              <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-                {formatBRL(MIN_DEPOSIT_CENTS)}
-              </span>
-            </div>
-          </div>
-          <ul className="mt-8 space-y-2.5">
-            {[
-              "Sem mensalidade — paga só quando gera",
-              "Conta compartilhada com o resto do ecossistema Veronica",
-              "Créditos grátis valem uma vez por conta, só na qualidade 1080p",
-            ].map((p) => (
-              <li key={p} className="flex items-start gap-3 text-sm text-foreground/90">
-                <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-neon-green" />
-                {p}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+        </section>
       </div>
 
       <SiteFooter />

@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Radio, Globe2, Cpu, TrendingUp, Cloud, Landmark, ArrowRight } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { LazyImage } from "@/components/media/LazyImage";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 
-export const Route = createFileRoute("/blog")({
+export const Route = createFileRoute("/blog/")({
   component: VeronicaWire,
   loader: () => getPublishedArticles(),
   head: () => ({
@@ -127,7 +128,12 @@ function Thumb({
   if (coverImageUrl) {
     return (
       <div className={`relative overflow-hidden rounded-sm border border-border/40 ${className}`}>
-        <img src={coverImageUrl} alt="" className="h-full w-full object-cover" />
+        <LazyImage
+          src={coverImageUrl}
+          alt=""
+          useCfResize={false}
+          className="h-full w-full object-cover"
+        />
       </div>
     );
   }

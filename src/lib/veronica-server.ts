@@ -20,7 +20,11 @@ const chatValidator = (input: unknown) => {
     history?: unknown;
   };
 
-  if (data?.skillId !== "studio-criativo" && data?.skillId !== "curriculo-certo") {
+   if (
+    data?.skillId !== "studio-criativo" &&
+    data?.skillId !== "curriculo-certo" &&
+    data?.skillId !== "home"
+  ) {
     throw new Error("Skill inválida.");
   }
   const message = data?.message;

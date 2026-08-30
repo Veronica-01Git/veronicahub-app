@@ -423,6 +423,9 @@ export function SiteHeader() {
           <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
             Blog
           </Link>
+          <Link to="/veronica-rede" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
+            Veronica Rede
+          </Link>
           <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ecossistema</div>
           {ECOSYSTEM_LINKS.map((item) =>
             item.ready ? (

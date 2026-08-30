@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
+import { handleImageTransform } from "./lib/image-transform-server";
 import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import { handleGenerateArticleCron } from "./lib/article-cron";
 
@@ -55,6 +56,14 @@ export default {
         return await handleMercadoPagoWebhook(request);
       } catch (error) {
         console.error("Erro no webhook do Mercado Pago:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+    if (url.pathname === "/api/img") {
+      try {
+        return await handleImageTransform(request);
+      } catch (error) {
+        console.error("Erro na transformação de imagem:", error);
         return new Response("error", { status: 500 });
       }
     }

@@ -1,0 +1,114 @@
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Check, Wallet, Sparkles, Clock } from "lucide-react";
+import { LazyVideo } from "@/components/media/LazyVideo";
+
+// Vitrine comercial real da Veronica Studio — só claims verificáveis no
+// código de src/routes/video-ia.tsx: geração de imagem via Nano Banana Pro
+// é real (Higgsfield), crédito grátis de cadastro é real, carteira +
+// Mercado Pago são reais. Vídeo/voz/avatar ainda são simulados no cliente,
+// por isso aparecem marcados "em desenvolvimento" — nunca como prontos.
+const REAL_FACTS = [
+  { icon: Check, text: "Geração de imagem real (Nano Banana Pro)" },
+  { icon: Sparkles, text: "2 imagens grátis ao criar conta" },
+  { icon: Wallet, text: "Carteira com depósito via Mercado Pago" },
+  { icon: Clock, text: "Vídeo, voz e avatar: em desenvolvimento" },
+];
+
+export function StudioShowcase() {
+  return (
+    <section
+      id="studio"
+      className="relative overflow-hidden border-b border-border/40 bg-surface/40 py-24"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-[0.14]"
+        style={{
+          backgroundImage: "url(/images/home/portal-vortex.webp)",
+          backgroundPosition: "center 30%",
+          maskImage: "linear-gradient(180deg, transparent, black 30%, black 70%, transparent)",
+          WebkitMaskImage:
+            "linear-gradient(180deg, transparent, black 30%, black 70%, transparent)",
+        }}
+      />
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+        <div>
+          <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+            <span className="h-px w-8 bg-neon-green" />
+            Veronica Studio
+          </div>
+          <h2
+            className="mt-3 font-display text-4xl sm:text-5xl md:text-6xl"
+            style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
+          >
+            Peça. <span className="text-neon-green text-glow-green">Ela gera.</span>
+            <br />
+            Você recebe.
+          </h2>
+          <p className="mt-5 max-w-md text-base leading-[1.65] text-muted-foreground">
+            Descreva o que precisa e a Studio gera com IA de verdade — sem mockup, sem "em breve"
+            disfarçado de pronto.
+          </p>
+
+          <ul className="mt-8 flex flex-col gap-3">
+            {REAL_FACTS.map((f) => (
+              <li key={f.text} className="flex items-center gap-3 text-sm text-foreground/90">
+                <f.icon className="h-4 w-4 flex-shrink-0 text-neon-green" />
+                {f.text}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-9 flex flex-wrap items-center gap-4">
+            <Link
+              to="/video-ia"
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
+            >
+              Gerar minha primeira imagem grátis{" "}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]"
+              />
+            </Link>
+            <a
+              href="#veronica-guia"
+              className="group inline-flex items-center gap-2 rounded-sm border border-border/60 bg-background/40 px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-muted-foreground backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-neon-cyan/60 hover:bg-neon-cyan/5 hover:text-neon-cyan"
+            >
+              Ver como funciona
+            </a>
+          </div>
+        </div>
+
+        <div id="veronica-guia" className="relative scroll-mt-24">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-3 rounded-sm bg-gradient-to-br from-neon-cyan/20 via-transparent to-neon-green/20 blur-xl"
+          />
+          <div className="relative overflow-hidden rounded-sm border border-neon-cyan/40 bg-black shadow-glow-cyan">
+            <LazyVideo
+              src="/videos/veronica-guia.mp4"
+              poster="/images/vfx/veronica-guia-poster.webp"
+              className="block aspect-video h-auto w-full"
+              controls
+              autoPlay={false}
+              muted={false}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 scanlines opacity-20"
+            />
+          </div>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-3 -top-3 h-10 w-10 border-l-2 border-t-2 border-neon-cyan/70"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-3 -right-3 h-10 w-10 border-b-2 border-r-2 border-neon-green/70"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
