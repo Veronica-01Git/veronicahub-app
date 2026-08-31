@@ -108,7 +108,13 @@ export const articles = pgTable(
     excerpt: text("excerpt").notNull(),
     body: text("body").notNull(),
     desk: text("desk").notNull(),
+    // coverImageUrl aponta pro nosso próprio endpoint (/api/cover-image/:slug),
+    // nunca direto pro provedor — os bytes (base64) e o content-type ficam
+    // aqui do lado, servidos por src/lib/cover-image-server.ts. Assim o link
+    // é estável (não expira) e funciona como og:image sem depender de R2.
     coverImageUrl: text("coverImageUrl"),
+    coverImageData: text("coverImageData"),
+    coverImageMimeType: text("coverImageMimeType"),
     sourceUrls: text("sourceUrls")
       .array()
       .notNull()
