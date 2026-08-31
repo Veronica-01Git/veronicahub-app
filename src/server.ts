@@ -7,6 +7,7 @@ import { handleImageTransform } from "./lib/image-transform-server";
 import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import { handleGenerateArticleCron, handleSetCoverImageCron } from "./lib/article-cron";
 import { handleCoverImage } from "./lib/cover-image-server";
+import { handleMediaImage } from "./lib/media-images-server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -111,6 +112,16 @@ export default {
         return await handleCoverImage(slug);
       } catch (error) {
         console.error("Erro ao servir imagem de capa:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname.startsWith("/api/media-images/")) {
+      try {
+        const id = url.pathname.slice("/api/media-images/".length);
+        return await handleMediaImage(id);
+      } catch (error) {
+        console.error("Erro ao servir imagem do banco de imagens:", error);
         return new Response("error", { status: 500 });
       }
     }

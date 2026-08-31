@@ -9,40 +9,51 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VideoIaRouteImport } from './routes/video-ia'
-import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security'
-import { Route as VeronicaRedeRouteImport } from './routes/veronica-rede'
-import { Route as VeronicaNauticaRouteImport } from './routes/veronica-nautica'
-import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
-import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
-import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
-import { Route as SeloDemoRouteImport } from './routes/selo-demo'
-import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
-import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as ComandosRouteImport } from './routes/comandos'
+import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
+import { Route as SeloDemoRouteImport } from './routes/selo-demo'
+import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
+import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
+import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
+import { Route as VeronicaNauticaRouteImport } from './routes/veronica-nautica'
+import { Route as VeronicaRedeRouteImport } from './routes/veronica-rede'
+import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security'
+import { Route as VideoIaRouteImport } from './routes/video-ia'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
+import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 
-const VideoIaRoute = VideoIaRouteImport.update({
-  id: '/video-ia',
-  path: '/video-ia',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaSecurityRoute = VeronicaSecurityRouteImport.update({
-  id: '/veronica-security',
-  path: '/veronica-security',
+const ComandosRoute = ComandosRouteImport.update({
+  id: '/comandos',
+  path: '/comandos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaRedeRoute = VeronicaRedeRouteImport.update({
-  id: '/veronica-rede',
-  path: '/veronica-rede',
+const PromptPacksRoute = PromptPacksRouteImport.update({
+  id: '/prompt-packs',
+  path: '/prompt-packs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaNauticaRoute = VeronicaNauticaRouteImport.update({
-  id: '/veronica-nautica',
-  path: '/veronica-nautica',
+const SeloDemoRoute = SeloDemoRouteImport.update({
+  id: '/selo-demo',
+  path: '/selo-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
+  id: '/veronica-analytics',
+  path: '/veronica-analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeronicaCurriculoCertoRoute = VeronicaCurriculoCertoRouteImport.update({
+  id: '/veronica-curriculo-certo',
+  path: '/veronica-curriculo-certo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VeronicaCurriculoCertoRhRoute =
@@ -51,39 +62,24 @@ const VeronicaCurriculoCertoRhRoute =
     path: '/veronica-curriculo-certo-rh',
     getParentRoute: () => rootRouteImport,
   } as any)
-const VeronicaCurriculoCertoRoute = VeronicaCurriculoCertoRouteImport.update({
-  id: '/veronica-curriculo-certo',
-  path: '/veronica-curriculo-certo',
+const VeronicaNauticaRoute = VeronicaNauticaRouteImport.update({
+  id: '/veronica-nautica',
+  path: '/veronica-nautica',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
-  id: '/veronica-analytics',
-  path: '/veronica-analytics',
+const VeronicaRedeRoute = VeronicaRedeRouteImport.update({
+  id: '/veronica-rede',
+  path: '/veronica-rede',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SeloDemoRoute = SeloDemoRouteImport.update({
-  id: '/selo-demo',
-  path: '/selo-demo',
+const VeronicaSecurityRoute = VeronicaSecurityRouteImport.update({
+  id: '/veronica-security',
+  path: '/veronica-security',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PromptPacksRoute = PromptPacksRouteImport.update({
-  id: '/prompt-packs',
-  path: '/prompt-packs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComandosRoute = ComandosRouteImport.update({
-  id: '/comandos',
-  path: '/comandos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
+const VideoIaRoute = VideoIaRouteImport.update({
+  id: '/video-ia',
+  path: '/video-ia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -91,14 +87,24 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminArtigosRoute = AdminArtigosRouteImport.update({
   id: '/admin/artigos',
   path: '/admin/artigos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminImagensRoute = AdminImagensRouteImport.update({
+  id: '/admin/imagens',
+  path: '/admin/imagens',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/imagens': typeof AdminImagensRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/imagens': typeof AdminImagensRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/imagens': typeof AdminImagensRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/imagens'
     | '/blog/$slug'
     | '/admin/'
     | '/blog/'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/imagens'
     | '/blog/$slug'
     | '/admin'
     | '/blog'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/imagens'
     | '/blog/$slug'
     | '/admin/'
     | '/blog/'
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   VeronicaSecurityRoute: typeof VeronicaSecurityRoute
   VideoIaRoute: typeof VideoIaRoute
   AdminArtigosRoute: typeof AdminArtigosRoute
+  AdminImagensRoute: typeof AdminImagensRoute
   BlogSlugRoute: typeof BlogSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -228,67 +241,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/video-ia': {
-      id: '/video-ia'
-      path: '/video-ia'
-      fullPath: '/video-ia'
-      preLoaderRoute: typeof VideoIaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-security': {
-      id: '/veronica-security'
-      path: '/veronica-security'
-      fullPath: '/veronica-security'
-      preLoaderRoute: typeof VeronicaSecurityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-rede': {
-      id: '/veronica-rede'
-      path: '/veronica-rede'
-      fullPath: '/veronica-rede'
-      preLoaderRoute: typeof VeronicaRedeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-nautica': {
-      id: '/veronica-nautica'
-      path: '/veronica-nautica'
-      fullPath: '/veronica-nautica'
-      preLoaderRoute: typeof VeronicaNauticaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-curriculo-certo-rh': {
-      id: '/veronica-curriculo-certo-rh'
-      path: '/veronica-curriculo-certo-rh'
-      fullPath: '/veronica-curriculo-certo-rh'
-      preLoaderRoute: typeof VeronicaCurriculoCertoRhRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-curriculo-certo': {
-      id: '/veronica-curriculo-certo'
-      path: '/veronica-curriculo-certo'
-      fullPath: '/veronica-curriculo-certo'
-      preLoaderRoute: typeof VeronicaCurriculoCertoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-analytics': {
-      id: '/veronica-analytics'
-      path: '/veronica-analytics'
-      fullPath: '/veronica-analytics'
-      preLoaderRoute: typeof VeronicaAnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/selo-demo': {
-      id: '/selo-demo'
-      path: '/selo-demo'
-      fullPath: '/selo-demo'
-      preLoaderRoute: typeof SeloDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prompt-packs': {
-      id: '/prompt-packs'
-      path: '/prompt-packs'
-      fullPath: '/prompt-packs'
-      preLoaderRoute: typeof PromptPacksRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comandos': {
@@ -298,18 +255,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComandosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/prompt-packs': {
+      id: '/prompt-packs'
+      path: '/prompt-packs'
+      fullPath: '/prompt-packs'
+      preLoaderRoute: typeof PromptPacksRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
+    '/selo-demo': {
+      id: '/selo-demo'
+      path: '/selo-demo'
+      fullPath: '/selo-demo'
+      preLoaderRoute: typeof SeloDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-analytics': {
+      id: '/veronica-analytics'
+      path: '/veronica-analytics'
+      fullPath: '/veronica-analytics'
+      preLoaderRoute: typeof VeronicaAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-curriculo-certo': {
+      id: '/veronica-curriculo-certo'
+      path: '/veronica-curriculo-certo'
+      fullPath: '/veronica-curriculo-certo'
+      preLoaderRoute: typeof VeronicaCurriculoCertoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-curriculo-certo-rh': {
+      id: '/veronica-curriculo-certo-rh'
+      path: '/veronica-curriculo-certo-rh'
+      fullPath: '/veronica-curriculo-certo-rh'
+      preLoaderRoute: typeof VeronicaCurriculoCertoRhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-nautica': {
+      id: '/veronica-nautica'
+      path: '/veronica-nautica'
+      fullPath: '/veronica-nautica'
+      preLoaderRoute: typeof VeronicaNauticaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-rede': {
+      id: '/veronica-rede'
+      path: '/veronica-rede'
+      fullPath: '/veronica-rede'
+      preLoaderRoute: typeof VeronicaRedeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-security': {
+      id: '/veronica-security'
+      path: '/veronica-security'
+      fullPath: '/veronica-security'
+      preLoaderRoute: typeof VeronicaSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/video-ia': {
+      id: '/video-ia'
+      path: '/video-ia'
+      fullPath: '/video-ia'
+      preLoaderRoute: typeof VideoIaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -319,18 +325,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/artigos': {
       id: '/admin/artigos'
       path: '/admin/artigos'
       fullPath: '/admin/artigos'
       preLoaderRoute: typeof AdminArtigosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/imagens': {
+      id: '/admin/imagens'
+      path: '/admin/imagens'
+      fullPath: '/admin/imagens'
+      preLoaderRoute: typeof AdminImagensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   VeronicaSecurityRoute: VeronicaSecurityRoute,
   VideoIaRoute: VideoIaRoute,
   AdminArtigosRoute: AdminArtigosRoute,
+  AdminImagensRoute: AdminImagensRoute,
   BlogSlugRoute: BlogSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,

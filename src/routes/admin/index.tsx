@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShieldAlert, Newspaper } from "lucide-react";
+import { ShieldAlert, Newspaper, ImageIcon } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
 import { formatBRL } from "@/lib/account";
@@ -39,12 +39,20 @@ function AdminPanel() {
             <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
             Painel admin
           </div>
-          <Link
-            to="/admin/artigos"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
-          >
-            <Newspaper className="h-4 w-4" /> Artigos do Veronica Wire
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/admin/artigos"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+            >
+              <Newspaper className="h-4 w-4" /> Artigos do Veronica Wire
+            </Link>
+            <Link
+              to="/admin/imagens"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+            >
+              <ImageIcon className="h-4 w-4" /> Banco de imagens
+            </Link>
+          </div>
         </div>
 
         {!state ? (
