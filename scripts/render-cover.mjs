@@ -117,11 +117,19 @@ function buildHtml({ headline, beat, desk }) {
     letter-spacing: -0.03em;
     line-height: 1.06;
     font-size: 58px;
+    max-width: 630px;
     color: oklch(0.97 0.01 180);
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 4;
     overflow: hidden;
+  }
+  .figure {
+    position: absolute;
+    right: 54px;
+    top: 140px;
+    width: 320px;
+    height: 372px;
   }
   .row-bottom {
     display: flex;
@@ -139,6 +147,23 @@ function buildHtml({ headline, beat, desk }) {
 </head>
 <body>
   <div class="spine"></div>
+  <div class="figure">
+    <svg viewBox="0 0 320 372" width="320" height="372" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="figGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${withAlpha(meta.color, 0.5)}" />
+          <stop offset="100%" stop-color="${withAlpha(meta.color, 0.08)}" />
+        </linearGradient>
+      </defs>
+      <circle cx="160" cy="104" r="76" fill="url(#figGrad)" stroke="${withAlpha(meta.color, 0.55)}" stroke-width="2" />
+      <path
+        d="M160,206 C248,206 300,266 300,372 L20,372 C20,266 72,206 160,206 Z"
+        fill="url(#figGrad)"
+        stroke="${withAlpha(meta.color, 0.55)}"
+        stroke-width="2"
+      />
+    </svg>
+  </div>
   <div class="frame">
     <div class="row-top">
       <div class="wordmark"><span class="dot"></span>Veronica Wire</div>
