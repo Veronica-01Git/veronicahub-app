@@ -6,6 +6,7 @@ import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import { handleGenerateArticleCron } from "./lib/article-cron";
+import { handleCoverImage } from "./lib/cover-image-server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -91,6 +92,16 @@ export default {
         return await handleGenerateArticleCron(request);
       } catch (error) {
         console.error("Erro no cron de geração de matéria:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname.startsWith("/api/cover-image/")) {
+      try {
+        const slug = url.pathname.slice("/api/cover-image/".length);
+        return await handleCoverImage(slug);
+      } catch (error) {
+        console.error("Erro ao servir imagem de capa:", error);
         return new Response("error", { status: 500 });
       }
     }
