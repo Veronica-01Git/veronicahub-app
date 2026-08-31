@@ -5,11 +5,15 @@ on:
     - cron: "0 */5 * * *"
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
       - name: Chama o endpoint de geração automática
+        id: generate
         run: |
           status=$(curl --silent --show-error \
             --max-time 120 \
@@ -22,3 +26,98 @@ jobs:
           if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
             exit 1
           fi
+          {
+            echo "slug<<COVER_EOF"
+            jq -r '.slug' response.json
+            echo "COVER_EOF"
+            echo "headline<<COVER_EOF"
+            jq -r '.headline' response.json
+            echo "COVER_EOF"
+            echo "beat<<COVER_EOF"
+            jq -r '.beat' response.json
+            echo "COVER_EOF"
+            echo "desk<<COVER_EOF"
+            jq -r '.desk' response.json
+            echo "COVER_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # A partir daqui é tudo capa de imagem — best-effort. A matéria já foi
+      # publicada no passo acima; se qualquer coisa daqui pra frente falhar,
+      # ela simplesmente fica sem capa (coverImageUrl null), como já acontecia
+      # antes desse workflow existir. Por isso cada passo checa o resultado do
+      # anterior via `if:` em vez de deixar o job inteiro falhar.
+      - name: Checkout do repositório
+        if: success()
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Instala o Playwright (sem tocar no package.json)
+        if: steps.checkout.outcome == 'success'
+        id: install_pw
+        continue-on-error: true
+        run: npm install --no-save playwright
+
+      - name: Instala o Chromium do Playwright
+        if: steps.install_pw.outcome == 'success'
+        id: install_chromium
+        continue-on-error: true
+        run: npx playwright install --with-deps chromium
+
+      - name: Renderiza o card de capa (HTML/CSS -> jpg)
+        if: steps.install_chromium.outcome == 'success'
+        id: render
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+          COVER_HEADLINE: ${{ steps.generate.outputs.headline }}
+          COVER_BEAT: ${{ steps.generate.outputs.beat }}
+          COVER_DESK: ${{ steps.generate.outputs.desk }}
+        run: node scripts/render-cover.mjs
+
+      - name: Commita a capa no repositório
+        if: steps.render.outcome == 'success'
+        id: commit
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "public/images/blog-covers/${COVER_SLUG}.jpg"
+          git commit -m "chore(wire): capa automática — ${COVER_SLUG}"
+          git push
+
+      - name: Espera o deploy publicar o asset
+        if: steps.commit.outcome == 'success'
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+        run: |
+          url="https://veronicahub.com/images/blog-covers/${COVER_SLUG}.jpg"
+          for _ in $(seq 1 8); do
+            status=$(curl --silent --output /dev/null --write-out "%{http_code}" "$url")
+            if [ "$status" = "200" ]; then
+              echo "Asset já está no ar ($url)."
+              break
+            fi
+            echo "Ainda não ($status) — aguardando o deploy..."
+            sleep 10
+          done
+
+      - name: Seta coverImageUrl da matéria
+        if: steps.commit.outcome == 'success'
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+        run: |
+          url="https://veronicahub.com/images/blog-covers/${COVER_SLUG}.jpg"
+          body=$(jq -n --arg slug "$COVER_SLUG" --arg url "$url" '{slug: $slug, coverImageUrl: $url}')
+          status=$(curl --silent --show-error \
+            --max-time 30 \
+            -o set-cover-response.json -w "%{http_code}" \
+            -X POST "https://veronicahub.com/api/cron/set-cover-image" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "$body")
+          echo "HTTP status: $status"
+          cat set-cover-response.json
