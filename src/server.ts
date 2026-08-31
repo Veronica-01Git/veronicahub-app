@@ -5,7 +5,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
-import { handleGenerateArticleCron } from "./lib/article-cron";
+import { handleGenerateArticleCron, handleSetCoverImageCron } from "./lib/article-cron";
 import { handleCoverImage } from "./lib/cover-image-server";
 
 type ServerEntry = {
@@ -92,6 +92,15 @@ export default {
         return await handleGenerateArticleCron(request);
       } catch (error) {
         console.error("Erro no cron de geração de matéria:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/set-cover-image" && request.method === "POST") {
+      try {
+        return await handleSetCoverImageCron(request);
+      } catch (error) {
+        console.error("Erro no cron de capa de matéria:", error);
         return new Response("error", { status: 500 });
       }
     }

@@ -1,5 +1,8 @@
+import { eq } from "drizzle-orm";
 import { BEAT_VALUES, type Beat } from "./beats";
 import { publishArticleFromCron } from "./articles-server";
+import { getDb } from "./db";
+import { articles } from "./schema";
 
 const CYCLE_HOURS = 5;
 
@@ -35,7 +38,62 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
     });
   }
 
-  return new Response(JSON.stringify({ ok: true, beat, slug: result.article.slug }), {
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      beat,
+      slug: result.article.slug,
+      headline: result.article.headline,
+      desk: result.article.desk,
+    }),
+    { headers: { "content-type": "application/json" } },
+  );
+}
+
+// Segundo passo do mesmo pipeline: o workflow do cron (generate-article.yml)
+// chama handleGenerateArticleCron acima, depois renderiza a capa (HTML/CSS
+// via Playwright, scripts/render-cover.mjs) e commita o .jpg estático no
+// repo — só então dá pra saber a URL final e setar coverImageUrl aqui. Mesma
+// autenticação por CRON_SECRET; sem isso o artigo fica publicado sem capa
+// (degradação aceitável, não bloqueia a publicação).
+export async function handleSetCoverImageCron(request: Request): Promise<Response> {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    return new Response("CRON_SECRET não configurada", { status: 500 });
+  }
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
+    return new Response("unauthorized", { status: 401 });
+  }
+
+  let body: { slug?: unknown; coverImageUrl?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return new Response("corpo inválido", { status: 400 });
+  }
+
+  if (typeof body.slug !== "string" || !body.slug.trim()) {
+    return new Response("slug obrigatório", { status: 400 });
+  }
+  if (typeof body.coverImageUrl !== "string" || !body.coverImageUrl.trim()) {
+    return new Response("coverImageUrl obrigatório", { status: 400 });
+  }
+
+  const db = getDb();
+  const [row] = await db
+    .update(articles)
+    .set({ coverImageUrl: body.coverImageUrl.trim(), updatedAt: new Date() })
+    .where(eq(articles.slug, body.slug.trim()))
+    .returning({ id: articles.id });
+
+  if (!row) {
+    return new Response(JSON.stringify({ ok: false, error: "matéria não encontrada" }), {
+      status: 404,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  return new Response(JSON.stringify({ ok: true }), {
     headers: { "content-type": "application/json" },
   });
 }
