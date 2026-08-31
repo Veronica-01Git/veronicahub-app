@@ -11,7 +11,12 @@ import { BEAT_LABELS, isBeat, type Beat } from "./beats";
 // texto vai ao ar como matéria publicada — vale o custo extra de raciocínio
 // e de busca na web pra reduzir alucinação.
 const DRAFT_MODEL = "claude-sonnet-5";
-const DRAFT_MAX_TOKENS = 2200;
+// Com web_search ligado (até 4 buscas), o texto das buscas + raciocínio do
+// modelo já consome uma fatia boa do budget antes de chegar no JSON final —
+// 2200 tokens vinha cortando a resposta no meio (stop_reason "max_tokens"),
+// o que sobra como "IA não retornou um rascunho válido" (sem chave de
+// fechamento pro JSON.parse).
+const DRAFT_MAX_TOKENS = 4096;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
@@ -133,19 +138,18 @@ type DraftContent = {
   sourceUrls: string[];
 };
 
-// Núcleo de "pede pra IA pesquisar e escrever a matéria" — sem tocar no
-// banco nem checar quem está chamando. Usado tanto pelo fluxo manual
-// (generateArticleDraftAI, admin logado, sempre vira rascunho) quanto pelo
-// cron automático (publishArticleFromCron, autenticado por CRON_SECRET,
-// publica direto — ver comentário lá).
-async function draftArticleContent(
-  beat: Beat,
-): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return { ok: false, error: "ANTHROPIC_API_KEY não configurada." };
-  }
+type DraftAttemptResult =
+  | { ok: true; content: DraftContent }
+  // retry=true: formato veio quebrado (provável corte por max_tokens ou
+  // ruído do modelo) — vale tentar de novo. retry=false: o modelo respondeu
+  // corretamente que não achou fato verificável, ou a chamada à API falhou
+  // (rede/API key/etc) — tentar de novo não muda o resultado.
+  | { ok: false; error: string; retry: boolean };
 
+// Uma chamada à Anthropic + parse da resposta. Separado de
+// draftArticleContent só pra permitir uma retentativa (ver lá embaixo) sem
+// duplicar a lógica de request/parse.
+async function attemptDraft(apiKey: string, beat: Beat): Promise<DraftAttemptResult> {
   const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
 Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, recente e verificável nessa editoria — não invente nada.
 Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, sem texto antes ou depois), exatamente neste formato:
@@ -160,9 +164,13 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
   // de fato usamos da resposta.
   type CreateMessage = (params: Record<string, unknown>) => Promise<{
     content: Array<{ type: string; text?: string }>;
+    stop_reason?: string | null;
   }>;
 
-  let response: { content: Array<{ type: string; text?: string }> };
+  let response: {
+    content: Array<{ type: string; text?: string }>;
+    stop_reason?: string | null;
+  };
   try {
     const anthropic = new Anthropic({ apiKey });
     response = await (anthropic.messages.create as unknown as CreateMessage).call(
@@ -181,6 +189,7 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Falha ao gerar rascunho com IA.",
+      retry: false,
     };
   }
 
@@ -193,18 +202,24 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
   const jsonStart = text.indexOf("{");
   const jsonEnd = text.lastIndexOf("}");
   if (jsonStart === -1 || jsonEnd === -1) {
-    return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo." };
+    console.error(
+      `draftArticleContent(${beat}): sem JSON na resposta (stop_reason=${response.stop_reason ?? "?"}). Trecho: ${text.slice(0, 300)}`,
+    );
+    return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo.", retry: true };
   }
 
   let parsed: Record<string, unknown>;
   try {
     parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
-  } catch {
-    return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo." };
+  } catch (error) {
+    console.error(
+      `draftArticleContent(${beat}): JSON inválido (stop_reason=${response.stop_reason ?? "?"}, erro=${error instanceof Error ? error.message : error}). Trecho: ${text.slice(0, 300)}`,
+    );
+    return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo.", retry: true };
   }
 
   if (typeof parsed.error === "string") {
-    return { ok: false, error: parsed.error };
+    return { ok: false, error: parsed.error, retry: false };
   }
 
   const { headline, excerpt, body, desk, sourceUrls } = parsed;
@@ -216,13 +231,39 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
     !Array.isArray(sourceUrls) ||
     !sourceUrls.every((u) => typeof u === "string")
   ) {
-    return { ok: false, error: "IA retornou um formato inesperado. Tente de novo." };
+    console.error(
+      `draftArticleContent(${beat}): formato inesperado. JSON: ${text.slice(jsonStart, jsonEnd + 1).slice(0, 300)}`,
+    );
+    return { ok: false, error: "IA retornou um formato inesperado. Tente de novo.", retry: true };
   }
 
   return {
     ok: true,
     content: { headline, excerpt, body, desk, sourceUrls: sourceUrls as string[] },
   };
+}
+
+// Núcleo de "pede pra IA pesquisar e escrever a matéria" — sem tocar no
+// banco nem checar quem está chamando. Usado tanto pelo fluxo manual
+// (generateArticleDraftAI, admin logado, sempre vira rascunho) quanto pelo
+// cron automático (publishArticleFromCron, autenticado por CRON_SECRET,
+// publica direto — ver comentário lá).
+async function draftArticleContent(
+  beat: Beat,
+): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "ANTHROPIC_API_KEY não configurada." };
+  }
+
+  // Só uma retentativa, e só quando a resposta veio com formato quebrado
+  // (retry=true) — não faz sentido retentar quando o próprio modelo disse
+  // que não achou fato verificável, nem quando a chamada à API falhou.
+  const first = await attemptDraft(apiKey, beat);
+  if (first.ok || !first.retry) return first;
+
+  const second = await attemptDraft(apiKey, beat);
+  return second;
 }
 
 // Gera SEMPRE como rascunho (status "draft") — nunca publica sozinho. Um
