@@ -134,3 +134,31 @@ export const articles = pgTable(
     index("Article_beat_idx").on(table.beat),
   ],
 );
+
+// Banco de imagens do painel admin (/admin/imagens) — upload manual pelo
+// admin, guardado como base64 no Postgres. Mesmo caminho já usado por
+// Article.coverImageData (ver comentário acima e src/lib/cover-image-server.ts):
+// R2 já quebrou o build nesse stack antes, e isso mantém uma URL própria e
+// estável (/api/media-images/:id), sem depender de storage externo. Serve
+// pra ter fotos prontas (ex: com pessoas) pra colar como coverImageUrl de
+// uma matéria ou usar em qualquer outro lugar do site.
+export const mediaImages = pgTable(
+  "MediaImage",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    filename: text("filename").notNull(),
+    mimeType: text("mimeType").notNull(),
+    sizeBytes: integer("sizeBytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    altText: text("altText"),
+    data: text("data").notNull(),
+    uploadedBy: text("uploadedBy")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [index("MediaImage_createdAt_idx").on(table.createdAt)],
+);
