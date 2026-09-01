@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Radio, Globe2, Cpu, TrendingUp, Cloud, Landmark, ArrowRight } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
-import { LazyImage } from "@/components/media/LazyImage";
+import { CoverThumb } from "@/components/blog/CoverThumb";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 
@@ -147,53 +147,6 @@ function formatAgo(publishedAt: string | null, now: Date): string {
   return `há ${Math.floor(hours / 24)}d`;
 }
 
-// "oklch(L C H)" -> "oklch(L C H / alpha)" — alpha must live inside the
-// function, appending " / alpha" after the closing paren is invalid CSS.
-function withAlpha(oklch: string, alpha: number): string {
-  return oklch.replace(/\)$/, ` / ${alpha})`);
-}
-
-function Thumb({
-  color,
-  coverImageUrl,
-  beatLabel,
-  className = "",
-}: {
-  color: string;
-  coverImageUrl?: string | null;
-  beatLabel: string;
-  className?: string;
-}) {
-  if (coverImageUrl) {
-    return (
-      <div className={`relative overflow-hidden rounded-sm border border-border/40 ${className}`}>
-        <LazyImage
-          src={coverImageUrl}
-          alt=""
-          useCfResize={false}
-          className="h-full w-full object-cover"
-        />
-      </div>
-    );
-  }
-  return (
-    <div
-      aria-hidden
-      className={`relative flex items-center justify-center overflow-hidden rounded-sm border border-border/40 ${className}`}
-      style={{
-        background: `linear-gradient(135deg, ${withAlpha(color, 0.28)}, ${withAlpha(color, 0.06)})`,
-      }}
-    >
-      <span
-        className="font-mono-tech text-[10px] uppercase tracking-widest"
-        style={{ color: withAlpha(color, 0.85) }}
-      >
-        {beatLabel}
-      </span>
-    </div>
-  );
-}
-
 function VeronicaWire() {
   const now = useLiveClock();
   const { articles } = Route.useLoaderData();
@@ -316,11 +269,10 @@ function VeronicaWire() {
               params={{ slug: featured.slug }}
               className="group block overflow-hidden rounded-sm border border-border/60 bg-surface/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-neon-green/50"
             >
-              <Thumb
-                color={featuredMeta!.color}
+              <CoverThumb
+                beat={featured.beat}
                 coverImageUrl={featured.coverImageUrl}
-                beatLabel={featuredMeta!.short}
-                className="aspect-video"
+                className="aspect-[16/10]"
               />
               <div className="p-6 sm:p-8">
                 <div
@@ -452,10 +404,9 @@ function VeronicaWire() {
                     onMouseEnter={(e) => (e.currentTarget.style.borderColor = meta.color)}
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = "")}
                   >
-                    <Thumb
-                      color={meta.color}
+                    <CoverThumb
+                      beat={a.beat}
                       coverImageUrl={a.coverImageUrl}
-                      beatLabel={meta.short}
                       className="aspect-[16/10]"
                     />
                     <div className="flex flex-1 flex-col gap-3 p-6">

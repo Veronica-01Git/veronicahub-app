@@ -118,6 +118,18 @@ export const articles = pgTable(
     coverImageUrl: text("coverImageUrl"),
     coverImageData: text("coverImageData"),
     coverImageMimeType: text("coverImageMimeType"),
+    // Capa fotográfica (Pexels/Pixabay, ver scripts/fetch-cover-photo.mjs).
+    // coverPhotoId é a chave de antirrepetição (últimas 20 matérias, todas
+    // editorias); credit/Url alimentam o crédito discreto na página da
+    // matéria. Ficam null quando a capa é o card tipográfico (fallback) ou
+    // uma foto genérica fixa por editoria.
+    coverPhotoId: text("coverPhotoId"),
+    coverPhotoCredit: text("coverPhotoCredit"),
+    coverPhotoUrl: text("coverPhotoUrl"),
+    // true assim que um admin define coverImageUrl manualmente em
+    // /admin/artigos — protege contra o pipeline automático (ou um
+    // reprocessamento em lote) sobrescrever a escolha humana depois.
+    coverManual: boolean("coverManual").notNull().default(false),
     sourceUrls: text("sourceUrls")
       .array()
       .notNull()

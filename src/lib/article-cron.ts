@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { BEAT_VALUES, CYCLE_HOURS, type Beat } from "./beats";
 import { publishArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
@@ -43,6 +43,8 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
       slug: result.article.slug,
       headline: result.article.headline,
       desk: result.article.desk,
+      fotoTermos: result.fotoTermos,
+      recentPhotoIds: result.recentPhotoIds,
     }),
     { headers: { "content-type": "application/json" } },
   );
@@ -63,7 +65,13 @@ export async function handleSetCoverImageCron(request: Request): Promise<Respons
     return new Response("unauthorized", { status: 401 });
   }
 
-  let body: { slug?: unknown; coverImageUrl?: unknown };
+  let body: {
+    slug?: unknown;
+    coverImageUrl?: unknown;
+    photoId?: unknown;
+    photoCredit?: unknown;
+    photoUrl?: unknown;
+  };
   try {
     body = await request.json();
   } catch {
@@ -78,17 +86,27 @@ export async function handleSetCoverImageCron(request: Request): Promise<Respons
   }
 
   const db = getDb();
+  // Nunca sobrescreve uma capa que um admin escolheu à mão em
+  // /admin/artigos (coverManual=true) — protege mesmo que esse endpoint
+  // seja chamado de novo pra uma matéria antiga (ex: scripts/reprocess-covers.mjs).
   const [row] = await db
     .update(articles)
-    .set({ coverImageUrl: body.coverImageUrl.trim(), updatedAt: new Date() })
-    .where(eq(articles.slug, body.slug.trim()))
+    .set({
+      coverImageUrl: body.coverImageUrl.trim(),
+      coverPhotoId: typeof body.photoId === "string" && body.photoId ? body.photoId : null,
+      coverPhotoCredit:
+        typeof body.photoCredit === "string" && body.photoCredit ? body.photoCredit : null,
+      coverPhotoUrl: typeof body.photoUrl === "string" && body.photoUrl ? body.photoUrl : null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(articles.slug, body.slug.trim()), eq(articles.coverManual, false)))
     .returning({ id: articles.id });
 
   if (!row) {
-    return new Response(JSON.stringify({ ok: false, error: "matéria não encontrada" }), {
-      status: 404,
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: false, error: "matéria não encontrada ou capa é manual" }),
+      { status: 404, headers: { "content-type": "application/json" } },
+    );
   }
 
   return new Response(JSON.stringify({ ok: true }), {
