@@ -56,11 +56,11 @@ const BEAT_META = Object.fromEntries(
 const DESKS = [
   {
     city: "São Paulo",
-    note: "Cobertura de adoção de IA generativa e comércio China-Brasil na América Latina.",
+    note: "Fuso-base da operação: consolidação da cobertura de IA generativa e comércio China-Brasil na América Latina.",
   },
   {
     city: "San Francisco",
-    note: "Acompanhamento contínuo dos laboratórios de ponta e da política tecnológica dos EUA.",
+    note: "Monitoramento de laboratórios de ponta e política tecnológica dos EUA.",
   },
   {
     city: "Pequim",
@@ -68,7 +68,7 @@ const DESKS = [
   },
   {
     city: "Londres",
-    note: "Análise de políticas regulatórias e mercado de energia limpa europeu.",
+    note: "Monitoramento de política regulatória e do mercado de energia limpa europeu.",
   },
 ];
 
@@ -87,18 +87,55 @@ const TAGS = [
   "#mercado",
 ];
 
+// Sempre parte de um Date de verdade (nunca null) — renderiza a hora certa
+// já no primeiro paint (SSR incluído), sem esperar um efeito rodar no
+// cliente pra deixar de mostrar "—". O tick por segundo só atualiza depois.
 function useLiveClock() {
-  const [now, setNow] = useState<Date | null>(null);
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);
   }, []);
   return now;
 }
 
-function formatAgo(publishedAt: string | null, now: Date | null): string {
-  if (!publishedAt || !now) return "";
+const MONTHS_PT = [
+  "JAN",
+  "FEV",
+  "MAR",
+  "ABR",
+  "MAI",
+  "JUN",
+  "JUL",
+  "AGO",
+  "SET",
+  "OUT",
+  "NOV",
+  "DEZ",
+];
+
+// Fuso fixo em Brasília, sempre — independente de onde o visitante estiver.
+// Usa formatToParts em vez de toLocaleDateString/toLocaleTimeString porque
+// o formato de mês abreviado do locale pt-BR varia entre runtimes ICU
+// ("ago." vs "ago" vs variações de acento); montar a string à mão garante
+// sempre "12 AGO 2026 · 03:48 BRT".
+function formatMasthead(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "numeric",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const month = MONTHS_PT[Number(get("month")) - 1] ?? "";
+  return `${get("day")} ${month} ${get("year")} · ${get("hour")}:${get("minute")} BRT`;
+}
+
+function formatAgo(publishedAt: string | null, now: Date): string {
+  if (!publishedAt) return "";
   const minutes = Math.max(
     0,
     Math.round((now.getTime() - new Date(publishedAt).getTime()) / 60000),
@@ -119,10 +156,12 @@ function withAlpha(oklch: string, alpha: number): string {
 function Thumb({
   color,
   coverImageUrl,
+  beatLabel,
   className = "",
 }: {
   color: string;
   coverImageUrl?: string | null;
+  beatLabel: string;
   className?: string;
 }) {
   if (coverImageUrl) {
@@ -140,11 +179,18 @@ function Thumb({
   return (
     <div
       aria-hidden
-      className={`relative overflow-hidden rounded-sm border border-border/40 ${className}`}
+      className={`relative flex items-center justify-center overflow-hidden rounded-sm border border-border/40 ${className}`}
       style={{
         background: `linear-gradient(135deg, ${withAlpha(color, 0.28)}, ${withAlpha(color, 0.06)})`,
       }}
-    />
+    >
+      <span
+        className="font-mono-tech text-[10px] uppercase tracking-widest"
+        style={{ color: withAlpha(color, 0.85) }}
+      >
+        {beatLabel}
+      </span>
+    </div>
   );
 }
 
@@ -162,6 +208,10 @@ function VeronicaWire() {
   const FeaturedIcon = featuredMeta?.icon ?? Cpu;
   const rail = featured ? articles.filter((a) => a.id !== featured.id).slice(0, 5) : [];
   const ticker = articles.slice(0, 8).map((a) => a.headline);
+  // Evita a mesma matéria aparecer duas vezes na tela (destaque/rail e de
+  // novo na seção da própria editoria logo abaixo).
+  const shownIds = new Set([featured?.id, ...rail.map((a) => a.id)].filter(Boolean));
+  const featuredAgo = featured ? formatAgo(featured.publishedAt, now) : "";
 
   return (
     <div className="home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -208,18 +258,14 @@ function VeronicaWire() {
                 Cobertura contínua e global
               </div>
             </div>
-            <div className="text-right font-mono-tech text-[11px] text-muted-foreground">
-              {now
-                ? now
-                    .toLocaleDateString("pt-BR", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })
-                    .toUpperCase()
-                : "—"}
-              <br />
-              {now ? now.toLocaleTimeString("pt-BR") : "—"} BRT
+            {/* suppressHydrationWarning: valor calculado do relógio muda entre o
+                render do servidor e a hidratação no cliente por design (é um
+                relógio ao vivo) — sem isso o React acusa mismatch por engano. */}
+            <div
+              className="text-right font-mono-tech text-[11px] text-muted-foreground"
+              suppressHydrationWarning
+            >
+              {formatMasthead(now)}
             </div>
           </div>
           <nav className="mt-4 flex gap-1 overflow-x-auto border-t border-border/40 pt-3 text-[13px] font-medium">
@@ -273,6 +319,7 @@ function VeronicaWire() {
               <Thumb
                 color={featuredMeta!.color}
                 coverImageUrl={featured.coverImageUrl}
+                beatLabel={featuredMeta!.short}
                 className="aspect-video"
               />
               <div className="p-6 sm:p-8">
@@ -293,7 +340,8 @@ function VeronicaWire() {
                   {featured.excerpt}
                 </p>
                 <div className="mt-4 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  {featured.desk} · {formatAgo(featured.publishedAt, now)}
+                  {featured.desk}
+                  {featuredAgo && ` · ${featuredAgo}`}
                 </div>
               </div>
             </Link>
@@ -377,7 +425,7 @@ function VeronicaWire() {
 
       {/* Seções por editoria — só renderiza quando existe matéria publicada nela */}
       {BEAT_VALUES.map((beat) => {
-        const items = articles.filter((a) => a.beat === beat);
+        const items = articles.filter((a) => a.beat === beat && !shownIds.has(a.id));
         if (items.length === 0) return null;
         const meta = BEAT_META[beat];
         return (
@@ -407,6 +455,7 @@ function VeronicaWire() {
                     <Thumb
                       color={meta.color}
                       coverImageUrl={a.coverImageUrl}
+                      beatLabel={meta.short}
                       className="aspect-[16/10]"
                     />
                     <div className="flex flex-1 flex-col gap-3 p-6">
@@ -435,13 +484,17 @@ function VeronicaWire() {
         );
       })}
 
-      {/* Redação global */}
+      {/* Monitoramento global */}
       <section className="border-t border-border/40 bg-surface/30 py-20 cv-auto">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+          <div className="mb-2 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
-            Redação global
+            Monitoramento global
           </div>
+          <p className="mb-8 max-w-xl text-[13px] text-muted-foreground">
+            Cobertura organizada por fuso horário, não por correspondentes locais — buscas
+            automatizadas via IA em fontes de cada região.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {DESKS.map((d) => (
               <div

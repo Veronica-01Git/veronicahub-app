@@ -3,9 +3,73 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { LazyImage } from "@/components/media/LazyImage";
 import { getArticleBySlug } from "@/lib/articles-server";
-import { BEAT_LABELS } from "@/lib/beats";
+import { BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 
 const SITE_URL = "https://veronicahub.com";
+
+// Mesma paleta de src/routes/blog/index.tsx (mantida local a cada rota,
+// mesmo padrão já usado ali — cor por editoria não vive em beats.ts porque
+// esse módulo também é importado do server, e cor é puramente de UI).
+const BEAT_COLOR: Record<Beat, string> = {
+  ia: "oklch(0.58 0.17 155)",
+  clima: "oklch(0.55 0.13 220)",
+  economia: "oklch(0.62 0.15 85)",
+  geopolitica: "oklch(0.58 0.19 25)",
+  mercado: "oklch(0.56 0.16 290)",
+};
+
+// "oklch(L C H)" -> "oklch(L C H / alpha)".
+function withAlpha(oklch: string, alpha: number): string {
+  return oklch.replace(/\)$/, ` / ${alpha})`);
+}
+
+// Nomes conhecidos dos veículos mais citados pelo Wire até agora — fallback
+// pra qualquer domínio novo é capitalizar os pedaços do hostname. Sem campo
+// dedicado de "fonte" no banco (só sourceUrls), então isso deriva o nome de
+// exibição a partir da própria URL, sem inventar nada que não esteja nela.
+const KNOWN_SOURCES: Record<string, string> = {
+  "caixinglobal.com": "Caixin Global",
+  "scmp.com": "SCMP",
+  "coindesk.com": "CoinDesk",
+  "crowdfundinsider.com": "Crowdfund Insider",
+  "paymentexpert.com": "Payment Expert",
+  "atlanticcouncil.org": "Atlantic Council",
+  "unite.ai": "Unite.AI",
+  "cerebras.ai": "Cerebras",
+  "openai.com": "OpenAI",
+  "mlq.ai": "MLQ.ai",
+  "exame.com": "Exame",
+  "revistaforum.com.br": "Revista Fórum",
+  "tecnoblog.net": "Tecnoblog",
+  "ajupress.com": "Aju Press",
+  "tomshardware.com": "Tom's Hardware",
+  "brasil247.com": "Brasil 247",
+  "cenarioenergia.com.br": "Cenário Energia",
+  "cebc.org.br": "CEBC",
+  "timesbrasil.com.br": "Times Brasil",
+  "monitormercantil.com.br": "Monitor Mercantil",
+  "theblock.co": "The Block",
+  "forbes.com": "Forbes",
+  "epe.gov.br": "EPE",
+  "xpi.com.br": "XP Investimentos",
+  "epowerbay.com": "ePowerBay",
+};
+
+function deriveSourceLabel(url: string): string {
+  let hostname: string;
+  try {
+    hostname = new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+  if (KNOWN_SOURCES[hostname]) return KNOWN_SOURCES[hostname];
+  // Domínio com subdomínio (ex: investors.cerebras.ai) — tenta o eTLD+1.
+  const parts = hostname.split(".");
+  const root = parts.length > 2 ? parts.slice(-2).join(".") : hostname;
+  if (KNOWN_SOURCES[root]) return KNOWN_SOURCES[root];
+  const label = hostname.split(".")[0];
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 export const Route = createFileRoute("/blog/$slug")({
   component: ArticlePage,
@@ -99,6 +163,16 @@ function ArticlePage() {
             <p className="mt-4 text-[15px] leading-[1.6] text-muted-foreground">
               {state.article.excerpt}
             </p>
+            {state.article.sourceUrls.length > 0 && (
+              <a
+                href={state.article.sourceUrls[0]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-[13px] text-muted-foreground transition hover:text-neon-green"
+              >
+                Fonte: {deriveSourceLabel(state.article.sourceUrls[0])} ›
+              </a>
+            )}
             <div className="mt-4 flex flex-wrap items-center gap-3 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
               <span>{state.article.desk}</span>
               {state.article.publishedAt && (
@@ -109,6 +183,7 @@ function ArticlePage() {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",
+                      timeZone: "America/Sao_Paulo",
                     })}
                   </span>
                 </>
@@ -126,15 +201,34 @@ function ArticlePage() {
               )}
             </div>
 
-            {state.article.coverImageUrl && (
-              <LazyImage
-                src={state.article.coverImageUrl}
-                alt=""
-                priority
-                useCfResize={false}
-                className="mt-6 aspect-video w-full rounded-sm border border-border/40 object-cover"
-              />
-            )}
+            <div
+              className="relative mt-6 flex aspect-video w-full items-center justify-center overflow-hidden rounded-sm border border-border/40"
+              style={
+                state.article.coverImageUrl
+                  ? undefined
+                  : {
+                      background: `linear-gradient(135deg, ${withAlpha(BEAT_COLOR[state.article.beat], 0.28)}, ${withAlpha(BEAT_COLOR[state.article.beat], 0.06)})`,
+                    }
+              }
+            >
+              {state.article.coverImageUrl ? (
+                <LazyImage
+                  src={state.article.coverImageUrl}
+                  alt=""
+                  priority
+                  useCfResize={false}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span
+                  aria-hidden
+                  className="font-mono-tech text-xs uppercase tracking-widest"
+                  style={{ color: withAlpha(BEAT_COLOR[state.article.beat], 0.85) }}
+                >
+                  {BEAT_SHORT[state.article.beat]}
+                </span>
+              )}
+            </div>
 
             <div className="mt-8 flex flex-col gap-4 text-[15px] leading-[1.75] text-foreground/90">
               {state.article.body
