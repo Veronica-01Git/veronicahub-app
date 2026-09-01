@@ -39,6 +39,12 @@ jobs:
             echo "desk<<COVER_EOF"
             jq -r '.desk' response.json
             echo "COVER_EOF"
+            echo "fotoTermos<<COVER_EOF"
+            jq -c '.fotoTermos // []' response.json
+            echo "COVER_EOF"
+            echo "recentPhotoIds<<COVER_EOF"
+            jq -c '.recentPhotoIds // []' response.json
+            echo "COVER_EOF"
           } >> "$GITHUB_OUTPUT"
 
       # A partir daqui é tudo capa de imagem — best-effort. A matéria já foi
@@ -51,8 +57,44 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      - name: Instala o Playwright (sem tocar no package.json)
+      # Nível 1/2/3 da cadeia de fallback: Pexels, depois Pixabay, depois
+      # foto genérica fixa por editoria (se já foi commitada em
+      # public/images/blog-covers/_fallback/<beat>.jpg). PEXELS_API_KEY e
+      # PIXABAY_API_KEY vazios (secret não cadastrado ainda) fazem esse
+      # passo não achar nada e cair pro card tipográfico — nunca falha o job.
+      - name: Busca foto real (Pexels/Pixabay/fallback fixo)
         if: steps.checkout.outcome == 'success'
+        id: fetch_photo
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+          COVER_BEAT: ${{ steps.generate.outputs.beat }}
+          COVER_FOTO_TERMOS: ${{ steps.generate.outputs.fotoTermos }}
+          COVER_RECENT_PHOTO_IDS: ${{ steps.generate.outputs.recentPhotoIds }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+        run: |
+          node scripts/fetch-cover-photo.mjs > photo-result.json
+          cat photo-result.json
+          path=$(jq -r '.path // empty' photo-result.json)
+          if [ -n "$path" ]; then found=true; else found=false; fi
+          {
+            echo "found=$found"
+            echo "photoId<<COVER_EOF"
+            jq -r '.photoId // empty' photo-result.json
+            echo "COVER_EOF"
+            echo "photoCredit<<COVER_EOF"
+            jq -r '.photoCredit // empty' photo-result.json
+            echo "COVER_EOF"
+            echo "photoUrl<<COVER_EOF"
+            jq -r '.photoUrl // empty' photo-result.json
+            echo "COVER_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Nível 4 (último recurso): card tipográfico, só quando nada acima
+      # encontrou uma foto de verdade.
+      - name: Instala o Playwright (sem tocar no package.json)
+        if: steps.fetch_photo.outcome == 'success' && steps.fetch_photo.outputs.found != 'true'
         id: install_pw
         continue-on-error: true
         run: npm install --no-save playwright
@@ -75,7 +117,7 @@ jobs:
         run: node scripts/render-cover.mjs
 
       - name: Commita a capa no repositório
-        if: steps.render.outcome == 'success'
+        if: steps.fetch_photo.outputs.found == 'true' || steps.render.outcome == 'success'
         id: commit
         continue-on-error: true
         env:
@@ -109,9 +151,18 @@ jobs:
         continue-on-error: true
         env:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
+          PHOTO_ID: ${{ steps.fetch_photo.outputs.photoId }}
+          PHOTO_CREDIT: ${{ steps.fetch_photo.outputs.photoCredit }}
+          PHOTO_URL: ${{ steps.fetch_photo.outputs.photoUrl }}
         run: |
           url="https://veronicahub.com/images/blog-covers/${COVER_SLUG}.jpg"
-          body=$(jq -n --arg slug "$COVER_SLUG" --arg url "$url" '{slug: $slug, coverImageUrl: $url}')
+          body=$(jq -n \
+            --arg slug "$COVER_SLUG" \
+            --arg url "$url" \
+            --arg photoId "$PHOTO_ID" \
+            --arg photoCredit "$PHOTO_CREDIT" \
+            --arg photoUrl "$PHOTO_URL" \
+            '{slug: $slug, coverImageUrl: $url, photoId: $photoId, photoCredit: $photoCredit, photoUrl: $photoUrl}')
           status=$(curl --silent --show-error \
             --max-time 30 \
             -o set-cover-response.json -w "%{http_code}" \

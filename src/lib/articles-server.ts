@@ -68,6 +68,8 @@ function mapArticle(row: typeof articles.$inferSelect) {
     body: row.body,
     desk: row.desk,
     coverImageUrl: row.coverImageUrl,
+    coverPhotoCredit: row.coverPhotoCredit,
+    coverPhotoUrl: row.coverPhotoUrl,
     sourceUrls: row.sourceUrls,
     status: row.status,
     aiGenerated: row.aiGenerated,
@@ -136,6 +138,11 @@ type DraftContent = {
   body: string;
   desk: string;
   sourceUrls: string[];
+  // Termos de busca (inglês) pra achar uma foto real no Pexels/Pixabay —
+  // ver scripts/fetch-cover-photo.mjs. Nunca bloqueia a publicação: se vier
+  // ausente/malformado, cai vazio e o pipeline de capa vai direto pro
+  // próximo nível de fallback (ver handleGenerateArticleCron).
+  fotoTermos: string[];
 };
 
 type DraftAttemptResult =
@@ -153,8 +160,10 @@ async function attemptDraft(apiKey: string, beat: Beat): Promise<DraftAttemptRes
   const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
 Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, recente e verificável nessa editoria — não invente nada.
 Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, sem texto antes ou depois), exatamente neste formato:
-{"headline": "manchete curta e direta em português, sem clickbait", "excerpt": "1-2 frases de resumo", "body": "matéria completa em português, 3-5 parágrafos, tom jornalístico factual, sem opinião", "desk": "Desk de <algo específico da matéria>", "sourceUrls": ["https://...", "https://..."]}
-"sourceUrls" deve conter as URLs reais que você usou na pesquisa. Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
+{"headline": "manchete curta e direta em português, sem clickbait", "excerpt": "1-2 frases de resumo", "body": "matéria completa em português, 3-5 parágrafos, tom jornalístico factual, sem opinião", "desk": "Desk de <algo específico da matéria>", "sourceUrls": ["https://...", "https://..."], "fotoTermos": ["termo 1", "termo 2", "termo 3"]}
+"sourceUrls" deve conter as URLs reais que você usou na pesquisa.
+"fotoTermos": dois ou três termos de busca em inglês para encontrar uma fotografia que ilustre esta notícia num banco de imagens. Use substantivos concretos e fotografáveis — objetos, lugares, equipamentos, ambientes. Nunca conceitos abstratos, nomes de empresa, logotipos ou pessoas públicas. Exemplos: "battery energy storage facility", "server racks data center", "shipping port containers", "solar panel field".
+Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
 
   // web_search_20250305 é uma tool server-side (a Anthropic executa a
   // busca e injeta o resultado na mesma resposta) — pode não estar no
@@ -222,7 +231,7 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
     return { ok: false, error: parsed.error, retry: false };
   }
 
-  const { headline, excerpt, body, desk, sourceUrls } = parsed;
+  const { headline, excerpt, body, desk, sourceUrls, fotoTermos } = parsed;
   if (
     typeof headline !== "string" ||
     typeof excerpt !== "string" ||
@@ -237,9 +246,27 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
     return { ok: false, error: "IA retornou um formato inesperado. Tente de novo.", retry: true };
   }
 
+  // fotoTermos nunca derruba a publicação — se vier ausente/malformado, só
+  // não dá pra tentar Pexels/Pixabay pra essa matéria (cai pro próximo
+  // nível de fallback no workflow do cron).
+  const validFotoTermos =
+    Array.isArray(fotoTermos) && fotoTermos.every((t) => typeof t === "string")
+      ? (fotoTermos as string[]).filter(Boolean).slice(0, 3)
+      : [];
+  if (validFotoTermos.length === 0) {
+    console.error(`draftArticleContent(${beat}): fotoTermos ausente ou inválido, seguindo sem.`);
+  }
+
   return {
     ok: true,
-    content: { headline, excerpt, body, desk, sourceUrls: sourceUrls as string[] },
+    content: {
+      headline,
+      excerpt,
+      body,
+      desk,
+      sourceUrls: sourceUrls as string[],
+      fotoTermos: validFotoTermos,
+    },
   };
 }
 
@@ -314,15 +341,34 @@ function currentCycleWindowStart(): Date {
   return start;
 }
 
+// Últimos coverPhotoId usados (todas as editorias) — pro Action excluir da
+// busca no Pexels/Pixabay e não repetir a mesma foto em poucos dias. 20 é o
+// número pedido; NULL (matéria sem foto real, só card/fallback) não conta.
+async function recentCoverPhotoIds(db: ReturnType<typeof getDb>): Promise<string[]> {
+  const rows = await db
+    .select({ coverPhotoId: articles.coverPhotoId })
+    .from(articles)
+    .where(and(eq(articles.status, "published")))
+    .orderBy(desc(articles.publishedAt))
+    .limit(20);
+  return rows.map((r) => r.coverPhotoId).filter((id): id is string => Boolean(id));
+}
+
 // Chamado direto do endpoint /api/cron/generate-article (src/server.ts),
 // autenticado por CRON_SECRET em vez de sessão de admin — quem aciona é o
 // GitHub Actions, não um humano logado. Por isso PUBLICA direto (sem passar
 // por "draft"): decisão explícita do usuário, trocando a salvaguarda de
 // revisão manual por atualização automática a cada 5h. Ver
 // generateArticleDraftAI acima pro fluxo manual com revisão.
-export async function publishArticleFromCron(
-  beat: Beat,
-): Promise<{ ok: true; article: ReturnType<typeof mapArticle> } | { ok: false; error: string }> {
+export async function publishArticleFromCron(beat: Beat): Promise<
+  | {
+      ok: true;
+      article: ReturnType<typeof mapArticle>;
+      fotoTermos: string[];
+      recentPhotoIds: string[];
+    }
+  | { ok: false; error: string }
+> {
   const db = getDb();
 
   // Dedup na origem: se essa editoria já publicou algo dentro da janela de
@@ -372,7 +418,12 @@ export async function publishArticleFromCron(
     })
     .returning();
 
-  return { ok: true, article: mapArticle(row) };
+  return {
+    ok: true,
+    article: mapArticle(row),
+    fotoTermos: draft.content.fotoTermos,
+    recentPhotoIds: await recentCoverPhotoIds(db),
+  };
 }
 
 const saveValidator = (input: unknown) => {
@@ -422,6 +473,12 @@ export const saveArticleAdmin = createServerFn({ method: "POST" })
 
     const db = getDb();
 
+    // Presença de coverImageUrl aqui é sempre escolha explícita de um
+    // admin — marca coverManual pra proteger da pipeline automática (ou de
+    // scripts/reprocess-covers.mjs) sobrescrever depois. Limpar o campo
+    // devolve a matéria pro automático.
+    const coverManual = data.coverImageUrl !== null;
+
     if (data.id) {
       const [row] = await db
         .update(articles)
@@ -432,6 +489,7 @@ export const saveArticleAdmin = createServerFn({ method: "POST" })
           body: data.body,
           desk: data.desk,
           coverImageUrl: data.coverImageUrl,
+          coverManual,
           sourceUrls: data.sourceUrls,
           updatedAt: new Date(),
         })
@@ -452,6 +510,7 @@ export const saveArticleAdmin = createServerFn({ method: "POST" })
         body: data.body,
         desk: data.desk,
         coverImageUrl: data.coverImageUrl,
+        coverManual,
         sourceUrls: data.sourceUrls,
         status: "draft",
         aiGenerated: false,

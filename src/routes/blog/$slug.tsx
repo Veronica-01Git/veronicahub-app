@@ -1,26 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
-import { LazyImage } from "@/components/media/LazyImage";
+import { CoverThumb } from "@/components/blog/CoverThumb";
 import { getArticleBySlug } from "@/lib/articles-server";
-import { BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
+import { BEAT_LABELS } from "@/lib/beats";
 
 const SITE_URL = "https://veronicahub.com";
 
-// Mesma paleta de src/routes/blog/index.tsx (mantida local a cada rota,
-// mesmo padrão já usado ali — cor por editoria não vive em beats.ts porque
-// esse módulo também é importado do server, e cor é puramente de UI).
-const BEAT_COLOR: Record<Beat, string> = {
-  ia: "oklch(0.58 0.17 155)",
-  clima: "oklch(0.55 0.13 220)",
-  economia: "oklch(0.62 0.15 85)",
-  geopolitica: "oklch(0.58 0.19 25)",
-  mercado: "oklch(0.56 0.16 290)",
-};
-
-// "oklch(L C H)" -> "oklch(L C H / alpha)".
-function withAlpha(oklch: string, alpha: number): string {
-  return oklch.replace(/\)$/, ` / ${alpha})`);
+// Deriva "Pexels"/"Pixabay" do hostname da URL do crédito — evita rotular
+// errado quando a foto veio da segunda fonte (ver scripts/fetch-cover-photo.mjs).
+function derivePhotoSourceLabel(url: string | null): string {
+  if (!url) return "";
+  try {
+    const hostname = new URL(url).hostname;
+    if (hostname.includes("pixabay")) return "Pixabay";
+    if (hostname.includes("pexels")) return "Pexels";
+  } catch {
+    // ignora URL inválida — cai no fallback abaixo
+  }
+  return "Pexels";
 }
 
 // Nomes conhecidos dos veículos mais citados pelo Wire até agora — fallback
@@ -201,34 +199,22 @@ function ArticlePage() {
               )}
             </div>
 
-            <div
-              className="relative mt-6 flex aspect-video w-full items-center justify-center overflow-hidden rounded-sm border border-border/40"
-              style={
-                state.article.coverImageUrl
-                  ? undefined
-                  : {
-                      background: `linear-gradient(135deg, ${withAlpha(BEAT_COLOR[state.article.beat], 0.28)}, ${withAlpha(BEAT_COLOR[state.article.beat], 0.06)})`,
-                    }
-              }
-            >
-              {state.article.coverImageUrl ? (
-                <LazyImage
-                  src={state.article.coverImageUrl}
-                  alt=""
-                  priority
-                  useCfResize={false}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span
-                  aria-hidden
-                  className="font-mono-tech text-xs uppercase tracking-widest"
-                  style={{ color: withAlpha(BEAT_COLOR[state.article.beat], 0.85) }}
-                >
-                  {BEAT_SHORT[state.article.beat]}
-                </span>
-              )}
-            </div>
+            <CoverThumb
+              beat={state.article.beat}
+              coverImageUrl={state.article.coverImageUrl}
+              className="mt-6 aspect-[16/10] w-full"
+            />
+            {state.article.coverPhotoCredit && (
+              <a
+                href={state.article.coverPhotoUrl ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1.5 block text-right text-[11px] text-muted-foreground/70 transition hover:text-muted-foreground"
+              >
+                Foto: {state.article.coverPhotoCredit} /{" "}
+                {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
+              </a>
+            )}
 
             <div className="mt-8 flex flex-col gap-4 text-[15px] leading-[1.75] text-foreground/90">
               {state.article.body
