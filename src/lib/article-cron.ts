@@ -1,10 +1,8 @@
 import { eq } from "drizzle-orm";
-import { BEAT_VALUES, type Beat } from "./beats";
+import { BEAT_VALUES, CYCLE_HOURS, type Beat } from "./beats";
 import { publishArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
 import { articles } from "./schema";
-
-const CYCLE_HOURS = 5;
 
 // Escolhe a editoria pela hora UTC atual — sem precisar guardar estado em
 // lugar nenhum (qual foi a última editoria gerada). Mesmo bucket de 5h

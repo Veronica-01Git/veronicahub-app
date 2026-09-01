@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import Anthropic from "@anthropic-ai/sdk";
 import { getDb } from "./db";
 import { articles } from "./schema";
 import { requireAdmin } from "./admin-server";
-import { BEAT_LABELS, isBeat, type Beat } from "./beats";
+import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 
 // Rascunhos gerados por IA usam um modelo mais forte que o chat da Veronica
 // (veronica-server.ts usa Haiku pro drawer, custo baixo) porque aqui o
@@ -303,6 +303,17 @@ export const generateArticleDraftAI = createServerFn({ method: "POST" })
     return { ok: true as const, article: mapArticle(row) };
   });
 
+// Início (UTC) da janela de 5h que currentBeat() (article-cron.ts) está
+// usando agora — mesmo cálculo, replicado aqui pra não criar import
+// circular (article-cron.ts já importa publishArticleFromCron daqui).
+function currentCycleWindowStart(): Date {
+  const now = new Date();
+  const start = new Date(now);
+  start.setUTCMinutes(0, 0, 0);
+  start.setUTCHours(Math.floor(now.getUTCHours() / CYCLE_HOURS) * CYCLE_HOURS);
+  return start;
+}
+
 // Chamado direto do endpoint /api/cron/generate-article (src/server.ts),
 // autenticado por CRON_SECRET em vez de sessão de admin — quem aciona é o
 // GitHub Actions, não um humano logado. Por isso PUBLICA direto (sem passar
@@ -312,12 +323,37 @@ export const generateArticleDraftAI = createServerFn({ method: "POST" })
 export async function publishArticleFromCron(
   beat: Beat,
 ): Promise<{ ok: true; article: ReturnType<typeof mapArticle> } | { ok: false; error: string }> {
+  const db = getDb();
+
+  // Dedup na origem: se essa editoria já publicou algo dentro da janela de
+  // 5h atual, pula — não gera de novo. Isso é o que de fato causa
+  // duplicata (dois disparos do cron pra mesma editoria na mesma janela,
+  // seja um retry, um redisparo manual ou um hiccup do agendador do GitHub
+  // Actions), não é sobre repetir o mesmo fato dias depois. Checar ANTES
+  // de chamar a IA também evita gastar a chamada à toa.
+  const [alreadyPublished] = await db
+    .select({ id: articles.id, headline: articles.headline })
+    .from(articles)
+    .where(
+      and(
+        eq(articles.beat, beat),
+        eq(articles.status, "published"),
+        gte(articles.publishedAt, currentCycleWindowStart()),
+      ),
+    )
+    .limit(1);
+  if (alreadyPublished) {
+    return {
+      ok: false,
+      error: `Já existe matéria publicada nessa janela pra "${beat}" ("${alreadyPublished.headline}") — pulando pra evitar duplicata.`,
+    };
+  }
+
   const draft = await draftArticleContent(beat);
   if (!draft.ok) {
     return { ok: false, error: draft.error };
   }
 
-  const db = getDb();
   const slug = await uniqueSlug(db, draft.content.headline);
   const [row] = await db
     .insert(articles)
