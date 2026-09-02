@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte, lt } from "drizzle-orm";
 import Anthropic from "@anthropic-ai/sdk";
 import { getDb } from "./db";
 import { articles } from "./schema";
@@ -30,6 +30,23 @@ const MIN_BODY_CHARS = 700;
 // antirrepetição — tanto de foto (coverPhotoId) quanto de manchete
 // (findSimilarHeadline, abaixo). 40 é o número pedido no brief de evolução.
 const RECENT_HISTORY_LIMIT = 40;
+
+// Item 7 (arquivamento) do brief "evolução": a home só mostra as últimas
+// 24h — o resto continua acessível pela página da própria matéria e pela
+// página paginada de cada editoria (getArticlesByBeat, abaixo). Bloco
+// "Esta semana" cobre o intervalo seguinte (24h-7d) com um teto pra nunca
+// virar outra lista sem fim.
+const HOME_WINDOW_HOURS = 24;
+const HOME_WEEK_WINDOW_DAYS = 7;
+const HOME_WEEK_LIMIT = 20;
+
+// Item 6 (paginação): página de cada editoria (/blog/$beat) carrega em
+// blocos de 15 via cursor (publishedAt da última matéria da página
+// anterior) — nunca um offset, que erra sob inserção contínua (o cron
+// publica o tempo todo). Um único Date como cursor é suficiente aqui: as
+// matérias são inseridas uma de cada vez pelo cron, então colisão de
+// timestamp entre duas linhas é praticamente impossível nessa escala.
+const BEAT_PAGE_SIZE = 15;
 
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
@@ -93,16 +110,80 @@ function mapArticle(row: typeof articles.$inferSelect) {
   };
 }
 
+// Home: só últimas 24h (dayRows) + um bloco limitado "Esta semana"
+// (weekRows, 24h-7d) — nunca a lista inteira. Ver comentário de
+// HOME_WINDOW_HOURS acima.
 export const getPublishedArticles = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
-  const rows = await db
-    .select()
-    .from(articles)
-    .where(eq(articles.status, "published"))
-    .orderBy(desc(articles.publishedAt))
-    .limit(60);
-  return { ok: true as const, articles: rows.map(mapArticle) };
+  const dayAgo = new Date(Date.now() - HOME_WINDOW_HOURS * 60 * 60 * 1000);
+  const weekAgo = new Date(Date.now() - HOME_WEEK_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+
+  const [dayRows, weekRows] = await Promise.all([
+    db
+      .select()
+      .from(articles)
+      .where(and(eq(articles.status, "published"), gte(articles.publishedAt, dayAgo)))
+      .orderBy(desc(articles.publishedAt)),
+    db
+      .select()
+      .from(articles)
+      .where(
+        and(
+          eq(articles.status, "published"),
+          gte(articles.publishedAt, weekAgo),
+          lt(articles.publishedAt, dayAgo),
+        ),
+      )
+      .orderBy(desc(articles.publishedAt))
+      .limit(HOME_WEEK_LIMIT),
+  ]);
+
+  return {
+    ok: true as const,
+    articles: dayRows.map(mapArticle),
+    weekArticles: weekRows.map(mapArticle),
+  };
 });
+
+const beatPageValidator = (input: unknown) => {
+  const data = input as { beat?: unknown; cursor?: unknown };
+  if (!isBeat(data?.beat)) {
+    throw new Error("Editoria inválida.");
+  }
+  return {
+    beat: data.beat,
+    cursor: typeof data?.cursor === "string" && data.cursor ? data.cursor : null,
+  };
+};
+
+// Página paginada de uma editoria (/blog/$beat) — ver comentário de
+// BEAT_PAGE_SIZE acima sobre o cursor por publishedAt.
+export const getArticlesByBeat = createServerFn({ method: "GET" })
+  .validator(beatPageValidator)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const conditions = [eq(articles.beat, data.beat), eq(articles.status, "published")];
+    if (data.cursor) {
+      conditions.push(lt(articles.publishedAt, new Date(data.cursor)));
+    }
+
+    const rows = await db
+      .select()
+      .from(articles)
+      .where(and(...conditions))
+      .orderBy(desc(articles.publishedAt))
+      .limit(BEAT_PAGE_SIZE + 1);
+
+    const hasMore = rows.length > BEAT_PAGE_SIZE;
+    const page = hasMore ? rows.slice(0, BEAT_PAGE_SIZE) : rows;
+    const last = page[page.length - 1];
+
+    return {
+      ok: true as const,
+      articles: page.map(mapArticle),
+      nextCursor: hasMore && last?.publishedAt ? last.publishedAt.toISOString() : null,
+    };
+  });
 
 const slugValidator = (input: unknown) => {
   const data = input as { slug?: unknown };
