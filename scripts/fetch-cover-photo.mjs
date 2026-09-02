@@ -15,11 +15,10 @@
 // Imprime uma linha de JSON em stdout: {} se nada foi encontrado (o
 // chamador deve cair pro card tipográfico), ou
 // {"path","photoId","photoCredit","photoUrl","source"} se achou.
-import { mkdir, writeFile, copyFile, access } from "node:fs/promises";
+import { mkdir, copyFile, access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
-const MIN_WIDTH = 1600;
+import { searchPexels, searchPixabay, downloadTo } from "./lib/photo-sources.mjs";
 
 function parseJsonArray(raw) {
   if (!raw) return [];
@@ -29,69 +28,6 @@ function parseJsonArray(raw) {
   } catch {
     return [];
   }
-}
-
-async function searchPexels(term, apiKey, excludeIds) {
-  const url = new URL("https://api.pexels.com/v1/search");
-  url.searchParams.set("query", term);
-  url.searchParams.set("orientation", "landscape");
-  url.searchParams.set("per_page", "15");
-
-  const res = await fetch(url, { headers: { Authorization: apiKey } });
-  if (!res.ok) {
-    console.error(`Pexels "${term}": HTTP ${res.status}`);
-    return null;
-  }
-  const data = await res.json();
-  const photos = Array.isArray(data.photos) ? data.photos : [];
-  const pick = photos.find(
-    (p) => p.width >= MIN_WIDTH && !excludeIds.has(String(p.id)) && p.src?.large2x,
-  );
-  if (!pick) return null;
-
-  return {
-    imageUrl: pick.src.large2x,
-    photoId: String(pick.id),
-    photoCredit: pick.photographer ?? null,
-    photoUrl: pick.url ?? null,
-    source: "pexels",
-  };
-}
-
-async function searchPixabay(term, apiKey, excludeIds) {
-  const url = new URL("https://pixabay.com/api/");
-  url.searchParams.set("key", apiKey);
-  url.searchParams.set("q", term);
-  url.searchParams.set("image_type", "photo");
-  url.searchParams.set("orientation", "horizontal");
-  url.searchParams.set("min_width", String(MIN_WIDTH));
-  url.searchParams.set("safesearch", "true");
-  url.searchParams.set("per_page", "15");
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    console.error(`Pixabay "${term}": HTTP ${res.status}`);
-    return null;
-  }
-  const data = await res.json();
-  const hits = Array.isArray(data.hits) ? data.hits : [];
-  const pick = hits.find((h) => !excludeIds.has(String(h.id)) && h.largeImageURL);
-  if (!pick) return null;
-
-  return {
-    imageUrl: pick.largeImageURL,
-    photoId: String(pick.id),
-    photoCredit: pick.user ?? null,
-    photoUrl: pick.pageURL ?? null,
-    source: "pixabay",
-  };
-}
-
-async function downloadTo(url, outPath) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`download falhou: HTTP ${res.status}`);
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  await writeFile(outPath, bytes);
 }
 
 async function fileExists(p) {
@@ -160,7 +96,8 @@ async function main() {
     return;
   }
 
-  // Nível 3: foto genérica fixa por editoria, se já foi commitada.
+  // Nível 3: foto genérica fixa por editoria, se já foi commitada (ver
+  // scripts/fetch-fallback-covers.mjs).
   const fallbackPath = path.join(outDir, "_fallback", `${beat}.jpg`);
   if (await fileExists(fallbackPath)) {
     await copyFile(fallbackPath, outPath);
