@@ -16,9 +16,10 @@
 //   node scripts/reprocess-covers.mjs --limit 5        # só as 5 mais antigas
 import { neon } from "@neondatabase/serverless";
 import Anthropic from "@anthropic-ai/sdk";
-import { mkdir, writeFile, copyFile, access } from "node:fs/promises";
+import { mkdir, copyFile, access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { searchPexels, searchPixabay, downloadTo } from "./lib/photo-sources.mjs";
 
 const APPLY = process.argv.includes("--apply");
 const limitArgIndex = process.argv.indexOf("--limit");
@@ -27,7 +28,6 @@ const LIMIT =
     ? Number(process.argv[limitArgIndex + 1])
     : 50;
 
-const MIN_WIDTH = 1600;
 const OUT_DIR = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -71,48 +71,6 @@ Devolva SOMENTE um objeto JSON válido (sem markdown, sem texto antes ou depois)
   } catch {
     return [];
   }
-}
-
-async function searchPexels(term, apiKey, excludeIds) {
-  const url = new URL("https://api.pexels.com/v1/search");
-  url.searchParams.set("query", term);
-  url.searchParams.set("orientation", "landscape");
-  url.searchParams.set("per_page", "15");
-  const res = await fetch(url, { headers: { Authorization: apiKey } });
-  if (!res.ok) return null;
-  const data = await res.json();
-  const pick = (data.photos ?? []).find(
-    (p) => p.width >= MIN_WIDTH && !excludeIds.has(String(p.id)) && p.src?.large2x,
-  );
-  if (!pick) return null;
-  return {
-    imageUrl: pick.src.large2x,
-    photoId: String(pick.id),
-    photoCredit: pick.photographer ?? null,
-    photoUrl: pick.url ?? null,
-  };
-}
-
-async function searchPixabay(term, apiKey, excludeIds) {
-  const url = new URL("https://pixabay.com/api/");
-  url.searchParams.set("key", apiKey);
-  url.searchParams.set("q", term);
-  url.searchParams.set("image_type", "photo");
-  url.searchParams.set("orientation", "horizontal");
-  url.searchParams.set("min_width", String(MIN_WIDTH));
-  url.searchParams.set("safesearch", "true");
-  url.searchParams.set("per_page", "15");
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const data = await res.json();
-  const pick = (data.hits ?? []).find((h) => !excludeIds.has(String(h.id)) && h.largeImageURL);
-  if (!pick) return null;
-  return {
-    imageUrl: pick.largeImageURL,
-    photoId: String(pick.id),
-    photoCredit: pick.user ?? null,
-    photoUrl: pick.pageURL ?? null,
-  };
 }
 
 async function fileExists(p) {
@@ -181,12 +139,12 @@ async function main() {
       if (APPLY) {
         await mkdir(OUT_DIR, { recursive: true });
         const outPath = path.join(OUT_DIR, `${article.slug}.jpg`);
-        const imgRes = await fetch(found.imageUrl);
-        if (!imgRes.ok) {
-          console.error(`  !! download falhou (HTTP ${imgRes.status}), pulando gravação.`);
+        try {
+          await downloadTo(found.imageUrl, outPath);
+        } catch (error) {
+          console.error(`  !! ${error.message}, pulando gravação.`);
           continue;
         }
-        await writeFile(outPath, new Uint8Array(await imgRes.arrayBuffer()));
         await sql`
           UPDATE "Article"
           SET "coverImageUrl" = ${`https://veronicahub.com/images/blog-covers/${article.slug}.jpg`},

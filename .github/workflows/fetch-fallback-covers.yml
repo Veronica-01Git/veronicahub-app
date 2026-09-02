@@ -1,0 +1,33 @@
+name: Busca capas genéricas por editoria (Veronica Wire)
+
+# Manual só — não faz parte do cron de 5h. Roda uma vez (ou de vez em
+# quando, se quiser trocar as fotos) pra popular
+# public/images/blog-covers/_fallback/<beat>.jpg, o nível 3 da cadeia de
+# fallback de capa (ver scripts/fetch-cover-photo.mjs).
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Busca uma foto genérica por editoria (Pexels/Pixabay)
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+        run: node scripts/fetch-fallback-covers.mjs
+
+      - name: Commita as capas genéricas
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/images/blog-covers/_fallback/
+          git diff --cached --quiet && echo "Nada novo pra commitar." && exit 0
+          git commit -m "chore(wire): atualiza capas genéricas por editoria"
+          git push
