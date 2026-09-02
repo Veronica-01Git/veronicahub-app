@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Radio, Globe2, Cpu, TrendingUp, Cloud, Landmark, ArrowRight } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
+import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 
@@ -118,7 +119,9 @@ const MONTHS_PT = [
 // Usa formatToParts em vez de toLocaleDateString/toLocaleTimeString porque
 // o formato de mês abreviado do locale pt-BR varia entre runtimes ICU
 // ("ago." vs "ago" vs variações de acento); montar a string à mão garante
-// sempre "12 AGO 2026 · 03:48 BRT".
+// sempre "12 AGO 2026 · 03:48:07 BRT". Segundo por segundo (useLiveClock já
+// tica a cada 1s) — data e hora vêm sempre do Date real passado, nunca
+// congelam no valor do primeiro render.
 function formatMasthead(date: Date): string {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Sao_Paulo",
@@ -127,11 +130,12 @@ function formatMasthead(date: Date): string {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
     hourCycle: "h23",
   }).formatToParts(date);
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
   const month = MONTHS_PT[Number(get("month")) - 1] ?? "";
-  return `${get("day")} ${month} ${get("year")} · ${get("hour")}:${get("minute")} BRT`;
+  return `${get("day")} ${month} ${get("year")} · ${get("hour")}:${get("minute")}:${get("second")} BRT`;
 }
 
 function formatAgo(publishedAt: string | null, now: Date): string {
@@ -211,14 +215,17 @@ function VeronicaWire() {
                 Cobertura contínua e global
               </div>
             </div>
-            {/* suppressHydrationWarning: valor calculado do relógio muda entre o
-                render do servidor e a hidratação no cliente por design (é um
-                relógio ao vivo) — sem isso o React acusa mismatch por engano. */}
-            <div
-              className="text-right font-mono-tech text-[11px] text-muted-foreground"
-              suppressHydrationWarning
-            >
-              {formatMasthead(now)}
+            <div className="flex items-center gap-3">
+              <WirePulseGlobe size={34} className="hidden sm:block" />
+              {/* suppressHydrationWarning: valor calculado do relógio muda entre o
+                  render do servidor e a hidratação no cliente por design (é um
+                  relógio ao vivo) — sem isso o React acusa mismatch por engano. */}
+              <div
+                className="text-right font-mono-tech text-[11px] text-muted-foreground"
+                suppressHydrationWarning
+              >
+                {formatMasthead(now)}
+              </div>
             </div>
           </div>
           <nav className="mt-4 flex gap-1 overflow-x-auto border-t border-border/40 pt-3 text-[13px] font-medium">
