@@ -27,7 +27,7 @@ const INTENTS: Intent[] = [
     key: "aprender",
     icon: BookOpen,
     label: "Aprender",
-    desc: "Comandos, prompts e conhecimento prático.",
+    desc: "Formações, projetos e conhecimento prático.",
     to: "/comandos",
     accent: "cyan",
   },
