@@ -6,6 +6,7 @@ import { CoverThumb } from "@/components/blog/CoverThumb";
 import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
+import { formatAgo } from "@/lib/blog-format";
 
 export const Route = createFileRoute("/blog/")({
   component: VeronicaWire,
@@ -138,22 +139,9 @@ function formatMasthead(date: Date): string {
   return `${get("day")} ${month} ${get("year")} · ${get("hour")}:${get("minute")}:${get("second")} BRT`;
 }
 
-function formatAgo(publishedAt: string | null, now: Date): string {
-  if (!publishedAt) return "";
-  const minutes = Math.max(
-    0,
-    Math.round((now.getTime() - new Date(publishedAt).getTime()) / 60000),
-  );
-  if (minutes < 1) return "agora mesmo";
-  if (minutes < 60) return `há ${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `há ${hours}h`;
-  return `há ${Math.floor(hours / 24)}d`;
-}
-
 function VeronicaWire() {
   const now = useLiveClock();
-  const { articles } = Route.useLoaderData();
+  const { articles, weekArticles } = Route.useLoaderData();
 
   const featured = articles[0] ?? null;
   // JSX não aceita `<BEAT_META[x].icon>` como tag (acesso computado não é
@@ -236,13 +224,14 @@ function VeronicaWire() {
               Início
             </a>
             {BEAT_VALUES.map((b) => (
-              <a
+              <Link
                 key={b}
-                href={`#beat-${b}`}
+                to="/blog/editoria/$beat"
+                params={{ beat: b }}
                 className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
               >
                 {BEAT_META[b].short}
-              </a>
+              </Link>
             ))}
             <Link
               to="/comandos"
@@ -394,12 +383,21 @@ function VeronicaWire() {
             className="border-t border-border/40 py-16 cv-auto"
           >
             <div className="mx-auto max-w-7xl px-6">
-              <div
-                className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest"
-                style={{ color: meta.color }}
-              >
-                <span className="h-px w-8" style={{ background: meta.color }} />
-                {meta.label}
+              <div className="mb-8 flex items-center justify-between gap-3">
+                <div
+                  className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest"
+                  style={{ color: meta.color }}
+                >
+                  <span className="h-px w-8" style={{ background: meta.color }} />
+                  {meta.label}
+                </div>
+                <Link
+                  to="/blog/editoria/$beat"
+                  params={{ beat }}
+                  className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
+                >
+                  Ver todas ›
+                </Link>
               </div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((a) => (
@@ -441,6 +439,45 @@ function VeronicaWire() {
           </section>
         );
       })}
+
+      {/* Esta semana — item 7 do brief "evolução": home só mostra últimas
+          24h nas seções acima; isto cobre 24h-7d sem virar outra lista sem
+          fim (teto de HOME_WEEK_LIMIT no server). Matérias mais antigas que
+          isso continuam acessíveis pela página da editoria (/blog/$beat) e
+          pela própria URL. */}
+      {weekArticles.length > 0 && (
+        <section className="border-t border-border/40 py-16 cv-auto">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="h-px w-8 bg-muted-foreground/50" />
+              Esta semana
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {weekArticles.map((a) => (
+                <Link
+                  key={a.id}
+                  to="/blog/$slug"
+                  params={{ slug: a.slug }}
+                  className="group flex items-start gap-3 rounded-sm border border-border/40 bg-surface/20 px-4 py-3 transition hover:border-border"
+                >
+                  <span
+                    className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                    style={{ background: BEAT_META[a.beat].color }}
+                  />
+                  <div className="min-w-0">
+                    <span className="block truncate text-[13px] text-foreground transition group-hover:text-neon-green">
+                      {a.headline}
+                    </span>
+                    <span className="mt-0.5 block font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground">
+                      {BEAT_META[a.beat].short} · {formatAgo(a.publishedAt, now)}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Monitoramento global */}
       <section className="border-t border-border/40 bg-surface/30 py-20 cv-auto">
