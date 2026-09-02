@@ -5,6 +5,11 @@
 export const BEAT_VALUES = ["ia", "clima", "economia", "geopolitica", "mercado"] as const;
 export type Beat = (typeof BEAT_VALUES)[number];
 
+// Duração da janela do cron automático (article-cron.ts escolhe a editoria
+// por essa janela; articles-server.ts usa o mesmo valor pra checar
+// duplicata dentro da janela atual antes de publicar).
+export const CYCLE_HOURS = 5;
+
 export function isBeat(value: unknown): value is Beat {
   return typeof value === "string" && (BEAT_VALUES as readonly string[]).includes(value);
 }

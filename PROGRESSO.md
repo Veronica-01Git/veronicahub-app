@@ -6,10 +6,12 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 ## Onde estamos
 
 - Repositório: `~/veronicahub-app` (WSL), GitHub `Veronica-01Git/veronicahub-app`.
-- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `a24d7c9`
-  (PR #7 — link "Veronica Rede" adicionado ao menu hambúrguer mobile,
-  ver seção abaixo) — deploy automático do Cloudflare deve ter
-  disparado a partir desse push em `main`.
+- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `ee3ab65`
+  (PR #25 — paginação por editoria + arquivamento da home do Veronica
+  Wire, ver seção "Veronica Wire" abaixo) — deploy automático do
+  Cloudflare disparou a partir desse push em `main`.
+  (O commit `a24d7c9`/PR #7 mencionado logo abaixo é histórico — muita
+  coisa aconteceu desde então, tudo documentado na seção Veronica Wire.)
 - **Worker de produção correto: `veronicahub-app`** (não
   `veronica-01git-veronicahub-app`). A conta Cloudflare tem os dois —
   `veronica-01git-veronicahub-app` existe mas NÃO é o que serve o
@@ -30,13 +32,123 @@ Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
   **Regra prática daqui pra frente: rodar qualquer migration de banco
   ANTES de dar `git push` em qualquer branch — não só antes de mesclar
   em `main`.**
-- Branch de trabalho atual: `claude/veronicahub-redesign-cont-k92gt4`
-  (criada a partir de `main`, já com histórico mesclado em `main` também)
-  — pra continuar itens pendentes sem mexer direto em `main`.
+- Branch antiga de trabalho `claude/veronicahub-redesign-cont-k92gt4`
+  (redesign visual — seções abaixo) — status atual não confirmado nesta
+  atualização, não tocada na sessão do Veronica Wire.
+- Branches de trabalho do Veronica Wire usadas nesta sessão
+  (`claude/wire-evolucao`, `claude/wire-pagination`) já tiveram seus PRs
+  mesclados — nenhuma tem mudança pendente. Pra continuar o Wire, criar
+  branch nova a partir de `origin/main` (padrão já estabelecido: sempre
+  `git fetch origin main && git checkout -B <nome> origin/main` antes de
+  começar, nunca reaproveitar uma branch cujo PR já foi mesclado por
+  squash — o histórico diverge e o próximo PR mostra diff duplicado).
 - Repositório irmão `~/negocio-da-china-app` (China Exchange) não foi
   tocado.
 
 ## O que já foi feito
+
+### Veronica Wire — pipeline de publicação automática (setembro 2026)
+
+O Wire (`/blog`) publica matérias sozinho, sem revisão humana: um cron do
+GitHub Actions (`.github/workflows/generate-article.yml`) roda a cada 5h,
+gera uma matéria via Claude com `web_search` pra uma das 5 editorias (IA,
+clima, economia, geopolítica, mercado tecnológico) e publica direto no
+Neon. Todo esse pipeline (e só ele) foi construído/evoluído nesta sessão,
+em PRs sequenciais — todos já mesclados em `main` exceto o que está listado
+em "Sessão em andamento":
+
+- **PR #14** — infraestrutura pra servir imagem de capa por matéria
+  (`coverImageUrl`/`coverImageData`/`coverImageMimeType` no schema).
+- **PR #17** — capa automática via card HTML/CSS tipográfico (Playwright +
+  Chromium, renderizado no próprio Action — Cloudflare Workers não
+  escrevem em `/public`), sem custo por imagem.
+- **PR #18** — corrigiu falha silenciosa do cron: `DRAFT_MAX_TOKENS`
+  (2200) cortava a resposta da IA no meio quando `web_search` consumia
+  parte do budget. Subiu pra 4096 + uma retentativa automática só quando o
+  formato vem quebrado.
+- **PR #19** — silhueta humana SVG no card tipográfico (item visual,
+  substituindo a ideia inicial de gerar foto real via Higgsfield, que tem
+  custo recorrente por imagem).
+- **PR #20** — banco de imagens admin (`/admin/imagens`): upload manual,
+  galeria, base64 no Postgres (mesmo caminho de `coverImageData` — nunca
+  R2, já quebrou o build desse stack antes).
+- **PR #21** — 5 correções pontuais: dedup de matéria duplicada (checagem
+  por janela de `CYCLE_HOURS`, não por URL), masthead com data/hora real
+  desde o primeiro render (fuso `America/Sao_Paulo` fixo), atribuição
+  "Fonte: X ›" derivada de `sourceUrls[0]`, copy da seção final reescrita
+  de "Redação global" pra "Monitoramento global" (honesta sobre ser
+  automação, não correspondente local), placeholder de capa mostrando o
+  nome da editoria em vez de vazio.
+- **PR #22** — capa fotorrealista de verdade via **Pexels** (principal) e
+  **Pixabay** (fallback): a IA já devolve `fotoTermos` (2-3 termos em
+  inglês) na mesma chamada que escreve a matéria; `scripts/fetch-cover-photo.mjs`
+  busca no GitHub Action (não no Worker) e cai pro card tipográfico só se
+  nada for encontrado. Testado ao vivo com sucesso (foto real do Pexels
+  publicada). `PEXELS_API_KEY` já cadastrada como secret do Actions;
+  `PIXABAY_API_KEY` ainda não.
+- **PR #23** (brief "Veronica Wire — evolução", item A de 3) — piso de
+  qualidade antes de publicar (mínimo 2 `sourceUrls`, corpo mínimo 700
+  caracteres), dedup por similaridade de manchete (últimas 40 publicações,
+  todas editorias, *overlap coefficient* com limiar 0.35 calibrado à mão —
+  ver comentário em `findSimilarHeadline` em `articles-server.ts`), prompt
+  ajustado pra matérias mais curtas (900-1400 caracteres), endpoint
+  `?dryRun=1` em `/api/cron/generate-article` pra simular sem publicar, e
+  `scripts/fetch-fallback-covers.mjs` + workflow manual
+  `fetch-fallback-covers.yml` pra popular uma foto genérica fixa por
+  editoria (nível 3 do fallback).
+- **PR #24** — pedido direto no chat, fora do brief formal: segundos no
+  relógio do masthead (`formatMasthead` ganhou `second: "2-digit"`),
+  removido o overlay "holográfico" global (`HudScanner`/`holo-beam` de
+  `HoloOrbits.tsx`) da rota `/blog` (adicionado `/blog` em
+  `LIGHT_THEME_ROUTES`, mecanismo de opt-out por rota que já existia),
+  link do menu "Blog" → "Veronica Wire" (`SiteChrome.tsx`, desktop e
+  mobile), e novo componente `src/components/blog/WirePulseGlobe.tsx`
+  (SVG+SMIL, sem three.js — a lib está no `package.json` mas não é usada
+  em nenhuma rota do app, adicionar custaria ~1.8MB de bundle) simulando
+  um globo girando com 4 pontos pulsando — um por desk (São Paulo/SF/
+  Pequim/Londres) — no masthead ao lado do relógio.
+- **`fetch-fallback-covers.yml` já rodado** (workflow_dispatch manual,
+  commit direto em `main`: `816c53b`) — as 5 fotos genéricas por editoria
+  já existem em `public/images/blog-covers/_fallback/<beat>.jpg`.
+- **PR #25** (brief "evolução", item C de 3) — paginação real por cursor
+  (não offset) numa rota nova `/blog/editoria/$beat` (não `/blog/$beat`:
+  dois segmentos dinâmicos irmãos no mesmo nível seriam ambíguos pro
+  roteador do TanStack Router), "Carregar mais" em blocos de 15
+  (`getArticlesByBeat` em `articles-server.ts`); home (`getPublishedArticles`)
+  trocou o `.limit(60)` sem filtro de tempo por últimas 24h + bloco "Esta
+  semana" (24h-7d, teto de 20). Nota deixada no PR: no volume atual (cron
+  ainda a cada 5h, uma editoria por vez — item B abaixo), é normal a home
+  mostrar só 4 das 5 seções de editoria às vezes, já que o round-robin
+  completo leva ~25h — se resolve sozinho quando o item B aumentar a
+  frequência.
+
+**Brief completo da evolução dividido em 3 PRs** (A e C concluídas, B não
+iniciada):
+- **PR A** — qualidade/dedup/capas fixas. ✅ Mesclado (#23).
+- **PR C** — paginação + arquivamento. ✅ Mesclado (#25).
+- **PR B** — reduzir `CYCLE_HOURS` de 5 pra 3 ou 4 + fan-out (cada disparo
+  do cron aciona as 5 editorias em paralelo via matrix do Actions, hoje só
+  aciona uma por vez) + escalonamento de horário entre editorias + log
+  estruturado (`WireCronLog`, tabela nova — precisa aprovação explícita
+  antes de qualquer migration) + alerta quando uma rodada não publica
+  nada. **NÃO iniciada** — bloqueada em duas respostas do usuário:
+  1. Repo público/privado + plano do GitHub, pra calcular com segurança
+     se a cota de minutos do Actions aguenta o fan-out (5 jobs por
+     disparo). Sem essa resposta, não dá pra dimensionar o item com
+     segurança.
+  2. Confirmação da janela (3h ou 4h) e aprovação explícita da tabela
+     `WireCronLog` (regra do Neon: schema novo sempre com confirmação
+     item a item).
+
+**Pendências pontuais que só o usuário resolve** (não são coisa que dá
+pra "fechar" programaticamente — tentado e documentado por quê):
+- `PIXABAY_API_KEY` — falta cadastrar como secret do GitHub Actions.
+  Nenhum agente consegue criar essa conta sozinho (cadastro externo,
+  sem navegador/rede pra isso no sandbox).
+- `scripts/reprocess-covers.mjs` (upgrada matérias antigas sem foto real)
+  nunca rodou — decisão já tomada: rodar LOCAL (não como secret novo do
+  Actions, evita expor a connection string do banco). Precisa
+  `DATABASE_URL`+`ANTHROPIC_API_KEY`+`PEXELS_API_KEY` no ambiente.
 
 ### Veronica Rede no menu hambúrguer (PR #7, mesclado em `main`)
 - `/veronica-rede` (página do programa de afiliados/revendedores) já
@@ -156,6 +268,13 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   ficou certo.
 
 ## Pendências conhecidas
+
+**Veronica Wire (mais recente/ativo):** PRs A e C do brief de evolução já
+mesclados, capas genéricas já populadas. Só restam `PIXABAY_API_KEY`,
+`reprocess-covers.mjs` (local) e o PR B (frequência/fan-out/log —
+bloqueado em 2 respostas do usuário) — ver seção "Veronica Wire" acima
+pros detalhes. Itens abaixo são do redesign visual mais antigo, não
+confirmados nesta atualização.
 
 1. Adicionar `ANTHROPIC_API_KEY` em `.env.local` pra o chat da Veronica
    funcionar de verdade.

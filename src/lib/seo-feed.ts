@@ -1,6 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import { getDb } from "./db";
 import { articles } from "./schema";
+import { BEAT_VALUES } from "./beats";
 
 const SITE_URL = "https://veronicahub.com";
 
@@ -9,6 +10,7 @@ const SITE_URL = "https://veronicahub.com";
 const STATIC_PATHS = [
   "/",
   "/blog",
+  ...BEAT_VALUES.map((beat) => `/blog/editoria/${beat}`),
   "/comandos",
   "/prompt-packs",
   "/veronica-analytics",

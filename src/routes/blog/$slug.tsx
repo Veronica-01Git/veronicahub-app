@@ -1,11 +1,73 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
-import { LazyImage } from "@/components/media/LazyImage";
+import { CoverThumb } from "@/components/blog/CoverThumb";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
 
 const SITE_URL = "https://veronicahub.com";
+
+// Deriva "Pexels"/"Pixabay" do hostname da URL do crédito — evita rotular
+// errado quando a foto veio da segunda fonte (ver scripts/fetch-cover-photo.mjs).
+function derivePhotoSourceLabel(url: string | null): string {
+  if (!url) return "";
+  try {
+    const hostname = new URL(url).hostname;
+    if (hostname.includes("pixabay")) return "Pixabay";
+    if (hostname.includes("pexels")) return "Pexels";
+  } catch {
+    // ignora URL inválida — cai no fallback abaixo
+  }
+  return "Pexels";
+}
+
+// Nomes conhecidos dos veículos mais citados pelo Wire até agora — fallback
+// pra qualquer domínio novo é capitalizar os pedaços do hostname. Sem campo
+// dedicado de "fonte" no banco (só sourceUrls), então isso deriva o nome de
+// exibição a partir da própria URL, sem inventar nada que não esteja nela.
+const KNOWN_SOURCES: Record<string, string> = {
+  "caixinglobal.com": "Caixin Global",
+  "scmp.com": "SCMP",
+  "coindesk.com": "CoinDesk",
+  "crowdfundinsider.com": "Crowdfund Insider",
+  "paymentexpert.com": "Payment Expert",
+  "atlanticcouncil.org": "Atlantic Council",
+  "unite.ai": "Unite.AI",
+  "cerebras.ai": "Cerebras",
+  "openai.com": "OpenAI",
+  "mlq.ai": "MLQ.ai",
+  "exame.com": "Exame",
+  "revistaforum.com.br": "Revista Fórum",
+  "tecnoblog.net": "Tecnoblog",
+  "ajupress.com": "Aju Press",
+  "tomshardware.com": "Tom's Hardware",
+  "brasil247.com": "Brasil 247",
+  "cenarioenergia.com.br": "Cenário Energia",
+  "cebc.org.br": "CEBC",
+  "timesbrasil.com.br": "Times Brasil",
+  "monitormercantil.com.br": "Monitor Mercantil",
+  "theblock.co": "The Block",
+  "forbes.com": "Forbes",
+  "epe.gov.br": "EPE",
+  "xpi.com.br": "XP Investimentos",
+  "epowerbay.com": "ePowerBay",
+};
+
+function deriveSourceLabel(url: string): string {
+  let hostname: string;
+  try {
+    hostname = new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+  if (KNOWN_SOURCES[hostname]) return KNOWN_SOURCES[hostname];
+  // Domínio com subdomínio (ex: investors.cerebras.ai) — tenta o eTLD+1.
+  const parts = hostname.split(".");
+  const root = parts.length > 2 ? parts.slice(-2).join(".") : hostname;
+  if (KNOWN_SOURCES[root]) return KNOWN_SOURCES[root];
+  const label = hostname.split(".")[0];
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 export const Route = createFileRoute("/blog/$slug")({
   component: ArticlePage,
@@ -99,6 +161,16 @@ function ArticlePage() {
             <p className="mt-4 text-[15px] leading-[1.6] text-muted-foreground">
               {state.article.excerpt}
             </p>
+            {state.article.sourceUrls.length > 0 && (
+              <a
+                href={state.article.sourceUrls[0]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-[13px] text-muted-foreground transition hover:text-neon-green"
+              >
+                Fonte: {deriveSourceLabel(state.article.sourceUrls[0])} ›
+              </a>
+            )}
             <div className="mt-4 flex flex-wrap items-center gap-3 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
               <span>{state.article.desk}</span>
               {state.article.publishedAt && (
@@ -109,6 +181,7 @@ function ArticlePage() {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",
+                      timeZone: "America/Sao_Paulo",
                     })}
                   </span>
                 </>
@@ -126,14 +199,21 @@ function ArticlePage() {
               )}
             </div>
 
-            {state.article.coverImageUrl && (
-              <LazyImage
-                src={state.article.coverImageUrl}
-                alt=""
-                priority
-                useCfResize={false}
-                className="mt-6 aspect-video w-full rounded-sm border border-border/40 object-cover"
-              />
+            <CoverThumb
+              beat={state.article.beat}
+              coverImageUrl={state.article.coverImageUrl}
+              className="mt-6 aspect-[16/10] w-full"
+            />
+            {state.article.coverPhotoCredit && (
+              <a
+                href={state.article.coverPhotoUrl ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1.5 block text-right text-[11px] text-muted-foreground/70 transition hover:text-muted-foreground"
+              >
+                Foto: {state.article.coverPhotoCredit} /{" "}
+                {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
+              </a>
             )}
 
             <div className="mt-8 flex flex-col gap-4 text-[15px] leading-[1.75] text-foreground/90">
