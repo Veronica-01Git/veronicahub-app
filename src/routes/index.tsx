@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  Infinity as InfinityIcon,
   Instagram,
   Youtube,
   MessageCircle,
@@ -9,11 +8,6 @@ import {
   Zap,
   Wifi,
   Target,
-  Award,
-  Check,
-  Plus,
-  Minus,
-  Sparkles,
   Wand2,
   FileText,
   BarChart3,
@@ -23,6 +17,12 @@ import {
   ShoppingBag,
   Menu,
   X,
+  Plus,
+  Minus,
+  Workflow,
+  Code2,
+  RefreshCw,
+  GraduationCap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ogImage from "@/assets/og-veronica-hub.jpg";
@@ -44,8 +44,6 @@ import { StudioShowcase } from "@/components/home/StudioShowcase";
 import { ToolShowcase } from "@/components/home/ToolShowcase";
 import { ProofSection } from "@/components/home/ProofSection";
 import { courses } from "@/lib/courses";
-
-const HUB_URL = "https://veronicahub.com";
 
 type EcosystemItem = {
   icon: typeof Wand2;
@@ -129,6 +127,12 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
+      { title: "Veronica — Escola de Inteligência Artificial" },
+      {
+        name: "description",
+        content:
+          "Formação prática em inteligência artificial para criar, automatizar, desenvolver e aplicar IA em projetos, trabalho e negócios.",
+      },
       { property: "og:image", content: ogImage },
       { name: "twitter:image", content: ogImage },
     ],
@@ -149,7 +153,7 @@ export const Route = createFileRoute("/")({
           name: "Veronica Hub",
           url: "https://veronicahub.com",
           description:
-            "Laboratório digital com 11 cursos: dark content, IA generativa, tráfego pago, VSL, hacking ético.",
+            "Escola de inteligência artificial: formação prática para criar, automatizar e construir com IA.",
           sameAs: ["https://instagram.com/veronicahub_", "https://youtube.com/@veronica-hub"],
         }),
       },
@@ -180,84 +184,26 @@ const partnerCourses: PartnerCourse[] = [
 // 3 comandos em destaque no teaser da home — a grade completa mora em /comandos.
 const TEASER_TITLES = ["Canais Dark", "Avatar Digital IA", "VFX com IA"];
 
-const plans = [
-  {
-    name: "Curso Avulso",
-    price: "19",
-    cents: "90",
-    tag: "A partir de",
-    cta: "Escolher curso",
-    features: [
-      "Acesso vitalício ao curso",
-      "Atualizações incluídas",
-      "Certificado de conclusão",
-      "Comunidade no Telegram",
-    ],
-  },
-  {
-    name: "Hub Completo",
-    price: "197",
-    cents: "00",
-    tag: "Acesso completo",
-    cta: "Quero o Hub",
-    featured: true,
-    features: [
-      "Todos os 11 cursos",
-      "Acesso vitalício a tudo",
-      "Cursos novos incluídos",
-      "Certificados",
-      "Comunidade VIP",
-      "Suporte direto",
-    ],
-  },
-  {
-    name: "Hub + Mentoria",
-    price: "497",
-    cents: "00",
-    tag: "Aceleração",
-    cta: "Aplicar agora",
-    features: [
-      "Tudo do Hub Completo",
-      "4 mentorias em grupo/mês",
-      "Revisão de projeto",
-      "Grupo fechado",
-      "Prioridade no suporte",
-    ],
-  },
-];
-
 const faqs = [
   {
-    q: "Como funciona o acesso?",
-    a: "Após a compra você recebe login imediato na plataforma. É 100% online, no seu ritmo, em qualquer dispositivo — e o acesso é vitalício.",
+    q: "O que é a Veronica?",
+    a: "Uma escola de inteligência artificial: formação prática para aprender a criar, automatizar e construir com IA, além de um ecossistema de ferramentas reais pra colocar isso em prática.",
   },
   {
-    q: "Serve pra quem tá começando do zero?",
-    a: "Sim. Cada curso tem trilha do básico ao avançado. A gente parte do princípio que você nunca fez nada disso — e te leva ao resultado.",
+    q: "Preciso saber IA pra começar?",
+    a: "Não. Cada formação parte do zero e vai até o avançado — o ponto de partida é nunca ter feito nada disso.",
   },
   {
-    q: "Tem suporte?",
-    a: "Sim. Comunidade ativa no Telegram, tira-dúvidas com a equipe, e no plano de mentoria você tem contato direto com a Veronica.",
+    q: "Como funcionam as formações?",
+    a: "100% online, em vídeo, organizadas por área (criação, negócios, marketing, desenvolvimento, tecnologia). Você escolhe por onde começar.",
   },
   {
-    q: "Emite nota fiscal?",
-    a: "Sim, emitimos NF-e automaticamente após a compra. Serve pra CNPJ MEI, ME e pessoa física.",
+    q: "Posso estudar no meu ritmo?",
+    a: "Sim. Sem turma fixa nem horário marcado — no seu ritmo, em qualquer dispositivo.",
   },
   {
-    q: "Posso pedir reembolso?",
-    a: "Garantia incondicional de 7 dias. Não gostou? A gente devolve 100% do valor, sem perguntas.",
-  },
-  {
-    q: "Como recebo os cursos novos?",
-    a: "Todo curso lançado dentro do Hub Completo já entra na sua conta automaticamente, sem custo adicional.",
-  },
-  {
-    q: "Preciso de equipamento caro?",
-    a: "Não. Todos os cursos são pensados pra funcionar com celular + notebook básico. As ferramentas de IA usadas têm plano free.",
-  },
-  {
-    q: "Quanto tempo leva pra ter resultado?",
-    a: "Depende de execução. Alunos aplicando 1h/dia costumam ter primeiros resultados entre 30 e 90 dias.",
+    q: "O que encontro dentro do ecossistema Veronica?",
+    a: "Ferramentas reais além das formações: geração de imagem/vídeo com IA na Studio, otimização de currículo, análise de TikTok Shop, diagnóstico de segurança e mais — tudo numa conta só.",
   },
 ];
 
@@ -334,20 +280,28 @@ function Index() {
             <span className="text-muted-foreground">Hub</span>
           </a>
           <nav className="hidden items-center gap-1 text-xs font-mono-tech uppercase tracking-wider md:flex">
-            <Link
-              to="/comandos"
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-            >
-              Comandos
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
             <a
               href="#sobre"
               className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
             >
-              Sobre
+              Escola
               <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </a>
+            <Link
+              to="/comandos"
+              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
+            >
+              Formações
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setVeronicaOpen(true)}
+              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
+            >
+              Veronica AI
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </button>
             <EcosystemMenu />
           </nav>
           <div className="flex items-center gap-3">
@@ -359,15 +313,13 @@ function Index() {
               <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
             <AuthWidget />
-            <a
-              href={HUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/comandos"
               className="group relative hidden items-center gap-2 rounded-sm bg-neon-green px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-[0_0_0_1px_oklch(0.85_0.22_155),0_8px_24px_-8px_oklch(0.85_0.22_155/0.6)] transition duration-200 hover:-translate-y-0.5 hover:shadow-glow-green active:translate-y-0 active:brightness-95 md:inline-flex"
             >
               <span className="text-[10px] opacity-70 group-hover:opacity-100">▸</span>
-              Acessar Hub
-            </a>
+              Começar a aprender
+            </Link>
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
@@ -398,20 +350,20 @@ function Index() {
               </span>
               Perguntar à Veronica
             </button>
-            <Link
-              to="/comandos"
-              onClick={() => setMobileOpen(false)}
-              className="border-b border-border/40 py-3.5 text-foreground"
-            >
-              Comandos
-            </Link>
             <a
               href="#sobre"
               onClick={() => setMobileOpen(false)}
               className="border-b border-border/40 py-3.5 text-foreground"
             >
-              Sobre
+              Escola
             </a>
+            <Link
+              to="/comandos"
+              onClick={() => setMobileOpen(false)}
+              className="border-b border-border/40 py-3.5 text-foreground"
+            >
+              Formações
+            </Link>
             <Link
               to="/blog"
               onClick={() => setMobileOpen(false)}
@@ -452,14 +404,13 @@ function Index() {
                 </div>
               ),
             )}
-            <a
-              href={HUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/comandos"
+              onClick={() => setMobileOpen(false)}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-sm bg-neon-green px-4 py-3 text-[11px] text-primary-foreground"
             >
-              Acessar Hub
-            </a>
+              Começar a aprender
+            </Link>
             <div className="mt-6 flex items-center gap-4 text-muted-foreground">
               <a
                 href={SOCIAL_LINKS.youtube}
@@ -511,15 +462,15 @@ function Index() {
               className="mt-8 font-display text-5xl sm:text-7xl md:text-8xl"
               style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}
             >
-              <span className="block text-foreground">Uma inteligência.</span>
+              <span className="block text-foreground">Aprenda a trabalhar</span>
               <span className="block text-outline-neon animate-glow-pulse">
-                Um ecossistema<span className="text-neon-green">_</span>
+                com inteligência artificial<span className="text-neon-green">_</span>
               </span>
             </h1>
 
             <p className="mt-8 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-              Crie, aprenda, trabalhe, analise e proteja — a Veronica direciona você para a
-              ferramenta certa.
+              Formação prática para criar, automatizar, desenvolver e transformar ideias em projetos
+              usando IA.
             </p>
 
             <TerminalBoot />
@@ -532,29 +483,37 @@ function Index() {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <a
-              href={HUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 font-mono-tech text-xs uppercase tracking-[0.18em] text-muted-foreground transition hover:text-neon-green"
+            <Link
+              to="/comandos"
+              className="group inline-flex items-center gap-2 rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
             >
-              <span className="text-[10px] transition-transform group-hover:translate-x-0.5">
-                ▸
-              </span>
-              Entrar no Hub de comandos
+              Começar a aprender{" "}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <a
+              href="#futuro"
+              className="group inline-flex items-center gap-2 rounded-sm border border-border/60 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.18em] text-foreground transition duration-200 hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"
+            >
+              Conhecer a escola
             </a>
           </div>
+
+          <p className="mt-6 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+            Formação digital. Tecnologia aplicada. Evolução contínua.
+          </p>
+          <p className="mt-2 max-w-lg text-sm leading-[1.6] text-muted-foreground">
+            Veronica é a inteligência que acompanha sua jornada de aprendizado.
+          </p>
 
           {/* Stats */}
           <div
             ref={stats.ref}
-            className={`reveal ${stats.visible ? "reveal-visible" : ""} mt-14 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 cv-auto`}
+            className={`reveal ${stats.visible ? "reveal-visible" : ""} mt-14 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 cv-auto`}
           >
             {[
-              { value: `${c1}`, suffix: "+", label: "Comandos no hub" },
-              { value: `${c2}`, suffix: "%", label: "Online · vitalício" },
+              { value: `${c1}`, suffix: "+", label: "Formações no hub" },
+              { value: `${c2}`, suffix: "%", label: "Online, no seu ritmo" },
               { value: `${c3}`, suffix: "", label: "Ferramentas no ecossistema" },
-              { value: "R$19", suffix: ",90", label: "A partir de" },
             ].map((s) => (
               <div
                 key={s.label}
@@ -567,6 +526,59 @@ function Index() {
                 <div className="mt-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
                   {s.label}
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* O Futuro Já Começou — reposicionamento institucional, logo após a
+          hero. Reaproveita o mesmo grid/card de Features, sem HUD novo. */}
+      <section id="futuro" className="border-t border-border/40 py-24 cv-auto">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-14 flex flex-col gap-3">
+            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <span className="h-px w-8 bg-neon-green" />O futuro já começou
+            </div>
+            <h2
+              className="max-w-3xl font-display text-4xl sm:text-5xl md:text-6xl"
+              style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
+            >
+              Aprenda a usar inteligência artificial para{" "}
+              <span className="text-neon-green text-glow-green">criar</span>,{" "}
+              <span className="text-neon-cyan text-glow-cyan">automatizar</span> e construir.
+            </h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              {
+                icon: Wand2,
+                title: "Criar",
+                desc: "Conteúdo, imagens, vídeos, experiências e produtos.",
+              },
+              {
+                icon: Workflow,
+                title: "Automatizar",
+                desc: "Processos, marketing, atendimento e operações.",
+              },
+              {
+                icon: Code2,
+                title: "Construir",
+                desc: "Sites, aplicações, agentes, produtos e negócios.",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="group rounded-sm border border-border/60 bg-surface/40 p-6 backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-neon-green/50 hover:shadow-glow-green"
+              >
+                <f.icon className="h-6 w-6 text-neon-green transition-transform group-hover:scale-110" />
+                <h3
+                  className="mt-5 font-display text-xl"
+                  style={{ letterSpacing: "-0.03em", lineHeight: "1.05" }}
+                >
+                  {f.title}
+                </h3>
+                <p className="mt-2 text-sm leading-[1.6] text-muted-foreground">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -589,24 +601,25 @@ function Index() {
 
       <ToolShowcase />
 
-      {/* Comandos teaser — enxuto de propósito. A grade completa com filtro
+      {/* Formações teaser — enxuto de propósito. A grade completa com filtro
           por categoria mora em /comandos; aqui é só a porta de entrada. */}
       <section id="comandos" className="relative mx-auto max-w-7xl px-6 py-24">
         <HudAccent size={72} hue={HOLO_GREEN} className="absolute right-6 top-6" />
         <div className="mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />[ 01 ] Comandos · 11 no catálogo
+            <span className="h-px w-8 bg-neon-green" />[ 01 ] Formações · 11 no catálogo
           </div>
           <h2
-            className="font-display text-4xl sm:text-5xl md:text-6xl"
+            className="max-w-3xl font-display text-4xl sm:text-5xl md:text-6xl"
             style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
           >
-            Do <span className="text-neon-green text-glow-green">dark content</span>
-            <br />
-            ao <span className="text-neon-cyan text-glow-cyan">hacking ético</span>.
+            Formações para transformar{" "}
+            <span className="text-neon-green text-glow-green">conhecimento</span> em{" "}
+            <span className="text-neon-cyan text-glow-cyan">prática</span>.
           </h2>
           <p className="max-w-2xl leading-[1.65] text-muted-foreground">
-            Sem fluff. Cada comando é construído sobre resultado real e execução prática.
+            Explore conteúdos de criação, negócios, marketing, desenvolvimento e tecnologia
+            aplicados ao mundo digital e à inteligência artificial.
           </p>
         </div>
 
@@ -637,7 +650,7 @@ function Index() {
                 </h3>
                 <p className="mt-3 text-[13px] leading-[1.5] text-muted-foreground">{c.perks[0]}</p>
                 <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
-                  Ver comando{" "}
+                  Ver formação{" "}
                   <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                 </div>
               </Link>
@@ -650,10 +663,10 @@ function Index() {
               className="font-display text-xl text-foreground"
               style={{ letterSpacing: "-0.02em" }}
             >
-              Aprenda o comando. Execute na Studio.
+              Aprenda na formação. Execute na Studio.
             </div>
             <p className="mt-1.5 max-w-xl text-sm leading-[1.6] text-muted-foreground">
-              11 comandos prontos — do conteúdo à IA — pra você sair do curso e já rodar nas
+              11 formações prontas — do conteúdo à IA — pra você sair da aula e já rodar nas
               ferramentas do ecossistema.
             </p>
           </div>
@@ -661,9 +674,43 @@ function Index() {
             to="/comandos"
             className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
           >
-            Ver todos os comandos{" "}
+            Ver todas as formações{" "}
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
+        </div>
+      </section>
+
+      {/* Aprenda fazendo — narrativa institucional do método, sem lógica de
+          produto nova. */}
+      <section className="border-t border-border/40 bg-surface/40 py-24 cv-auto">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-14 flex flex-col gap-3">
+            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
+              <span className="h-px w-8 bg-neon-cyan" />
+              Aprenda fazendo
+            </div>
+            <p className="max-w-2xl leading-[1.65] text-muted-foreground">
+              A teoria ganha valor quando vira projeto. A Veronica conecta conhecimento à execução.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {["Aprender", "Construir", "Publicar", "Evoluir"].map((step, i) => (
+              <div
+                key={step}
+                className="rounded-sm border border-border/60 bg-background/60 p-6 backdrop-blur"
+              >
+                <span className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3
+                  className="mt-3 font-display text-xl text-foreground"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
+                  {step}
+                </h3>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -720,29 +767,29 @@ function Index() {
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-14 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-            <span className="h-px w-8 bg-neon-cyan" />[ 02 ] Por que Veronica Hub
+            <span className="h-px w-8 bg-neon-cyan" />[ 02 ] Por que Veronica
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                icon: InfinityIcon,
-                title: "Acesso Vitalício",
-                desc: "Pague uma vez, acesse para sempre. Atualizações incluídas.",
+                icon: Target,
+                title: "Aprendizado prático",
+                desc: "Conhecimento aplicado em projetos e situações reais.",
+              },
+              {
+                icon: RefreshCw,
+                title: "Conteúdo em evolução",
+                desc: "A tecnologia muda. A formação também precisa evoluir.",
               },
               {
                 icon: Wifi,
-                title: "100% Online",
-                desc: "No seu ritmo, no seu horário, em qualquer dispositivo.",
+                title: "Tecnologia integrada",
+                desc: "Aprenda e utilize ferramentas dentro do ecossistema Veronica.",
               },
               {
-                icon: Target,
-                title: "Foco em Execução",
-                desc: "Sem fluff. Cada aula é construída sobre resultado real.",
-              },
-              {
-                icon: Award,
-                title: "Certificado",
-                desc: "Comprovante de conclusão para cada curso finalizado.",
+                icon: GraduationCap,
+                title: "Uma escola construída para IA",
+                desc: "Formação pensada para o novo mercado de trabalho e criação digital.",
               },
             ].map((f) => (
               <div
@@ -799,14 +846,13 @@ function Index() {
             className="font-display text-4xl sm:text-5xl md:text-6xl"
             style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
           >
-            Além do Hub,
+            Um ecossistema para
             <br />
-            <span className="text-neon-green text-glow-green">um ecossistema</span> inteiro.
+            <span className="text-neon-green text-glow-green">aprender e executar</span>.
           </h2>
           <p className="max-w-2xl leading-[1.65] text-muted-foreground">
-            O complexo digital mais completo e atualizado do laboratório: produtos, marcas e
-            ferramentas próprias, multidisciplinares, conectados numa conta só. Um cadastro abre
-            todas elas.
+            A escola ensina. As ferramentas ajudam você a colocar o conhecimento em prática — tudo
+            numa conta só.
           </p>
         </div>
 
@@ -932,7 +978,12 @@ function Index() {
         <ProofSection />
       </section>
 
-      {/* Pricing */}
+      {/* CTA institucional — substitui os planos/preço nesta fase. A
+          auditoria mostrou que o checkout de curso não é funcional hoje
+          (CTA antigo apontava pro próprio domínio); em vez de simular uma
+          conversão que não existe, direciona pra ação real que já
+          funciona: /comandos. Sem assinatura, sem Mercado Pago, sem preço
+          novo — decisão de arquitetura de assinatura fica pra outra fase. */}
       <section
         id="pricing"
         ref={pricingR.ref}
@@ -947,94 +998,30 @@ function Index() {
           }}
         />
         <HudAccent size={76} hue={HOLO_GREEN} className="absolute right-6 top-6" />
-        <div className="relative mx-auto max-w-7xl px-6">
-          <div className="mb-14 flex flex-col gap-3 text-center">
-            <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-              <span className="h-px w-8 bg-neon-green" />
-              [ 04 ] Planos · escolha o seu
-              <span className="h-px w-8 bg-neon-green" />
-            </div>
-            <h2
-              className="mx-auto max-w-3xl font-display text-4xl sm:text-5xl md:text-6xl"
-              style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
-            >
-              Pague uma vez.
-              <br />
-              <span className="text-outline-neon">Acesse pra sempre.</span>
-            </h2>
+        <div className="relative mx-auto max-w-3xl px-6 text-center">
+          <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+            <span className="h-px w-8 bg-neon-green" />
+            [ 04 ] Comece agora
+            <span className="h-px w-8 bg-neon-green" />
           </div>
-          <div className="grid gap-5 lg:grid-cols-3">
-            {plans.map((p) => (
-              <div
-                key={p.name}
-                className={`relative flex flex-col rounded-sm border p-8 backdrop-blur transition duration-300 hover:-translate-y-1 ${
-                  p.featured
-                    ? "glow-on-reveal border-neon-green bg-gradient-to-br from-neon-green/10 via-surface to-neon-cyan/5 lg:scale-105"
-                    : "border-border/60 bg-surface/60 hover:border-neon-green/50 hover:shadow-glow-green"
-                }`}
-              >
-                {p.featured && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-neon-green px-3 py-1 font-mono-tech text-[10px] uppercase tracking-widest text-primary-foreground shadow-glow-green">
-                    <Sparkles className="mr-1 inline h-3 w-3" /> {p.tag}
-                  </span>
-                )}
-                {!p.featured && (
-                  <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {p.tag}
-                  </span>
-                )}
-                <h3 className="mt-3 font-display text-2xl" style={{ letterSpacing: "-0.03em" }}>
-                  {p.name}
-                </h3>
-                <div className="mt-6 flex items-baseline gap-1 font-display">
-                  <span className="text-2xl text-muted-foreground">R$</span>
-                  <span
-                    className={`text-6xl ${p.featured ? "text-neon-green text-glow-green" : "text-foreground"}`}
-                  >
-                    {p.price}
-                  </span>
-                  <span className="text-2xl text-muted-foreground">,{p.cents}</span>
-                </div>
-                <div className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                  Pagamento único · sem mensalidade
-                </div>
-                <ul className="mt-8 flex-1 space-y-3 text-sm">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-start gap-3 text-foreground/90">
-                      <Check
-                        className={`mt-0.5 h-4 w-4 flex-shrink-0 ${p.featured ? "text-neon-green" : "text-neon-cyan/80"}`}
-                      />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href={HUB_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`group mt-10 inline-flex items-center justify-center gap-2 rounded-sm px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] transition duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
-                    p.featured
-                      ? "bg-neon-green text-primary-foreground shadow-glow-green hover:brightness-110"
-                      : "border border-border/60 text-foreground hover:border-neon-green/60 hover:text-neon-green"
-                  }`}
-                >
-                  {p.cta}{" "}
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                </a>
-              </div>
-            ))}
-          </div>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <Check className="h-3 w-3 text-neon-green" /> Garantia 7 dias
-            </span>
-            <span className="flex items-center gap-2">
-              <Check className="h-3 w-3 text-neon-green" /> Emite NF
-            </span>
-            <span className="flex items-center gap-2">
-              <Check className="h-3 w-3 text-neon-green" /> Cartão · Pix · Boleto
-            </span>
-          </div>
+          <h2
+            className="mx-auto mt-3 max-w-2xl font-display text-4xl sm:text-5xl md:text-6xl"
+            style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
+          >
+            Comece sua jornada
+            <br />
+            <span className="text-outline-neon">na Veronica.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl leading-[1.65] text-muted-foreground">
+            Explore as formações e comece no seu ritmo, em qualquer dispositivo.
+          </p>
+          <Link
+            to="/comandos"
+            className="group mt-10 inline-flex items-center gap-2 rounded-sm bg-neon-green px-8 py-4 font-mono-tech text-sm uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
+          >
+            Começar a aprender{" "}
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
 
@@ -1082,31 +1069,30 @@ function Index() {
         />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <div className="inline-flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
-            <Zap className="h-3 w-3" /> Comece agora
+            <Zap className="h-3 w-3" /> Veronica — Escola de Inteligência Artificial
           </div>
           <h2
             className="mt-6 font-display text-4xl sm:text-6xl"
             style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
           >
-            Entre no <span className="text-outline-neon">Hub</span>.<br />
-            Domine o <span className="text-neon-cyan text-glow-cyan">digital</span>.
+            Seu futuro com <span className="text-outline-neon">IA</span>
+            <br />
+            começa <span className="text-neon-cyan text-glow-cyan">aqui</span>.
           </h2>
           <p className="mx-auto mt-6 max-w-xl leading-[1.65] text-muted-foreground">
-            11 cursos, acesso vitalício, a partir de R$ 19,90. Sem enrolação.
+            Aprenda as habilidades que estão transformando criatividade, tecnologia e negócios.
           </p>
-          <a
-            href={HUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/comandos"
             className="group relative mt-10 inline-flex items-center gap-3 overflow-hidden rounded-sm bg-neon-green px-10 py-5 font-mono-tech text-sm uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_0_80px_oklch(0.85_0.22_155/0.7)] active:translate-y-0 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-green focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            Garantir meu acesso{" "}
+            Começar a aprender{" "}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             <span
               aria-hidden
               className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/25 transition-all duration-700 group-hover:left-[150%]"
             />
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -1169,7 +1155,7 @@ function Index() {
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li>
                   <Link to="/comandos" className="transition hover:text-neon-green">
-                    Comandos
+                    Formações
                   </Link>
                 </li>
                 <li>
@@ -1178,13 +1164,8 @@ function Index() {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href={HUB_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition hover:text-neon-green"
-                  >
-                    Planos
+                  <a href="#pricing" className="transition hover:text-neon-green">
+                    Comece agora
                   </a>
                 </li>
                 <li>
