@@ -122,8 +122,12 @@ export function HudAccent({ size = 68, hue = GREEN, className = "" }: { size?: n
 }
 
 // Routes with their own light "paper" identity, or a deliberately sober
-// institutional tone, opt out of this dark-cyber overlay.
-const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo", "/veronica-nautica"];
+// institutional tone, opt out of this dark-cyber overlay. /blog (Veronica
+// Wire) opted out a pedido do usuário: o HudScanner ("mira") + a
+// holo-beam (linha verde varrendo a tela) competiam com a leitura de
+// notícia — a própria página do Wire já tem seu próprio acento "ao vivo"
+// (WirePulseGlobe no masthead, ver src/components/blog/WirePulseGlobe.tsx).
+const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo", "/veronica-nautica", "/blog"];
 
 export function HoloOrbits() {
   const [on, setOn] = useState(false);
