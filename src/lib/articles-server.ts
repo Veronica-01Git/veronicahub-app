@@ -261,9 +261,14 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
 "fotoTermos": dois ou três termos de busca em inglês para encontrar uma fotografia que ilustre esta notícia num banco de imagens. Use substantivos concretos e fotografáveis — objetos, lugares, equipamentos, ambientes. Nunca conceitos abstratos, nomes de empresa, logotipos ou pessoas públicas. Exemplos: "battery energy storage facility", "server racks data center", "shipping port containers", "solar panel field".
 Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
 
-  // googleSearch é o grounding tool nativo do Gemini — equivalente ao
-  // web_search da Anthropic, mas o modelo decide sozinho quantas buscas
-  // fazer (sem um `max_uses` configurável).
+  // DIAGNÓSTICO TEMPORÁRIO: tools:[{googleSearch:{}}] removido — três
+  // tentativas com modelos diferentes bateram em 429 RESOURCE_EXHAUSTED
+  // mesmo com cota de texto > 0 no painel do AI Studio; hipótese é que o
+  // grounding (busca) tem cota própria, possivelmente exigindo faturamento
+  // vinculado mesmo no tier grátis. Testando sem a tool pra confirmar.
+  // Se confirmar: decidir com o usuário entre configurar faturamento
+  // (reativa busca) ou manter sem busca (IA escreve sem verificar fato
+  // contra fonte real — pior, precisa reavaliar o piso de qualidade).
   let response: { text?: string; candidates?: Array<{ finishReason?: string }> };
   try {
     const ai = new GoogleGenAI({ apiKey });
@@ -273,7 +278,6 @@ Se não encontrar nada verificável e recente, responda {"error": "sem fato veri
       config: {
         systemInstruction: systemPrompt,
         maxOutputTokens: DRAFT_MAX_TOKENS,
-        tools: [{ googleSearch: {} }],
       },
     });
   } catch (error) {
