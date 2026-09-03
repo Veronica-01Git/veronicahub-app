@@ -1,23 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, gte, lt } from "drizzle-orm";
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { getDb } from "./db";
 import { articles } from "./schema";
 import { requireAdmin } from "./admin-server";
 import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 
-// Rascunhos gerados por IA rodam no Gemini (não Anthropic) desde que o
-// saldo da API da Anthropic zerou (ver PROGRESSO.md) — Gemini tem tier
-// grátis. "gemini-2.5-flash" foi testado e devolveu 404 ("no longer
-// available to new users" — a própria API recomendou gemini-3.6-flash
-// na mensagem de erro); "gemini-flash-latest" (alias) deu 429
-// RESOURCE_EXHAUSTED. gemini-3.6-flash tem cota grátis > 0 confirmada
-// no painel "Limite de taxa" do AI Studio.
-const DRAFT_MODEL = "gemini-3.6-flash";
-// Com o grounding de busca ligado, o texto das buscas + raciocínio do
-// modelo já consome uma fatia boa do budget antes de chegar no JSON final —
-// por isso a mesma margem generosa usada quando isso rodava na Anthropic
-// (lá, 2200 tokens vinha cortando a resposta no meio).
+// Rascunhos gerados por IA rodam no Groq desde que Anthropic (sem crédito)
+// e Gemini (cota bloqueada mesmo com faturamento configurado — cartão
+// virtual sem saldo suficiente pra passar na pré-autorização) ficaram
+// inviáveis (ver PROGRESSO.md). Groq: tier grátis sem cartão, 30 RPM/
+// 250 RPD pro compound especificamente (bem acima do nosso volume, ~5
+// chamadas/dia). "groq/compound" (não um modelo comum) porque tem busca
+// na web nativa embutida (via Tavily) — o único equivalente real ao
+// web_search da Anthropic/googleSearch do Gemini que sobrevive sem cartão.
+const DRAFT_MODEL = "groq/compound";
+// Com a busca embutida ligada, o texto das buscas + raciocínio do modelo
+// já consome uma fatia boa do budget antes de chegar no JSON final — por
+// isso a mesma margem generosa usada nos provedores anteriores.
 const DRAFT_MAX_TOKENS = 4096;
 
 // Piso mecânico antes de publicar (brief "evolução", item 8) — não é revisão
@@ -261,22 +261,19 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
 "fotoTermos": dois ou três termos de busca em inglês para encontrar uma fotografia que ilustre esta notícia num banco de imagens. Use substantivos concretos e fotografáveis — objetos, lugares, equipamentos, ambientes. Nunca conceitos abstratos, nomes de empresa, logotipos ou pessoas públicas. Exemplos: "battery energy storage facility", "server racks data center", "shipping port containers", "solar panel field".
 Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
 
-  // googleSearch é o grounding tool nativo do Gemini — equivalente ao
-  // web_search da Anthropic, mas o modelo decide sozinho quantas buscas
-  // fazer (sem um `max_uses` configurável). Testado SEM esta tool durante
-  // o diagnóstico do 429 (mesmo erro apareceu, então grounding não era a
-  // causa) — restaurada, já que removê-la não ajudava em nada.
-  let response: { text?: string; candidates?: Array<{ finishReason?: string }> };
+  // "groq/compound" busca na web sozinho, server-side, sem precisar
+  // declarar uma tool explícita — o próprio modelo decide quando pesquisar
+  // com base no prompt (que pede busca explicitamente).
+  let response: Groq.Chat.ChatCompletion;
   try {
-    const ai = new GoogleGenAI({ apiKey });
-    response = await ai.models.generateContent({
+    const groq = new Groq({ apiKey });
+    response = await groq.chat.completions.create({
       model: DRAFT_MODEL,
-      contents: "Pesquise e escreva a matéria conforme as instruções.",
-      config: {
-        systemInstruction: systemPrompt,
-        maxOutputTokens: DRAFT_MAX_TOKENS,
-        tools: [{ googleSearch: {} }],
-      },
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
+      ],
+      max_completion_tokens: DRAFT_MAX_TOKENS,
     });
   } catch (error) {
     return {
@@ -286,8 +283,8 @@ Se não encontrar nada verificável e recente, responda {"error": "sem fato veri
     };
   }
 
-  const finishReason = response.candidates?.[0]?.finishReason;
-  const text = (response.text ?? "").trim();
+  const finishReason = response.choices[0]?.finish_reason;
+  const text = (response.choices[0]?.message?.content ?? "").trim();
 
   const jsonStart = text.indexOf("{");
   const jsonEnd = text.lastIndexOf("}");
@@ -359,9 +356,9 @@ Se não encontrar nada verificável e recente, responda {"error": "sem fato veri
 async function draftArticleContent(
   beat: Beat,
 ): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return { ok: false, error: "GEMINI_API_KEY não configurada." };
+    return { ok: false, error: "GROQ_API_KEY não configurada." };
   }
 
   // Só uma retentativa, e só quando a resposta veio com formato quebrado
