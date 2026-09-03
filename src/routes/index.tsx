@@ -36,8 +36,8 @@ import {
   HeroFrame,
   AuthWidget,
 } from "@/components/SiteChrome";
-import { VeronicaHero } from "@/components/VeronicaHero";
-import { VeronicaDrawer } from "@/components/VeronicaDrawer";import { LazyImage } from "@/components/media/LazyImage";
+import { VeronicaDrawer } from "@/components/VeronicaDrawer";
+import { LazyImage } from "@/components/media/LazyImage";
 import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { IntentPortal } from "@/components/home/IntentPortal";
 import { StudioShowcase } from "@/components/home/StudioShowcase";
@@ -135,14 +135,6 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:image", content: ogImage },
       { name: "twitter:image", content: ogImage },
-    ],
-    links: [
-      {
-        rel: "preload",
-        as: "image",
-        href: "/images/home/veronica-cyborg-hero-poster.webp",
-        fetchpriority: "high",
-      },
     ],
     scripts: [
       {
@@ -446,9 +438,6 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
-        {/* Vídeo em loop da cyborg — rosto humano/robótico, screen blend,
-            fallback estático no mobile/reduced-motion. */}
-        <VeronicaHero />
         <HeroFrame />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
