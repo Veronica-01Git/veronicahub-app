@@ -1,21 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, gte, lt } from "drizzle-orm";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { getDb } from "./db";
 import { articles } from "./schema";
 import { requireAdmin } from "./admin-server";
 import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 
-// Rascunhos gerados por IA usam um modelo mais forte que o chat da Veronica
-// (veronica-server.ts usa Haiku pro drawer, custo baixo) porque aqui o
-// texto vai ao ar como matéria publicada — vale o custo extra de raciocínio
-// e de busca na web pra reduzir alucinação.
-const DRAFT_MODEL = "claude-sonnet-5";
-// Com web_search ligado (até 4 buscas), o texto das buscas + raciocínio do
+// Rascunhos gerados por IA rodam no Gemini (não Anthropic) desde que o
+// saldo da API da Anthropic zerou (ver PROGRESSO.md) — Gemini tem tier
+// grátis, o que o chat da Veronica (veronica-server.ts, ainda Anthropic
+// Haiku) não precisa porque tem volume bem menor. "-latest" em vez de uma
+// versão fixa: alias mantido pela Google, não exige migração manual toda
+// vez que um modelo novo sai.
+const DRAFT_MODEL = "gemini-flash-latest";
+// Com o grounding de busca ligado, o texto das buscas + raciocínio do
 // modelo já consome uma fatia boa do budget antes de chegar no JSON final —
-// 2200 tokens vinha cortando a resposta no meio (stop_reason "max_tokens"),
-// o que sobra como "IA não retornou um rascunho válido" (sem chave de
-// fechamento pro JSON.parse).
+// por isso a mesma margem generosa usada quando isso rodava na Anthropic
+// (lá, 2200 tokens vinha cortando a resposta no meio).
 const DRAFT_MAX_TOKENS = 4096;
 
 // Piso mecânico antes de publicar (brief "evolução", item 8) — não é revisão
@@ -259,35 +260,21 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
 "fotoTermos": dois ou três termos de busca em inglês para encontrar uma fotografia que ilustre esta notícia num banco de imagens. Use substantivos concretos e fotografáveis — objetos, lugares, equipamentos, ambientes. Nunca conceitos abstratos, nomes de empresa, logotipos ou pessoas públicas. Exemplos: "battery energy storage facility", "server racks data center", "shipping port containers", "solar panel field".
 Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
 
-  // web_search_20250305 é uma tool server-side (a Anthropic executa a
-  // busca e injeta o resultado na mesma resposta) — pode não estar no
-  // union type de `tools`/overloads desta versão do SDK. Em vez de tentar
-  // casar com o tipo exato de `messages.create` (arriscado sem compilador
-  // à mão pra conferir), chamamos por uma assinatura mínima com só o que
-  // de fato usamos da resposta.
-  type CreateMessage = (params: Record<string, unknown>) => Promise<{
-    content: Array<{ type: string; text?: string }>;
-    stop_reason?: string | null;
-  }>;
-
-  let response: {
-    content: Array<{ type: string; text?: string }>;
-    stop_reason?: string | null;
-  };
+  // googleSearch é o grounding tool nativo do Gemini — equivalente ao
+  // web_search da Anthropic, mas o modelo decide sozinho quantas buscas
+  // fazer (sem um `max_uses` configurável).
+  let response: { text?: string; candidates?: Array<{ finishReason?: string }> };
   try {
-    const anthropic = new Anthropic({ apiKey });
-    response = await (anthropic.messages.create as unknown as CreateMessage).call(
-      anthropic.messages,
-      {
-        model: DRAFT_MODEL,
-        max_tokens: DRAFT_MAX_TOKENS,
-        system: systemPrompt,
-        messages: [
-          { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
-        ],
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
+    const ai = new GoogleGenAI({ apiKey });
+    response = await ai.models.generateContent({
+      model: DRAFT_MODEL,
+      contents: "Pesquise e escreva a matéria conforme as instruções.",
+      config: {
+        systemInstruction: systemPrompt,
+        maxOutputTokens: DRAFT_MAX_TOKENS,
+        tools: [{ googleSearch: {} }],
       },
-    );
+    });
   } catch (error) {
     return {
       ok: false,
@@ -296,17 +283,14 @@ Se não encontrar nada verificável e recente, responda {"error": "sem fato veri
     };
   }
 
-  const text = response.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n")
-    .trim();
+  const finishReason = response.candidates?.[0]?.finishReason;
+  const text = (response.text ?? "").trim();
 
   const jsonStart = text.indexOf("{");
   const jsonEnd = text.lastIndexOf("}");
   if (jsonStart === -1 || jsonEnd === -1) {
     console.error(
-      `draftArticleContent(${beat}): sem JSON na resposta (stop_reason=${response.stop_reason ?? "?"}). Trecho: ${text.slice(0, 300)}`,
+      `draftArticleContent(${beat}): sem JSON na resposta (finishReason=${finishReason ?? "?"}). Trecho: ${text.slice(0, 300)}`,
     );
     return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo.", retry: true };
   }
@@ -316,7 +300,7 @@ Se não encontrar nada verificável e recente, responda {"error": "sem fato veri
     parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
   } catch (error) {
     console.error(
-      `draftArticleContent(${beat}): JSON inválido (stop_reason=${response.stop_reason ?? "?"}, erro=${error instanceof Error ? error.message : error}). Trecho: ${text.slice(0, 300)}`,
+      `draftArticleContent(${beat}): JSON inválido (finishReason=${finishReason ?? "?"}, erro=${error instanceof Error ? error.message : error}). Trecho: ${text.slice(0, 300)}`,
     );
     return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo.", retry: true };
   }
@@ -372,9 +356,9 @@ Se não encontrar nada verificável e recente, responda {"error": "sem fato veri
 async function draftArticleContent(
   beat: Beat,
 ): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return { ok: false, error: "ANTHROPIC_API_KEY não configurada." };
+    return { ok: false, error: "GEMINI_API_KEY não configurada." };
   }
 
   // Só uma retentativa, e só quando a resposta veio com formato quebrado
