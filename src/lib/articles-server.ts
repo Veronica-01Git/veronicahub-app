@@ -22,10 +22,11 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 // chamada de ferramenta por request — suficiente aqui (uma busca já
 // retorna várias fontes) — e cabe no budget de tokens do tier grátis.
 const DRAFT_MODEL = "groq/compound-mini";
-// Com a busca embutida ligada, o texto das buscas + raciocínio do modelo
-// já consome uma fatia boa do budget antes de chegar no JSON final — por
-// isso a mesma margem generosa usada nos provedores anteriores.
-const DRAFT_MAX_TOKENS = 4096;
+// Mesmo com compound-mini + enabled_tools restrito, ainda bateu 413
+// request_too_large ao vivo (ver PROGRESSO.md) — o corpo pedido no prompt
+// é só 900-1400 caracteres (bem menos que 4096 tokens de saída), então
+// cortado pra reduzir o orçamento total que o Groq reserva pra chamada.
+const DRAFT_MAX_TOKENS = 1500;
 
 // Piso mecânico antes de publicar (brief "evolução", item 8) — não é revisão
 // editorial, só barra o pior caso: matéria com uma fonte só ou corpo curto
