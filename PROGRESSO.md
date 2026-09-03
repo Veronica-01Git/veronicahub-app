@@ -130,15 +130,29 @@ falhavam depois, tinha rodado com sucesso poucas horas antes). Usuário sem
 orçamento pra recarregar créditos agora. Ação tomada: `schedule` comentado
 em `generate-article.yml` (`workflow_dispatch` continua disponível pra
 disparo manual) — nenhuma matéria nova é publicada automaticamente até
-isso ser resolvido. Duas saídas possíveis, decisão do usuário:
-1. Recarregar créditos na Anthropic (console.anthropic.com/settings/billing)
-   e reativar o `schedule` (descomentar as 2 linhas no workflow).
-2. Migrar a geração de texto pra um provedor com tier grátis (Gemini API
-   do Google é o candidato mais forte — free tier generoso, dá conta da
-   cadência atual). Envolve reescrever a chamada em `article-cron.ts`
-   (autenticação diferente da Anthropic, sem a tool `web_search` nativa —
-   Gemini tem "Google Search grounding" equivalente) e recalibrar o
-   prompt. Ainda não iniciada — só planejamento até aqui.
+isso ser resolvido.
+
+**Migração pro Gemini — em andamento.** Escolhida a saída 2 (tier grátis,
+sem custo) em vez de recarregar crédito na Anthropic. Código já escrito:
+`attemptDraft()` em `articles-server.ts` agora chama `@google/genai`
+(`gemini-flash-latest`, alias mantido pela Google — não exige migração
+manual a cada modelo novo) em vez de `@anthropic-ai/sdk`, com
+`googleSearch` no lugar da tool `web_search` da Anthropic. Contrato de
+saída (JSON headline/excerpt/body/desk/sourceUrls/fotoTermos) e toda a
+lógica de retry/dedup/piso de qualidade em volta ficaram intactos — só o
+core da chamada de IA mudou. `ANTHROPIC_API_KEY` continua em uso em
+`veronica-server.ts` (chat da Veronica no Studio) e
+`scripts/reprocess-covers.mjs` — nenhum dos dois foi tocado.
+
+Falta, nesta ordem:
+1. Usuário gera `GEMINI_API_KEY` grátis em aistudio.google.com/apikey.
+2. Usuário configura o secret no Worker: `wrangler secret put GEMINI_API_KEY`
+   (variável do Worker em produção, **não** secret do GitHub Actions —
+   mesmo caso de `ANTHROPIC_API_KEY`/`CRON_SECRET`).
+3. Testar via `?dryRun=1` em `/api/cron/generate-article` (não publica,
+   só simula) antes de reativar o cron de verdade.
+4. Confirmado que funciona, reativar o `schedule` em `generate-article.yml`
+   (descomentar as 2 linhas).
 
 **Brief completo da evolução dividido em 3 PRs** (A e C concluídas, B não
 iniciada):
