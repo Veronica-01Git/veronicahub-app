@@ -9,12 +9,19 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 // Rascunhos gerados por IA rodam no Groq desde que Anthropic (sem crédito)
 // e Gemini (cota bloqueada mesmo com faturamento configurado — cartão
 // virtual sem saldo suficiente pra passar na pré-autorização) ficaram
-// inviáveis (ver PROGRESSO.md). Groq: tier grátis sem cartão, 30 RPM/
-// 250 RPD pro compound especificamente (bem acima do nosso volume, ~5
-// chamadas/dia). "groq/compound" (não um modelo comum) porque tem busca
-// na web nativa embutida (via Tavily) — o único equivalente real ao
-// web_search da Anthropic/googleSearch do Gemini que sobrevive sem cartão.
-const DRAFT_MODEL = "groq/compound";
+// inviáveis (ver PROGRESSO.md). Groq: tier grátis sem cartão. "compound"
+// (não um modelo comum) porque tem busca na web nativa embutida (via
+// Tavily) — o único equivalente real ao web_search da Anthropic/
+// googleSearch do Gemini que sobrevive sem cartão.
+//
+// "groq/compound" (cheio) testado ao vivo e bateu 429/413 de TPM (limite
+// de 30k do modelo orquestrador interno, llama-4-scout-17b) numa editoria
+// de tema amplo (geopolítica) — o cheio permite MÚLTIPLAS chamadas de
+// ferramenta por request (várias buscas/execuções encadeadas), o que
+// estourava o teto numa chamada só. "groq/compound-mini" limita a UMA
+// chamada de ferramenta por request — suficiente aqui (uma busca já
+// retorna várias fontes) — e cabe no budget de tokens do tier grátis.
+const DRAFT_MODEL = "groq/compound-mini";
 // Com a busca embutida ligada, o texto das buscas + raciocínio do modelo
 // já consome uma fatia boa do budget antes de chegar no JSON final — por
 // isso a mesma margem generosa usada nos provedores anteriores.
@@ -261,9 +268,12 @@ Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, 
 "fotoTermos": dois ou três termos de busca em inglês para encontrar uma fotografia que ilustre esta notícia num banco de imagens. Use substantivos concretos e fotografáveis — objetos, lugares, equipamentos, ambientes. Nunca conceitos abstratos, nomes de empresa, logotipos ou pessoas públicas. Exemplos: "battery energy storage facility", "server racks data center", "shipping port containers", "solar panel field".
 Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
 
-  // "groq/compound" busca na web sozinho, server-side, sem precisar
-  // declarar uma tool explícita — o próprio modelo decide quando pesquisar
-  // com base no prompt (que pede busca explicitamente).
+  // "compound" busca na web sozinho, server-side, sem precisar declarar uma
+  // tool explícita — o próprio modelo decide quando pesquisar com base no
+  // prompt (que pede busca explicitamente). enabled_tools restrito a
+  // web_search: a matéria nunca precisa de code_interpreter/visit_website/
+  // wolfram_alpha, e cada ferramenta habilitada a mais é orçamento de
+  // tokens a menos pro budget apertado do tier grátis (ver DRAFT_MODEL).
   let response: Groq.Chat.ChatCompletion;
   try {
     const groq = new Groq({ apiKey });
@@ -274,6 +284,7 @@ Se não encontrar nada verificável e recente, responda {"error": "sem fato veri
         { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
       ],
       max_completion_tokens: DRAFT_MAX_TOKENS,
+      compound_custom: { tools: { enabled_tools: ["web_search"] } },
     });
   } catch (error) {
     return {
