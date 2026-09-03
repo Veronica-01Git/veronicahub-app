@@ -8,11 +8,12 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 
 // Rascunhos gerados por IA rodam no Gemini (não Anthropic) desde que o
 // saldo da API da Anthropic zerou (ver PROGRESSO.md) — Gemini tem tier
-// grátis. Modelo fixo (não "-latest"): testado ao vivo e confirmado com
-// cota grátis > 0 no painel "Limite de taxa" do AI Studio — o alias
-// "-latest" deu 429 RESOURCE_EXHAUSTED na primeira chamada, sinal de que
-// ele não herda a mesma cota do tier grátis que o nome fixo do modelo.
-const DRAFT_MODEL = "gemini-2.5-flash";
+// grátis. "gemini-2.5-flash" foi testado e devolveu 404 ("no longer
+// available to new users" — a própria API recomendou gemini-3.6-flash
+// na mensagem de erro); "gemini-flash-latest" (alias) deu 429
+// RESOURCE_EXHAUSTED. gemini-3.6-flash tem cota grátis > 0 confirmada
+// no painel "Limite de taxa" do AI Studio.
+const DRAFT_MODEL = "gemini-3.6-flash";
 // Com o grounding de busca ligado, o texto das buscas + raciocínio do
 // modelo já consome uma fatia boa do budget antes de chegar no JSON final —
 // por isso a mesma margem generosa usada quando isso rodava na Anthropic

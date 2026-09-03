@@ -8,11 +8,11 @@ import { VERONICA_SKILLS, getVeronicaStep, type VeronicaSkillId } from "@/veroni
 const MAX_MESSAGE_CHARS = 800;
 const MAX_HISTORY_MESSAGES = 8;
 // Gemini (não Anthropic) desde que o saldo da API da Anthropic zerou (ver
-// PROGRESSO.md) — mesma chave/mesmo provedor já usado pelo Veronica Wire
-// (articles-server.ts). Modelo fixo, não "-latest": o alias deu 429
-// RESOURCE_EXHAUSTED na primeira chamada real (não herda a cota do tier
-// grátis do jeito que o nome fixo herda — ver painel "Limite de taxa").
-const MODEL = "gemini-2.5-flash";
+// PROGRESSO.md) — mesmo modelo/mesma chave do Veronica Wire
+// (articles-server.ts): "gemini-2.5-flash" deu 404 ("no longer available
+// to new users"), "gemini-flash-latest" deu 429. gemini-3.6-flash tem
+// cota grátis > 0 confirmada no painel "Limite de taxa" do AI Studio.
+const MODEL = "gemini-3.6-flash";
 const MAX_TOKENS = 400;
 
 type ChatTurn = { role: "user" | "assistant"; content: string };
