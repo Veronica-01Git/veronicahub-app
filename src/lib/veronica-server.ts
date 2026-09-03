@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { VERONICA_SKILLS, getVeronicaStep, type VeronicaSkillId } from "@/veronica/skills";
 
 // Governadores de custo simples — sem rate-limit de verdade ainda (não tem
@@ -7,12 +7,12 @@ import { VERONICA_SKILLS, getVeronicaStep, type VeronicaSkillId } from "@/veroni
 // limita o tamanho de cada chamada à API, não a frequência.
 const MAX_MESSAGE_CHARS = 800;
 const MAX_HISTORY_MESSAGES = 8;
-// Gemini (não Anthropic) desde que o saldo da API da Anthropic zerou (ver
-// PROGRESSO.md) — mesmo modelo/mesma chave do Veronica Wire
-// (articles-server.ts): "gemini-2.5-flash" deu 404 ("no longer available
-// to new users"), "gemini-flash-latest" deu 429. gemini-3.6-flash tem
-// cota grátis > 0 confirmada no painel "Limite de taxa" do AI Studio.
-const MODEL = "gemini-3.6-flash";
+// Groq (não Anthropic nem Gemini) — mesma chave/mesmo provedor do
+// Veronica Wire (articles-server.ts). Tier grátis sem cartão (ao
+// contrário do Gemini, que travou mesmo com faturamento configurado —
+// ver PROGRESSO.md). Modelo mais forte do Groq (não o compound — chat
+// não precisa buscar na web), pra qualidade de resposta boa.
+const MODEL = "qwen/qwen3.6-27b";
 const MAX_TOKENS = 400;
 
 type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -54,7 +54,7 @@ const chatValidator = (input: unknown) => {
 export const veronicaChat = createServerFn({ method: "POST" })
   .validator(chatValidator)
   .handler(async ({ data }) => {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       return { ok: false as const, error: "Assistente indisponível no momento." };
     }
@@ -69,25 +69,18 @@ export const veronicaChat = createServerFn({ method: "POST" })
       : skill.systemPrompt;
 
     try {
-      const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
+      const groq = new Groq({ apiKey });
+      const response = await groq.chat.completions.create({
         model: MODEL,
-        // Gemini usa role "model" pra IA (não "assistant") — só isso muda
-        // no formato do histórico em relação à Anthropic.
-        contents: [
-          ...data.history.map((t) => ({
-            role: t.role === "assistant" ? "model" : "user",
-            parts: [{ text: t.content }],
-          })),
-          { role: "user", parts: [{ text: data.message }] },
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...data.history.map((t) => ({ role: t.role, content: t.content })),
+          { role: "user" as const, content: data.message },
         ],
-        config: {
-          systemInstruction: systemPrompt,
-          maxOutputTokens: MAX_TOKENS,
-        },
+        max_completion_tokens: MAX_TOKENS,
       });
 
-      const reply = (response.text ?? "").trim();
+      const reply = (response.choices[0]?.message?.content ?? "").trim();
 
       return {
         ok: true as const,

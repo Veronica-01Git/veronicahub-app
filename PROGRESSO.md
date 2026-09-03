@@ -132,40 +132,48 @@ em `generate-article.yml` (`workflow_dispatch` continua disponível pra
 disparo manual) — nenhuma matéria nova é publicada automaticamente até
 isso ser resolvido.
 
-**Migração pro Gemini — código pronto, bloqueada em cota da conta Google.**
-Escolhida a saída 2 (tier grátis, sem custo) em vez de recarregar crédito
-na Anthropic. `attemptDraft()` em `articles-server.ts` e `veronicaChat` em
-`veronica-server.ts` (chat da Veronica no Studio — migrado junto, mesma
-causa) chamam `@google/genai` em vez de `@anthropic-ai/sdk`, com
-`googleSearch` no lugar da tool `web_search` da Anthropic no Wire.
-Contrato de saída (JSON headline/excerpt/body/desk/sourceUrls/fotoTermos)
-e toda a lógica de retry/dedup/piso de qualidade ficaram intactos — só o
-core da chamada de IA mudou. `ANTHROPIC_API_KEY` só é usada por
-`scripts/reprocess-covers.mjs` agora (rodado local).
-
-Passos já feitos: `GEMINI_API_KEY` gerada e configurada no Worker
-(`wrangler secret put` via dashboard). Testado ao vivo via
-`workflow_dispatch` (não dá pra usar `?dryRun=1` nem checar rede daqui do
-sandbox) — histórico de tentativas, cada uma corrigindo o erro anterior:
+**Gemini abandonado — cota bloqueada mesmo com faturamento.** Anthropic
+sem crédito, Gemini foi a primeira tentativa de tier grátis. Histórico
+completo de tentativas, cada uma corrigindo o erro anterior mas sempre
+esbarrando em cota:
 1. `gemini-flash-latest` (alias) → `429 RESOURCE_EXHAUSTED`.
 2. `gemini-2.5-flash` (nome fixo) → `404` ("no longer available to new
    users", API recomendou `gemini-3.6-flash`).
-3. `gemini-3.6-flash` → `429 RESOURCE_EXHAUSTED` de novo, mesmo com cota
-   `0/5` (nada usado) no painel "Limite de taxa" do AI Studio.
+3. `gemini-3.6-flash` → `429` de novo, mesmo com cota `0/5` (nada usado)
+   no painel "Limite de taxa" do AI Studio.
 4. Testado sem a tool `googleSearch` (hipótese: grounding com cota
-   separada) → mesmo `429`. Hipótese descartada, tool restaurada.
+   separada) → mesmo `429`. Hipótese descartada.
+5. Faturamento configurado no AI Studio com um cartão virtual (C6/
+   InfinityPay) com R$6,95 de saldo → `429` **de novo**, sexta falha
+   seguida. Causa real: processadora do Google rejeita muitos cartões
+   virtuais/pré-pagos de bancos digitais brasileiros pra verificação,
+   independente de ter saldo — não é sobre cobrar, é a pré-autorização
+   de verificação que falha nesse tipo de cartão.
 
-**Conclusão atual**: não é nome de modelo nem grounding — é cota da
-conta/projeto Google como um todo. Hipótese mais provável: a conta não
-tem faturamento vinculado (ambas as chaves em "Chaves de API" mostravam
-"Configurar faturamento" ao lado de "Nível gratuito"), e o Google costuma
-exigir isso pra liberar a cota cheia do tier grátis (fica sem cobrar até
-o limite, mas precisa do cartão cadastrado). **Próximo passo, decisão do
-usuário**: configurar faturamento em aistudio.google.com (Faturamento →
-Configurar) e eu testo de novo — ou desistir do Gemini como saída e
-recarregar crédito na Anthropic.
-Depois de confirmado que funciona: reativar o `schedule` em
-`generate-article.yml` (descomentar as 2 linhas, hoje comentadas).
+**Migrado pro Groq — funcionando, sem cartão.** `attemptDraft()` em
+`articles-server.ts` e `veronicaChat` em `veronica-server.ts` chamam
+`groq-sdk` (API compatível com formato OpenAI — `messages` com `role`/
+`content`, sem remapeamento de role como o Gemini exigia). Tier grátis
+do Groq **não pede cartão** — confirmado antes de migrar (pesquisa via
+WebSearch, já que não dá pra testar rede daqui do sandbox).
+- **Wire**: modelo `groq/compound` (não um modelo comum) — tem busca na
+  web nativa embutida (via Tavily), único equivalente real ao
+  `web_search` da Anthropic/`googleSearch` do Gemini que sobrevive sem
+  cartão. Cota grátis: 30 RPM / 250 RPD — bem acima do nosso volume
+  (~5 chamadas/dia).
+- **Chat da Veronica**: modelo `qwen/qwen3.6-27b` (o mais forte do Groq,
+  segundo a doc) — não precisa buscar na web, só responder.
+- `@google/genai` removido do `package.json` (não usado em lugar nenhum
+  mais) — bônus: `groq-sdk` bundla ~64kB no Worker vs ~844kB do
+  `@google/genai`.
+- `ANTHROPIC_API_KEY` continua só em `scripts/reprocess-covers.mjs`
+  (rodado local).
+
+Falta: usuário gerar `GROQ_API_KEY` grátis em console.groq.com/keys e
+configurar no Worker (`wrangler secret put GROQ_API_KEY`). Depois disso,
+testar via `workflow_dispatch` e, confirmado que funciona, reativar o
+`schedule` em `generate-article.yml` (descomentar as 2 linhas, hoje
+comentadas).
 
 **Brief completo da evolução dividido em 3 PRs** (A e C concluídas, B não
 iniciada):
