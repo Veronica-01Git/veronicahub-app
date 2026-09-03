@@ -1,13 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { VERONICA_SKILLS, getVeronicaStep, type VeronicaSkillId } from "@/veronica/skills";
 
 // Governadores de custo simples — sem rate-limit de verdade ainda (não tem
 // infra de Redis neste projeto, diferente do negocio-da-china-app). Isso
-// limita o tamanho de cada chamada à API da Anthropic, não a frequência.
+// limita o tamanho de cada chamada à API, não a frequência.
 const MAX_MESSAGE_CHARS = 800;
 const MAX_HISTORY_MESSAGES = 8;
-const MODEL = "claude-haiku-4-5-20251001";
+// Gemini (não Anthropic) desde que o saldo da API da Anthropic zerou (ver
+// PROGRESSO.md) — mesma chave/mesmo provedor já usado pelo Veronica Wire
+// (articles-server.ts). "-latest": alias mantido pela Google.
+const MODEL = "gemini-flash-latest";
 const MAX_TOKENS = 400;
 
 type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -49,7 +52,7 @@ const chatValidator = (input: unknown) => {
 export const veronicaChat = createServerFn({ method: "POST" })
   .validator(chatValidator)
   .handler(async ({ data }) => {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return { ok: false as const, error: "Assistente indisponível no momento." };
     }
@@ -64,22 +67,25 @@ export const veronicaChat = createServerFn({ method: "POST" })
       : skill.systemPrompt;
 
     try {
-      const anthropic = new Anthropic({ apiKey });
-      const response = await anthropic.messages.create({
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
         model: MODEL,
-        max_tokens: MAX_TOKENS,
-        system: systemPrompt,
-        messages: [
-          ...data.history.map((t) => ({ role: t.role, content: t.content })),
-          { role: "user" as const, content: data.message },
+        // Gemini usa role "model" pra IA (não "assistant") — só isso muda
+        // no formato do histórico em relação à Anthropic.
+        contents: [
+          ...data.history.map((t) => ({
+            role: t.role === "assistant" ? "model" : "user",
+            parts: [{ text: t.content }],
+          })),
+          { role: "user", parts: [{ text: data.message }] },
         ],
+        config: {
+          systemInstruction: systemPrompt,
+          maxOutputTokens: MAX_TOKENS,
+        },
       });
 
-      const reply = response.content
-        .filter((block) => block.type === "text")
-        .map((block) => block.text)
-        .join("\n")
-        .trim();
+      const reply = (response.text ?? "").trim();
 
       return {
         ok: true as const,
