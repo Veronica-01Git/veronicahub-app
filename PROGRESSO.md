@@ -122,6 +122,24 @@ em "Sessão em andamento":
   completo leva ~25h — se resolve sozinho quando o item B aumentar a
   frequência.
 
+**⚠️ Cron pausado (03/set/2026) — sem saldo na API da Anthropic.** A partir
+da execução #20 (02/set ~14h) todas as rodadas do cron passaram a falhar
+com `"Your credit balance is too low to access the Anthropic API"` — não é
+bug de código (confirmado: a run #19, mesmo commit de duas que já
+falhavam depois, tinha rodado com sucesso poucas horas antes). Usuário sem
+orçamento pra recarregar créditos agora. Ação tomada: `schedule` comentado
+em `generate-article.yml` (`workflow_dispatch` continua disponível pra
+disparo manual) — nenhuma matéria nova é publicada automaticamente até
+isso ser resolvido. Duas saídas possíveis, decisão do usuário:
+1. Recarregar créditos na Anthropic (console.anthropic.com/settings/billing)
+   e reativar o `schedule` (descomentar as 2 linhas no workflow).
+2. Migrar a geração de texto pra um provedor com tier grátis (Gemini API
+   do Google é o candidato mais forte — free tier generoso, dá conta da
+   cadência atual). Envolve reescrever a chamada em `article-cron.ts`
+   (autenticação diferente da Anthropic, sem a tool `web_search` nativa —
+   Gemini tem "Google Search grounding" equivalente) e recalibrar o
+   prompt. Ainda não iniciada — só planejamento até aqui.
+
 **Brief completo da evolução dividido em 3 PRs** (A e C concluídas, B não
 iniciada):
 - **PR A** — qualidade/dedup/capas fixas. ✅ Mesclado (#23).
