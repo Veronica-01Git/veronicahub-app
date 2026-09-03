@@ -132,27 +132,40 @@ em `generate-article.yml` (`workflow_dispatch` continua disponível pra
 disparo manual) — nenhuma matéria nova é publicada automaticamente até
 isso ser resolvido.
 
-**Migração pro Gemini — em andamento.** Escolhida a saída 2 (tier grátis,
-sem custo) em vez de recarregar crédito na Anthropic. Código já escrito:
-`attemptDraft()` em `articles-server.ts` agora chama `@google/genai`
-(`gemini-flash-latest`, alias mantido pela Google — não exige migração
-manual a cada modelo novo) em vez de `@anthropic-ai/sdk`, com
-`googleSearch` no lugar da tool `web_search` da Anthropic. Contrato de
-saída (JSON headline/excerpt/body/desk/sourceUrls/fotoTermos) e toda a
-lógica de retry/dedup/piso de qualidade em volta ficaram intactos — só o
-core da chamada de IA mudou. `ANTHROPIC_API_KEY` continua em uso em
-`veronica-server.ts` (chat da Veronica no Studio) e
-`scripts/reprocess-covers.mjs` — nenhum dos dois foi tocado.
+**Migração pro Gemini — código pronto, bloqueada em cota da conta Google.**
+Escolhida a saída 2 (tier grátis, sem custo) em vez de recarregar crédito
+na Anthropic. `attemptDraft()` em `articles-server.ts` e `veronicaChat` em
+`veronica-server.ts` (chat da Veronica no Studio — migrado junto, mesma
+causa) chamam `@google/genai` em vez de `@anthropic-ai/sdk`, com
+`googleSearch` no lugar da tool `web_search` da Anthropic no Wire.
+Contrato de saída (JSON headline/excerpt/body/desk/sourceUrls/fotoTermos)
+e toda a lógica de retry/dedup/piso de qualidade ficaram intactos — só o
+core da chamada de IA mudou. `ANTHROPIC_API_KEY` só é usada por
+`scripts/reprocess-covers.mjs` agora (rodado local).
 
-Falta, nesta ordem:
-1. Usuário gera `GEMINI_API_KEY` grátis em aistudio.google.com/apikey.
-2. Usuário configura o secret no Worker: `wrangler secret put GEMINI_API_KEY`
-   (variável do Worker em produção, **não** secret do GitHub Actions —
-   mesmo caso de `ANTHROPIC_API_KEY`/`CRON_SECRET`).
-3. Testar via `?dryRun=1` em `/api/cron/generate-article` (não publica,
-   só simula) antes de reativar o cron de verdade.
-4. Confirmado que funciona, reativar o `schedule` em `generate-article.yml`
-   (descomentar as 2 linhas).
+Passos já feitos: `GEMINI_API_KEY` gerada e configurada no Worker
+(`wrangler secret put` via dashboard). Testado ao vivo via
+`workflow_dispatch` (não dá pra usar `?dryRun=1` nem checar rede daqui do
+sandbox) — histórico de tentativas, cada uma corrigindo o erro anterior:
+1. `gemini-flash-latest` (alias) → `429 RESOURCE_EXHAUSTED`.
+2. `gemini-2.5-flash` (nome fixo) → `404` ("no longer available to new
+   users", API recomendou `gemini-3.6-flash`).
+3. `gemini-3.6-flash` → `429 RESOURCE_EXHAUSTED` de novo, mesmo com cota
+   `0/5` (nada usado) no painel "Limite de taxa" do AI Studio.
+4. Testado sem a tool `googleSearch` (hipótese: grounding com cota
+   separada) → mesmo `429`. Hipótese descartada, tool restaurada.
+
+**Conclusão atual**: não é nome de modelo nem grounding — é cota da
+conta/projeto Google como um todo. Hipótese mais provável: a conta não
+tem faturamento vinculado (ambas as chaves em "Chaves de API" mostravam
+"Configurar faturamento" ao lado de "Nível gratuito"), e o Google costuma
+exigir isso pra liberar a cota cheia do tier grátis (fica sem cobrar até
+o limite, mas precisa do cartão cadastrado). **Próximo passo, decisão do
+usuário**: configurar faturamento em aistudio.google.com (Faturamento →
+Configurar) e eu testo de novo — ou desistir do Gemini como saída e
+recarregar crédito na Anthropic.
+Depois de confirmado que funciona: reativar o `schedule` em
+`generate-article.yml` (descomentar as 2 linhas, hoje comentadas).
 
 **Brief completo da evolução dividido em 3 PRs** (A e C concluídas, B não
 iniciada):
