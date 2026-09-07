@@ -28,7 +28,6 @@ import { useEffect, useState } from "react";
 import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { useParallax } from "@/hooks/use-parallax";
-import { TerminalBoot } from "@/components/TerminalBoot";
 import {
   SOCIAL_LINKS,
   EcosystemMenu,
@@ -439,29 +438,27 @@ function Index() {
         <HeroFrame />
         <VeronicaPresence />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
-          <div className="max-w-3xl lg:max-w-[62%]">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-16 md:pb-24 md:pt-20">
+          <div className="max-w-2xl lg:max-w-[52%]">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
               Escola de IA · Produtos autorais · Collabs
             </div>
 
             <h1
-              className="mt-8 font-display text-5xl sm:text-7xl md:text-8xl"
-              style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}
+              className="mt-7 font-display text-4xl sm:text-5xl md:text-6xl"
+              style={{ letterSpacing: "-0.04em", lineHeight: "0.94" }}
             >
-              <span className="block text-foreground">Aprenda inteligência artificial.</span>
+              <span className="block text-foreground">Aprenda IA.</span>
               <span className="block text-outline-neon animate-glow-pulse">
-                Crie o que ainda não existe<span className="text-neon-green">_</span>
+                Crie, trabalhe e venda<span className="text-neon-green">_</span>
               </span>
             </h1>
 
-            <p className="mt-8 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-              Uma escola prática com formações, ferramentas e produtos próprios para transformar
-              conhecimento em projetos, oportunidades e negócios reais.
+            <p className="mt-6 max-w-lg text-base leading-[1.65] text-muted-foreground sm:text-lg">
+              Cursos práticos para transformar inteligência artificial em projetos, trabalho e
+              negócios reais.
             </p>
-
-            <TerminalBoot />
           </div>
 
           {/* Portal de intenção — a porta de entrada real do Hub. Cinco

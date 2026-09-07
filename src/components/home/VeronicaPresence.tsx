@@ -1,28 +1,30 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 
-type PupilStyle = CSSProperties & {
-  "--pupil-x": string;
-  "--pupil-y": string;
+type EyeStyle = CSSProperties & {
+  "--eye-x": string;
+  "--eye-y": string;
 };
 
-const pupilStyle: PupilStyle = {
-  "--pupil-x": "0px",
-  "--pupil-y": "0px",
-  transform: "translate3d(var(--pupil-x), var(--pupil-y), 0)",
+const eyeStyle: EyeStyle = {
+  "--eye-x": "0px",
+  "--eye-y": "0px",
+  transform: "translate3d(var(--eye-x), var(--eye-y), 0)",
 };
 
-function TrackedPupil({ side }: { side: "left" | "right" }) {
+function TrackedEye({ side }: { side: "left" | "right" }) {
   return (
     <span
-      className={`absolute top-[34.9%] aspect-square w-[4.1%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_48%_45%,#55eaff_0%,#19bde2_34%,#087da9_72%,#032f4c_100%)] shadow-[inset_0_0_6px_rgba(220,255,255,0.65),0_0_8px_rgba(28,220,255,0.4)] ${
+      className={`absolute top-[34.9%] h-[4.55%] w-[12.4%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[50%] ${
         side === "left" ? "left-[31.25%]" : "left-[66.05%]"
       }`}
     >
       <span
-        data-pupil
-        style={pupilStyle}
-        className="absolute left-[24%] top-[24%] aspect-square w-[52%] rounded-full bg-[radial-gradient(circle_at_38%_35%,#dfffff_0_7%,#061015_12%,#000_74%)] shadow-[0_0_4px_rgba(0,0,0,0.9)] will-change-transform transition-transform duration-100 ease-out"
-      />
+        data-eye
+        style={eyeStyle}
+        className="absolute left-1/2 top-1/2 aspect-square h-[118%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_50%,#dfffff_0_5%,#02080c_7%_24%,#0b6f99_27%,#18c7ec_55%,#073f61_76%,#02131e_100%)] shadow-[inset_0_0_7px_rgba(220,255,255,0.72),0_0_8px_rgba(28,220,255,0.35)] will-change-transform transition-transform duration-100 ease-out"
+      >
+        <span className="absolute left-[42%] top-[37%] h-[9%] w-[9%] rounded-full bg-white/90 shadow-[0_0_3px_white]" />
+      </span>
     </span>
   );
 }
@@ -37,13 +39,13 @@ export function VeronicaPresence() {
 
     let animationFrame = 0;
 
-    const movePupils = (x: number, y: number) => {
+    const moveEyes = (x: number, y: number) => {
       const figure = figureRef.current;
       if (!figure) return;
 
-      figure.querySelectorAll<HTMLElement>("[data-pupil]").forEach((pupil) => {
-        pupil.style.setProperty("--pupil-x", `${x.toFixed(2)}px`);
-        pupil.style.setProperty("--pupil-y", `${y.toFixed(2)}px`);
+      figure.querySelectorAll<HTMLElement>("[data-eye]").forEach((eye) => {
+        eye.style.setProperty("--eye-x", `${x.toFixed(2)}px`);
+        eye.style.setProperty("--eye-y", `${y.toFixed(2)}px`);
       });
     };
 
@@ -55,31 +57,31 @@ export function VeronicaPresence() {
         const distance = Math.hypot(normalizedX, normalizedY);
         const damping = distance > 1 ? 1 / distance : 1;
 
-        movePupils(normalizedX * damping * 4.5, normalizedY * damping * 3.2);
+        moveEyes(normalizedX * damping * 3.2, normalizedY * damping * 2.15);
       });
     };
 
-    const resetPupils = () => movePupils(0, 0);
+    const resetEyes = () => moveEyes(0, 0);
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    window.addEventListener("blur", resetPupils);
+    window.addEventListener("blur", resetEyes);
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("blur", resetPupils);
+      window.removeEventListener("blur", resetEyes);
     };
   }, []);
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       <div className="absolute inset-y-0 right-0 w-full sm:w-[72%] lg:w-[54%]">
-        <div className="absolute left-1/2 top-[53%] h-[58%] w-[64%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-cyan/10 blur-[70px]" />
-        <div className="absolute bottom-[7%] left-1/2 h-px w-[58%] -translate-x-1/2 bg-gradient-to-r from-transparent via-neon-cyan/80 to-transparent shadow-[0_0_22px_rgba(34,211,238,0.8)]" />
+        <div className="absolute left-1/2 top-[28rem] h-[34rem] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-cyan/10 blur-[70px]" />
+        <div className="absolute left-1/2 top-[59rem] h-px w-[58%] -translate-x-1/2 bg-gradient-to-r from-transparent via-neon-cyan/80 to-transparent shadow-[0_0_22px_rgba(34,211,238,0.8)]" />
 
         <div
           ref={figureRef}
-          className="absolute bottom-[-16%] right-[-17%] w-[78%] opacity-40 sm:bottom-[-20%] sm:right-[-4%] sm:w-[74%] sm:opacity-65 lg:bottom-[-19%] lg:right-[2%] lg:w-[82%] lg:opacity-95"
+          className="absolute right-[-20%] top-14 w-[76%] opacity-35 sm:right-[-5%] sm:top-10 sm:w-[72%] sm:opacity-65 lg:right-[3%] lg:top-4 lg:w-[76%] lg:opacity-95"
         >
           <img
             src="/images/veronica/veronica-hero-hologram-v2.webp"
@@ -91,8 +93,8 @@ export function VeronicaPresence() {
             className="block h-auto w-full drop-shadow-[0_0_24px_rgba(34,211,238,0.2)]"
           />
 
-          <TrackedPupil side="left" />
-          <TrackedPupil side="right" />
+          <TrackedEye side="left" />
+          <TrackedEye side="right" />
 
           <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgba(34,211,238,0.08)_48%,transparent_51%)] bg-[length:100%_9px] opacity-35 mix-blend-screen" />
           <div className="absolute inset-x-[7%] top-1/2 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent opacity-0 motion-safe:animate-[pulse_4s_ease-in-out_infinite]" />
