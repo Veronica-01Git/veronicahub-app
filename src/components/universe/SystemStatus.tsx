@@ -1,4 +1,4 @@
-import { Activity, Radio, Cpu, HardDrive } from "lucide-react";
+import { Activity, Cpu } from "lucide-react";
 
 interface StatusItem {
   key: string;
@@ -9,6 +9,7 @@ interface StatusItem {
 
 const SYSTEM_STATUS_DATA: StatusItem[] = [
   { key: "core", label: "IDENTITY CORE", status: "ACTIVE", variant: "green" },
+  { key: "essence", label: "ESSENCE CANON", status: "ACTIVE", variant: "green" },
   { key: "eco", label: "ECOSYSTEM", status: "MAPPED", variant: "cyan" },
   { key: "char", label: "CHARACTER", status: "IN DEVELOPMENT", variant: "neutral" },
   { key: "vis", label: "VISUAL SYSTEM", status: "IN DEVELOPMENT", variant: "neutral" },
@@ -38,11 +39,10 @@ export function SystemStatus() {
         <div className="flex items-center gap-3 font-mono-tech text-[10px] tracking-wider text-muted-foreground">
           <span>KERNEL: RUNNING</span>
           <span className="text-border">·</span>
-          <span>LATENCY: 14MS</span>
+          <span>CANON: 01 ACTIVE</span>
         </div>
       </div>
 
-      {/* Grid of Status Telemetry Items */}
       <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {SYSTEM_STATUS_DATA.map((item) => {
           const badgeClass =
@@ -77,11 +77,10 @@ export function SystemStatus() {
         })}
       </div>
 
-      {/* Architecture telemetry footer */}
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/30 pt-4 font-mono-tech text-[10px] text-muted-foreground">
         <div className="flex items-center gap-2">
           <Cpu className="h-3 w-3" />
-          <span>PHASE 1: FOUNDATION / SHELL / CONSTELLATION MAP</span>
+          <span>FOUNDATION: SHELL / ESSENCE CANON / CONSTELLATION MAP</span>
         </div>
         <div>TOTAL REGISTERED NODES: 08</div>
       </div>
