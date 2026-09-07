@@ -19,7 +19,6 @@ export type EcosystemNode = {
   description: string;
   vector: string;
   position: {
-    // Percent coordinates for spatial layout (0-100)
     x: number;
     y: number;
   };
@@ -34,7 +33,8 @@ export type UniverseTab =
   | "05" // VOICE
   | "06" // MEDIA
   | "07" // PROMPT LAB
-  | "08"; // DECISIONS
+  | "08" // DECISIONS
+  | "09"; // GUARDIAN
 
 export const ECOSYSTEM_NODES: EcosystemNode[] = [
   {
@@ -53,8 +53,7 @@ export const ECOSYSTEM_NODES: EcosystemNode[] = [
     category: "Media / Investigation",
     status: "ACTIVE",
     relation: "investigates",
-    description:
-      "Jornalismo técnico investigativo, curadoria de fronteira e inteligência geopolítica digital.",
+    description: "Jornalismo técnico investigativo, curadoria de fronteira e inteligência geopolítica digital.",
     vector: "02 / RADAR",
     position: { x: 80, y: 24 },
   },
@@ -64,8 +63,7 @@ export const ECOSYSTEM_NODES: EcosystemNode[] = [
     category: "AI Creation",
     status: "ACTIVE",
     relation: "creates",
-    description:
-      "Motor de síntese multimodal de alta fidelidade: geração de vídeo, imagem e voz com IA.",
+    description: "Motor de síntese multimodal de alta fidelidade: geração de vídeo, imagem e voz com IA.",
     vector: "03 / SYNTHESIS",
     position: { x: 88, y: 62 },
   },
@@ -75,8 +73,7 @@ export const ECOSYSTEM_NODES: EcosystemNode[] = [
     category: "Market Intelligence",
     status: "ACTIVE",
     relation: "analyzes",
-    description:
-      "Diagnóstico profundo de métricas, benchmarks competitivos e inteligência de conversão.",
+    description: "Diagnóstico profundo de métricas, benchmarks competitivos e inteligência de conversão.",
     vector: "04 / METRICS",
     position: { x: 70, y: 88 },
   },
@@ -86,8 +83,7 @@ export const ECOSYSTEM_NODES: EcosystemNode[] = [
     category: "Digital Protection",
     status: "ACTIVE",
     relation: "protects",
-    description:
-      "Diagnóstico defensivo, auditoria de integridade e blindagem contra vazamento de ativos.",
+    description: "Diagnóstico defensivo, auditoria de integridade e blindagem contra vazamento de ativos.",
     vector: "05 / SHIELD",
     position: { x: 30, y: 88 },
   },
@@ -97,8 +93,7 @@ export const ECOSYSTEM_NODES: EcosystemNode[] = [
     category: "Career Intelligence",
     status: "ACTIVE",
     relation: "guides",
-    description:
-      "Otimização algorítmica para rastreadores ATS e posicionamento de autoridade no mercado.",
+    description: "Otimização algorítmica para rastreadores ATS e posicionamento de autoridade no mercado.",
     vector: "06 / CAREER",
     position: { x: 12, y: 62 },
   },
@@ -108,8 +103,7 @@ export const ECOSYSTEM_NODES: EcosystemNode[] = [
     category: "Global Business",
     status: "ACTIVE",
     relation: "connects",
-    description:
-      "Canal estratégico de intermediação, sourcing global e infraestrutura de comércio de alto valor.",
+    description: "Canal estratégico de intermediação, sourcing global e infraestrutura de comércio de alto valor.",
     vector: "07 / COMMERCE",
     position: { x: 20, y: 24 },
   },
@@ -119,8 +113,7 @@ export const ECOSYSTEM_NODES: EcosystemNode[] = [
     category: "Applied Knowledge",
     status: "ACTIVE",
     relation: "equips",
-    description:
-      "Diretrizes executáveis, cadeias de raciocínio proprietárias e automações prontas para uso real.",
+    description: "Diretrizes executáveis, cadeias de raciocínio proprietárias e automações prontas para uso real.",
     vector: "08 / DIRECTIVES",
     position: { x: 50, y: 94 },
   },
