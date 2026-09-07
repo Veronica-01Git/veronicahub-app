@@ -34,7 +34,8 @@ export type UniverseTab =
   | "06" // MEDIA
   | "07" // PROMPT LAB
   | "08" // DECISIONS
-  | "09"; // GUARDIAN
+  | "09" // GUARDIAN
+  | "10"; // INTELLIGENCE
 
 export const ECOSYSTEM_NODES: EcosystemNode[] = [
   {
