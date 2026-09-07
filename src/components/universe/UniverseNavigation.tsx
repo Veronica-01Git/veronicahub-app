@@ -8,7 +8,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: "00", label: "00 / OVERVIEW", functional: true },
-  { id: "01", label: "01 / ESSENCE", functional: false },
+  { id: "01", label: "01 / ESSENCE", functional: true },
   { id: "02", label: "02 / ECOSYSTEM", functional: true },
   { id: "03", label: "03 / CHARACTER", functional: false },
   { id: "04", label: "04 / VISUAL SYSTEM", functional: false },
