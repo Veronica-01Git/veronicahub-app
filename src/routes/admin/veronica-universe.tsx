@@ -13,6 +13,7 @@ import { MediaModule } from "@/components/universe/MediaModule";
 import { PromptLabModule } from "@/components/universe/PromptLabModule";
 import { DecisionsModule } from "@/components/universe/DecisionsModule";
 import { GuardianModule } from "@/components/universe/GuardianModule";
+import { IntelligenceModule } from "@/components/universe/IntelligenceModule";
 import { SystemStatus } from "@/components/universe/SystemStatus";
 import { NextSystemLayers } from "@/components/universe/NextSystemLayers";
 import { ECOSYSTEM_NODES, type UniverseTab } from "@/components/universe/types";
@@ -121,6 +122,7 @@ function VeronicaUniversePage() {
       {activeTab === "07" && <PromptLabModule />}
       {activeTab === "08" && <DecisionsModule />}
       {activeTab === "09" && <GuardianModule />}
+      {activeTab === "10" && <IntelligenceModule />}
     </UniverseShell>
   );
 }
