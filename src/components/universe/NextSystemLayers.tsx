@@ -9,6 +9,7 @@ const CANON_LAYERS = [
   ["PROMPT LAB", "ACTIVE", "Diretivas canônicas reutilizáveis e model-agnostic."],
   ["DECISION INTELLIGENCE", "ADVISORY", "Matriz consultiva de alinhamento antes de execução."],
   ["GUARDIAN", "PASSIVE", "Auditoria manual de conformidade sem automação ou bloqueio."],
+  ["ASK UNIVERSE", "READ ONLY", "Consulta do cânone versionado com fallback local seguro."],
 ] as const;
 
 export function NextSystemLayers() {
@@ -17,7 +18,7 @@ export function NextSystemLayers() {
       <section className="rounded-sm border border-border/50 bg-surface/20 p-6 lg:col-span-2">
         <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-4">
           <div className="flex items-center gap-2"><Layers className="h-4 w-4 text-neon-cyan" /><h3 className="font-mono-tech text-xs tracking-widest text-foreground uppercase">CANONICAL SYSTEM [ CURRENT STATE ]</h3></div>
-          <span className="font-mono-tech text-[9px] tracking-widest text-neon-green">CORE CONSTRUCTION COMPLETE</span>
+          <span className="font-mono-tech text-[9px] tracking-widest text-neon-green">ADMIN V1 CORE READY</span>
         </div>
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {CANON_LAYERS.map(([name, status, description]) => (
@@ -32,20 +33,21 @@ export function NextSystemLayers() {
       <section className="flex flex-col justify-between rounded-sm border border-border/60 bg-surface/30 p-6">
         <div>
           <div className="flex items-center justify-between border-b border-border/40 pb-4">
-            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-neon-cyan" /><h3 className="font-mono-tech text-xs tracking-widest text-foreground uppercase">NEXT INTELLIGENCE LAYER</h3></div>
-            <span className="rounded border border-border/40 bg-muted/20 px-2 py-0.5 font-mono-tech text-[9px] tracking-widest text-muted-foreground uppercase">FUTURE</span>
+            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-neon-cyan" /><h3 className="font-mono-tech text-xs tracking-widest text-foreground uppercase">NEXT CREATIVE SYSTEM</h3></div>
+            <span className="rounded border border-neon-green/30 bg-neon-green/10 px-2 py-0.5 font-mono-tech text-[9px] tracking-widest text-neon-green uppercase">NEXT</span>
           </div>
           <div className="mt-5">
-            <span className="block font-mono-tech text-[10px] tracking-widest text-neon-green uppercase">[ ASK VERONICA UNIVERSE ]</span>
-            <p className="mt-2 font-sans text-sm leading-relaxed text-foreground/80">Futura camada de consulta que poderá responder usando o cânone consolidado como contexto. Ela só entra depois de definir persistência, versionamento, permissões e política explícita de ação.</p>
+            <span className="block font-mono-tech text-[10px] tracking-widest text-neon-green uppercase">[ VERONICA CONSISTENT AVATAR ]</span>
+            <p className="mt-2 font-sans text-sm leading-relaxed text-foreground/80">A próxima frente transforma Character, Visual, Voice, Media e Prompt Lab em uma identidade visual consistente para imagem e vídeo. O objetivo é criar uma Veronica reconhecível entre ferramentas, ângulos, roupas e cenas.</p>
           </div>
           <div className="mt-6 space-y-2 rounded-sm border border-border/40 bg-background/50 p-4 font-mono-tech text-xs text-muted-foreground">
             <div className="flex justify-between gap-3"><span>CANON READ:</span><span className="text-neon-green">READY</span></div>
-            <div className="flex justify-between gap-3"><span>PERSISTENCE:</span><span>NOT ENABLED</span></div>
-            <div className="flex justify-between gap-3"><span>AUTO-ACTIONS:</span><span>DISABLED</span></div>
+            <div className="flex justify-between gap-3"><span>REFERENCE SET:</span><span>NEXT</span></div>
+            <div className="flex justify-between gap-3"><span>FACE CONSISTENCY:</span><span>NEXT</span></div>
+            <div className="flex justify-between gap-3"><span>VIDEO CONTINUITY:</span><span>NEXT</span></div>
           </div>
         </div>
-        <div className="mt-6 border-t border-border/30 pt-4 font-mono-tech text-[10px] text-muted-foreground"><Sparkles className="mr-1 inline h-3 w-3 text-neon-cyan" /> FUTURE WORK REQUIRES EXPLICIT GOVERNANCE</div>
+        <div className="mt-6 border-t border-border/30 pt-4 font-mono-tech text-[10px] text-muted-foreground"><Sparkles className="mr-1 inline h-3 w-3 text-neon-cyan" /> ADMIN STAYS GOVERNANCE; AVATAR BECOMES THE NEXT BUILD TRACK</div>
       </section>
     </div>
   );
