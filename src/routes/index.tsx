@@ -32,7 +32,7 @@ import { TerminalBoot } from "@/components/TerminalBoot";
 import {
   SOCIAL_LINKS,
   EcosystemMenu,
-  ECOSYSTEM_LINKS,
+  MobileEcosystemIntentMenu,
   HeroFrame,
   AuthWidget,
 } from "@/components/SiteChrome";
@@ -44,6 +44,7 @@ import { StudioShowcase } from "@/components/home/StudioShowcase";
 import { ToolShowcase } from "@/components/home/ToolShowcase";
 import { ProofSection } from "@/components/home/ProofSection";
 import { HomeCommerce } from "@/components/home/HomeCommerce";
+import { VeronicaPresence } from "@/components/home/VeronicaPresence";
 import { courses } from "@/lib/courses";
 
 type EcosystemItem = {
@@ -392,39 +393,7 @@ function Index() {
             >
               Blog
             </Link>
-            <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-              Ecossistema
-            </div>
-            {ECOSYSTEM_LINKS.map((item) =>
-              item.ready ? (
-                <Link
-                  key={item.name}
-                  to={item.to}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex flex-col gap-0.5 border-b border-border/40 py-3.5"
-                >
-                  <span className="text-foreground">{item.name}</span>
-                  <span className="text-[11px] normal-case tracking-normal text-muted-foreground">
-                    {item.tag}
-                  </span>
-                </Link>
-              ) : (
-                <div
-                  key={item.name}
-                  className="flex flex-col gap-0.5 border-b border-border/40 py-3.5 opacity-50"
-                >
-                  <span className="flex items-center gap-2 text-foreground">
-                    {item.name}
-                    <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground">
-                      em breve
-                    </span>
-                  </span>
-                  <span className="text-[11px] normal-case tracking-normal text-muted-foreground">
-                    {item.tag}
-                  </span>
-                </div>
-              ),
-            )}
+            <MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} />
             <Link
               to="/comandos"
               onClick={() => setMobileOpen(false)}
@@ -468,9 +437,10 @@ function Index() {
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
         <HeroFrame />
+        <VeronicaPresence />
 
-        <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
-          <div className="max-w-3xl">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
+          <div className="max-w-3xl lg:max-w-[62%]">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
               Escola de IA · Produtos autorais · Collabs
