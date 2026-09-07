@@ -1,5 +1,22 @@
 import { Link } from "@tanstack/react-router";
-import { Youtube, Instagram, MessageCircle, Mail, ChevronDown, Menu, X, User as UserIcon } from "lucide-react";
+import {
+  Youtube,
+  Instagram,
+  MessageCircle,
+  Mail,
+  ChevronDown,
+  Menu,
+  X,
+  User as UserIcon,
+  GraduationCap,
+  Wand2,
+  BarChart3,
+  ShieldCheck,
+  Briefcase,
+  Newspaper,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import cyborgAsset from "@/assets/veronica-cyborg-v2.jpg.asset.json";
 import { requestEmailCode, verifyEmailCode, logout, getCurrentUser } from "@/lib/auth-server";
@@ -30,6 +47,69 @@ export const ECOSYSTEM_LINKS: EcosystemLink[] = [
   { name: "Negócio da China", tag: "Marketplace C2C · novo e usado", to: "https://negociodachina.veronicahub.com", ready: true, external: true },
 ];
 
+export type IntentId = "learn" | "create" | "sell" | "protect" | "work" | "update";
+export type IntentLink = {
+  id: IntentId;
+  label: string;
+  name: string;
+  tag: string;
+  to: string;
+};
+
+export const INTENT_LINKS: IntentLink[] = [
+  {
+    id: "learn",
+    label: "Quero aprender",
+    name: "Formações Veronica",
+    tag: "Trilhas práticas para dominar IA no seu ritmo",
+    to: "/comandos",
+  },
+  {
+    id: "create",
+    label: "Quero criar",
+    name: "Veronica Studio",
+    tag: "Imagem, vídeo e voz com inteligência artificial",
+    to: "/video-ia",
+  },
+  {
+    id: "sell",
+    label: "Quero vender",
+    name: "Veronica Analytics",
+    tag: "Dados e oportunidades para decisões comerciais",
+    to: "/veronica-analytics",
+  },
+  {
+    id: "protect",
+    label: "Quero proteger",
+    name: "Veronica Security",
+    tag: "Diagnóstico e orientação de segurança digital",
+    to: "/veronica-security",
+  },
+  {
+    id: "work",
+    label: "Quero trabalhar",
+    name: "Currículo-Certo",
+    tag: "Carreira, currículo ATS e preparação profissional",
+    to: "/veronica-curriculo-certo",
+  },
+  {
+    id: "update",
+    label: "Quero me atualizar",
+    name: "Veronica Wire",
+    tag: "Notícias, ferramentas e movimentos da IA",
+    to: "/blog",
+  },
+];
+
+const INTENT_ICONS: Record<IntentId, LucideIcon> = {
+  learn: GraduationCap,
+  create: Wand2,
+  sell: BarChart3,
+  protect: ShieldCheck,
+  work: Briefcase,
+  update: Newspaper,
+};
+
 export function EcosystemMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -54,57 +134,139 @@ export function EcosystemMenu() {
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
+        aria-controls="ecosystem-intent-menu"
         className="group relative flex items-center gap-1 px-3 py-2 text-muted-foreground transition hover:text-neon-green"
       >
         Ecossistema
         <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
         <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
       </button>
+
       {open && (
-        <div className="absolute left-0 top-full z-40 mt-2 w-64 rounded-sm border border-border/60 bg-background/95 p-1.5 shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)] backdrop-blur">
-          {ECOSYSTEM_LINKS.map((item) => {
-            const linkContent = (
-              <>
-                <span className="font-mono-tech text-[11px] uppercase tracking-widest text-foreground group-hover:text-neon-green">
-                  {item.name}
-                </span>
-                <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-              </>
-            );
-            const linkClass = "group flex flex-col gap-0.5 rounded-sm px-3 py-2.5 transition hover:bg-neon-green/10";
-            return item.ready ? (
-              item.external ? (
-                <a
-                  key={item.name}
-                  href={item.to}
-                  target="_blank"
-                  rel="noopener noreferrer"
+        <div
+          id="ecosystem-intent-menu"
+          className="absolute left-1/2 top-full z-40 mt-3 w-[min(720px,calc(100vw-3rem))] -translate-x-1/2 overflow-hidden rounded-sm border border-border/60 bg-background/95 shadow-[0_24px_70px_-20px_oklch(0_0_0/0.85)] backdrop-blur-xl"
+        >
+          <div className="border-b border-border/50 px-5 py-4">
+            <div className="font-mono-tech text-[9px] uppercase tracking-[0.22em] text-neon-green">
+              Escolha pelo seu objetivo
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              A Veronica indica o caminho mais curto entre intenção e resultado.
+            </p>
+          </div>
+
+          <div className="grid gap-px bg-border/40 p-px sm:grid-cols-2">
+            {INTENT_LINKS.map((item) => {
+              const Icon = INTENT_ICONS[item.id];
+              return (
+                <Link
+                  key={item.id}
+                  to={item.to}
                   onClick={() => setOpen(false)}
-                  className={linkClass}
+                  className="group flex gap-3 bg-background/95 p-4 transition hover:bg-neon-green/[0.07]"
                 >
-                  {linkContent}
-                </a>
-              ) : (
-                <Link key={item.name} to={item.to} onClick={() => setOpen(false)} className={linkClass}>
-                  {linkContent}
-                </Link>
-              )
-            ) : (
-              <div key={item.name} className="flex flex-col gap-0.5 px-3 py-2.5 opacity-50">
-                <span className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-widest text-foreground">
-                  {item.name}
-                  <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground">
-                    em breve
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-surface/70 text-muted-foreground transition group-hover:border-neon-green/50 group-hover:text-neon-green">
+                    <Icon className="h-4 w-4" />
                   </span>
-                </span>
-                <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-              </div>
-            );
-          })}
+                  <span className="min-w-0">
+                    <span className="block font-display text-base text-foreground transition group-hover:text-neon-green">
+                      {item.label}
+                    </span>
+                    <span className="mt-0.5 block font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
+                      {item.name}
+                    </span>
+                    <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">
+                      {item.tag}
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-border/50 bg-surface/40 px-5 py-4">
+            <Link
+              to="/prompt-packs"
+              onClick={() => setOpen(false)}
+              className="group inline-flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green"
+            >
+              Prompt Packs
+              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              to="/veronica-nautica"
+              onClick={() => setOpen(false)}
+              className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
+            >
+              Veronica Náutica
+            </Link>
+            <a
+              href="https://negociodachina.veronicahub.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
+            >
+              Negócio da China
+            </a>
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+export function MobileEcosystemIntentMenu({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <div className="pt-4">
+      <div className="pb-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
+        O que você quer fazer?
+      </div>
+      <div className="grid gap-2">
+        {INTENT_LINKS.map((item) => {
+          const Icon = INTENT_ICONS[item.id];
+          return (
+            <Link
+              key={item.id}
+              to={item.to}
+              onClick={onNavigate}
+              className="flex items-center gap-3 rounded-sm border border-border/50 bg-surface/30 p-3.5"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-border/60 text-neon-green">
+                <Icon className="h-3.5 w-3.5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-display text-[15px] normal-case tracking-normal text-foreground">
+                  {item.label}
+                </span>
+                <span className="block text-[10px] normal-case tracking-normal text-muted-foreground">
+                  {item.name}
+                </span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 border-t border-border/40 pt-4">
+        <Link to="/prompt-packs" onClick={onNavigate} className="text-[10px] text-neon-green">
+          Prompt Packs
+        </Link>
+        <Link to="/veronica-nautica" onClick={onNavigate} className="text-[10px] text-muted-foreground">
+          Náutica
+        </Link>
+        <a
+          href="https://negociodachina.veronicahub.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onNavigate}
+          className="text-[10px] text-muted-foreground"
+        >
+          Negócio da China
+        </a>
+      </div>
     </div>
   );
 }
@@ -426,23 +588,7 @@ export function SiteHeader() {
           <Link to="/veronica-rede" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
             Veronica Rede
           </Link>
-          <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ecossistema</div>
-          {ECOSYSTEM_LINKS.map((item) =>
-            item.ready ? (
-              <Link key={item.name} to={item.to} onClick={() => setMobileOpen(false)} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5">
-                <span className="text-foreground">{item.name}</span>
-                <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-              </Link>
-            ) : (
-              <div key={item.name} className="flex flex-col gap-0.5 border-b border-border/40 py-3.5 opacity-50">
-                <span className="flex items-center gap-2 text-foreground">
-                  {item.name}
-                  <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground">em breve</span>
-                </span>
-                <span className="text-[11px] normal-case tracking-normal text-muted-foreground">{item.tag}</span>
-              </div>
-            ),
-          )}
+          <MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} />
           <a
             href={HUB_URL}
             target="_blank"

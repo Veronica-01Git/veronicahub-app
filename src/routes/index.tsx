@@ -32,7 +32,7 @@ import { TerminalBoot } from "@/components/TerminalBoot";
 import {
   SOCIAL_LINKS,
   EcosystemMenu,
-  ECOSYSTEM_LINKS,
+  MobileEcosystemIntentMenu,
   HeroFrame,
   AuthWidget,
 } from "@/components/SiteChrome";
@@ -43,6 +43,8 @@ import { IntentPortal } from "@/components/home/IntentPortal";
 import { StudioShowcase } from "@/components/home/StudioShowcase";
 import { ToolShowcase } from "@/components/home/ToolShowcase";
 import { ProofSection } from "@/components/home/ProofSection";
+import { HomeCommerce } from "@/components/home/HomeCommerce";
+import { VeronicaPresence } from "@/components/home/VeronicaPresence";
 import { courses } from "@/lib/courses";
 
 type EcosystemItem = {
@@ -286,6 +288,20 @@ function Index() {
               Formações
               <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
+            <a
+              href="#produtos"
+              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
+            >
+              Produtos
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
+            </a>
+            <a
+              href="#collabs"
+              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-cyan"
+            >
+              Collabs
+              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-cyan transition-transform duration-300 group-hover:scale-x-100" />
+            </a>
             <button
               type="button"
               onClick={() => setVeronicaOpen(true)}
@@ -356,6 +372,20 @@ function Index() {
             >
               Formações
             </Link>
+            <a
+              href="#produtos"
+              onClick={() => setMobileOpen(false)}
+              className="border-b border-border/40 py-3.5 text-foreground"
+            >
+              Produtos próprios
+            </a>
+            <a
+              href="#collabs"
+              onClick={() => setMobileOpen(false)}
+              className="border-b border-border/40 py-3.5 text-foreground"
+            >
+              Collabs exclusivas
+            </a>
             <Link
               to="/blog"
               onClick={() => setMobileOpen(false)}
@@ -363,39 +393,7 @@ function Index() {
             >
               Blog
             </Link>
-            <div className="pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-              Ecossistema
-            </div>
-            {ECOSYSTEM_LINKS.map((item) =>
-              item.ready ? (
-                <Link
-                  key={item.name}
-                  to={item.to}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex flex-col gap-0.5 border-b border-border/40 py-3.5"
-                >
-                  <span className="text-foreground">{item.name}</span>
-                  <span className="text-[11px] normal-case tracking-normal text-muted-foreground">
-                    {item.tag}
-                  </span>
-                </Link>
-              ) : (
-                <div
-                  key={item.name}
-                  className="flex flex-col gap-0.5 border-b border-border/40 py-3.5 opacity-50"
-                >
-                  <span className="flex items-center gap-2 text-foreground">
-                    {item.name}
-                    <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[8px] normal-case tracking-normal text-muted-foreground">
-                      em breve
-                    </span>
-                  </span>
-                  <span className="text-[11px] normal-case tracking-normal text-muted-foreground">
-                    {item.tag}
-                  </span>
-                </div>
-              ),
-            )}
+            <MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} />
             <Link
               to="/comandos"
               onClick={() => setMobileOpen(false)}
@@ -439,27 +437,28 @@ function Index() {
       {/* Hero */}
       <section className="relative overflow-hidden scanlines">
         <HeroFrame />
+        <VeronicaPresence />
 
-        <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
-          <div className="max-w-3xl">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 pb-24 pt-20 md:pb-32 md:pt-28">
+          <div className="max-w-3xl lg:max-w-[62%]">
             <div className="inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-              Veronica Hub · Laboratório Digital · 2026
+              Escola de IA · Produtos autorais · Collabs
             </div>
 
             <h1
               className="mt-8 font-display text-5xl sm:text-7xl md:text-8xl"
               style={{ letterSpacing: "-0.045em", lineHeight: "0.9" }}
             >
-              <span className="block text-foreground">Aprenda a trabalhar</span>
+              <span className="block text-foreground">Aprenda inteligência artificial.</span>
               <span className="block text-outline-neon animate-glow-pulse">
-                com inteligência artificial<span className="text-neon-green">_</span>
+                Crie o que ainda não existe<span className="text-neon-green">_</span>
               </span>
             </h1>
 
             <p className="mt-8 max-w-xl text-base leading-[1.65] text-muted-foreground sm:text-lg">
-              Formação prática para criar, automatizar, desenvolver e transformar ideias em projetos
-              usando IA.
+              Uma escola prática com formações, ferramentas e produtos próprios para transformar
+              conhecimento em projetos, oportunidades e negócios reais.
             </p>
 
             <TerminalBoot />
@@ -480,10 +479,10 @@ function Index() {
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
             </Link>
             <a
-              href="#futuro"
+              href="#produtos"
               className="group inline-flex items-center gap-2 rounded-sm border border-border/60 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.18em] text-foreground transition duration-200 hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"
             >
-              Conhecer a escola
+              Explorar produtos
             </a>
           </div>
 
@@ -668,6 +667,8 @@ function Index() {
           </Link>
         </div>
       </section>
+
+      <HomeCommerce />
 
       {/* Aprenda fazendo — narrativa institucional do método, sem lógica de
           produto nova. */}
@@ -1097,8 +1098,8 @@ function Index() {
                 <span className="text-muted-foreground">Hub</span>
               </div>
               <p className="mt-4 max-w-sm text-sm leading-[1.65] text-muted-foreground">
-                Laboratório digital de execução. Cursos diretos ao ponto, do dark content à IA
-                generativa. Sem fluff, só resultado.
+                Escola de inteligência artificial com formações práticas, produtos autorais,
+                ferramentas próprias e collabs construídas para gerar resultados reais.
               </p>
               <div className="mt-6 flex items-center gap-3 text-muted-foreground">
                 <a
@@ -1193,7 +1194,7 @@ function Index() {
             </div>
           </div>
           <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border/40 pt-6 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground md:flex-row md:items-center">
-            <div>© 2026 Veronica Hub · CNPJ 00.000.000/0001-00</div>
+            <div>© 2026 Veronica Hub · Escola de Inteligência Artificial</div>
             <div className="flex items-center gap-6">
               <a href="#" className="transition hover:text-neon-green">
                 Termos
