@@ -6,7 +6,6 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-  CommandSeparator,
 } from "@/components/ui/command";
 import { type UniverseTab } from "./types";
 import {
@@ -16,7 +15,7 @@ import {
   Mic,
   Network,
   Palette,
-  Sparkles,
+  Shield,
   Terminal,
   Tv,
   UserCheck,
@@ -51,12 +50,9 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
         <span>UNIVERSE COMMAND</span>
         <span>ESC PARA FECHAR</span>
       </div>
-
       <CommandInput placeholder="Digite um comando do sistema…" />
-
       <CommandList>
         <CommandEmpty>Nenhum comando do sistema encontrado.</CommandEmpty>
-
         <CommandGroup heading="CANONICAL SYSTEM">
           <CommandItem onSelect={() => handleSelect("00")}><LayoutDashboard className="mr-2 h-4 w-4 text-neon-green" /><span>00 / Go to Overview</span></CommandItem>
           <CommandItem onSelect={() => handleSelect("01")}><Fingerprint className="mr-2 h-4 w-4 text-neon-green" /><span>01 / Go to Essence</span></CommandItem>
@@ -67,18 +63,7 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
           <CommandItem onSelect={() => handleSelect("06")}><Tv className="mr-2 h-4 w-4 text-neon-green" /><span>06 / Go to Media</span></CommandItem>
           <CommandItem onSelect={() => handleSelect("07")}><Terminal className="mr-2 h-4 w-4 text-neon-green" /><span>07 / Go to Prompt Lab</span></CommandItem>
           <CommandItem onSelect={() => handleSelect("08")}><Compass className="mr-2 h-4 w-4 text-neon-green" /><span>08 / Go to Decisions</span></CommandItem>
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        <CommandGroup heading="INTELLIGENCE LAYER">
-          <CommandItem disabled className="cursor-not-allowed opacity-50">
-            <Sparkles className="mr-2 h-4 w-4 text-neon-cyan/50" />
-            <div className="flex flex-col">
-              <span className="font-medium text-muted-foreground">ASK VERONICA UNIVERSE</span>
-              <span className="font-mono-tech text-[10px] text-muted-foreground/60">Reserved for Guardian / Phase 3</span>
-            </div>
-          </CommandItem>
+          <CommandItem onSelect={() => handleSelect("09")}><Shield className="mr-2 h-4 w-4 text-neon-cyan" /><span>09 / Go to Guardian</span></CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>
