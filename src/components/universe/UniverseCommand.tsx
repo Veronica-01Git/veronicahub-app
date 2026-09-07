@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/command";
 import { type UniverseTab } from "./types";
 import {
+  BrainCircuit,
   Compass,
   Fingerprint,
   LayoutDashboard,
@@ -64,6 +65,7 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
           <CommandItem onSelect={() => handleSelect("07")}><Terminal className="mr-2 h-4 w-4 text-neon-green" /><span>07 / Go to Prompt Lab</span></CommandItem>
           <CommandItem onSelect={() => handleSelect("08")}><Compass className="mr-2 h-4 w-4 text-neon-green" /><span>08 / Go to Decisions</span></CommandItem>
           <CommandItem onSelect={() => handleSelect("09")}><Shield className="mr-2 h-4 w-4 text-neon-cyan" /><span>09 / Go to Guardian</span></CommandItem>
+          <CommandItem onSelect={() => handleSelect("10")}><BrainCircuit className="mr-2 h-4 w-4 text-neon-cyan" /><span>10 / Ask Veronica Universe</span></CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>
