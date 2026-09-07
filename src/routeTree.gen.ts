@@ -24,6 +24,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
+import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
 
@@ -103,6 +104,11 @@ const AdminImagensRoute = AdminImagensRouteImport.update({
   path: '/admin/imagens',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
+  id: '/admin/veronica-universe',
+  path: '/admin/veronica-universe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminArtigosRoute = AdminArtigosRouteImport.update({
   id: '/admin/artigos',
   path: '/admin/artigos',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/veronica-universe'
     | '/blog/$slug'
     | '/admin/'
     | '/blog/'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/veronica-universe'
     | '/blog/$slug'
     | '/admin'
     | '/blog'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/veronica-universe'
     | '/blog/$slug'
     | '/admin/'
     | '/blog/'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   VideoIaRoute: typeof VideoIaRoute
   AdminArtigosRoute: typeof AdminArtigosRoute
   AdminImagensRoute: typeof AdminImagensRoute
+  AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   BlogSlugRoute: typeof BlogSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -359,6 +372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImagensRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/veronica-universe': {
+      id: '/admin/veronica-universe'
+      path: '/admin/veronica-universe'
+      fullPath: '/admin/veronica-universe'
+      preLoaderRoute: typeof AdminVeronicaUniverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/artigos': {
       id: '/admin/artigos'
       path: '/admin/artigos'
@@ -390,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   VideoIaRoute: VideoIaRoute,
   AdminArtigosRoute: AdminArtigosRoute,
   AdminImagensRoute: AdminImagensRoute,
+  AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   BlogSlugRoute: BlogSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
