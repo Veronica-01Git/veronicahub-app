@@ -3,8 +3,8 @@ import { Activity, Cpu } from "lucide-react";
 interface StatusItem {
   key: string;
   label: string;
-  status: "ACTIVE" | "MAPPED" | "ADVISORY" | "OFFLINE";
-  variant: "green" | "cyan" | "neutral";
+  status: "ACTIVE" | "MAPPED" | "ADVISORY" | "PASSIVE";
+  variant: "green" | "cyan";
 }
 
 const SYSTEM_STATUS_DATA: StatusItem[] = [
@@ -17,26 +17,21 @@ const SYSTEM_STATUS_DATA: StatusItem[] = [
   { key: "media", label: "MEDIA", status: "ACTIVE", variant: "green" },
   { key: "prompt", label: "PROMPT LAB", status: "ACTIVE", variant: "green" },
   { key: "decisions", label: "DECISIONS", status: "ADVISORY", variant: "cyan" },
-  { key: "guardian", label: "GUARDIAN", status: "OFFLINE", variant: "neutral" },
+  { key: "guardian", label: "GUARDIAN", status: "PASSIVE", variant: "cyan" },
 ];
 
 export function SystemStatus() {
   return (
     <section data-universe-element="status" className="my-10 rounded-sm border border-border/60 bg-surface/30 p-5 sm:p-7" aria-labelledby="system-status-title">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/40 pb-4">
-        <div className="flex items-center gap-2.5">
-          <Activity className="h-4 w-4 text-neon-green" />
-          <h2 id="system-status-title" className="font-mono-tech text-xs tracking-widest text-foreground uppercase">UNIVERSE STATUS & TELEMETRY</h2>
-        </div>
-        <div className="flex items-center gap-3 font-mono-tech text-[10px] tracking-wider text-muted-foreground">
-          <span>KERNEL: RUNNING</span><span className="text-border">·</span><span>CANON: 07 ACTIVE</span><span className="text-border">·</span><span>DECISION: ADVISORY</span>
-        </div>
+        <div className="flex items-center gap-2.5"><Activity className="h-4 w-4 text-neon-green" /><h2 id="system-status-title" className="font-mono-tech text-xs tracking-widest text-foreground uppercase">UNIVERSE STATUS & TELEMETRY</h2></div>
+        <div className="flex items-center gap-3 font-mono-tech text-[10px] tracking-wider text-muted-foreground"><span>KERNEL: RUNNING</span><span className="text-border">·</span><span>CANON: ACTIVE</span><span className="text-border">·</span><span>AUTONOMY: DISABLED</span></div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
         {SYSTEM_STATUS_DATA.map((item) => {
-          const badgeClass = item.variant === "green" ? "border-neon-green/30 bg-neon-green/10 text-neon-green" : item.variant === "cyan" ? "border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan" : "border-border/40 bg-muted/20 text-muted-foreground";
-          const dotClass = item.variant === "green" ? "bg-neon-green animate-pulse" : item.variant === "cyan" ? "bg-neon-cyan" : "bg-muted-foreground/60";
+          const badgeClass = item.variant === "green" ? "border-neon-green/30 bg-neon-green/10 text-neon-green" : "border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan";
+          const dotClass = item.variant === "green" ? "bg-neon-green animate-pulse" : "bg-neon-cyan";
           return (
             <div key={item.key} className="flex items-center justify-between rounded-sm border border-border/40 bg-background/50 px-3.5 py-2.5 font-mono-tech transition hover:border-border">
               <span className="text-[10.5px] tracking-wider text-foreground/85">{item.label}</span>
@@ -47,8 +42,8 @@ export function SystemStatus() {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/30 pt-4 font-mono-tech text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-2"><Cpu className="h-3 w-3" /><span>CANONICAL LAYERS: ESSENCE / ECOSYSTEM / CHARACTER / VISUAL / VOICE / MEDIA / PROMPTS / DECISIONS</span></div>
-        <div>GUARDIAN AUTONOMY: DISABLED</div>
+        <div className="flex items-center gap-2"><Cpu className="h-3 w-3" /><span>SYSTEM CORE: ESSENCE / ECOSYSTEM / CHARACTER / VISUAL / VOICE / MEDIA / PROMPTS / DECISIONS / GUARDIAN</span></div>
+        <div>GUARDIAN MODE: PASSIVE AUDIT ONLY</div>
       </div>
     </section>
   );
