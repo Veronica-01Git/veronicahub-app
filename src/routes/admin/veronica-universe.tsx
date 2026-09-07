@@ -12,15 +12,14 @@ import { VoiceModule } from "@/components/universe/VoiceModule";
 import { MediaModule } from "@/components/universe/MediaModule";
 import { PromptLabModule } from "@/components/universe/PromptLabModule";
 import { DecisionsModule } from "@/components/universe/DecisionsModule";
+import { GuardianModule } from "@/components/universe/GuardianModule";
 import { SystemStatus } from "@/components/universe/SystemStatus";
 import { NextSystemLayers } from "@/components/universe/NextSystemLayers";
 import { ECOSYSTEM_NODES, type UniverseTab } from "@/components/universe/types";
 
 export const Route = createFileRoute("/admin/veronica-universe")({
   component: VeronicaUniversePage,
-  head: () => ({
-    meta: [{ title: "Veronica Universe · Admin | Veronica Hub" }],
-  }),
+  head: () => ({ meta: [{ title: "Veronica Universe · Admin | Veronica Hub" }] }),
 });
 
 type AdminState = Awaited<ReturnType<typeof getUniverseAdminAccess>>;
@@ -33,10 +32,7 @@ function VeronicaUniversePage() {
     getUniverseAdminAccess()
       .then(setAuthState)
       .catch((err) =>
-        setAuthState({
-          ok: false,
-          error: err instanceof Error ? err.message : "Falha na validação de sessão administrativa.",
-        }),
+        setAuthState({ ok: false, error: err instanceof Error ? err.message : "Falha na validação de sessão administrativa." }),
       );
   }, []);
 
@@ -60,15 +56,9 @@ function VeronicaUniversePage() {
             <div>
               <h2 className="font-display text-lg font-bold text-foreground">Acesso Restrito</h2>
               <p className="mt-1 font-mono-tech text-xs text-muted-foreground">{authState.error}</p>
-              <p className="mt-4 text-xs text-muted-foreground">
-                A rota <code className="text-foreground">/admin/veronica-universe</code> exige autenticação de administrador.
-                Realize login com e-mail autorizado através da interface principal.
-              </p>
+              <p className="mt-4 text-xs text-muted-foreground">A rota <code className="text-foreground">/admin/veronica-universe</code> exige autenticação de administrador. Realize login com e-mail autorizado através da interface principal.</p>
               <div className="mt-5">
-                <a href="/" className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 font-mono-tech text-xs text-foreground transition hover:border-foreground">
-                  <ArrowLeft className="h-3 w-3" />
-                  <span>Voltar ao início</span>
-                </a>
+                <a href="/" className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 font-mono-tech text-xs text-foreground transition hover:border-foreground"><ArrowLeft className="h-3 w-3" /><span>Voltar ao início</span></a>
               </div>
             </div>
           </div>
@@ -82,9 +72,7 @@ function VeronicaUniversePage() {
       {activeTab === "00" && (
         <div className="flex flex-col gap-2">
           <UniverseHero
-            onOpenCommand={() => {
-              window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
-            }}
+            onOpenCommand={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
             onExploreEcosystem={() => setActiveTab("02")}
           />
           <EcosystemConstellation />
@@ -112,19 +100,11 @@ function VeronicaUniversePage() {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[700px] border-collapse text-left text-xs font-mono-tech">
-                <thead>
-                  <tr className="border-b border-border/40 text-muted-foreground">
-                    <th className="px-3 py-2.5">VECTOR</th><th className="px-3 py-2.5">NODE</th><th className="px-3 py-2.5">CATEGORY</th><th className="px-3 py-2.5">RELATION</th><th className="px-3 py-2.5">STATUS</th>
-                  </tr>
-                </thead>
+                <thead><tr className="border-b border-border/40 text-muted-foreground"><th className="px-3 py-2.5">VECTOR</th><th className="px-3 py-2.5">NODE</th><th className="px-3 py-2.5">CATEGORY</th><th className="px-3 py-2.5">RELATION</th><th className="px-3 py-2.5">STATUS</th></tr></thead>
                 <tbody className="divide-y divide-border/20">
                   {ECOSYSTEM_NODES.map((node) => (
                     <tr key={node.id} className="transition hover:bg-surface/30">
-                      <td className="px-3 py-3 text-neon-cyan">{node.vector}</td>
-                      <td className="px-3 py-3 font-medium text-foreground">{node.name}</td>
-                      <td className="px-3 py-3 text-muted-foreground">{node.category}</td>
-                      <td className="px-3 py-3 uppercase text-foreground/80">{node.relation}</td>
-                      <td className="px-3 py-3"><span className="inline-flex items-center gap-1 rounded bg-neon-green/10 px-2 py-0.5 text-[9px] text-neon-green"><span className="h-1 w-1 rounded-full bg-neon-green" />{node.status}</span></td>
+                      <td className="px-3 py-3 text-neon-cyan">{node.vector}</td><td className="px-3 py-3 font-medium text-foreground">{node.name}</td><td className="px-3 py-3 text-muted-foreground">{node.category}</td><td className="px-3 py-3 uppercase text-foreground/80">{node.relation}</td><td className="px-3 py-3"><span className="inline-flex items-center gap-1 rounded bg-neon-green/10 px-2 py-0.5 text-[9px] text-neon-green"><span className="h-1 w-1 rounded-full bg-neon-green" />{node.status}</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -140,6 +120,7 @@ function VeronicaUniversePage() {
       {activeTab === "06" && <MediaModule />}
       {activeTab === "07" && <PromptLabModule />}
       {activeTab === "08" && <DecisionsModule />}
+      {activeTab === "09" && <GuardianModule />}
     </UniverseShell>
   );
 }
