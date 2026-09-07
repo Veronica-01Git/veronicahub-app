@@ -3,7 +3,7 @@ import { Activity, Cpu } from "lucide-react";
 interface StatusItem {
   key: string;
   label: string;
-  status: "ACTIVE" | "MAPPED" | "ADVISORY" | "PASSIVE";
+  status: "ACTIVE" | "MAPPED" | "ADVISORY" | "PASSIVE" | "READ ONLY";
   variant: "green" | "cyan";
 }
 
@@ -18,6 +18,7 @@ const SYSTEM_STATUS_DATA: StatusItem[] = [
   { key: "prompt", label: "PROMPT LAB", status: "ACTIVE", variant: "green" },
   { key: "decisions", label: "DECISIONS", status: "ADVISORY", variant: "cyan" },
   { key: "guardian", label: "GUARDIAN", status: "PASSIVE", variant: "cyan" },
+  { key: "intelligence", label: "ASK UNIVERSE", status: "READ ONLY", variant: "cyan" },
 ];
 
 export function SystemStatus() {
@@ -25,25 +26,25 @@ export function SystemStatus() {
     <section data-universe-element="status" className="my-10 rounded-sm border border-border/60 bg-surface/30 p-5 sm:p-7" aria-labelledby="system-status-title">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div className="flex items-center gap-2.5"><Activity className="h-4 w-4 text-neon-green" /><h2 id="system-status-title" className="font-mono-tech text-xs tracking-widest text-foreground uppercase">UNIVERSE STATUS & TELEMETRY</h2></div>
-        <div className="flex items-center gap-3 font-mono-tech text-[10px] tracking-wider text-muted-foreground"><span>KERNEL: RUNNING</span><span className="text-border">·</span><span>CANON: ACTIVE</span><span className="text-border">·</span><span>AUTONOMY: DISABLED</span></div>
+        <div className="flex items-center gap-3 font-mono-tech text-[10px] tracking-wider text-muted-foreground"><span>KERNEL: RUNNING</span><span className="text-border">·</span><span>CANON: v1.0.0</span><span className="text-border">·</span><span>AUTONOMY: DISABLED</span></div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         {SYSTEM_STATUS_DATA.map((item) => {
           const badgeClass = item.variant === "green" ? "border-neon-green/30 bg-neon-green/10 text-neon-green" : "border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan";
           const dotClass = item.variant === "green" ? "bg-neon-green animate-pulse" : "bg-neon-cyan";
           return (
-            <div key={item.key} className="flex items-center justify-between rounded-sm border border-border/40 bg-background/50 px-3.5 py-2.5 font-mono-tech transition hover:border-border">
-              <span className="text-[10.5px] tracking-wider text-foreground/85">{item.label}</span>
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-medium tracking-widest uppercase ${badgeClass}`}><span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />{item.status}</span>
+            <div key={item.key} className="flex items-center justify-between gap-2 rounded-sm border border-border/40 bg-background/50 px-3.5 py-2.5 font-mono-tech transition hover:border-border">
+              <span className="text-[10px] tracking-wider text-foreground/85">{item.label}</span>
+              <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[8.5px] font-medium tracking-widest uppercase ${badgeClass}`}><span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />{item.status}</span>
             </div>
           );
         })}
       </div>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/30 pt-4 font-mono-tech text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-2"><Cpu className="h-3 w-3" /><span>SYSTEM CORE: ESSENCE / ECOSYSTEM / CHARACTER / VISUAL / VOICE / MEDIA / PROMPTS / DECISIONS / GUARDIAN</span></div>
-        <div>GUARDIAN MODE: PASSIVE AUDIT ONLY</div>
+        <div className="flex items-center gap-2"><Cpu className="h-3 w-3" /><span>CANON REGISTRY + ASK UNIVERSE ACTIVE / READ-ONLY</span></div>
+        <div>GUARDIAN PASSIVE · AUTO-ACTIONS DISABLED</div>
       </div>
     </section>
   );
