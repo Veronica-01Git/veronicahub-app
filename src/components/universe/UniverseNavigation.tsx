@@ -17,6 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "07", label: "07 / PROMPT LAB", functional: true },
   { id: "08", label: "08 / DECISIONS", functional: true },
   { id: "09", label: "09 / GUARDIAN", functional: true },
+  { id: "10", label: "10 / INTELLIGENCE", functional: true },
 ];
 
 interface UniverseNavigationProps {
