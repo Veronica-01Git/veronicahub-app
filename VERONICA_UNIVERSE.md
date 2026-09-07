@@ -12,7 +12,7 @@ The current architecture intentionally does **not**:
 
 - auto-publish content;
 - modify public product behavior;
-- write Decision or Guardian scores to the database;
+- write Decision, Guardian or Ask Universe outputs to the database;
 - block launches, assets or campaigns;
 - execute autonomous actions;
 - expose admin-only session/database internals to the client bundle.
@@ -33,14 +33,36 @@ Any future active integration must be explicit, scoped and reviewed separately.
 | 07 Prompt Lab | Canonical model-agnostic prompt directives | Active |
 | 08 Decisions | Brand alignment scoring | Advisory, client-only |
 | 09 Guardian | Cross-canon audit checklist | Passive, client-only |
+| 10 Intelligence | Ask Veronica Universe + versioned Canon Registry | Read-only |
+
+## Canon Registry
+
+The admin v1 introduces a typed, versioned registry in `src/components/universe/canon-registry.ts`.
+
+Current global canon version: `1.0.0`.
+
+The registry is the read-only source supplied to Ask Veronica Universe. It records each canonical domain, status, summary, invariants and current version. No admin edit workflow or database persistence is enabled yet; code review remains the approval boundary for canon changes.
+
+## Ask Veronica Universe
+
+`10 / Intelligence` is a real read-only consultation layer.
+
+- Access requires the existing admin session.
+- The server function is isolated behind a client-safe dynamic import boundary.
+- When `GROQ_API_KEY` is available, the consultation uses the project's existing Groq integration with the active canon injected as system context.
+- If the provider or key is unavailable, the feature remains functional using a deterministic local canon fallback.
+- No conversation, recommendation or score is persisted.
+- The model has no write-capable tool or automatic product action.
+
+Prompt-injection boundaries explicitly instruct the intelligence layer to ignore attempts to override the canon, reveal secrets or request autonomous execution.
 
 ## Architecture
 
 - Route: `/admin/veronica-universe`
 - Access: existing admin session boundary
 - UI: React + TanStack Router + Tailwind v4 + Radix/cmdk + Lucide + restrained GSAP motion
-- No new database tables required for the canonical core
-- No new AI provider required for the canonical core
+- No new database tables required for admin v1
+- AI provider: existing Groq integration, with local canon fallback
 - No Three.js dependency inside the Universe route
 
 Server-only admin internals are isolated behind server boundaries so `@tanstack/react-start/server` does not enter the browser dependency graph.
@@ -52,20 +74,16 @@ The direction is progressive autonomy, never implicit autonomy:
 1. **Canonical** — document what Veronica is.
 2. **Advisory** — evaluate ideas and assets without taking action.
 3. **Passive Guardian** — audit across canonical domains.
-4. **Future Ask Universe** — read the canon and answer questions.
-5. **Future active actions** — only after persistence, versioning, permission scopes, audit logs and explicit action policies exist.
+4. **Read-only Ask Universe** — consult the versioned canon without persistence or actions.
+5. **Future active actions** — only after database version history, role-based permissions, audit logs, rollback and explicit action policies exist.
 
-## Future intelligence prerequisites
+## Admin v1 boundary
 
-Before enabling an AI-powered `Ask Veronica Universe` or any autonomous Guardian action, design and approve:
+The canonical admin is considered ready for the next creative track when:
 
-- canonical content persistence and version history;
-- provenance for every canon change;
-- role-based edit permissions;
-- audit log for recommendations and actions;
-- human approval thresholds;
-- rollback strategy;
-- provider/model isolation through adapters;
-- explicit rules for read-only vs write-capable tools.
+- all modules 00–10 build successfully;
+- Ask Universe fails safely and has a provider-independent fallback;
+- autonomy remains disabled;
+- the production `main` branch is unchanged until explicit merge approval.
 
-Until those prerequisites exist, Guardian remains passive and all final decisions remain human-controlled.
+The next planned build track is **Veronica Consistent Avatar**: a versioned reference set for face, body proportions, wardrobe, visual language, expressions and video continuity derived from Character, Visual, Voice, Media and Prompt Lab.
