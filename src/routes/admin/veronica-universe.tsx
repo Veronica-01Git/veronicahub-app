@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ShieldAlert, Loader2, ArrowLeft, Compass } from "lucide-react";
 import { UniverseShell } from "@/components/universe/UniverseShell";
 import { UniverseHero } from "@/components/universe/UniverseHero";
+import { EssenceModule } from "@/components/universe/EssenceModule";
 import { EcosystemConstellation } from "@/components/universe/EcosystemConstellation";
 import { SystemStatus } from "@/components/universe/SystemStatus";
 import { NextSystemLayers } from "@/components/universe/NextSystemLayers";
@@ -48,7 +49,6 @@ function VeronicaUniversePage() {
       );
   }, []);
 
-  // Loading state
   if (!authState) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
@@ -60,7 +60,6 @@ function VeronicaUniversePage() {
     );
   }
 
-  // Access denied state
   if (!authState.ok) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
@@ -97,9 +96,6 @@ function VeronicaUniversePage() {
       onSelectTab={setActiveTab}
       adminEmail={authState.admin?.email}
     >
-      {/* ===================================================================== */}
-      {/* 00 / OVERVIEW TAB (Full System View)                                 */}
-      {/* ===================================================================== */}
       {activeTab === "00" && (
         <div className="flex flex-col gap-2">
           <UniverseHero
@@ -112,16 +108,13 @@ function VeronicaUniversePage() {
           />
 
           <EcosystemConstellation />
-
           <SystemStatus />
-
           <NextSystemLayers />
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* 02 / ECOSYSTEM TAB (Deep Dive Constellation & Directory)             */}
-      {/* ===================================================================== */}
+      {activeTab === "01" && <EssenceModule />}
+
       {activeTab === "02" && (
         <div className="flex flex-col gap-8">
           <div className="border-b border-border/40 pb-4">
@@ -138,7 +131,6 @@ function VeronicaUniversePage() {
 
           <EcosystemConstellation />
 
-          {/* Node Directory Table */}
           <section className="rounded-sm border border-border/50 bg-surface/20 p-5 sm:p-7">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-mono-tech text-xs tracking-widest text-foreground uppercase">
@@ -182,10 +174,7 @@ function VeronicaUniversePage() {
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* IN DEVELOPMENT MODULES (01, 03-08)                                   */}
-      {/* ===================================================================== */}
-      {activeTab !== "00" && activeTab !== "02" && (
+      {activeTab !== "00" && activeTab !== "01" && activeTab !== "02" && (
         <div className="my-12 flex flex-col items-center justify-center rounded-sm border border-border/50 bg-surface/20 p-12 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/60 bg-background/50">
             <Compass className="h-6 w-6 text-neon-cyan animate-pulse" />
