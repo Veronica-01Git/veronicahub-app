@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShieldAlert, Newspaper, ImageIcon } from "lucide-react";
+import { ShieldAlert, Newspaper, ImageIcon, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
 import { formatBRL } from "@/lib/account";
@@ -40,6 +40,12 @@ function AdminPanel() {
             Painel admin
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link
+              to="/admin/veronica-universe"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-neon-green/40 bg-neon-green/5 px-3 py-1.5 text-sm text-neon-green transition hover:border-neon-green hover:bg-neon-green/10"
+            >
+              <Sparkles className="h-4 w-4" /> Veronica Universe
+            </Link>
             <Link
               to="/admin/artigos"
               className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
