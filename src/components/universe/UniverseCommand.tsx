@@ -19,6 +19,7 @@ import {
   Terminal,
   Compass,
   Sparkles,
+  Fingerprint,
 } from "lucide-react";
 
 interface UniverseCommandProps {
@@ -61,6 +62,10 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
             <LayoutDashboard className="mr-2 h-4 w-4 text-neon-green" />
             <span>00 / Go to Overview</span>
           </CommandItem>
+          <CommandItem onSelect={() => handleSelect("01")}>
+            <Fingerprint className="mr-2 h-4 w-4 text-neon-green" />
+            <span>01 / Go to Essence</span>
+          </CommandItem>
           <CommandItem onSelect={() => handleSelect("02")}>
             <Network className="mr-2 h-4 w-4 text-neon-green" />
             <span>02 / Go to Ecosystem</span>
@@ -70,10 +75,6 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
         <CommandSeparator />
 
         <CommandGroup heading="MÓDULOS EM DESENVOLVIMENTO (PHASE 2+)">
-          <CommandItem onSelect={() => handleSelect("01")}>
-            <Compass className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">01 / Go to Essence</span>
-          </CommandItem>
           <CommandItem onSelect={() => handleSelect("03")}>
             <UserCheck className="mr-2 h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">03 / Go to Character</span>
