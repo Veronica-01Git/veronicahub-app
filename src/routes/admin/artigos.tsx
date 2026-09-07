@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { ShieldAlert, Sparkles, Loader2 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
@@ -152,9 +152,25 @@ function ArticlesAdmin() {
       <SiteHeader />
 
       <div className="mx-auto max-w-5xl px-6 py-14">
-        <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-          <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-          Artigos — Veronica Wire
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+            <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
+            Artigos — Veronica Wire
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to="/admin/veronica-universe"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-neon-green/40 bg-neon-green/5 px-3 py-1.5 text-sm text-neon-green transition hover:bg-neon-green/10 hover:border-neon-green"
+            >
+              <Sparkles className="h-4 w-4" /> Veronica Universe
+            </Link>
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+            >
+              Painel Admin
+            </Link>
+          </div>
         </div>
 
         {state && !state.ok ? (

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShieldAlert, Newspaper } from "lucide-react";
+import { ShieldAlert, Newspaper, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
 import { formatBRL } from "@/lib/account";
@@ -9,7 +9,7 @@ import { formatBRL } from "@/lib/account";
 // direta, e mesmo assim protegido de verdade no servidor (getAdminOverview
 // só retorna dado pra quem já é admin na sessão). Sem isso, é só uma
 // página em branco pedindo login.
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   component: AdminPanel,
   head: () => ({
     meta: [{ title: "Painel Admin | Veronica Hub" }],
@@ -39,12 +39,20 @@ function AdminPanel() {
             <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
             Painel admin
           </div>
-          <Link
-            to="/admin/artigos"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
-          >
-            <Newspaper className="h-4 w-4" /> Artigos do Veronica Wire
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to="/admin/veronica-universe"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-neon-green/40 bg-neon-green/5 px-3 py-1.5 text-sm text-neon-green transition hover:bg-neon-green/10 hover:border-neon-green"
+            >
+              <Sparkles className="h-4 w-4" /> Veronica Universe
+            </Link>
+            <Link
+              to="/admin/artigos"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+            >
+              <Newspaper className="h-4 w-4" /> Artigos do Veronica Wire
+            </Link>
+          </div>
         </div>
 
         {!state ? (
