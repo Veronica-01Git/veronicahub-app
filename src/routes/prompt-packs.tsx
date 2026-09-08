@@ -12,6 +12,10 @@ import {
   Plus,
   Minus,
   ArrowRight,
+  BookOpen,
+  Target,
+  Timer,
+  Volume2,
 } from "lucide-react";
 import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
 import { VeronicaSeal } from "@/components/VeronicaSeal";
@@ -132,6 +136,42 @@ const DELIVERABLES = [
     icon: ShieldCheck,
     title: "Selo de Originalidade",
     desc: "Carimbo digital de autenticidade Veronica, com número de série, gravado no documento.",
+  },
+];
+
+const SPRINT_MISSIONS = [
+  "Defina uma identidade vocal",
+  "Prepare o texto para ser ouvido",
+  "Compare três direções emocionais",
+  "Revise pronúncia e ritmo",
+  "Finalize um áudio de 30 segundos",
+];
+
+const LEARNING_PATH = [
+  {
+    step: "01",
+    title: "Direção",
+    desc: "Transforme público, objetivo e personalidade em uma ficha de voz.",
+  },
+  {
+    step: "02",
+    title: "Preparação",
+    desc: "Converta texto escrito em roteiro com pausas, ênfases e duração.",
+  },
+  {
+    step: "03",
+    title: "Laboratório",
+    desc: "Teste emoções diferentes e aprenda a escolher com critério.",
+  },
+  {
+    step: "04",
+    title: "Revisão",
+    desc: "Corrija nomes, números, siglas, ritmo e trechos artificiais.",
+  },
+  {
+    step: "05",
+    title: "Projeto final",
+    desc: "Produza uma peça publicável de 30 segundos e faça um teste A/B.",
   },
 ];
 
@@ -330,6 +370,127 @@ function PromptPacks() {
               {t.label}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Degustação gratuita */}
+      <section className="border-b border-border/40 bg-surface/30 py-14 md:py-20">
+        <div className="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+          <div className="relative overflow-hidden rounded-sm border border-neon-green/40 bg-background p-6 shadow-glow-green sm:p-8">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-40"
+              style={{
+                background:
+                  "radial-gradient(circle at 100% 0%, oklch(0.85 0.22 155 / 0.24), transparent 48%)",
+              }}
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-mono-tech text-[10px] uppercase tracking-[0.2em] text-neon-green">
+                  Material gratuito
+                </span>
+                <span className="rounded-full border border-border/70 px-3 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                  PDF · 8 páginas
+                </span>
+              </div>
+              <Volume2 className="mt-10 h-10 w-10 text-neon-cyan" />
+              <h2
+                className="mt-5 max-w-md font-display text-3xl text-foreground sm:text-4xl"
+                style={{ letterSpacing: "-0.035em", lineHeight: "1.05" }}
+              >
+                Sprint Voz IA
+              </h2>
+              <p className="mt-4 max-w-md text-[14px] leading-relaxed text-muted-foreground">
+                Cinco comandos e uma missão guiada para transformar um texto comum em uma narração
+                clara, humana e publicável.
+              </p>
+              <a
+                href="/downloads/sprint-voz-ia-5-comandos-veronica.pdf"
+                download
+                className="mt-7 inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-glow-green transition hover:-translate-y-0.5 hover:brightness-110 sm:w-auto"
+              >
+                <Download className="h-4 w-4" />
+                Baixar sprint gratuito
+              </a>
+              <p className="mt-3 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                Sem cadastro · acesso imediato
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
+              <span className="h-px w-8 bg-neon-cyan" />
+              Aprenda fazendo
+            </div>
+            <h2
+              className="mt-4 max-w-2xl font-display text-2xl sm:text-3xl md:text-4xl"
+              style={{ letterSpacing: "-0.03em", lineHeight: "1.08" }}
+            >
+              Um pequeno projeto completo, não uma amostra vazia.
+            </h2>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              {SPRINT_MISSIONS.map((mission, index) => (
+                <div
+                  key={mission}
+                  className="flex items-start gap-3 rounded-sm border border-border/60 bg-background/50 p-4"
+                >
+                  <span className="font-mono-tech text-[10px] text-neon-green">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-[13px] leading-snug text-foreground">{mission}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <Timer className="h-4 w-4 text-neon-green" /> 20–30 minutos
+              </span>
+              <span className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-neon-green" /> Resultado verificável
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Método de aprendizagem */}
+      <section className="border-b border-border/40 py-14 md:py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-10 max-w-2xl">
+            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <BookOpen className="h-4 w-4" />
+              Método Veronica
+            </div>
+            <h2
+              className="mt-4 font-display text-2xl sm:text-3xl md:text-4xl"
+              style={{ letterSpacing: "-0.03em" }}
+            >
+              Informação, exercício, execução e revisão.
+            </h2>
+            <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground sm:text-[15px]">
+              Cada etapa explica uma decisão, entrega um comando e exige uma produção real. Você
+              termina com uma peça pronta e um critério para avaliar a própria evolução.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {LEARNING_PATH.map((item) => (
+              <article
+                key={item.step}
+                className="group rounded-sm border border-border/60 bg-surface/40 p-5 transition hover:-translate-y-1 hover:border-neon-cyan/50"
+              >
+                <span className="font-mono-tech text-[10px] tracking-widest text-neon-green">
+                  {item.step}
+                </span>
+                <h3 className="mt-5 font-display text-lg text-foreground">{item.title}</h3>
+                <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+                  {item.desc}
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
