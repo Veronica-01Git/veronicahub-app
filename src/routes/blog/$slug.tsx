@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
+import { WireArticleAction } from "@/components/blog/WireGrowth";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
 
@@ -225,6 +226,8 @@ function ArticlePage() {
                   <p key={i}>{paragraph}</p>
                 ))}
             </div>
+
+            <WireArticleAction beat={state.article.beat} />
 
             {state.article.sourceUrls.length > 0 && (
               <div className="mt-10 rounded-sm border border-border/60 bg-surface/30 p-5">

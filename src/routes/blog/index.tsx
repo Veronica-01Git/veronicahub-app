@@ -4,6 +4,7 @@ import { Radio, Globe2, Cpu, TrendingUp, Cloud, Landmark, ArrowRight } from "luc
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
+import { WireOwnedStories } from "@/components/blog/WireGrowth";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 import { formatAgo } from "@/lib/blog-format";
@@ -248,6 +249,11 @@ function VeronicaWire() {
           </nav>
         </div>
       </header>
+
+      {/* Bloco proprietário claramente identificado: transforma audiência do
+          Wire em descoberta de produto e participação na comunidade sem
+          misturar publicidade com a manchete editorial principal. */}
+      <WireOwnedStories />
 
       {/* Lead + mais lidas */}
       <section id="topo" className="mx-auto max-w-7xl px-6 py-14 cv-auto">
