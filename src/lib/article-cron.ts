@@ -13,6 +13,18 @@ function currentBeat(): Beat {
   return BEAT_VALUES[index];
 }
 
+function isEditorialSkip(error: string): boolean {
+  return [
+    "Radar GDELT sem pauta recente verificável",
+    "A matéria não ficou ancorada a uma pauta detectada",
+    "Já existe matéria publicada nessa janela",
+    "Manchete parecida demais com uma publicação recente",
+    "Só ",
+    "Corpo com ",
+    "As fontes precisam vir de pelo menos",
+  ].some((prefix) => error.startsWith(prefix));
+}
+
 // Chamado direto do src/server.ts (interceptado antes do handler do
 // TanStack), mesmo padrão do webhook do Mercado Pago — precisa de URL fixa
 // pro GitHub Actions chamar num cron, o que a URL de RPC do createServerFn
@@ -44,8 +56,9 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
 
   const result = await publishArticleFromCron(beat);
   if (!result.ok) {
-    return new Response(JSON.stringify({ ok: false, beat, error: result.error }), {
-      status: 502,
+    const skipped = isEditorialSkip(result.error);
+    return new Response(JSON.stringify({ ok: skipped, skipped, beat, error: result.error }), {
+      status: skipped ? 200 : 502,
       headers: { "content-type": "application/json" },
     });
   }
