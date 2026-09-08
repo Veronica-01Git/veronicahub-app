@@ -22,11 +22,11 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 // chamada de ferramenta por request — suficiente aqui (uma busca já
 // retorna várias fontes) — e cabe no budget de tokens do tier grátis.
 const DRAFT_MODEL = "groq/compound-mini";
-// Mesmo com compound-mini + enabled_tools restrito, ainda bateu 413
-// request_too_large ao vivo (ver PROGRESSO.md) — o corpo pedido no prompt
-// é só 900-1400 caracteres (bem menos que 4096 tokens de saída), então
-// cortado pra reduzir o orçamento total que o Groq reserva pra chamada.
-const DRAFT_MAX_TOKENS = 1500;
+// O Compound contabiliza também o contexto recuperado pela busca web no
+// limite de tokens por minuto. 1.500 ainda estourava o free tier (413) antes
+// de devolver a matéria; 900 comporta com folga o JSON de 900-1.400 caracteres
+// e deixa orçamento para os snippets das fontes.
+const DRAFT_MAX_TOKENS = 900;
 
 // GDELT funciona como radar gratuito de pauta. Ele não é tratado como fonte
 // editorial: apenas entrega candidatos recentes; o modelo ainda precisa abrir,
@@ -75,7 +75,9 @@ async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
         domain,
         seenAt: typeof item.seendate === "string" ? item.seendate : "",
       });
-      if (signals.length === 10) break;
+      // Cinco sinais já dão variedade editorial sem inflar o prompt que será
+      // somado aos resultados da busca web do Compound.
+      if (signals.length === 5) break;
     }
     return signals;
   } catch (error) {
@@ -327,13 +329,10 @@ async function attemptDraft(
         .join("\n")}`
     : "\n\nO radar GDELT está indisponível; faça a descoberta da pauta pela busca na web.";
   const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
-Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, ocorrido ou anunciado preferencialmente nas últimas 24 horas, e verificável nessa editoria — não invente nada. O radar abaixo serve para descobrir pautas, mas você deve conferir a informação. Busque em pelo menos duas fontes de domínios independentes antes de escrever; prefira uma fonte primária (órgão público, empresa, universidade, documento ou comunicado oficial) mais uma fonte jornalística confiável. Matérias com uma única origem factual não são publicadas.
-Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, sem texto antes ou depois), exatamente neste formato:
-{"headline": "manchete curta e direta em português, sem clickbait", "excerpt": "1-2 frases de resumo", "body": "matéria completa em português, 3 a 5 parágrafos, entre 900 e 1400 caracteres no total. O primeiro parágrafo entrega o fato completo (o quê, quem, quando, por quê) sem enrolação. Inclua pelo menos um dado numérico concreto quando a fonte trouxer (valor, percentual, data, quantidade). Não inclua parágrafo de contexto histórico genérico nem conclusão opinativa — termine no último fato relevante, não numa frase de fechamento. Tom jornalístico factual, sem opinião.", "desk": "Desk de <algo específico da matéria>", "sourceUrls": ["https://...", "https://..."], "fotoTermos": ["termo 1", "termo 2", "termo 3"]}
-"sourceUrls" deve conter pelo menos duas URLs reais, acessíveis e de domínios distintos que você efetivamente usou na pesquisa. Não cite página inicial, busca, rede social ou agregador como fonte.
-Quando o tema envolver futuro, separe com rigor: fato confirmado no indicativo; projeção, estimativa ou cenário sempre atribuído à organização/pessoa que o publicou. Nunca apresente previsão da IA como acontecimento futuro certo.
-"fotoTermos": dois ou três termos de busca em inglês para encontrar uma fotografia que ilustre esta notícia num banco de imagens. Use substantivos concretos e fotografáveis — objetos, lugares, equipamentos, ambientes. Nunca conceitos abstratos, nomes de empresa, logotipos ou pessoas públicas. Exemplos: "battery energy storage facility", "server racks data center", "shipping port containers", "solar panel field".
-Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.${radarContext}`;
+Pesquise UM fato real preferencialmente das últimas 24h. Confirme-o em dois domínios independentes, priorizando uma fonte primária e uma fonte jornalística. O radar só sugere pautas; não é prova. Não invente.
+Responda apenas com JSON válido neste formato:
+{"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-5 parágrafos, 900-1400 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"Desk de tema específico","sourceUrls":["https://fonte-1","https://fonte-2"],"fotoTermos":["english photo term 1","english photo term 2"]}
+Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultadas; sem páginas iniciais, buscas, redes sociais ou agregadores. Projeções e cenários devem ser atribuídos, nunca escritos como certeza. fotoTermos deve ter 2-3 objetos, lugares ou ambientes fotografáveis em inglês, sem marcas ou pessoas públicas. Se não houver fato verificável, responda {"error":"sem fato verificável no momento"}.${radarContext}`;
 
   // "compound" busca na web sozinho, server-side, sem precisar declarar uma
   // tool explícita — o próprio modelo decide quando pesquisar com base no
