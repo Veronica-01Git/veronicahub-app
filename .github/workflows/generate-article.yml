@@ -33,6 +33,7 @@ jobs:
             exit 1
           fi
           {
+            echo "generated=$(jq -r '.ok == true and (.skipped != true)' response.json)"
             echo "slug<<COVER_EOF"
             jq -r '.slug' response.json
             echo "COVER_EOF"
@@ -59,7 +60,7 @@ jobs:
       # antes desse workflow existir. Por isso cada passo checa o resultado do
       # anterior via `if:` em vez de deixar o job inteiro falhar.
       - name: Checkout do repositório
-        if: success()
+        if: steps.generate.outputs.generated == 'true'
         id: checkout
         uses: actions/checkout@v4
 
