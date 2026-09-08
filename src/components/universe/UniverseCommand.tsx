@@ -65,6 +65,10 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
             <Network className="mr-2 h-4 w-4 text-neon-green" />
             <span>02 / Go to Ecosystem</span>
           </CommandItem>
+          <CommandItem onSelect={() => handleSelect("03")}>
+            <UserCheck className="mr-2 h-4 w-4 text-neon-green" />
+            <span>03 / Go to Character Bible</span>
+          </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
@@ -73,10 +77,6 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
           <CommandItem onSelect={() => handleSelect("01")}>
             <Compass className="mr-2 h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">01 / Go to Essence</span>
-          </CommandItem>
-          <CommandItem onSelect={() => handleSelect("03")}>
-            <UserCheck className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">03 / Go to Character</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect("04")}>
             <Palette className="mr-2 h-4 w-4 text-muted-foreground" />

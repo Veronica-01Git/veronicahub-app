@@ -7,6 +7,7 @@ import { UniverseHero } from "@/components/universe/UniverseHero";
 import { EcosystemConstellation } from "@/components/universe/EcosystemConstellation";
 import { SystemStatus } from "@/components/universe/SystemStatus";
 import { NextSystemLayers } from "@/components/universe/NextSystemLayers";
+import { CharacterBible } from "@/components/universe/CharacterBible";
 import { ECOSYSTEM_NODES, type UniverseTab } from "@/components/universe/types";
 
 export const Route = createFileRoute("/admin/veronica-universe")({
@@ -182,10 +183,12 @@ function VeronicaUniversePage() {
         </div>
       )}
 
+      {activeTab === "03" && <CharacterBible />}
+
       {/* ===================================================================== */}
       {/* IN DEVELOPMENT MODULES (01, 03-08)                                   */}
       {/* ===================================================================== */}
-      {activeTab !== "00" && activeTab !== "02" && (
+      {activeTab !== "00" && activeTab !== "02" && activeTab !== "03" && (
         <div className="my-12 flex flex-col items-center justify-center rounded-sm border border-border/50 bg-surface/20 p-12 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/60 bg-background/50">
             <Compass className="h-6 w-6 text-neon-cyan animate-pulse" />

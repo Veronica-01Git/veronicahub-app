@@ -3,7 +3,7 @@ import { Layers, Shield, Sparkles } from "lucide-react";
 interface NextLayer {
   id: string;
   name: string;
-  status: "NEXT" | "WAITING" | "OFFLINE";
+  status: "ACTIVE" | "NEXT" | "WAITING" | "OFFLINE";
   description: string;
 }
 
@@ -11,7 +11,7 @@ const NEXT_LAYERS_DATA: NextLayer[] = [
   {
     id: "character",
     name: "CHARACTER BIBLE",
-    status: "NEXT",
+    status: "ACTIVE",
     description:
       "Cânone narrativo, biografia sintética, arquétipo, limites éticos e tom comportamental.",
   },
@@ -80,9 +80,11 @@ export function NextSystemLayers() {
                   </span>
                   <span
                     className={`font-mono-tech text-[9px] tracking-widest px-1.5 py-0.5 rounded ${
-                      layer.status === "NEXT"
-                        ? "text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/30"
-                        : "text-muted-foreground bg-muted/20 border border-border/30"
+                      layer.status === "ACTIVE"
+                        ? "text-neon-green bg-neon-green/10 border border-neon-green/30"
+                        : layer.status === "NEXT"
+                          ? "text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/30"
+                          : "text-muted-foreground bg-muted/20 border border-border/30"
                     }`}
                   >
                     {layer.status}
@@ -94,7 +96,9 @@ export function NextSystemLayers() {
               </div>
 
               <div className="mt-3 font-mono-tech text-[9px] text-muted-foreground/60 uppercase">
-                // LAYER RESERVED FOR PHASE 2+
+                {layer.status === "ACTIVE"
+                  ? "// CANON v1.0.0 ONLINE"
+                  : "// LAYER RESERVED FOR PHASE 2+"}
               </div>
             </div>
           ))}

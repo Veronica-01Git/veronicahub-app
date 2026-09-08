@@ -126,8 +126,8 @@ export function UniverseShell({
       {/* Discrete System Shell Footer */}
       <footer className="border-t border-border/40 bg-surface/20 py-5 text-center font-mono-tech text-[10px] text-muted-foreground tracking-widest uppercase">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-wrap items-center justify-between gap-2">
-          <span>VERONICA BRAND INTELLIGENCE OS · PHASE 1</span>
-          <span>SYSTEM RUNNING · NO PERSISTENCE REQUIRED IN V1</span>
+          <span>VERONICA BRAND INTELLIGENCE OS · PHASE 2A</span>
+          <span>CHARACTER CANON v1.0.0 · ACTIVE</span>
         </div>
       </footer>
 

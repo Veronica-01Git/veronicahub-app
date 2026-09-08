@@ -10,7 +10,7 @@ interface StatusItem {
 const SYSTEM_STATUS_DATA: StatusItem[] = [
   { key: "core", label: "IDENTITY CORE", status: "ACTIVE", variant: "green" },
   { key: "eco", label: "ECOSYSTEM", status: "MAPPED", variant: "cyan" },
-  { key: "char", label: "CHARACTER", status: "IN DEVELOPMENT", variant: "neutral" },
+  { key: "char", label: "CHARACTER", status: "ACTIVE", variant: "green" },
   { key: "vis", label: "VISUAL SYSTEM", status: "IN DEVELOPMENT", variant: "neutral" },
   { key: "voice", label: "VOICE", status: "IN DEVELOPMENT", variant: "neutral" },
   { key: "prompt", label: "PROMPT LAB", status: "WAITING", variant: "neutral" },
@@ -81,7 +81,7 @@ export function SystemStatus() {
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/30 pt-4 font-mono-tech text-[10px] text-muted-foreground">
         <div className="flex items-center gap-2">
           <Cpu className="h-3 w-3" />
-          <span>PHASE 1: FOUNDATION / SHELL / CONSTELLATION MAP</span>
+          <span>PHASE 2A: CHARACTER CANON / AUDIENCE PROTOCOLS</span>
         </div>
         <div>TOTAL REGISTERED NODES: 08</div>
       </div>
