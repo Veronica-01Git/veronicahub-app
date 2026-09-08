@@ -133,7 +133,16 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "public/images/blog-covers/${COVER_SLUG}.jpg"
           git commit -m "chore(wire): capa automática — ${COVER_SLUG}"
-          git push
+          # Outra conversa/automação pode atualizar main enquanto a foto é
+          # baixada. Rebaseia o commit único da capa antes de enviar, evitando
+          # perder a imagem por um non-fast-forward transitório.
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+          done
+          exit 1
 
       - name: Espera o deploy publicar o asset
         if: steps.commit.outcome == 'success'
