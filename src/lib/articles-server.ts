@@ -34,6 +34,16 @@ const GDELT_QUERY: Record<Beat, string> = {
 
 type StorySignal = { title: string; url: string; domain: string; seenAt: string };
 
+function canonicalSourceUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+    return `${url.hostname.replace(/^www\./, "").toLowerCase()}${path}`;
+  } catch {
+    return null;
+  }
+}
+
 async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
   try {
     const url = new URL("https://api.gdeltproject.org/api/v2/doc/doc");
@@ -69,7 +79,7 @@ async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
         seenAt: typeof item.seendate === "string" ? item.seendate : "",
       });
       // Cinco sinais já dão variedade editorial sem inflar o prompt que será
-      // somado aos resultados da busca web do Compound.
+      // somado ao contexto do browser_search.
       if (signals.length === 5) break;
     }
     return signals;
@@ -308,7 +318,7 @@ type DraftAttemptResult =
   // (rede/API key/etc) — tentar de novo não muda o resultado.
   | { ok: false; error: string; retry: boolean };
 
-// Uma chamada à Anthropic + parse da resposta. Separado de
+// Uma chamada ao Groq + parse da resposta. Separado de
 // draftArticleContent só pra permitir uma retentativa (ver lá embaixo) sem
 // duplicar a lógica de request/parse.
 async function attemptDraft(
@@ -322,7 +332,7 @@ async function attemptDraft(
         .join("\n")}`
     : "\n\nO radar GDELT está indisponível; faça a descoberta da pauta pela busca na web.";
   const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
-Pesquise UM fato real preferencialmente das últimas 24h. Confirme-o em dois domínios independentes, priorizando uma fonte primária e uma fonte jornalística. O radar só sugere pautas; não é prova. Não invente.
+Pesquise UM fato real das últimas 24h. Escolha uma pauta do radar, confirme-a em outra apuração independente e inclua em sourceUrls a URL EXATA do radar escolhida. Priorize uma fonte primária e uma fonte jornalística. Republicações do mesmo texto de agência não contam como duas fontes. Não invente.
 Responda apenas com JSON válido neste formato:
 {"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-5 parágrafos, 900-1400 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"Desk de tema específico","sourceUrls":["https://fonte-1","https://fonte-2"],"fotoTermos":["english photo term 1","english photo term 2"]}
 Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultadas; sem páginas iniciais, buscas, redes sociais ou agregadores. Projeções e cenários devem ser atribuídos, nunca escritos como certeza. fotoTermos deve ter 2-3 objetos, lugares ou ambientes fotografáveis em inglês, sem marcas ou pessoas públicas. Se não houver fato verificável, responda {"error":"sem fato verificável no momento"}.${radarContext}`;
@@ -394,6 +404,24 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
     return { ok: false, error: "IA retornou um formato inesperado. Tente de novo.", retry: true };
   }
 
+  const radarUrls = new Set(
+    signals
+      .map((signal) => canonicalSourceUrl(signal.url))
+      .filter((url): url is string => Boolean(url)),
+  );
+  const anchoredToRecentRadar = (sourceUrls as string[]).some((url) => {
+    const canonical = canonicalSourceUrl(url);
+    return canonical !== null && radarUrls.has(canonical);
+  });
+  if (!anchoredToRecentRadar) {
+    console.error(`draftArticleContent(${beat}): fontes sem URL do radar GDELT das últimas 24h.`);
+    return {
+      ok: false,
+      error: "A matéria não ficou ancorada a uma pauta detectada nas últimas 24h. Tente de novo.",
+      retry: true,
+    };
+  }
+
   // fotoTermos nunca derruba a publicação — se vier ausente/malformado, só
   // não dá pra tentar Pexels/Pixabay pra essa matéria (cai pro próximo
   // nível de fallback no workflow do cron).
@@ -435,6 +463,9 @@ async function draftArticleContent(
   // (retry=true) — não faz sentido retentar quando o próprio modelo disse
   // que não achou fato verificável, nem quando a chamada à API falhou.
   const signals = await discoverStorySignals(beat);
+  if (signals.length === 0) {
+    return { ok: false, error: "Radar GDELT sem pauta recente verificável no momento." };
+  }
   const first = await attemptDraft(apiKey, beat, signals);
   if (first.ok || !first.retry) return first;
 
