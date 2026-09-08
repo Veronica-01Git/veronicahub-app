@@ -14,17 +14,15 @@ const eyeStyle: EyeStyle = {
 function TrackedEye({ side }: { side: "left" | "right" }) {
   return (
     <span
-      className={`absolute top-[34.9%] h-[4.55%] w-[12.4%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[50%] ${
+      className={`absolute top-[34.95%] h-[4.05%] w-[9%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[50%] ${
         side === "left" ? "left-[31.25%]" : "left-[66.05%]"
       }`}
     >
       <span
         data-eye
         style={eyeStyle}
-        className="absolute left-1/2 top-1/2 aspect-square h-[118%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_50%,#dfffff_0_5%,#02080c_7%_24%,#0b6f99_27%,#18c7ec_55%,#073f61_76%,#02131e_100%)] shadow-[inset_0_0_7px_rgba(220,255,255,0.72),0_0_8px_rgba(28,220,255,0.35)] will-change-transform transition-transform duration-100 ease-out"
-      >
-        <span className="absolute left-[42%] top-[37%] h-[9%] w-[9%] rounded-full bg-white/90 shadow-[0_0_3px_white]" />
-      </span>
+        className="absolute left-1/2 top-1/2 aspect-square h-[68%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_50%,rgba(1,5,8,0.96)_0_29%,rgba(3,43,54,0.72)_31_42%,rgba(20,172,199,0.28)_48_61%,rgba(20,172,199,0)_72%)] opacity-80 will-change-transform transition-transform duration-150 ease-out"
+      />
     </span>
   );
 }
@@ -57,7 +55,7 @@ export function VeronicaPresence() {
         const distance = Math.hypot(normalizedX, normalizedY);
         const damping = distance > 1 ? 1 / distance : 1;
 
-        moveEyes(normalizedX * damping * 3.2, normalizedY * damping * 2.15);
+        moveEyes(normalizedX * damping * 1.8, normalizedY * damping * 1.1);
       });
     };
 
