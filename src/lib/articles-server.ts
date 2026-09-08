@@ -14,19 +14,12 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 // Tavily) — o único equivalente real ao web_search da Anthropic/
 // googleSearch do Gemini que sobrevive sem cartão.
 //
-// "groq/compound" (cheio) testado ao vivo e bateu 429/413 de TPM (limite
-// de 30k do modelo orquestrador interno, llama-4-scout-17b) numa editoria
-// de tema amplo (geopolítica) — o cheio permite MÚLTIPLAS chamadas de
-// ferramenta por request (várias buscas/execuções encadeadas), o que
-// estourava o teto numa chamada só. "groq/compound-mini" limita a UMA
-// chamada de ferramenta por request — suficiente aqui (uma busca já
-// retorna várias fontes) — e cabe no budget de tokens do tier grátis.
-const DRAFT_MODEL = "groq/compound-mini";
-// O Compound contabiliza também o contexto recuperado pela busca web no
-// limite de tokens por minuto. 1.500 ainda estourava o free tier (413) antes
-// de devolver a matéria; 900 comporta com folga o JSON de 900-1.400 caracteres
-// e deixa orçamento para os snippets das fontes.
-const DRAFT_MAX_TOKENS = 900;
+// Compound/Compound Mini continuaram devolvendo 413 porque o orquestrador
+// injeta muitos resultados no próprio contexto. O GPT-OSS usa browser_search
+// diretamente, sem essa camada intermediária, e é um modelo de produção do
+// Groq. reasoning_effort baixo mantém a pesquisa dentro do orçamento.
+const DRAFT_MODEL = "openai/gpt-oss-20b";
+const DRAFT_MAX_TOKENS = 1600;
 
 // GDELT funciona como radar gratuito de pauta. Ele não é tratado como fonte
 // editorial: apenas entrega candidatos recentes; o modelo ainda precisa abrir,
@@ -334,12 +327,9 @@ Responda apenas com JSON válido neste formato:
 {"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-5 parágrafos, 900-1400 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"Desk de tema específico","sourceUrls":["https://fonte-1","https://fonte-2"],"fotoTermos":["english photo term 1","english photo term 2"]}
 Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultadas; sem páginas iniciais, buscas, redes sociais ou agregadores. Projeções e cenários devem ser atribuídos, nunca escritos como certeza. fotoTermos deve ter 2-3 objetos, lugares ou ambientes fotografáveis em inglês, sem marcas ou pessoas públicas. Se não houver fato verificável, responda {"error":"sem fato verificável no momento"}.${radarContext}`;
 
-  // "compound" busca na web sozinho, server-side, sem precisar declarar uma
-  // tool explícita — o próprio modelo decide quando pesquisar com base no
-  // prompt (que pede busca explicitamente). enabled_tools restrito a
-  // web_search: a matéria nunca precisa de code_interpreter/visit_website/
-  // wolfram_alpha, e cada ferramenta habilitada a mais é orçamento de
-  // tokens a menos pro budget apertado do tier grátis (ver DRAFT_MODEL).
+  // browser_search é obrigatório: o modelo não pode responder só de memória.
+  // O Groq executa a ferramenta server-side e devolve o texto pesquisado junto
+  // da resposta; o parser abaixo procura o último objeto editorial válido.
   let response: Groq.Chat.ChatCompletion;
   try {
     const groq = new Groq({ apiKey });
@@ -350,7 +340,9 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
         { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
       ],
       max_completion_tokens: DRAFT_MAX_TOKENS,
-      compound_custom: { tools: { enabled_tools: ["web_search"] } },
+      reasoning_effort: "low",
+      tool_choice: "required",
+      tools: [{ type: "browser_search" }],
     });
   } catch (error) {
     return {
@@ -363,7 +355,8 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
   const finishReason = response.choices[0]?.finish_reason;
   const text = (response.choices[0]?.message?.content ?? "").trim();
 
-  const jsonStart = text.indexOf("{");
+  const jsonStarts = [...text.matchAll(/\{\s*"(?:headline|error)"/g)];
+  const jsonStart = jsonStarts.at(-1)?.index ?? -1;
   const jsonEnd = text.lastIndexOf("}");
   if (jsonStart === -1 || jsonEnd === -1) {
     console.error(
