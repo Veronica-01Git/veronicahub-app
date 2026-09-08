@@ -19,7 +19,7 @@ export function UniverseHero({ onOpenCommand, onExploreEcosystem }: UniverseHero
           <span className="text-border/80">/</span>
           <span>INTERNAL SYSTEM</span>
           <span className="text-border/80">/</span>
-          <span className="text-neon-cyan/90">KERNEL v1.0.4-PHASE1</span>
+          <span className="text-neon-cyan/90">KERNEL v1.1.0-PHASE2A</span>
         </div>
 
         <div className="flex items-center gap-3">
