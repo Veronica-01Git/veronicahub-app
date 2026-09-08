@@ -3,7 +3,10 @@
 // "evolução"), sem duplicar a mesma chamada HTTP em dois scripts.
 import { writeFile } from "node:fs/promises";
 
-export const MIN_WIDTH = 1600;
+// 2560px é o ponto de equilíbrio para telas retina/4K sem acrescentar vários
+// megabytes por capa ao histórico do Git. A fotografia de origem precisa ter
+// pelo menos 3840px; o provedor entrega uma derivação editorial comprimida.
+export const MIN_WIDTH = 3840;
 
 export async function searchPexels(term, apiKey, excludeIds) {
   const url = new URL("https://api.pexels.com/v1/search");
@@ -19,12 +22,19 @@ export async function searchPexels(term, apiKey, excludeIds) {
   const data = await res.json();
   const photos = Array.isArray(data.photos) ? data.photos : [];
   const pick = photos.find(
-    (p) => p.width >= MIN_WIDTH && !excludeIds.has(String(p.id)) && p.src?.large2x,
+    (p) => p.width >= MIN_WIDTH && !excludeIds.has(String(p.id)) && p.src?.original,
   );
   if (!pick) return null;
 
+  const editorialUrl = new URL(pick.src.original);
+  editorialUrl.searchParams.set("auto", "compress");
+  editorialUrl.searchParams.set("cs", "tinysrgb");
+  editorialUrl.searchParams.set("fit", "crop");
+  editorialUrl.searchParams.set("w", "2560");
+  editorialUrl.searchParams.set("h", "1440");
+
   return {
-    imageUrl: pick.src.large2x,
+    imageUrl: editorialUrl.toString(),
     photoId: String(pick.id),
     photoCredit: pick.photographer ?? null,
     photoUrl: pick.url ?? null,
