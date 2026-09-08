@@ -1,12 +1,15 @@
 name: Gera e publica matéria (Veronica Wire)
 
 on:
-  # Cron pausado — Anthropic API sem crédito (ver PROGRESSO.md). Só dispara
-  # manualmente (workflow_dispatch) até o saldo ser reposto ou o pipeline
-  # migrar pra outro provedor. Reativar: descomentar o schedule abaixo.
-  # schedule:
-  #   - cron: "0 */5 * * *"
+  # Minuto 17 evita a maior fila do GitHub Actions no início da hora. O
+  # pipeline usa Groq no Worker; Anthropic não é necessário para publicar.
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch: {}
+
+concurrency:
+  group: veronica-wire-hourly
+  cancel-in-progress: false
 
 permissions:
   contents: write
