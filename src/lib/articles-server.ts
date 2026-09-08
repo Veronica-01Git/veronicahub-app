@@ -28,6 +28,62 @@ const DRAFT_MODEL = "groq/compound-mini";
 // cortado pra reduzir o orçamento total que o Groq reserva pra chamada.
 const DRAFT_MAX_TOKENS = 1500;
 
+// GDELT funciona como radar gratuito de pauta. Ele não é tratado como fonte
+// editorial: apenas entrega candidatos recentes; o modelo ainda precisa abrir,
+// conferir e cruzar a notícia em pelo menos dois domínios independentes.
+const GDELT_QUERY: Record<Beat, string> = {
+  ia: '("artificial intelligence" OR "generative AI" OR "AI model")',
+  clima: '("clean energy" OR batteries OR solar OR wind OR climate)',
+  economia: '("digital yuan" OR CBDC OR "digital currency")',
+  geopolitica: '((China AND USA) OR (China AND Brazil) OR chips OR semiconductors)',
+  mercado: '(technology OR "artificial intelligence") (investment OR earnings OR infrastructure)',
+};
+
+type StorySignal = { title: string; url: string; domain: string; seenAt: string };
+
+async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
+  try {
+    const url = new URL("https://api.gdeltproject.org/api/v2/doc/doc");
+    url.searchParams.set("query", GDELT_QUERY[beat]);
+    url.searchParams.set("mode", "artlist");
+    url.searchParams.set("format", "json");
+    url.searchParams.set("sort", "datedesc");
+    url.searchParams.set("timespan", "24h");
+    url.searchParams.set("maxrecords", "25");
+
+    const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
+    if (!response.ok) return [];
+    const payload = (await response.json()) as { articles?: unknown };
+    if (!Array.isArray(payload.articles)) return [];
+
+    const seenDomains = new Set<string>();
+    const signals: StorySignal[] = [];
+    for (const raw of payload.articles) {
+      const item = raw as Record<string, unknown>;
+      if (typeof item.title !== "string" || typeof item.url !== "string") continue;
+      let domain: string;
+      try {
+        domain = new URL(item.url).hostname.replace(/^www\./, "").toLowerCase();
+      } catch {
+        continue;
+      }
+      if (seenDomains.has(domain)) continue;
+      seenDomains.add(domain);
+      signals.push({
+        title: item.title.slice(0, 220),
+        url: item.url,
+        domain,
+        seenAt: typeof item.seendate === "string" ? item.seendate : "",
+      });
+      if (signals.length === 10) break;
+    }
+    return signals;
+  } catch (error) {
+    console.error(`discoverStorySignals(${beat}): radar indisponível`, error);
+    return [];
+  }
+}
+
 // Piso mecânico antes de publicar (brief "evolução", item 8) — não é revisão
 // editorial, só barra o pior caso: matéria com uma fonte só ou corpo curto
 // demais pra ser notícia de verdade. MIN_BODY_CHARS fica abaixo do alvo de
@@ -260,14 +316,24 @@ type DraftAttemptResult =
 // Uma chamada à Anthropic + parse da resposta. Separado de
 // draftArticleContent só pra permitir uma retentativa (ver lá embaixo) sem
 // duplicar a lógica de request/parse.
-async function attemptDraft(apiKey: string, beat: Beat): Promise<DraftAttemptResult> {
+async function attemptDraft(
+  apiKey: string,
+  beat: Beat,
+  signals: StorySignal[],
+): Promise<DraftAttemptResult> {
+  const radarContext = signals.length
+    ? `\n\nRADAR DE PAUTAS DAS ÚLTIMAS 24H (GDELT; use apenas como ponto de partida, nunca como prova):\n${signals
+        .map((signal, index) => `${index + 1}. ${signal.title} — ${signal.domain} — ${signal.url}`)
+        .join("\n")}`
+    : "\n\nO radar GDELT está indisponível; faça a descoberta da pauta pela busca na web.";
   const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
-Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, recente e verificável nessa editoria — não invente nada. Busque em pelo menos duas fontes independentes antes de escrever; matérias com só uma fonte não são publicadas.
+Use a ferramenta de busca na web para encontrar UM fato ou desenvolvimento real, ocorrido ou anunciado preferencialmente nas últimas 24 horas, e verificável nessa editoria — não invente nada. O radar abaixo serve para descobrir pautas, mas você deve conferir a informação. Busque em pelo menos duas fontes de domínios independentes antes de escrever; prefira uma fonte primária (órgão público, empresa, universidade, documento ou comunicado oficial) mais uma fonte jornalística confiável. Matérias com uma única origem factual não são publicadas.
 Depois de pesquisar, responda SOMENTE com um objeto JSON válido (sem markdown, sem texto antes ou depois), exatamente neste formato:
 {"headline": "manchete curta e direta em português, sem clickbait", "excerpt": "1-2 frases de resumo", "body": "matéria completa em português, 3 a 5 parágrafos, entre 900 e 1400 caracteres no total. O primeiro parágrafo entrega o fato completo (o quê, quem, quando, por quê) sem enrolação. Inclua pelo menos um dado numérico concreto quando a fonte trouxer (valor, percentual, data, quantidade). Não inclua parágrafo de contexto histórico genérico nem conclusão opinativa — termine no último fato relevante, não numa frase de fechamento. Tom jornalístico factual, sem opinião.", "desk": "Desk de <algo específico da matéria>", "sourceUrls": ["https://...", "https://..."], "fotoTermos": ["termo 1", "termo 2", "termo 3"]}
-"sourceUrls" deve conter pelo menos duas URLs reais e distintas que você usou na pesquisa.
+"sourceUrls" deve conter pelo menos duas URLs reais, acessíveis e de domínios distintos que você efetivamente usou na pesquisa. Não cite página inicial, busca, rede social ou agregador como fonte.
+Quando o tema envolver futuro, separe com rigor: fato confirmado no indicativo; projeção, estimativa ou cenário sempre atribuído à organização/pessoa que o publicou. Nunca apresente previsão da IA como acontecimento futuro certo.
 "fotoTermos": dois ou três termos de busca em inglês para encontrar uma fotografia que ilustre esta notícia num banco de imagens. Use substantivos concretos e fotografáveis — objetos, lugares, equipamentos, ambientes. Nunca conceitos abstratos, nomes de empresa, logotipos ou pessoas públicas. Exemplos: "battery energy storage facility", "server racks data center", "shipping port containers", "solar panel field".
-Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.`;
+Se não encontrar nada verificável e recente, responda {"error": "sem fato verificável no momento"} em vez do objeto acima.${radarContext}`;
 
   // "compound" busca na web sozinho, server-side, sem precisar declarar uma
   // tool explícita — o próprio modelo decide quando pesquisar com base no
@@ -376,10 +442,11 @@ async function draftArticleContent(
   // Só uma retentativa, e só quando a resposta veio com formato quebrado
   // (retry=true) — não faz sentido retentar quando o próprio modelo disse
   // que não achou fato verificável, nem quando a chamada à API falhou.
-  const first = await attemptDraft(apiKey, beat);
+  const signals = await discoverStorySignals(beat);
+  const first = await attemptDraft(apiKey, beat, signals);
   if (first.ok || !first.retry) return first;
 
-  const second = await attemptDraft(apiKey, beat);
+  const second = await attemptDraft(apiKey, beat, signals);
   return second;
 }
 
@@ -577,6 +644,25 @@ function validateDraftForPublish(
     return {
       ok: false,
       error: `Corpo com ${content.body.length} caracteres — abaixo do piso de ${MIN_BODY_CHARS}.`,
+    };
+  }
+
+  const domains = new Set<string>();
+  for (const sourceUrl of content.sourceUrls) {
+    try {
+      const parsed = new URL(sourceUrl);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        return { ok: false, error: `Fonte com protocolo inválido: ${sourceUrl}` };
+      }
+      domains.add(parsed.hostname.replace(/^www\./, "").toLowerCase());
+    } catch {
+      return { ok: false, error: `URL de fonte inválida: ${sourceUrl}` };
+    }
+  }
+  if (domains.size < MIN_SOURCE_URLS) {
+    return {
+      ok: false,
+      error: `As fontes precisam vir de pelo menos ${MIN_SOURCE_URLS} domínios independentes.`,
     };
   }
   return { ok: true };
