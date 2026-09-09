@@ -2,7 +2,66 @@ import { and, eq } from "drizzle-orm";
 import { BEAT_VALUES, CYCLE_HOURS, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
-import { articles } from "./schema";
+import { articles, mediaImages, users } from "./schema";
+
+const MAX_LIBRARY_IMAGE_BYTES = 5 * 1024 * 1024;
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  const chunkSize = 32_768;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+  }
+  return btoa(binary);
+}
+
+async function saveCoverToMediaLibrary(input: {
+  slug: string;
+  headline: string;
+  coverImageUrl: string;
+}): Promise<boolean> {
+  const db = getDb();
+  const filename = `wire-${input.slug}.jpg`;
+  const [existing] = await db
+    .select({ id: mediaImages.id })
+    .from(mediaImages)
+    .where(eq(mediaImages.filename, filename))
+    .limit(1);
+  if (existing) return false;
+
+  const response = await fetch(input.coverImageUrl);
+  if (!response.ok) throw new Error(`Falha ao baixar a capa para a biblioteca (${response.status}).`);
+
+  const mimeType = (response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
+  if (!new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]).has(mimeType)) {
+    throw new Error(`MIME de capa não suportado na biblioteca: ${mimeType}`);
+  }
+
+  const buffer = await response.arrayBuffer();
+  if (buffer.byteLength === 0 || buffer.byteLength > MAX_LIBRARY_IMAGE_BYTES) {
+    throw new Error(`Capa fora do limite da biblioteca: ${buffer.byteLength} bytes.`);
+  }
+
+  const [admin] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.role, "admin"))
+    .limit(1);
+  if (!admin) throw new Error("Nenhum administrador disponível para registrar a capa.");
+
+  await db.insert(mediaImages).values({
+    filename,
+    mimeType,
+    sizeBytes: buffer.byteLength,
+    width: null,
+    height: null,
+    altText: `Capa Veronica Wire — ${input.headline}`.slice(0, 300),
+    data: arrayBufferToBase64(buffer),
+    uploadedBy: admin.id,
+  });
+  return true;
+}
 
 // Escolhe a editoria pela hora UTC atual — sem precisar guardar estado em
 // lugar nenhum (qual foi a última editoria gerada). Mesmo bucket de 5h
@@ -127,7 +186,7 @@ export async function handleSetCoverImageCron(request: Request): Promise<Respons
       updatedAt: new Date(),
     })
     .where(and(eq(articles.slug, body.slug.trim()), eq(articles.coverManual, false)))
-    .returning({ id: articles.id });
+    .returning({ id: articles.id, headline: articles.headline });
 
   if (!row) {
     return new Response(
@@ -136,7 +195,26 @@ export async function handleSetCoverImageCron(request: Request): Promise<Respons
     );
   }
 
-  return new Response(JSON.stringify({ ok: true }), {
+  let librarySaved = false;
+  try {
+    librarySaved = await saveCoverToMediaLibrary({
+      slug: body.slug.trim(),
+      headline: row.headline,
+      coverImageUrl: body.coverImageUrl.trim(),
+    });
+  } catch (error) {
+    console.error("Falha ao registrar capa do Wire na biblioteca:", error);
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        coverSaved: true,
+        error: error instanceof Error ? error.message : "Falha ao salvar capa na biblioteca.",
+      }),
+      { status: 502, headers: { "content-type": "application/json" } },
+    );
+  }
+
+  return new Response(JSON.stringify({ ok: true, librarySaved }), {
     headers: { "content-type": "application/json" },
   });
 }

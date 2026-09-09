@@ -164,7 +164,6 @@ jobs:
 
       - name: Seta coverImageUrl da matéria
         if: steps.commit.outcome == 'success'
-        continue-on-error: true
         env:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
           PHOTO_ID: ${{ steps.fetch_photo.outputs.photoId }}
@@ -181,6 +180,8 @@ jobs:
             '{slug: $slug, coverImageUrl: $url, photoId: $photoId, photoCredit: $photoCredit, photoUrl: $photoUrl}')
           status=$(curl --silent --show-error \
             --max-time 30 \
+            --retry 2 \
+            --retry-all-errors \
             -o set-cover-response.json -w "%{http_code}" \
             -X POST "https://veronicahub.com/api/cron/set-cover-image" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
@@ -188,3 +189,6 @@ jobs:
             -d "$body")
           echo "HTTP status: $status"
           cat set-cover-response.json
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi
