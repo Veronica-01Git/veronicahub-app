@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { BEAT_VALUES, CYCLE_HOURS, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
@@ -217,4 +217,57 @@ export async function handleSetCoverImageCron(request: Request): Promise<Respons
   return new Response(JSON.stringify({ ok: true, librarySaved }), {
     headers: { "content-type": "application/json" },
   });
+}
+
+// Mantém o acervo do Admin completo e autocorretivo. O endpoint é idempotente:
+// capas já arquivadas são ignoradas e somente itens ausentes são baixados.
+export async function handleBackfillWireCoversCron(request: Request): Promise<Response> {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    return new Response("CRON_SECRET não configurada", { status: 500 });
+  }
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
+    return new Response("unauthorized", { status: 401 });
+  }
+
+  const db = getDb();
+  const rows = await db
+    .select({
+      slug: articles.slug,
+      headline: articles.headline,
+      coverImageUrl: articles.coverImageUrl,
+    })
+    .from(articles)
+    .where(and(eq(articles.status, "published"), isNotNull(articles.coverImageUrl)))
+    .limit(100);
+
+  let saved = 0;
+  let alreadyPresent = 0;
+  const failures: Array<{ slug: string; error: string }> = [];
+
+  for (const row of rows) {
+    if (!row.coverImageUrl) continue;
+    try {
+      const inserted = await saveCoverToMediaLibrary({
+        slug: row.slug,
+        headline: row.headline,
+        coverImageUrl: row.coverImageUrl,
+      });
+      if (inserted) saved += 1;
+      else alreadyPresent += 1;
+    } catch (error) {
+      failures.push({
+        slug: row.slug,
+        error: error instanceof Error ? error.message : "Falha desconhecida.",
+      });
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ ok: failures.length === 0, saved, alreadyPresent, failures }),
+    {
+      status: failures.length === 0 ? 200 : 502,
+      headers: { "content-type": "application/json" },
+    },
+  );
 }
