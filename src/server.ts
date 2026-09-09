@@ -5,7 +5,11 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
-import { handleGenerateArticleCron, handleSetCoverImageCron } from "./lib/article-cron";
+import {
+  handleBackfillWireCoversCron,
+  handleGenerateArticleCron,
+  handleSetCoverImageCron,
+} from "./lib/article-cron";
 import { handleCoverImage } from "./lib/cover-image-server";
 import { handleMediaImage } from "./lib/media-images-server";
 
@@ -102,6 +106,15 @@ export default {
         return await handleSetCoverImageCron(request);
       } catch (error) {
         console.error("Erro no cron de capa de matéria:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/backfill-wire-covers" && request.method === "POST") {
+      try {
+        return await handleBackfillWireCoversCron(request);
+      } catch (error) {
+        console.error("Erro no backfill de capas do Wire:", error);
         return new Response("error", { status: 500 });
       }
     }
