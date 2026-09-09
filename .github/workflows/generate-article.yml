@@ -27,6 +27,13 @@ jobs:
       - name: Chama o endpoint de geração automática
         id: generate
         run: |
+          # Em pushes deste workflow, dê tempo ao Cloudflare para servir o
+          # código recém-mergeado antes da rodada automática de validação.
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "Aguardando o deploy do Worker..."
+            sleep 45
+          fi
+
           status=$(curl --silent --show-error \
             --max-time 120 \
             -o response.json -w "%{http_code}" \
