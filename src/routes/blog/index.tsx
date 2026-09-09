@@ -123,7 +123,15 @@ function sourceDomain(sourceUrl: string) {
   }
 }
 
-function WireSignalRoom({ articles, now }: { articles: WireFeedArticle[]; now: Date }) {
+function WireSignalRoom({
+  articles,
+  current24hCount,
+  now,
+}: {
+  articles: WireFeedArticle[];
+  current24hCount: number;
+  now: Date;
+}) {
   const [favoriteBeat, setFavoriteBeat] = useState<Beat | null>(null);
 
   useEffect(() => {
@@ -182,7 +190,7 @@ function WireSignalRoom({ articles, now }: { articles: WireFeedArticle[]; now: D
           <div className="relative grid border-b border-background/15 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { label: "Ciclo de apuração", value: "60 min", icon: Radar },
-              { label: "Publicadas em 24h", value: String(articles.length), icon: Activity },
+              { label: "Publicadas em 24h", value: String(current24hCount), icon: Activity },
               { label: "Domínios citados", value: String(uniqueSources), icon: Database },
               { label: "Regra editorial", value: "2+ fontes", icon: ShieldCheck },
             ].map((metric) => {
@@ -556,7 +564,11 @@ function VeronicaWire() {
         )}
       </section>
 
-      <WireSignalRoom articles={[...articles, ...weekArticles]} now={now} />
+      <WireSignalRoom
+        articles={[...articles, ...weekArticles]}
+        current24hCount={articles.length}
+        now={now}
+      />
 
       {/* Fique por dentro — newsletter + editorias */}
       <section className="mx-auto max-w-7xl px-6 pb-6">
