@@ -88,7 +88,8 @@ const PACKS: PromptPack[] = [
     platforms: ["ElevenLabs"],
     commandCount: 25,
     priceCents: 1990,
-    description: "Comandos pra narração natural, no tom certo pra cada tipo de conteúdo.",
+    description:
+      "Uma formação compacta com 25 comandos, exercícios e projeto final para criar narrações publicáveis.",
     available: true,
   },
   {
@@ -119,23 +120,23 @@ const TRUST_ITEMS = [
 const DELIVERABLES = [
   {
     icon: Download,
-    title: "Documento em PDF",
-    desc: "Arquivo único, organizado por plataforma, pra abrir no celular ou no computador.",
+    title: "PDF com 33 páginas",
+    desc: "Material leve e organizado para estudar no celular ou no computador.",
   },
   {
     icon: Copy,
-    title: "Comandos prontos pra copiar",
-    desc: "Cada prompt já formatado — cola na ferramenta e roda, sem precisar adaptar nada.",
+    title: "25 comandos aplicados",
+    desc: "Cinco módulos para dirigir, escrever, revisar e publicar áudio com IA.",
   },
   {
     icon: FileText,
-    title: "Dicas de uso",
-    desc: "Orientação curta em cada comando: quando usar, o que ajustar, o que evitar.",
+    title: "Exercícios e critérios",
+    desc: "Cada comando termina com execução e uma pergunta objetiva de aprovação.",
   },
   {
     icon: ShieldCheck,
-    title: "Selo de Originalidade",
-    desc: "Carimbo digital de autenticidade Veronica, com número de série, gravado no documento.",
+    title: "Projeto de portfólio",
+    desc: "Finalize cinco peças: conteúdo, vendas, educação, marca e experiência digital.",
   },
 ];
 
@@ -522,7 +523,7 @@ function PromptPacks() {
       <section className="border-t border-border/40 bg-surface/40 py-14 md:py-20">
         <div className="mx-auto max-w-5xl px-6">
           <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-            <span className="h-px w-8 bg-neon-cyan" />O que você recebe
+            <span className="h-px w-8 bg-neon-cyan" />O que você recebe no pack completo
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {DELIVERABLES.map((d) => (
