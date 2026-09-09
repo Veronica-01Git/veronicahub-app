@@ -13,6 +13,9 @@ import {
   Radar,
   ShieldCheck,
   SlidersHorizontal,
+  MessageCircle,
+  Youtube,
+  Zap,
 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
@@ -366,7 +369,7 @@ function formatMasthead(date: Date): string {
 
 function VeronicaWire() {
   const now = useLiveClock();
-  const { articles, weekArticles } = Route.useLoaderData();
+  const { articles, current24hCount } = Route.useLoaderData();
 
   const featured = articles[0] ?? null;
   // JSX não aceita `<BEAT_META[x].icon>` como tag (acesso computado não é
@@ -480,11 +483,6 @@ function VeronicaWire() {
         </div>
       </header>
 
-      {/* Bloco proprietário claramente identificado: transforma audiência do
-          Wire em descoberta de produto e participação na comunidade sem
-          misturar publicidade com a manchete editorial principal. */}
-      <WireOwnedStories />
-
       {/* Lead + mais lidas */}
       <section id="topo" className="mx-auto max-w-7xl px-6 py-14 cv-auto">
         {!featured ? (
@@ -565,49 +563,87 @@ function VeronicaWire() {
       </section>
 
       <WireSignalRoom
-        articles={[...articles, ...weekArticles]}
-        current24hCount={articles.length}
+        articles={articles}
+        current24hCount={current24hCount}
         now={now}
       />
 
-      {/* Fique por dentro — newsletter + editorias */}
-      <section className="mx-auto max-w-7xl px-6 pb-6">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-sm border border-neon-green/30 bg-neon-green/5 p-6">
-            <h3
-              className="font-display text-lg text-foreground"
-              style={{ letterSpacing: "-0.01em" }}
-            >
-              Drops da Veronica
-            </h3>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Táticas, prompts e cases direto no seu e-mail. Sem enrolação.
-            </p>
-            <form onSubmit={(e) => e.preventDefault()} className="mt-4 flex gap-2">
-              <input
-                type="email"
-                required
-                placeholder="seu@email.com"
-                className="min-w-0 flex-1 rounded-sm border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-neon-green"
-              />
-              <button className="flex-shrink-0 rounded-sm bg-neon-green px-4 py-2 text-sm font-medium text-primary-foreground transition hover:brightness-110">
-                Quero receber
-              </button>
-            </form>
+      {/* Conteúdo proprietário entra depois da entrega editorial principal. */}
+      <WireOwnedStories />
+
+      {/* Central da comunidade — ações reais, sem formulário decorativo. */}
+      <section className="border-y border-border/40 bg-foreground py-12 text-background cv-auto">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-[0.25em] text-neon-cyan">
+                <Zap className="h-3.5 w-3.5" /> Rede Veronica
+              </div>
+              <h2 className="mt-2 font-display text-2xl text-background sm:text-3xl">
+                Comunidade conectada à redação
+              </h2>
+            </div>
+            <span className="font-mono-tech text-[9px] uppercase tracking-[0.2em] text-background/45">
+              notícias · formação · participação
+            </span>
           </div>
-          <div className="rounded-sm border border-border/60 bg-surface/40 p-6">
-            <h3 className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-              Editorias
-            </h3>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {TAGS.map((t) => (
-                <span
-                  key={t}
-                  className="rounded-sm border border-border/60 px-2.5 py-1 font-mono-tech text-[10.5px] text-muted-foreground"
-                >
-                  {t}
-                </span>
-              ))}
+
+          <div className="grid overflow-hidden rounded-sm border border-background/15 lg:grid-cols-[.75fr_.75fr_1.5fr]">
+            <a
+              href="https://youtube.com/@veronica-hub?sub_confirmation=1&utm_source=wire&utm_medium=community_panel"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group border-b border-background/15 p-6 transition hover:bg-background/[0.06] lg:border-b-0 lg:border-r"
+            >
+              <Youtube className="h-5 w-5 text-neon-green" />
+              <h3 className="mt-5 font-display text-xl text-background">Wire em vídeo</h3>
+              <p className="mt-2 text-sm leading-relaxed text-background/55">
+                Análises, aulas abertas e bastidores da Veronica.
+              </p>
+              <span className="mt-5 inline-flex items-center gap-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-green">
+                acompanhar canal <ArrowRight className="h-3 w-3 transition group-hover:translate-x-1" />
+              </span>
+            </a>
+
+            <Link
+              to="/"
+              className="group border-b border-background/15 p-6 transition hover:bg-background/[0.06] lg:border-b-0 lg:border-r"
+            >
+              <MessageCircle className="h-5 w-5 text-neon-cyan" />
+              <h3 className="mt-5 font-display text-xl text-background">Entrar na comunidade</h3>
+              <p className="mt-2 text-sm leading-relaxed text-background/55">
+                Continue a investigação com ferramentas e comandos do Hub.
+              </p>
+              <span className="mt-5 inline-flex items-center gap-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
+                acessar hub <ArrowRight className="h-3 w-3 transition group-hover:translate-x-1" />
+              </span>
+            </Link>
+
+            <div className="relative overflow-hidden p-6">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-20"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(52,211,153,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,.12) 1px, transparent 1px)",
+                  backgroundSize: "26px 26px",
+                }}
+              />
+              <div className="relative">
+                <h3 className="font-mono-tech text-[10px] uppercase tracking-widest text-background/60">
+                  Radar temático
+                </h3>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {TAGS.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-sm border border-background/15 bg-background/[0.04] px-2.5 py-1.5 font-mono-tech text-[9.5px] text-background/65 transition hover:border-neon-green/50 hover:text-neon-green"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -681,45 +717,6 @@ function VeronicaWire() {
           </section>
         );
       })}
-
-      {/* Esta semana — item 7 do brief "evolução": home só mostra últimas
-          24h nas seções acima; isto cobre 24h-7d sem virar outra lista sem
-          fim (teto de HOME_WEEK_LIMIT no server). Matérias mais antigas que
-          isso continuam acessíveis pela página da editoria (/blog/$beat) e
-          pela própria URL. */}
-      {weekArticles.length > 0 && (
-        <section className="border-t border-border/40 py-16 cv-auto">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
-              <span className="h-px w-8 bg-muted-foreground/50" />
-              Esta semana
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {weekArticles.map((a) => (
-                <Link
-                  key={a.id}
-                  to="/blog/$slug"
-                  params={{ slug: a.slug }}
-                  className="group flex items-start gap-3 rounded-sm border border-border/40 bg-surface/20 px-4 py-3 transition hover:border-border"
-                >
-                  <span
-                    className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                    style={{ background: BEAT_META[a.beat].color }}
-                  />
-                  <div className="min-w-0">
-                    <span className="block truncate text-[13px] text-foreground transition group-hover:text-neon-green">
-                      {a.headline}
-                    </span>
-                    <span className="mt-0.5 block font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground">
-                      {BEAT_META[a.beat].short} · {formatAgo(a.publishedAt, now)}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Monitoramento global */}
       <section className="border-t border-border/40 bg-surface/30 py-20 cv-auto">

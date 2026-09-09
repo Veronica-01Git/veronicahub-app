@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, gte, lt } from "drizzle-orm";
+import { and, count, desc, eq, gte, lt } from "drizzle-orm";
 import Groq from "groq-sdk";
 import { getDb } from "./db";
 import { articles } from "./schema";
@@ -102,14 +102,12 @@ const MIN_BODY_CHARS = 700;
 // (findSimilarHeadline, abaixo). 40 é o número pedido no brief de evolução.
 const RECENT_HISTORY_LIMIT = 40;
 
-// Item 7 (arquivamento) do brief "evolução": a home só mostra as últimas
-// 24h — o resto continua acessível pela página da própria matéria e pela
-// página paginada de cada editoria (getArticlesByBeat, abaixo). Bloco
-// "Esta semana" cobre o intervalo seguinte (24h-7d) com um teto pra nunca
-// virar outra lista sem fim.
+// A home mantém um feed editorial compacto mesmo quando o ciclo automático
+// fica temporariamente sem publicar. O contador de 24h continua separado e
+// factual; o leitor nunca recebe uma falsa tela de "primeiras matérias" se o
+// acervo já contém reportagens publicadas.
 const HOME_WINDOW_HOURS = 24;
-const HOME_WEEK_WINDOW_DAYS = 7;
-const HOME_WEEK_LIMIT = 20;
+const HOME_FEED_LIMIT = 18;
 
 // Item 6 (paginação): página de cada editoria (/blog/$beat) carrega em
 // blocos de 15 via cursor (publishedAt da última matéria da página
@@ -181,38 +179,28 @@ function mapArticle(row: typeof articles.$inferSelect) {
   };
 }
 
-// Home: só últimas 24h (dayRows) + um bloco limitado "Esta semana"
-// (weekRows, 24h-7d) — nunca a lista inteira. Ver comentário de
-// HOME_WINDOW_HOURS acima.
+// Home: últimas matérias publicadas, com contador factual das últimas 24h.
 export const getPublishedArticles = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
   const dayAgo = new Date(Date.now() - HOME_WINDOW_HOURS * 60 * 60 * 1000);
-  const weekAgo = new Date(Date.now() - HOME_WEEK_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
-  const [dayRows, weekRows] = await Promise.all([
+  const [feedRows, countRows] = await Promise.all([
     db
       .select()
       .from(articles)
-      .where(and(eq(articles.status, "published"), gte(articles.publishedAt, dayAgo)))
-      .orderBy(desc(articles.publishedAt)),
-    db
-      .select()
-      .from(articles)
-      .where(
-        and(
-          eq(articles.status, "published"),
-          gte(articles.publishedAt, weekAgo),
-          lt(articles.publishedAt, dayAgo),
-        ),
-      )
+      .where(eq(articles.status, "published"))
       .orderBy(desc(articles.publishedAt))
-      .limit(HOME_WEEK_LIMIT),
+      .limit(HOME_FEED_LIMIT),
+    db
+      .select({ value: count() })
+      .from(articles)
+      .where(and(eq(articles.status, "published"), gte(articles.publishedAt, dayAgo))),
   ]);
 
   return {
     ok: true as const,
-    articles: dayRows.map(mapArticle),
-    weekArticles: weekRows.map(mapArticle),
+    articles: feedRows.map(mapArticle),
+    current24hCount: Number(countRows[0]?.value ?? 0),
   };
 });
 
