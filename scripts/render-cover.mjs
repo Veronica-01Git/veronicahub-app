@@ -188,7 +188,7 @@ async function render({ slug, headline, beat, desk, outDir }) {
   try {
     const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
     await page.setContent(html, { waitUntil: "networkidle" });
-    await page.screenshot({ path: outPath, type: "jpeg", quality: 92 });
+    await page.screenshot({ path: outPath, type: "jpeg", quality: 84 });
   } finally {
     await browser.close();
   }

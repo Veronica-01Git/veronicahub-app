@@ -3,9 +3,8 @@
 // "evolução"), sem duplicar a mesma chamada HTTP em dois scripts.
 import { writeFile } from "node:fs/promises";
 
-// 2560px é o ponto de equilíbrio para telas retina/4K sem acrescentar vários
-// megabytes por capa ao histórico do Git. A fotografia de origem precisa ter
-// pelo menos 3840px; o provedor entrega uma derivação editorial comprimida.
+// A origem precisa ter resolução 4K para permitir bom recorte. A derivação
+// final usa 1600x900: nítida nos cards e em telas retina, mas leve para web.
 export const MIN_WIDTH = 3840;
 
 export async function searchPexels(term, apiKey, excludeIds) {
@@ -30,8 +29,8 @@ export async function searchPexels(term, apiKey, excludeIds) {
   editorialUrl.searchParams.set("auto", "compress");
   editorialUrl.searchParams.set("cs", "tinysrgb");
   editorialUrl.searchParams.set("fit", "crop");
-  editorialUrl.searchParams.set("w", "2560");
-  editorialUrl.searchParams.set("h", "1440");
+  editorialUrl.searchParams.set("w", "1600");
+  editorialUrl.searchParams.set("h", "900");
 
   return {
     imageUrl: editorialUrl.toString(),

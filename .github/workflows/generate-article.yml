@@ -123,6 +123,16 @@ jobs:
           COVER_DESK: ${{ steps.generate.outputs.desk }}
         run: node scripts/render-cover.mjs
 
+      - name: Otimiza a capa para alta resolução e baixo peso
+        if: steps.fetch_photo.outputs.found == 'true' || steps.render.outcome == 'success'
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick
+          bash scripts/optimize-cover.sh "public/images/blog-covers/${COVER_SLUG}.jpg"
+
       - name: Commita a capa no repositório
         if: steps.fetch_photo.outputs.found == 'true' || steps.render.outcome == 'success'
         id: commit
