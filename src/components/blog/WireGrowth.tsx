@@ -1,4 +1,4 @@
-import { ArrowUpRight, BarChart3, Play, Radio, Target } from "lucide-react";
+import { ArrowUpRight, BarChart3, CloudRain, Play, Radio, Target } from "lucide-react";
 import type { Beat } from "@/lib/beats";
 
 const OWNED_STORIES = [
@@ -8,7 +8,7 @@ const OWNED_STORIES = [
     description: "Uma nova publicação por hora, conectando notícia, aprendizado e execução.",
     href: "/comandos?utm_source=wire&utm_medium=owned_story&utm_campaign=wire_24h",
     cta: "Conhecer os comandos",
-    image: "/veronica-cyborg-v2.webp",
+    image: "/images/wire-reposts/rede-energia-global-ai.webp",
     icon: Radio,
     external: false,
   },
@@ -18,7 +18,7 @@ const OWNED_STORIES = [
     description: "Descubra produtos, sinais de mercado e oportunidades para conteúdo comercial.",
     href: "/veronica-analytics?utm_source=wire&utm_medium=owned_story&utm_campaign=analytics",
     cta: "Abrir Analytics",
-    image: "/veronica-depth.webp",
+    image: "/images/wire-reposts/yuan-digital-drex-ai.webp",
     icon: BarChart3,
     external: false,
   },
@@ -28,9 +28,19 @@ const OWNED_STORIES = [
     description: "Notícias em vídeo, análises rápidas e bastidores da construção do ecossistema.",
     href: "https://youtube.com/@veronica-hub?sub_confirmation=1&utm_source=wire&utm_medium=owned_story&utm_campaign=community_goal",
     cta: "Participar da meta",
-    image: "/veronica-hero-sm.webp",
+    image: "/images/wire-reposts/energia-solar-parana-ai.webp",
     icon: Target,
     external: true,
+  },
+  {
+    eyebrow: "Radar regional",
+    title: "Balneário Camboriú entra no mapa de clima e infraestrutura",
+    description: "Acompanhe sinais locais com contexto nacional, dados e leitura crítica.",
+    href: "/blog/editoria/clima",
+    cta: "Ver cobertura climática",
+    image: "/images/wire-reposts/balneario-camboriu-clima-ai.webp",
+    icon: CloudRain,
+    external: false,
   },
 ] as const;
 
@@ -77,23 +87,36 @@ const ACTION_BY_BEAT: Record<
 
 export function WireOwnedStories() {
   return (
-    <section aria-labelledby="wire-owned-title" className="border-b border-border/40 bg-surface/20 py-8">
+    <section
+      aria-labelledby="wire-owned-title"
+      className="relative overflow-hidden border-b border-border/40 bg-[#07110f] py-12 text-white"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-20"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(52,211,153,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,.10) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage: "linear-gradient(90deg, black, transparent 85%)",
+        }}
+      />
       <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+        <div className="relative mb-6 flex flex-wrap items-end justify-between gap-2">
           <div>
             <div className="font-mono-tech text-[9px] uppercase tracking-[0.24em] text-neon-green">
-              Conteúdo da casa · Veronica Hub
+              Transmissões da casa · Veronica Hub
             </div>
-            <h2 id="wire-owned-title" className="mt-1 font-display text-xl text-foreground sm:text-2xl">
+            <h2 id="wire-owned-title" className="mt-2 font-display text-2xl text-white sm:text-3xl">
               Veronica em movimento
             </h2>
           </div>
-          <span className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
-            Produtos · operação · comunidade
+          <span className="font-mono-tech text-[9px] uppercase tracking-widest text-white/45">
+            produtos · operação · comunidade · radar local
           </span>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {OWNED_STORIES.map((story, index) => {
             const Icon = story.icon;
             return (
@@ -102,23 +125,27 @@ export function WireOwnedStories() {
                 href={story.href}
                 target={story.external ? "_blank" : undefined}
                 rel={story.external ? "noopener noreferrer" : undefined}
-                className="group relative min-h-56 overflow-hidden rounded-sm border border-border/60 bg-background"
+                className="group relative min-h-72 overflow-hidden rounded-sm border border-white/15 bg-black"
               >
                 <img
                   src={story.image}
                   alt=""
                   loading={index === 0 ? "eager" : "lazy"}
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover opacity-35 transition duration-700 group-hover:scale-105 group-hover:opacity-45"
+                  className="absolute inset-0 h-full w-full object-cover opacity-65 transition duration-700 group-hover:scale-105 group-hover:opacity-80"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-background/20" />
-                <div className="relative flex min-h-56 flex-col justify-end p-5">
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/10" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neon-cyan/80 to-transparent opacity-0 transition group-hover:opacity-100" />
+                <div className="relative flex min-h-72 flex-col justify-end p-5">
+                  <span className="mb-auto w-fit rounded-sm border border-white/15 bg-black/45 px-2 py-1 font-mono-tech text-[7.5px] uppercase tracking-widest text-white/60 backdrop-blur">
+                    Ilustração gerada por IA
+                  </span>
                   <div className="flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-widest text-neon-green">
                     <Icon className="h-3.5 w-3.5" />
                     {story.eyebrow}
                   </div>
-                  <h3 className="mt-2 font-display text-xl leading-tight text-foreground">{story.title}</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{story.description}</p>
+                  <h3 className="mt-2 font-display text-xl leading-tight text-white">{story.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-white/60">{story.description}</p>
                   <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-neon-green">
                     {story.cta} <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </span>
