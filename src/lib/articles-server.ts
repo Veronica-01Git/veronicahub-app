@@ -32,7 +32,93 @@ const GDELT_QUERY: Record<Beat, string> = {
   mercado: '(technology OR "artificial intelligence") (investment OR earnings OR infrastructure)',
 };
 
+// Redundância gratuita para o radar: quando o GDELT demora ou fica fora do
+// ar, usamos RSS de veículos e instituições reconhecidas. Esses itens também
+// são apenas sinais de pauta; a publicação continua exigindo duas fontes
+// independentes abertas e verificadas pelo modelo.
+const RSS_FEEDS: Record<Beat, string[]> = {
+  ia: ["https://techcrunch.com/feed/", "https://www.technologyreview.com/feed/"],
+  clima: [
+    "https://news.un.org/feed/subscribe/en/news/topic/climate-change/feed/rss.xml",
+    "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+  ],
+  economia: [
+    "https://www.federalreserve.gov/feeds/press_all.xml",
+    "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+  ],
+  geopolitica: [
+    "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+  ],
+  mercado: ["https://techcrunch.com/feed/", "https://www.technologyreview.com/feed/"],
+};
+
+const SIGNAL_KEYWORDS: Record<Beat, RegExp> = {
+  ia: /\b(ai|artificial intelligence|inteligência artificial|model|chip|robot|software)\b/i,
+  clima: /\b(climate|clima|energy|energia|solar|wind|eólica|battery|bateria|emission)\b/i,
+  economia: /\b(econom|economia|central bank|banco central|currency|moeda|inflation|inflação|cbdc|yuan|drex|interest|juros)\b/i,
+  geopolitica: /\b(china|chinese|brasil|brazil|united states|eua|trade|comércio|tariff|tarifa|chip|semiconductor|geopolit)\b/i,
+  mercado: /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip)\b/i,
+};
+
 type StorySignal = { title: string; url: string; domain: string; seenAt: string };
+
+function decodeXmlText(value: string): string {
+  return value
+    .replace(/^<!\[CDATA\[|\]\]>$/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+function rssTag(block: string, tag: string): string {
+  const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  return match ? decodeXmlText(match[1].trim()) : "";
+}
+
+async function discoverRssSignals(beat: Beat): Promise<StorySignal[]> {
+  const results = await Promise.allSettled(
+    RSS_FEEDS[beat].map(async (feedUrl) => {
+      const response = await fetch(feedUrl, {
+        headers: { "User-Agent": "VeronicaWire/1.0 (+https://veronicahub.com/blog)" },
+        signal: AbortSignal.timeout(8_000),
+      });
+      if (!response.ok) return [];
+      const xml = await response.text();
+      return [...xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)].map((match) => {
+        const title = rssTag(match[1], "title");
+        const url = rssTag(match[1], "link");
+        const seenAt = rssTag(match[1], "pubDate") || rssTag(match[1], "dc:date");
+        return { title, url, seenAt };
+      });
+    }),
+  );
+
+  const recentFloor = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const seenDomains = new Set<string>();
+  const signals: StorySignal[] = [];
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue;
+    for (const item of result.value) {
+      if (!item.title || !item.url || !SIGNAL_KEYWORDS[beat].test(item.title)) continue;
+      const published = Date.parse(item.seenAt);
+      if (Number.isFinite(published) && published < recentFloor) continue;
+      let domain: string;
+      try {
+        domain = new URL(item.url).hostname.replace(/^www\./, "").toLowerCase();
+      } catch {
+        continue;
+      }
+      if (seenDomains.has(domain)) continue;
+      seenDomains.add(domain);
+      signals.push({ ...item, title: item.title.slice(0, 220), domain });
+      if (signals.length === 5) return signals;
+    }
+  }
+  return signals;
+}
 
 function canonicalSourceUrl(value: string): string | null {
   try {
@@ -55,9 +141,9 @@ async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
     url.searchParams.set("maxrecords", "25");
 
     const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
-    if (!response.ok) return [];
+    if (!response.ok) return discoverRssSignals(beat);
     const payload = (await response.json()) as { articles?: unknown };
-    if (!Array.isArray(payload.articles)) return [];
+    if (!Array.isArray(payload.articles)) return discoverRssSignals(beat);
 
     const seenDomains = new Set<string>();
     const signals: StorySignal[] = [];
@@ -82,10 +168,10 @@ async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
       // somado ao contexto do browser_search.
       if (signals.length === 5) break;
     }
-    return signals;
+    return signals.length > 0 ? signals : discoverRssSignals(beat);
   } catch (error) {
-    console.error(`discoverStorySignals(${beat}): radar indisponível`, error);
-    return [];
+    console.warn(`discoverStorySignals(${beat}): GDELT indisponível; usando RSS`, error);
+    return discoverRssSignals(beat);
   }
 }
 
