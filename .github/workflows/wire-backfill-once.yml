@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   backfill:
+    # Segunda execução: origem direta do arquivo, sem chamada circular ao Worker.
     runs-on: ubuntu-latest
     steps:
       - name: Copia capas publicadas para a biblioteca Admin
