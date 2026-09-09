@@ -16,6 +16,21 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+function resolveLibraryImageUrl(coverImageUrl: string): string {
+  try {
+    const url = new URL(coverImageUrl);
+    if (
+      (url.hostname === "veronicahub.com" || url.hostname === "www.veronicahub.com") &&
+      url.pathname.startsWith("/images/blog-covers/")
+    ) {
+      return `https://raw.githubusercontent.com/Veronica-01Git/veronicahub-app/main/public${url.pathname}`;
+    }
+  } catch {
+    // A validação do fetch abaixo devolve o erro apropriado para URLs inválidas.
+  }
+  return coverImageUrl;
+}
+
 async function saveCoverToMediaLibrary(input: {
   slug: string;
   headline: string;
@@ -30,8 +45,14 @@ async function saveCoverToMediaLibrary(input: {
     .limit(1);
   if (existing) return false;
 
-  const response = await fetch(input.coverImageUrl);
-  if (!response.ok) throw new Error(`Falha ao baixar a capa para a biblioteca (${response.status}).`);
+  // Evita o Worker buscar o próprio domínio durante o backfill. Esse loop
+  // interno recebia 403/522 no Cloudflare; o arquivo versionado no GitHub é
+  // exatamente a mesma capa publicada no site.
+  const response = await fetch(resolveLibraryImageUrl(input.coverImageUrl), {
+    headers: { Accept: "image/*", "User-Agent": "Veronica-Wire-Library/1.0" },
+  });
+  if (!response.ok)
+    throw new Error(`Falha ao baixar a capa para a biblioteca (${response.status}).`);
 
   const mimeType = (response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
   if (!new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]).has(mimeType)) {
