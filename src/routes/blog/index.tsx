@@ -1,6 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Radio, Globe2, Cpu, TrendingUp, Cloud, Landmark, ArrowRight } from "lucide-react";
+import {
+  Radio,
+  Globe2,
+  Cpu,
+  TrendingUp,
+  Cloud,
+  Landmark,
+  ArrowRight,
+  Activity,
+  Database,
+  Radar,
+  ShieldCheck,
+  SlidersHorizontal,
+} from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
@@ -89,6 +102,209 @@ const TAGS = [
   "#vídeo-IA",
   "#mercado",
 ];
+
+type WireFeedArticle = {
+  id: string;
+  slug: string;
+  beat: Beat;
+  headline: string;
+  excerpt: string;
+  desk: string;
+  coverImageUrl: string | null;
+  sourceUrls: string[];
+  publishedAt: string | null;
+};
+
+function sourceDomain(sourceUrl: string) {
+  try {
+    return new URL(sourceUrl).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+function WireSignalRoom({ articles, now }: { articles: WireFeedArticle[]; now: Date }) {
+  const [favoriteBeat, setFavoriteBeat] = useState<Beat | null>(null);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("veronica-wire-favorite-beat");
+    if (saved && BEAT_VALUES.includes(saved as Beat)) setFavoriteBeat(saved as Beat);
+  }, []);
+
+  const chooseBeat = (beat: Beat) => {
+    setFavoriteBeat(beat);
+    window.localStorage.setItem("veronica-wire-favorite-beat", beat);
+  };
+
+  const uniqueSources = new Set(
+    articles.flatMap((article) => article.sourceUrls.map(sourceDomain).filter(Boolean)),
+  ).size;
+  const selectedStory = favoriteBeat
+    ? articles.find((article) => article.beat === favoriteBeat)
+    : articles[0];
+  const selectedMeta = favoriteBeat ? BEAT_META[favoriteBeat] : null;
+
+  return (
+    <section
+      id="sala-sinais"
+      className="border-y border-border/50 bg-foreground py-16 text-background cv-auto"
+    >
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="relative overflow-hidden rounded-sm border border-background/15 bg-background/[0.035]">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(79,255,180,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(79,255,180,.10) 1px, transparent 1px)",
+              backgroundSize: "34px 34px",
+              maskImage: "linear-gradient(135deg, black, transparent 72%)",
+            }}
+          />
+
+          <div className="relative border-b border-background/15 px-5 py-4 sm:px-7">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-[0.28em] text-neon-green">
+                  <Activity className="h-3.5 w-3.5" /> Veronica newsroom intelligence
+                </div>
+                <h2 className="mt-2 font-display text-2xl text-background sm:text-3xl">
+                  Signal Room
+                </h2>
+              </div>
+              <div className="flex items-center gap-2 rounded-sm border border-neon-green/30 bg-neon-green/10 px-3 py-2 font-mono-tech text-[9px] uppercase tracking-[0.2em] text-neon-green">
+                <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-neon-green" />
+                Radar ativo
+              </div>
+            </div>
+          </div>
+
+          <div className="relative grid border-b border-background/15 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Ciclo de apuração", value: "60 min", icon: Radar },
+              { label: "Publicadas em 24h", value: String(articles.length), icon: Activity },
+              { label: "Domínios citados", value: String(uniqueSources), icon: Database },
+              { label: "Regra editorial", value: "2+ fontes", icon: ShieldCheck },
+            ].map((metric) => {
+              const Icon = metric.icon;
+              return (
+                <div
+                  key={metric.label}
+                  className="border-b border-background/10 p-5 last:border-b-0 sm:border-r lg:border-b-0"
+                >
+                  <Icon className="h-4 w-4 text-neon-cyan" />
+                  <div className="mt-4 font-display text-2xl text-background">{metric.value}</div>
+                  <div className="mt-1 font-mono-tech text-[8.5px] uppercase tracking-[0.2em] text-background/50">
+                    {metric.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="relative grid lg:grid-cols-[1.45fr_.75fr]">
+            <div className="border-b border-background/15 p-5 sm:p-7 lg:border-b-0 lg:border-r">
+              <div className="flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-[0.22em] text-background/55">
+                <SlidersHorizontal className="h-3.5 w-3.5" /> Configure seu radar
+              </div>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-background/65">
+                Escolha a editoria que você quer acompanhar. A preferência fica neste dispositivo e
+                destaca a matéria mais recente do tema.
+              </p>
+              <div
+                className="mt-5 flex flex-wrap gap-2"
+                role="group"
+                aria-label="Escolha uma editoria preferida"
+              >
+                {BEAT_VALUES.map((beat) => {
+                  const active = favoriteBeat === beat;
+                  return (
+                    <button
+                      key={beat}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => chooseBeat(beat)}
+                      className={`rounded-sm border px-3 py-2 font-mono-tech text-[9px] uppercase tracking-widest transition ${
+                        active
+                          ? "border-neon-green bg-neon-green text-primary-foreground"
+                          : "border-background/20 text-background/65 hover:border-neon-green/60 hover:text-neon-green"
+                      }`}
+                    >
+                      {BEAT_META[beat].short}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedStory ? (
+                <Link
+                  to="/blog/$slug"
+                  params={{ slug: selectedStory.slug }}
+                  className="group mt-6 grid overflow-hidden rounded-sm border border-background/15 bg-background/[0.045] sm:grid-cols-[190px_1fr]"
+                >
+                  <CoverThumb
+                    beat={selectedStory.beat}
+                    coverImageUrl={selectedStory.coverImageUrl}
+                    className="aspect-[16/9] h-full min-h-32"
+                  />
+                  <div className="p-5">
+                    <div className="font-mono-tech text-[9px] uppercase tracking-[0.2em] text-neon-green">
+                      {favoriteBeat
+                        ? `Seu radar · ${selectedMeta!.short}`
+                        : "Último sinal publicado"}
+                    </div>
+                    <h3 className="mt-2 font-display text-xl leading-tight text-background transition group-hover:text-neon-green">
+                      {selectedStory.headline}
+                    </h3>
+                    <div className="mt-3 flex items-center justify-between gap-3 font-mono-tech text-[8.5px] uppercase tracking-widest text-background/45">
+                      <span>{selectedStory.desk}</span>
+                      <span>{formatAgo(selectedStory.publishedAt, now)}</span>
+                    </div>
+                  </div>
+                </Link>
+              ) : favoriteBeat ? (
+                <div className="mt-6 rounded-sm border border-dashed border-background/20 p-5 text-sm text-background/55">
+                  Ainda não há matéria verificada de {selectedMeta!.label.toLowerCase()} neste
+                  ciclo. O radar continua acompanhando as fontes.
+                </div>
+              ) : null}
+            </div>
+
+            <aside className="p-5 sm:p-7" aria-labelledby="wire-method-title">
+              <div className="font-mono-tech text-[9px] uppercase tracking-[0.22em] text-neon-cyan">
+                Protocolo de confiança
+              </div>
+              <h3 id="wire-method-title" className="mt-2 font-display text-xl text-background">
+                Informação antes do ruído
+              </h3>
+              <ol className="mt-5 space-y-4">
+                {[
+                  ["01", "Radar", "Sinais recentes entram na fila de apuração."],
+                  ["02", "Cruzamento", "A pauta exige ao menos dois domínios independentes."],
+                  ["03", "Contexto", "Fato, sinal e cenário futuro são tratados separadamente."],
+                ].map(([number, title, text]) => (
+                  <li key={number} className="grid grid-cols-[30px_1fr] gap-3">
+                    <span className="font-mono-tech text-[10px] text-neon-green">{number}</span>
+                    <div>
+                      <div className="text-sm font-medium text-background">{title}</div>
+                      <p className="mt-0.5 text-xs leading-relaxed text-background/50">{text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <Link
+                to="/comandos"
+                className="mt-6 inline-flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-[0.2em] text-neon-green transition hover:text-neon-cyan"
+              >
+                Investigue com a Veronica <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // Sempre parte de um Date de verdade (nunca null) — renderiza a hora certa
 // já no primeiro paint (SSR incluído), sem esperar um efeito rodar no
@@ -224,6 +440,12 @@ function VeronicaWire() {
             >
               Início
             </a>
+            <a
+              href="#sala-sinais"
+              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-neon-green"
+            >
+              Signal Room
+            </a>
             {BEAT_VALUES.map((b) => (
               <Link
                 key={b}
@@ -333,6 +555,8 @@ function VeronicaWire() {
           </div>
         )}
       </section>
+
+      <WireSignalRoom articles={[...articles, ...weekArticles]} now={now} />
 
       {/* Fique por dentro — newsletter + editorias */}
       <section className="mx-auto max-w-7xl px-6 pb-6">
