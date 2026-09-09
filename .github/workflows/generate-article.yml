@@ -5,6 +5,12 @@ on:
   # pipeline usa Groq no Worker; Anthropic não é necessário para publicar.
   schedule:
     - cron: "17 * * * *"
+  # Mudanças no próprio pipeline disparam uma rodada de validação. O filtro
+  # impede que commits de capas criem um ciclo de novas publicações.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/generate-article.yml"
   workflow_dispatch: {}
 
 concurrency:
