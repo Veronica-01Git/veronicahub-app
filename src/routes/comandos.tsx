@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Wand2, FileText, BarChart3, Layers } from "lucide-react";
+import { ArrowRight, Check, Wand2, FileText, BarChart3, Layers, Play } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SiteHeader, SiteFooter, HUB_URL } from "@/components/SiteChrome";
 import { LazyImage } from "@/components/media/LazyImage";
@@ -102,6 +102,12 @@ function Comandos() {
             Sem fluff. Cada comando é construído sobre resultado real e execução prática — e não
             termina no curso: continua nas ferramentas do ecossistema.
           </p>
+          <Link
+            to="/aula-zero"
+            className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-sm border border-neon-green/50 bg-neon-green/[0.07] px-5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green transition hover:-translate-y-0.5 hover:bg-neon-green/10"
+          >
+            <Play className="h-3.5 w-3.5 fill-current" /> Fazer a Aula Zero gratuita
+          </Link>
         </div>
       </section>
 
