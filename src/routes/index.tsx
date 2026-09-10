@@ -202,7 +202,7 @@ const faqs = [
 
 function Index() {
   const [mobileOpen, setMobileOpen] = useState(false);
-    const [veronicaOpen, setVeronicaOpen] = useState(false);
+  const [veronicaOpen, setVeronicaOpen] = useState(false);
   useEffect(() => {
     if (!mobileOpen) return;
     function onKeyDown(e: KeyboardEvent) {
@@ -230,7 +230,7 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-            <VeronicaDrawer
+      <VeronicaDrawer
         skillId="home"
         open={veronicaOpen}
         stepId={null}
@@ -249,12 +249,6 @@ function Index() {
           <span className="hidden sm:inline">Perguntar à Veronica</span>
         </button>
       )}
-      {/* Grão cinematográfico — textura estática (sem jitter quadro a quadro),
-          mesmo vocabulário do .scanlines da hero, cobrindo a página inteira. */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-40 film-grain opacity-[0.05]"
-      />
       {/* Nav */}
       <header className="relative sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
         {/* Sutil linha vermelha de ponta a ponta no topo */}
@@ -344,7 +338,7 @@ function Index() {
         <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
           <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
             <AuthWidget variant="mobile" />
-                        <button
+            <button
               type="button"
               onClick={() => {
                 setMobileOpen(false);
@@ -434,7 +428,7 @@ function Index() {
       )}
 
       {/* Hero */}
-      <section className="relative overflow-hidden scanlines">
+      <section className="relative overflow-hidden bg-black scanlines">
         <HeroFrame />
         <VeronicaPresence />
 
