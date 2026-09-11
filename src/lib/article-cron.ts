@@ -96,7 +96,7 @@ function currentBeat(): Beat {
 function isEditorialSkip(error: string): boolean {
   return [
     "Radar externo sem pauta recente verificável",
-    "A matéria não ficou ancorada a uma pauta detectada",
+    "A matéria não ficou ancorada a uma pauta",
     "A data do fato está fora da janela editorial de 72h",
     "Já existe matéria publicada nessa janela",
     "Manchete parecida demais com uma publicação recente",
