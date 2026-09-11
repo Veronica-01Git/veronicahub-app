@@ -395,7 +395,7 @@ function VeronicaWire() {
         <div className="border-b border-border/40 bg-foreground text-background">
           <div className="mx-auto flex h-9 max-w-7xl items-center gap-3 px-6">
             <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-sm bg-destructive px-2 py-0.5 font-mono-tech text-[10px] uppercase tracking-widest text-white">
-              <Radio className="h-3 w-3 animate-pulse-dot" /> Últimas notícias
+              <Radio className="h-3 w-3 animate-pulse-dot" /> AO VIVO
             </span>
             <div
               className="flex-1 overflow-hidden"
