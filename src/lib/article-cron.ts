@@ -95,7 +95,7 @@ function currentBeat(): Beat {
 
 function isEditorialSkip(error: string): boolean {
   return [
-    "Radar GDELT sem pauta recente verificável",
+    "Radar externo sem pauta recente verificável",
     "A matéria não ficou ancorada a uma pauta detectada",
     "Já existe matéria publicada nessa janela",
     "Manchete parecida demais com uma publicação recente",

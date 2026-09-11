@@ -37,20 +37,31 @@ const GDELT_QUERY: Record<Beat, string> = {
 // são apenas sinais de pauta; a publicação continua exigindo duas fontes
 // independentes abertas e verificadas pelo modelo.
 const RSS_FEEDS: Record<Beat, string[]> = {
-  ia: ["https://techcrunch.com/feed/", "https://www.technologyreview.com/feed/"],
+  ia: [
+    "https://news.google.com/rss/search?q=artificial+intelligence+OR+AI+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
+    "https://techcrunch.com/feed/",
+    "https://www.technologyreview.com/feed/",
+  ],
   clima: [
+    "https://news.google.com/rss/search?q=clean+energy+OR+climate+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
     "https://news.un.org/feed/subscribe/en/news/topic/climate-change/feed/rss.xml",
     "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
   ],
   economia: [
+    "https://news.google.com/rss/search?q=central+bank+OR+digital+currency+OR+inflation+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
     "https://www.federalreserve.gov/feeds/press_all.xml",
     "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
   ],
   geopolitica: [
+    "https://news.google.com/rss/search?q=China+US+Brazil+technology+trade+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
     "https://feeds.bbci.co.uk/news/world/rss.xml",
     "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
   ],
-  mercado: ["https://techcrunch.com/feed/", "https://www.technologyreview.com/feed/"],
+  mercado: [
+    "https://news.google.com/rss/search?q=technology+investment+OR+earnings+OR+chips+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
+    "https://techcrunch.com/feed/",
+    "https://www.technologyreview.com/feed/",
+  ],
 };
 
 const SIGNAL_KEYWORDS: Record<Beat, RegExp> = {
@@ -519,8 +530,10 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
     };
   }
 
+  const shouldPersistRadarUrl =
+    selectedSignal && selectedSignal.domain !== "news.google.com";
   const resolvedSourceUrls = [
-    ...(anchoredToRecentRadar || !selectedSignal ? [] : [selectedSignal.url]),
+    ...(anchoredToRecentRadar || !shouldPersistRadarUrl ? [] : [selectedSignal.url]),
     ...submittedSourceUrls,
   ].filter((url, index, all) => {
     const canonical = canonicalSourceUrl(url);
@@ -571,6 +584,9 @@ async function draftArticleContent(
   // (retry=true) — não faz sentido retentar quando o próprio modelo disse
   // que não achou fato verificável, nem quando a chamada à API falhou.
   const signals = await discoverStorySignals(beat);
+  if (signals.length === 0) {
+    return { ok: false, error: "Radar externo sem pauta recente verificável no momento." };
+  }
   const first = await attemptDraft(apiKey, beat, signals);
   if (first.ok || !first.retry) return first;
 
