@@ -498,3 +498,4 @@ continuar isso:**
   WebGL ou mídia pesada.
 - Adicionado controle acessível de tema claro/escuro exclusivo da Home, com
   preferência persistida localmente.
+- Publicação da restauração solicitada após aprovação explícita do usuário.
