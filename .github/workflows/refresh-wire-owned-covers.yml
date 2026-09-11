@@ -12,6 +12,7 @@ permissions:
   contents: write
 
 concurrency:
+  # Uma troca por vez: arquiva, baixa, otimiza e publica como uma unidade.
   group: veronica-wire-owned-covers
   cancel-in-progress: false
 
