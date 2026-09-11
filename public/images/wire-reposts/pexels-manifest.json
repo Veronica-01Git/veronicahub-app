@@ -1,0 +1,41 @@
+{
+  "updatedAt": "2026-09-11T06:31:19.623Z",
+  "images": [
+    {
+      "id": "newsroom",
+      "path": "/images/wire-reposts/veronica-wire-newsroom-pexels.jpg",
+      "searchTerm": "global technology newsroom",
+      "source": "pexels",
+      "photoId": "7865064",
+      "photoCredit": "SHAHBAZ ZAMAN",
+      "photoUrl": "https://www.pexels.com/photo/photo-of-a-studio-set-up-7865064/"
+    },
+    {
+      "id": "analytics",
+      "path": "/images/wire-reposts/veronica-analytics-pexels.jpg",
+      "searchTerm": "data analytics office",
+      "source": "pexels",
+      "photoId": "8636589",
+      "photoCredit": "Kampus Production",
+      "photoUrl": "https://www.pexels.com/photo/computer-and-laptop-over-white-table-8636589/"
+    },
+    {
+      "id": "community",
+      "path": "/images/wire-reposts/veronica-community-pexels.jpg",
+      "searchTerm": "video creator studio camera",
+      "source": "pexels",
+      "photoId": "33899322",
+      "photoCredit": "Jakub Zerdzicki",
+      "photoUrl": "https://www.pexels.com/photo/professional-video-production-setup-in-studio-33899322/"
+    },
+    {
+      "id": "regional",
+      "path": "/images/wire-reposts/veronica-regional-pexels.jpg",
+      "searchTerm": "Brazil coastal city skyline",
+      "source": "pexels",
+      "photoId": "26098751",
+      "photoCredit": "Thamsanqa Mxoli",
+      "photoUrl": "https://www.pexels.com/photo/skyscrapers-by-the-shore-in-brazil-26098751/"
+    }
+  ]
+}
