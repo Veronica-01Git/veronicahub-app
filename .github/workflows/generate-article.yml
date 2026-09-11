@@ -5,6 +5,9 @@ on:
   # pipeline usa Groq no Worker; Anthropic não é necessário para publicar.
   schedule:
     - cron: "17 * * * *"
+    # Segunda oportunidade na mesma hora. Se a primeira rodada publicar, a
+    # trava por janela evita nova chamada à IA e impede duplicatas.
+    - cron: "47 * * * *"
   # Mudanças no próprio pipeline disparam uma rodada de validação. O filtro
   # impede que commits de capas criem um ciclo de novas publicações.
   push:
@@ -44,6 +47,15 @@ jobs:
           echo
           if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
             exit 1
+          fi
+          if [ "$(jq -r '.skipped == true' response.json)" = "true" ]; then
+            reason=$(jq -r '.error // "rodada editorial sem publicação"' response.json)
+            {
+              echo "### Veronica Wire — rodada sem publicação"
+              echo
+              echo "- Motivo: $reason"
+              echo "- Editoria: $(jq -r '.beat // "não informada"' response.json)"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
           {
             echo "generated=$(jq -r '.ok == true and (.skipped != true)' response.json)"

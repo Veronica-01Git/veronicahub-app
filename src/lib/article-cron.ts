@@ -85,8 +85,8 @@ async function saveCoverToMediaLibrary(input: {
 }
 
 // Escolhe a editoria pela hora UTC atual — sem precisar guardar estado em
-// lugar nenhum (qual foi a última editoria gerada). Mesmo bucket de 5h
-// sempre cai na mesma editoria, então ao longo do dia todas passam.
+// lugar nenhum (qual foi a última editoria gerada). A editoria gira por hora,
+// então ao longo do dia todas passam e a janela impede duplicação.
 function currentBeat(): Beat {
   const hour = new Date().getUTCHours();
   const index = Math.floor(hour / CYCLE_HOURS) % BEAT_VALUES.length;
