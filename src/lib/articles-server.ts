@@ -96,7 +96,9 @@ async function discoverRssSignals(beat: Beat): Promise<StorySignal[]> {
     }),
   );
 
-  const recentFloor = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  // Uma janela de 72h mantém o radar útil em fins de semana e durante
+  // indisponibilidades do GDELT, sem transformar notícia antiga em pauta.
+  const recentFloor = Date.now() - 72 * 60 * 60 * 1000;
   const seenDomains = new Set<string>();
   const signals: StorySignal[] = [];
   for (const result of results) {
@@ -406,9 +408,9 @@ async function attemptDraft(
         .join("\n")}`
     : "\n\nO radar GDELT está indisponível; faça a descoberta da pauta pela busca na web.";
   const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
-Pesquise UM fato real das últimas 24h. Escolha uma pauta do radar, confirme-a em outra apuração independente e inclua em sourceUrls a URL EXATA do radar escolhida. Priorize uma fonte primária e uma fonte jornalística. Republicações do mesmo texto de agência não contam como duas fontes. Não invente.
+Pesquise UM fato real recente, preferencialmente das últimas 24h e no máximo das últimas 72h. Escolha uma pauta do radar, informe o número dela em selectedRadarIndex e confirme-a em outra apuração independente. Priorize uma fonte primária e uma fonte jornalística. Republicações do mesmo texto de agência não contam como duas fontes. Não invente.
 Responda apenas com JSON válido neste formato:
-{"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-4 parágrafos, 750-1000 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"Desk de tema específico","sourceUrls":["https://fonte-1","https://fonte-2"],"fotoTermos":["english photo term 1","english photo term 2"]}
+{"selectedRadarIndex":1,"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-4 parágrafos, 750-1000 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"Desk de tema específico","sourceUrls":["https://fonte-independente-1","https://fonte-independente-2"],"fotoTermos":["english photo term 1","english photo term 2"]}
 Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultadas; sem páginas iniciais, buscas, redes sociais ou agregadores. Projeções e cenários devem ser atribuídos, nunca escritos como certeza. fotoTermos deve ter 2-3 objetos, lugares ou ambientes fotografáveis em inglês, sem marcas ou pessoas públicas. Se não houver fato verificável, responda {"error":"sem fato verificável no momento"}.${radarContext}`;
 
   // browser_search é obrigatório: o modelo não pode responder só de memória.
@@ -439,7 +441,7 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
   const finishReason = response.choices[0]?.finish_reason;
   const text = (response.choices[0]?.message?.content ?? "").trim();
 
-  const jsonStarts = [...text.matchAll(/\{\s*"(?:headline|error)"/g)];
+  const jsonStarts = [...text.matchAll(/\{\s*"(?:selectedRadarIndex|headline|error)"/g)];
   const jsonStart = jsonStarts.at(-1)?.index ?? -1;
   const jsonEnd = text.lastIndexOf("}");
   if (jsonStart === -1 || jsonEnd === -1) {
@@ -463,7 +465,7 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
     return { ok: false, error: parsed.error, retry: false };
   }
 
-  const { headline, excerpt, body, desk, sourceUrls, fotoTermos } = parsed;
+  const { selectedRadarIndex, headline, excerpt, body, desk, sourceUrls, fotoTermos } = parsed;
   if (
     typeof headline !== "string" ||
     typeof excerpt !== "string" ||
@@ -483,18 +485,47 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
       .map((signal) => canonicalSourceUrl(signal.url))
       .filter((url): url is string => Boolean(url)),
   );
-  const anchoredToRecentRadar = (sourceUrls as string[]).some((url) => {
+  const submittedSourceUrls = sourceUrls as string[];
+  const anchoredToRecentRadar = submittedSourceUrls.some((url) => {
     const canonical = canonicalSourceUrl(url);
     return canonical !== null && radarUrls.has(canonical);
   });
-  if (!anchoredToRecentRadar) {
+
+  // Modelos de busca frequentemente devolvem a URL canônica encontrada na
+  // apuração em vez da URL longa recebida no radar. selectedRadarIndex evita
+  // descartar uma matéria válida só porque a IA não copiou a URL literalmente:
+  // o servidor reinsere a pauta exata escolhida e o piso editorial, abaixo,
+  // ainda exige outro domínio independente.
+  const parsedRadarIndex =
+    typeof selectedRadarIndex === "number"
+      ? selectedRadarIndex
+      : typeof selectedRadarIndex === "string"
+        ? Number(selectedRadarIndex)
+        : Number.NaN;
+  const selectedSignal =
+    Number.isInteger(parsedRadarIndex) && parsedRadarIndex >= 1
+      ? signals[parsedRadarIndex - 1]
+      : undefined;
+
+  if (!anchoredToRecentRadar && !selectedSignal) {
     console.error(`draftArticleContent(${beat}): fontes sem URL do radar recente.`);
     return {
       ok: false,
-      error: "A matéria não ficou ancorada a uma pauta detectada nas últimas 24h. Tente de novo.",
+      error: "A matéria não ficou ancorada a uma pauta recente do radar. Tente de novo.",
       retry: true,
     };
   }
+
+  const resolvedSourceUrls = [
+    ...(anchoredToRecentRadar || !selectedSignal ? [] : [selectedSignal.url]),
+    ...submittedSourceUrls,
+  ].filter((url, index, all) => {
+    const canonical = canonicalSourceUrl(url);
+    return (
+      canonical !== null &&
+      all.findIndex((candidate) => canonicalSourceUrl(candidate) === canonical) === index
+    );
+  });
 
   // fotoTermos nunca derruba a publicação — se vier ausente/malformado, só
   // não dá pra tentar Pexels/Pixabay pra essa matéria (cai pro próximo
@@ -514,7 +545,7 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
       excerpt,
       body,
       desk,
-      sourceUrls: sourceUrls as string[],
+      sourceUrls: resolvedSourceUrls.slice(0, 4),
       fotoTermos: validFotoTermos,
     },
   };
@@ -584,7 +615,7 @@ export const generateArticleDraftAI = createServerFn({ method: "POST" })
     return { ok: true as const, article: mapArticle(row) };
   });
 
-// Início (UTC) da janela de 5h que currentBeat() (article-cron.ts) está
+// Início (UTC) da janela horária que currentBeat() (article-cron.ts) está
 // usando agora — mesmo cálculo, replicado aqui pra não criar import
 // circular (article-cron.ts já importa publishArticleFromCron daqui).
 function currentCycleWindowStart(): Date {
