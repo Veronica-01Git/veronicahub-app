@@ -8,7 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { Menu, X } from "lucide-react";
-import { HUB_URL } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { matchAgainstJob, type CandidateMatch, type JobRequirements } from "@/lib/resume-tools";
 import { extractTextFromFile, ACCEPT_ATTR } from "@/lib/resume-parsers";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
@@ -336,7 +336,8 @@ function CurriculoCertoRH() {
         }}
       />
 
-      <header
+      <SiteHeader showAuth={false} />
+      <div role="region" aria-label="Controles de currículo e conta"
         className="flex items-center justify-between gap-6 border-b px-6 py-5 md:pl-[92px] md:pr-10"
         style={{ borderColor: "var(--doc-line)" }}
       >
@@ -409,7 +410,7 @@ function CurriculoCertoRH() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+            aria-label={mobileOpen ? "Fechar controles da conta" : "Abrir controles da conta"}
             aria-expanded={mobileOpen}
             className="flex h-9 w-9 items-center justify-center rounded-[2px] border sm:hidden"
             style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink)" }}
@@ -417,11 +418,11 @@ function CurriculoCertoRH() {
             {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
-      </header>
+      </div>
 
       {mobileOpen && (
         <div
-          className="fixed inset-x-0 top-[61px] bottom-0 z-40 overflow-y-auto sm:hidden"
+          className="relative z-20 max-h-[70vh] overflow-y-auto sm:hidden"
           style={{ background: "var(--doc-paper)" }}
         >
           <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
@@ -1037,20 +1038,7 @@ function CurriculoCertoRH() {
         </section>
       </main>
 
-      <footer
-        className="flex flex-wrap items-center justify-between gap-4 border-t px-6 py-6 font-mono-tech text-[10.5px] uppercase tracking-widest md:px-10"
-        style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink-faint)" }}
-      >
-        <span>Veronica Hub © 2026</span>
-        <a
-          href={HUB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transition hover:opacity-70"
-        >
-          Hub
-        </a>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

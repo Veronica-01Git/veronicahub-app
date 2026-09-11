@@ -4,10 +4,10 @@ import type { Beat } from "@/lib/beats";
 const OWNED_STORIES = [
   {
     eyebrow: "Operação própria",
-    title: "Veronica Wire entra em ritmo de cobertura contínua",
-    description: "Uma nova publicação por hora, conectando notícia, aprendizado e execução.",
+    title: "Veronica Wire conecta notícias e aprendizado",
+    description: "Notícias publicadas com fontes, conectando informação, aprendizado e execução.",
     href: "/comandos?utm_source=wire&utm_medium=owned_story&utm_campaign=wire_24h",
-    cta: "Conhecer os comandos",
+    cta: "Conhecer as formações",
     image: "/images/wire-reposts/rede-energia-global-ai.webp",
     icon: Radio,
     external: false,
@@ -60,7 +60,7 @@ const ACTION_BY_BEAT: Record<
     title: "Converta dados complexos em conteúdo que as pessoas entendem",
     description: "Aprenda roteiro, copy e produção visual para explicar tendências com clareza.",
     href: "/comandos?utm_source=wire&utm_medium=article_action&utm_campaign=commands",
-    cta: "Explorar comandos",
+    cta: "Explorar formações",
   },
   economia: {
     eyebrow: "Da notícia à oportunidade",
@@ -72,7 +72,7 @@ const ACTION_BY_BEAT: Record<
   geopolitica: {
     eyebrow: "Do contexto à estratégia",
     title: "Aprenda a transformar movimentos globais em comunicação relevante",
-    description: "Domine pesquisa, roteiro e copy com os comandos práticos da Veronica.",
+    description: "Domine pesquisa, roteiro e copy com as formações práticas da Veronica.",
     href: "/comandos?utm_source=wire&utm_medium=article_action&utm_campaign=commands",
     cta: "Ver formações",
   },

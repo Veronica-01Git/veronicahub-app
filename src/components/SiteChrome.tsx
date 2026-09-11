@@ -30,76 +30,9 @@ export const SOCIAL_LINKS = {
   email: "mailto:yo-tech01@outlook.com",
 };
 
-// Single source of truth for the ecosystem — the header dropdown and the
-// home page's "O Ecossistema" cards both read from this list.
-// `external: true` marca itens que vivem fora deste app (domínio/subdomínio
-// próprio) — usam <a href> normal em vez do <Link to> do TanStack Router,
-// que só sabe rotear pra dentro deste mesmo app.
-export type EcosystemLink = { name: string; tag: string; to: string; ready: boolean; external?: boolean };
-
-export const ECOSYSTEM_LINKS: EcosystemLink[] = [
-  { name: "Veronica Studio", tag: "Imagem, vídeo e voz com IA", to: "/video-ia", ready: true },
-  { name: "Currículo-Certo", tag: "Currículo pronto pra ATS", to: "/veronica-curriculo-certo", ready: true },
-  { name: "Veronica Analytics", tag: "Análise de perfil TikTok Shop", to: "/veronica-analytics", ready: true },
-  { name: "Veronica Security", tag: "Diagnóstico de segurança", to: "/veronica-security", ready: true },
-  { name: "Prompt Packs", tag: "Comandos prontos pra IA real", to: "/prompt-packs", ready: true },
-  { name: "Veronica Náutica", tag: "Seguro náutico · em estruturação", to: "/veronica-nautica", ready: true },
-  { name: "Negócio da China", tag: "Marketplace C2C · novo e usado", to: "https://negociodachina.veronicahub.com", ready: true, external: true },
-];
-
-export type IntentId = "learn" | "create" | "sell" | "protect" | "work" | "update";
-export type IntentLink = {
-  id: IntentId;
-  label: string;
-  name: string;
-  tag: string;
-  to: string;
-};
-
-export const INTENT_LINKS: IntentLink[] = [
-  {
-    id: "learn",
-    label: "Quero aprender",
-    name: "Formações Veronica",
-    tag: "Trilhas práticas para dominar IA no seu ritmo",
-    to: "/comandos",
-  },
-  {
-    id: "create",
-    label: "Quero criar",
-    name: "Veronica Studio",
-    tag: "Imagem, vídeo e voz com inteligência artificial",
-    to: "/video-ia",
-  },
-  {
-    id: "sell",
-    label: "Quero vender",
-    name: "Veronica Analytics",
-    tag: "Dados e oportunidades para decisões comerciais",
-    to: "/veronica-analytics",
-  },
-  {
-    id: "protect",
-    label: "Quero proteger",
-    name: "Veronica Security",
-    tag: "Diagnóstico e orientação de segurança digital",
-    to: "/veronica-security",
-  },
-  {
-    id: "work",
-    label: "Quero trabalhar",
-    name: "Currículo-Certo",
-    tag: "Carreira, currículo ATS e preparação profissional",
-    to: "/veronica-curriculo-certo",
-  },
-  {
-    id: "update",
-    label: "Quero me atualizar",
-    name: "Veronica Wire",
-    tag: "Notícias, ferramentas e movimentos da IA",
-    to: "/blog",
-  },
-];
+export { INTENT_LINKS } from "@/lib/ecosystem";
+import { INTENT_LINKS, PRIMARY_NAV, SPECIAL_PROJECTS, HOME_PRODUCTS, type IntentId } from "@/lib/ecosystem";
+export const ECOSYSTEM_LINKS = HOME_PRODUCTS.map(item => ({ ...item, tag: item.description, ready: item.status === "Disponível" }));
 
 const INTENT_ICONS: Record<IntentId, LucideIcon> = {
   learn: GraduationCap,
@@ -139,7 +72,7 @@ export function EcosystemMenu() {
         aria-controls="ecosystem-intent-menu"
         className="group relative flex items-center gap-1 px-3 py-2 text-muted-foreground transition hover:text-neon-green"
       >
-        Ecossistema
+        Ferramentas
         <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
         <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
       </button>
@@ -187,32 +120,7 @@ export function EcosystemMenu() {
             })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-border/50 bg-surface/40 px-5 py-4">
-            <Link
-              to="/prompt-packs"
-              onClick={() => setOpen(false)}
-              className="group inline-flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green"
-            >
-              Prompt Packs
-              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-            </Link>
-            <Link
-              to="/veronica-nautica"
-              onClick={() => setOpen(false)}
-              className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
-            >
-              Veronica Náutica
-            </Link>
-            <a
-              href="https://negociodachina.veronicahub.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setOpen(false)}
-              className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
-            >
-              Negócio da China
-            </a>
-          </div>
+          <div className="border-t border-border/50 px-5 py-4"><SpecialProjectLinks onNavigate={() => setOpen(false)} /></div>
         </div>
       )}
     </div>
@@ -250,23 +158,7 @@ export function MobileEcosystemIntentMenu({ onNavigate }: { onNavigate: () => vo
           );
         })}
       </div>
-      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 border-t border-border/40 pt-4">
-        <Link to="/prompt-packs" onClick={onNavigate} className="text-[10px] text-neon-green">
-          Prompt Packs
-        </Link>
-        <Link to="/veronica-nautica" onClick={onNavigate} className="text-[10px] text-muted-foreground">
-          Náutica
-        </Link>
-        <a
-          href="https://negociodachina.veronicahub.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onNavigate}
-          className="text-[10px] text-muted-foreground"
-        >
-          Negócio da China
-        </a>
-      </div>
+      <div className="mt-4 border-t border-border/40 pt-4"><SpecialProjectLinks onNavigate={onNavigate} /></div>
     </div>
   );
 }
@@ -488,126 +380,31 @@ export function AuthWidget({ variant = "desktop" }: { variant?: "desktop" | "mob
   );
 }
 
-export function SiteHeader() {
+function SpecialProjectLinks({ onNavigate }: { onNavigate: () => void }) {
+  return <div className="space-y-3"><p className="text-xs text-muted-foreground">Projetos especiais</p><div className="flex flex-wrap gap-4">{SPECIAL_PROJECTS.map(item => <a key={item.id} href={item.to} onClick={onNavigate} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} className="text-sm text-muted-foreground hover:text-foreground">{item.name}<span className="block text-xs">{item.status}</span></a>)}</div></div>;
+}
+
+// Páginas com carteira mantêm seus próprios controles de sessão.
+export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-
   useEffect(() => {
-    if (!mobileOpen) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setMobileOpen(false);
-    }
-    document.addEventListener("keydown", onKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
-
-  return (
-    <>
-    <header className="relative sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-destructive/60 to-transparent"
-      />
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link to="/" className="flex items-center gap-2 font-mono-tech text-sm uppercase tracking-widest">
-          <span className="h-2 w-2 rounded-full bg-neon-green animate-pulse-dot" />
-          <span className="font-display text-base tracking-tight">Veronica</span>
-          <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">Hub</span>
-        </Link>
-        <nav className="hidden items-center gap-1 text-xs font-mono-tech uppercase tracking-wider md:flex">
-          <Link
-            to="/"
-            className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-          >
-            Home
-            <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-          </Link>
-          <Link
-            to="/comandos"
-            className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-          >
-            Comandos
-            <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-          </Link>
-          <EcosystemMenu />
-          <Link
-            to="/blog"
-            className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-          >
-            Veronica Wire
-            <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-          </Link>
-        </nav>
-        <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-3 text-muted-foreground sm:flex">
-            <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="transition hover:text-neon-green hover:-translate-y-0.5"><Youtube className="h-4 w-4" /></a>
-            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition hover:text-neon-green hover:-translate-y-0.5"><Instagram className="h-4 w-4" /></a>
-            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="transition hover:text-neon-green hover:-translate-y-0.5"><MessageCircle className="h-4 w-4" /></a>
-            <a href={SOCIAL_LINKS.email} aria-label="E-mail" className="transition hover:text-neon-green hover:-translate-y-0.5"><Mail className="h-4 w-4" /></a>
-          </div>
-          <AuthWidget />
-          <a
-            href={HUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative hidden items-center gap-2 rounded-sm bg-neon-green px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-[0_0_0_1px_oklch(0.85_0.22_155),0_8px_24px_-8px_oklch(0.85_0.22_155/0.6)] transition duration-200 hover:-translate-y-0.5 hover:shadow-glow-green active:translate-y-0 active:brightness-95 md:inline-flex"
-          >
-            <span className="text-[10px] opacity-70 group-hover:opacity-100">▸</span>
-            Acessar Hub
-          </a>
-          <button
-            type="button"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
-            aria-expanded={mobileOpen}
-            className="flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 text-foreground md:hidden"
-          >
-            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
-    </header>
-
-    {mobileOpen && (
-      <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
-        <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
-          <AuthWidget variant="mobile" />
-          <Link to="/" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
-            Home
-          </Link>
-          <Link to="/comandos" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
-            Comandos
-          </Link>
-          <Link to="/blog" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
-            Veronica Wire
-          </Link>
-          <Link to="/veronica-rede" onClick={() => setMobileOpen(false)} className="border-b border-border/40 py-3.5 text-foreground">
-            Veronica Rede
-          </Link>
-          <MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} />
-          <a
-            href={HUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-sm bg-neon-green px-4 py-3 text-[11px] text-primary-foreground"
-          >
-            Acessar Hub
-          </a>
-          <div className="mt-6 flex items-center gap-4 text-muted-foreground">
-            <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube"><Youtube className="h-5 w-5" /></a>
-            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Instagram className="h-5 w-5" /></a>
-            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle className="h-5 w-5" /></a>
-            <a href={SOCIAL_LINKS.email} aria-label="E-mail"><Mail className="h-5 w-5" /></a>
-          </div>
-        </nav>
-      </div>
-    )}
-    </>
-  );
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileOpen(false); };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, []);
+  return <header className="sticky top-0 z-30 text-foreground border-b border-border/40 bg-background/95 backdrop-blur-md">
+    <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4">
+      <Link to="/" aria-label="Veronica Hub — início" className="shrink-0 font-display text-base">Veronica · Hub</Link>
+      <nav aria-label="Navegação principal" className="hidden items-center gap-2 text-sm lg:flex">
+        {PRIMARY_NAV.map((item, index) => <span key={item.id} className="contents"><Link to={item.to} className="px-3 py-2 hover:text-neon-green">{item.name}</Link>{index === 0 && <EcosystemMenu />}</span>)}
+      </nav>
+      <div className="flex items-center gap-3">{showAuth && <AuthWidget />}<button type="button" onClick={() => setMobileOpen(v => !v)} aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={mobileOpen} aria-controls="mobile-navigation" className="min-h-11 min-w-11 rounded-sm border border-border/60 lg:hidden">{mobileOpen ? <X className="mx-auto h-5 w-5" /> : <Menu className="mx-auto h-5 w-5" />}</button></div>
+    </div>
+    {mobileOpen && <nav id="mobile-navigation" aria-label="Navegação principal mobile" className="max-h-[80vh] overflow-y-auto border-t border-border/40 bg-background px-6 pb-6 lg:hidden">
+      {showAuth && <div className="sm:hidden"><AuthWidget variant="mobile" /></div>}
+      {PRIMARY_NAV.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="block border-b border-border/40 py-4 text-base">{item.name}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
+    </nav>}
+  </header>;
 }
 
 // Moldura reutilizável de qualquer hero com fundo da Veronica — fade pras
@@ -652,22 +449,13 @@ export function CyborgBackdrop() {
 }
 
 export function SiteFooter() {
-  return (
-    <footer className="border-t border-border/40 bg-background/80">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 md:flex-row">
-        <div className="flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
-          <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-          © 2026 Veronica Hub · Laboratório digital
-        </div>
-        <div className="flex items-center gap-4 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground">
-          <Link to="/" className="transition hover:text-neon-green">Home</Link>
-          <Link to="/veronica-curriculo-certo" className="transition hover:text-neon-green">Currículo</Link>
-          <Link to="/video-ia" className="transition hover:text-neon-green">Veronica Studio</Link>
-          <a href={HUB_URL} target="_blank" rel="noopener noreferrer" className="transition hover:text-neon-green">Hub</a>
-        </div>
-      </div>
-    </footer>
-  );
+  return <footer className="text-foreground border-t border-border/40 bg-background px-6 py-10">
+    <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
+      <div><Link to="/" className="font-display text-lg">Veronica Hub</Link><p className="mt-3 text-sm text-muted-foreground">Escola de Inteligência Artificial</p><p className="mt-2 text-xs text-muted-foreground">© 2026 Veronica Hub</p></div>
+      <nav aria-label="Navegação do rodapé" className="flex flex-col items-start gap-3">{PRIMARY_NAV.map(item => <Link key={item.id} to={item.to} className="text-sm hover:text-neon-green">{item.name}</Link>)}<a href={SOCIAL_LINKS.email} className="text-sm">Contato</a></nav>
+      <div><p className="mb-3 text-sm">Acompanhe a Veronica</p><div className="flex flex-wrap gap-4">{[{label:"YouTube",href:SOCIAL_LINKS.youtube},{label:"Instagram",href:SOCIAL_LINKS.instagram},{label:"WhatsApp",href:SOCIAL_LINKS.whatsapp}].map(item => <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-neon-green">{item.label}</a>)}</div></div>
+    </div>
+  </footer>;
 }
 
 export function PageHero({

@@ -1,3 +1,4 @@
+import { PRODUCTS } from "@/lib/ecosystem";
 import { createFileRoute } from "@tanstack/react-router";
 import { getUniverseAdminAccess } from "@/lib/veronica-universe-access";
 import { useEffect, useState } from "react";
@@ -133,7 +134,7 @@ function VeronicaUniversePage() {
               Ecosystem Topology & Node Directory
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Estrutura de todas as 8 extensões ativas conectadas ao Veronica Core.
+              Mapa das áreas do ecossistema e sua disponibilidade editorial.
             </p>
           </div>
 
@@ -143,10 +144,10 @@ function VeronicaUniversePage() {
           <section className="rounded-sm border border-border/50 bg-surface/20 p-5 sm:p-7">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-mono-tech text-xs tracking-widest text-foreground uppercase">
-                NODE SPECIFICATION DIRECTORY (08 NODES)
+                NODE SPECIFICATION DIRECTORY ({PRODUCTS.length})
               </h2>
               <span className="font-mono-tech text-[10px] text-neon-green">
-                ALL NODES VALIDATED
+                STATUS DO CATÁLOGO
               </span>
             </div>
 
@@ -162,12 +163,12 @@ function VeronicaUniversePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/20">
-                  {ECOSYSTEM_NODES.map((node) => (
+                  {PRODUCTS.map((node, index) => (
                     <tr key={node.id} className="hover:bg-surface/30 transition">
-                      <td className="py-3 px-3 text-neon-cyan">{node.vector}</td>
-                      <td className="py-3 px-3 font-medium text-foreground">{node.name}</td>
+                      <td className="py-3 px-3 text-neon-cyan">{String(index + 1).padStart(2, "0")}</td>
+                      <td className="py-3 px-3 font-medium text-foreground"><a href={node.to} className="underline underline-offset-4">{node.name}</a></td>
                       <td className="py-3 px-3 text-muted-foreground">{node.category}</td>
-                      <td className="py-3 px-3 uppercase text-foreground/80">{node.relation}</td>
+                      <td className="py-3 px-3 uppercase text-foreground/80">{ECOSYSTEM_NODES.find(item => item.id === node.id)?.relation ?? "—"}</td>
                       <td className="py-3 px-3">
                         <span className="inline-flex items-center gap-1 rounded bg-neon-green/10 px-2 py-0.5 text-[9px] text-neon-green">
                           <span className="h-1 w-1 rounded-full bg-neon-green" />

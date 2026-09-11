@@ -1,7 +1,8 @@
+import { product } from "@/lib/ecosystem";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Wand2, FileText, BarChart3, Layers, Play } from "lucide-react";
 import { useMemo, useState } from "react";
-import { SiteHeader, SiteFooter, HUB_URL } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { LazyImage } from "@/components/media/LazyImage";
 import { courses } from "@/lib/courses";
 
@@ -9,16 +10,16 @@ export const Route = createFileRoute("/comandos")({
   component: Comandos,
   head: () => ({
     meta: [
-      { title: "Comandos — Catálogo Completo | Veronica Hub" },
+      { title: "Formações — Catálogo Completo | Veronica Hub" },
       {
         name: "description",
         content:
-          "Os 11 comandos do Veronica Hub: dark content, IA generativa, tráfego pago, VSL, hacking ético. Aprenda e execute no ecossistema.",
+          "Os 11 formações do Veronica Hub: dark content, IA generativa, tráfego pago, VSL, hacking ético. Aprenda e execute no ecossistema.",
       },
-      { property: "og:title", content: "Comandos — Catálogo Completo | Veronica Hub" },
+      { property: "og:title", content: "Formações — Catálogo Completo | Veronica Hub" },
       {
         property: "og:description",
-        content: "Comandos diretos ao ponto pra quem quer entrar no digital sem enrolação.",
+        content: "Formações diretas ao ponto pra quem quer entrar no digital sem enrolação.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/comandos")({
 
 const TAG_ALL = "Todos";
 
-// Comandos que têm um Prompt Pack correspondente em /prompt-packs.
+// Formações que têm um Prompt Pack correspondente em /prompt-packs.
 const PACK_BY_COURSE: Record<string, { label: string; slug: string }> = {
   "VFX com IA": { label: "VFX Ultra-Realista", slug: "vfx-ultra-realista" },
   "Avatar Digital IA": { label: "Avatar Digital", slug: "avatar-digital" },
@@ -47,22 +48,22 @@ const ECOSYSTEM_CTAS: EcosystemCta[] = [
     icon: Wand2,
     name: "Veronica Studio",
     tag: "Geração com IA",
-    desc: "Pegue o que aprendeu no comando e gere imagem, vídeo e voz com IA — do prompt à entrega.",
-    to: "/video-ia",
+    desc: "Pegue o que aprendeu na formação e gere imagem, vídeo e voz com IA — do prompt à entrega.",
+    to: product("studio").to,
   },
   {
     icon: FileText,
-    name: "Currículo-Certo",
+    name: product("career").name,
     tag: "Carreira",
     desc: "Transforme a execução em currículo pronto pra ATS, feito pra virar entrevista.",
-    to: "/veronica-curriculo-certo",
+    to: product("career").to,
   },
   {
     icon: BarChart3,
-    name: "Veronica Analytics",
+    name: product("analytics").name,
     tag: "TikTok Shop",
-    desc: "Meça o resultado do que você executou e ajuste a rota pra vender mais.",
-    to: "/veronica-analytics",
+    desc: "Calculadora de engajamento e descoberta demonstrativa de produtos.",
+    to: product("analytics").to,
   },
 ];
 
@@ -88,7 +89,7 @@ function Comandos() {
         <div className="relative mx-auto max-w-7xl px-6">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
-            Catálogo · 11 comandos
+            Catálogo · 11 formações
           </div>
           <h1
             className="mt-4 font-display text-4xl sm:text-5xl md:text-6xl"
@@ -99,8 +100,7 @@ function Comandos() {
             ao <span className="text-neon-cyan text-glow-cyan">hacking ético</span>.
           </h1>
           <p className="mt-6 max-w-2xl leading-[1.65] text-muted-foreground">
-            Sem fluff. Cada comando é construído sobre resultado real e execução prática — e não
-            termina no curso: continua nas ferramentas do ecossistema.
+            Formações em preparação para aprender IA na prática. Enquanto isso, comece pela Aula Zero gratuita.
           </p>
           <Link
             to="/aula-zero"
@@ -139,11 +139,9 @@ function Comandos() {
             const pack = PACK_BY_COURSE[c.title];
             return (
               <div key={c.title} className="flex flex-col gap-2">
-                <a
-                  id={c.title === "Hacking Ético" ? "hacking-etico" : undefined}
-                  href={HUB_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <article
+                  id={c.slug}
+                  aria-label={`${c.title}: ${c.availability}`}
                   className={`group relative overflow-hidden rounded-sm border p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-glow-green ${
                     c.featured
                       ? "border-neon-green/60 bg-gradient-to-br from-neon-green/8 via-surface/70 to-surface"
@@ -206,7 +204,7 @@ function Comandos() {
                     </span>
                     {c.featured && (
                       <span className="absolute right-3 top-3 rounded-full bg-neon-green px-2 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-primary-foreground shadow-glow-green">
-                        Mais vendido
+                        Em produção
                       </span>
                     )}
                   </div>
@@ -217,12 +215,15 @@ function Comandos() {
                     {c.title}
                   </h3>
                   <div className="mt-3 flex items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                    <span>{c.lessons} aulas</span>
+                    <span>{c.lessons} aulas previstas</span>
                     <span className="opacity-40">·</span>
-                    <span>{c.hours}</span>
+                    <span>{c.hours} previstas</span>
                     <span className="opacity-40">·</span>
                     <span className="text-neon-cyan/80">{c.level}</span>
                   </div>
+                  <p className="mt-3 text-sm text-neon-cyan">{c.availability}</p>
+                  <p className="mt-2 text-sm">Objetivo: {c.outcome}</p>
+                  {c.status === "available" && c.href && <a href={c.href} className="inline-flex min-h-11 items-center text-neon-green">{c.cta}</a>}
                   <ul className="mt-5 space-y-1.5 text-[13px] text-muted-foreground">
                     {c.perks.map((p) => (
                       <li key={p} className="flex items-start gap-2">
@@ -232,11 +233,11 @@ function Comandos() {
                     ))}
                   </ul>
                   <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
-                    Acessar comando{" "}
+                    {c.cta}{" "}
                     <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                   </div>
                   <div className="pointer-events-none absolute right-3 bottom-3 h-4 w-4 border-r border-b border-neon-green/0 transition group-hover:border-neon-green/80" />
-                </a>
+                </article>
                 {pack && (
                   <Link
                     to="/prompt-packs"
@@ -260,19 +261,19 @@ function Comandos() {
           <div className="mb-12 flex flex-col gap-3 text-center">
             <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
               <span className="h-px w-8 bg-neon-cyan" />
-              Depois do comando
+              Depois da formação
               <span className="h-px w-8 bg-neon-cyan" />
             </div>
             <h2
               className="mx-auto max-w-2xl font-display text-3xl sm:text-4xl md:text-5xl"
               style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
             >
-              Terminou o comando?
+              Concluiu a formação?
               <br />
               <span className="text-neon-cyan text-glow-cyan">Agora execute.</span>
             </h2>
             <p className="mx-auto mt-2 max-w-xl leading-[1.65] text-muted-foreground">
-              Cada comando entregue vira ação real nas ferramentas do ecossistema. Cadastro grátis,
+              Cada formação concluída vira ação real nas ferramentas do ecossistema. Cadastro grátis,
               execução na hora.
             </p>
           </div>

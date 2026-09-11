@@ -2,60 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { Wand2, BookOpen, Briefcase, LineChart, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 
-// As cinco intenções centrais do Hub — cada uma leva a uma ferramenta real
-// do ecossistema, não a um card genérico. O hover troca a cor de destaque
-// pra criar uma resposta discreta, sem depender do shader da hero.
-type Intent = {
-  key: string;
-  icon: typeof Wand2;
-  label: string;
-  desc: string;
-  to: string;
-  accent: "green" | "cyan";
-};
-
-const INTENTS: Intent[] = [
-  {
-    key: "criar",
-    icon: Wand2,
-    label: "Criar",
-    desc: "Gere imagens e experiências com IA.",
-    to: "/video-ia",
-    accent: "green",
-  },
-  {
-    key: "aprender",
-    icon: BookOpen,
-    label: "Aprender",
-    desc: "Formações, projetos e conhecimento prático.",
-    to: "/comandos",
-    accent: "cyan",
-  },
-  {
-    key: "trabalhar",
-    icon: Briefcase,
-    label: "Trabalhar",
-    desc: "Currículo e ferramentas para carreira.",
-    to: "/veronica-curriculo-certo",
-    accent: "green",
-  },
-  {
-    key: "analisar",
-    icon: LineChart,
-    label: "Analisar",
-    desc: "Transforme métricas em decisões.",
-    to: "/veronica-analytics",
-    accent: "cyan",
-  },
-  {
-    key: "proteger",
-    icon: ShieldCheck,
-    label: "Proteger",
-    desc: "Diagnóstico e segurança digital.",
-    to: "/veronica-security",
-    accent: "green",
-  },
-];
+import { INTENT_LINKS } from "@/lib/ecosystem";
+const icons = { learn: BookOpen, create: Wand2, sell: LineChart, protect: ShieldCheck, work: Briefcase, update: BookOpen };
+const INTENTS = INTENT_LINKS.map(item => ({ key: item.id, icon: icons[item.id], label: item.label, desc: item.tag, to: item.to, accent: item.id === "learn" ? "green" : "cyan" }));
 
 export function IntentPortal() {
   const [active, setActive] = useState<string | null>(null);
@@ -63,7 +12,7 @@ export function IntentPortal() {
   return (
     <nav
       aria-label="Escolha sua intenção"
-      className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+      className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3"
     >
       {INTENTS.map((intent) => {
         const isGreen = intent.accent === "green";

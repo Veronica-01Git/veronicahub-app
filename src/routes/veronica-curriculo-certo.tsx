@@ -8,7 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { Menu, X } from "lucide-react";
-import { HUB_URL } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, HUB_URL } from "@/components/SiteChrome";
 import {
   evaluateResume,
   generateAtsResume,
@@ -666,7 +666,8 @@ function CurriculoCerto() {
         }}
       />
 
-      <header
+      <SiteHeader showAuth={false} />
+      <div role="region" aria-label="Controles de currículo e conta"
         className="flex items-center justify-between gap-6 border-b px-6 py-5 md:pl-[92px] md:pr-10"
         style={{ borderColor: "var(--doc-line)" }}
       >
@@ -767,7 +768,7 @@ function CurriculoCerto() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+            aria-label={mobileOpen ? "Fechar controles da conta" : "Abrir controles da conta"}
             aria-expanded={mobileOpen}
             className="flex h-9 w-9 items-center justify-center rounded-[2px] border sm:hidden"
             style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink)" }}
@@ -775,11 +776,11 @@ function CurriculoCerto() {
             {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
-      </header>
+      </div>
 
       {mobileOpen && (
         <div
-          className="fixed inset-x-0 top-[61px] bottom-0 z-40 overflow-y-auto sm:hidden"
+          className="relative z-20 max-h-[70vh] overflow-y-auto sm:hidden"
           style={{ background: "var(--doc-paper)" }}
         >
           <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
@@ -2027,36 +2028,12 @@ function CurriculoCerto() {
           </p>
         </section>
 
-        {/* Thin, secondary CTA to the paid method */}
-        <section className="flex flex-wrap items-center justify-between gap-6 px-6 py-12 md:px-0">
-          <p
-            className="max-w-sm text-[14px] leading-[1.55]"
-            style={{ color: "var(--doc-ink-soft)" }}
-          >
-            Quer ajuda pra reescrever o conteúdo, não só a estrutura? Conheça o método completo
-            Currículo-Certo.
-          </p>
-          <a
-            href={HUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-[2px] border px-6 py-3 font-mono-tech text-[11px] uppercase tracking-[0.12em] transition duration-150 hover:-translate-y-0.5"
-            style={{ borderColor: "var(--doc-line-strong)", color: "var(--doc-ink-soft)" }}
-          >
-            Ver o método completo
-          </a>
+        <section className="px-6 py-12 md:px-0">
+          <p className="text-sm" style={{ color: "var(--doc-ink-soft)" }}>Formação Currículo-Certo: em produção. A avaliação de currículo está disponível nesta página.</p>
         </section>
       </main>
 
-      <footer
-        className="flex flex-wrap items-center justify-between gap-4 border-t px-6 py-6 font-mono-tech text-[10.5px] uppercase tracking-widest md:px-10"
-        style={{ borderColor: "var(--doc-line)", color: "var(--doc-ink-faint)" }}
-      >
-        <span>Veronica Hub © 2026</span>
-        <Link to="/" className="transition hover:opacity-70">
-          Voltar à Home
-        </Link>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

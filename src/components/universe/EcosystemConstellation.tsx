@@ -37,7 +37,7 @@ export function EcosystemConstellation() {
 
         <div className="flex items-center gap-4 font-mono-tech text-[10.5px] tracking-widest text-muted-foreground">
           <div>
-            NODES: <span className="text-foreground font-semibold">08 / 08</span>
+            NODES: <span className="text-foreground font-semibold">{ECOSYSTEM_NODES.length}</span>
           </div>
           <span className="text-border">|</span>
           <div>
@@ -308,6 +308,7 @@ export function EcosystemConstellation() {
                 <p className="text-foreground/90 leading-relaxed font-sans">
                   {selectedNode.description}
                 </p>
+                <a href={selectedNode.to} className="mt-3 inline-flex min-h-11 items-center text-neon-cyan">Abrir área</a>
               </div>
 
               {/* Architectural positioning memo */}

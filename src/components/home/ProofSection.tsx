@@ -6,7 +6,7 @@ import { Check, Wallet, Wand2, Mail, Newspaper, Layers } from "lucide-react";
 // + mercadopago.ts (carteira/pagamento), auth-server.ts (login por e-mail),
 // articles-server.ts (blog real no Neon).
 const FACTS = [
-  { icon: Layers, title: "11 formações", desc: "Catálogo completo, sem contagem inflada." },
+  { icon: Layers, title: "Formações em produção", desc: "Comece pela Aula Zero gratuita já disponível." },
   {
     icon: Wand2,
     title: "Geração real de imagem",
@@ -29,8 +29,8 @@ const FACTS = [
   },
   {
     icon: Check,
-    title: "7 ferramentas",
-    desc: "Cada uma com rota, função e uso próprios no ecossistema.",
+    title: "Áreas integradas",
+    desc: "Consulte a disponibilidade e o escopo de cada área.",
   },
 ];
 

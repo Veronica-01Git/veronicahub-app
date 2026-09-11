@@ -395,7 +395,7 @@ function VeronicaWire() {
         <div className="border-b border-border/40 bg-foreground text-background">
           <div className="mx-auto flex h-9 max-w-7xl items-center gap-3 px-6">
             <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-sm bg-destructive px-2 py-0.5 font-mono-tech text-[10px] uppercase tracking-widest text-white">
-              <Radio className="h-3 w-3 animate-pulse-dot" /> Ao vivo
+              <Radio className="h-3 w-3 animate-pulse-dot" /> Últimas notícias
             </span>
             <div
               className="flex-1 overflow-hidden"
@@ -471,7 +471,7 @@ function VeronicaWire() {
               to="/comandos"
               className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
             >
-              Comandos
+              Formações
             </Link>
             <Link
               to="/"
@@ -610,9 +610,9 @@ function VeronicaWire() {
               className="group border-b border-background/15 p-6 transition hover:bg-background/[0.06] lg:border-b-0 lg:border-r"
             >
               <MessageCircle className="h-5 w-5 text-neon-cyan" />
-              <h3 className="mt-5 font-display text-xl text-background">Entrar na comunidade</h3>
+              <h3 className="mt-5 font-display text-xl text-background">Conhecer a escola</h3>
               <p className="mt-2 text-sm leading-relaxed text-background/55">
-                Continue a investigação com ferramentas e comandos do Hub.
+                Continue a investigação com ferramentas e formações do Hub.
               </p>
               <span className="mt-5 inline-flex items-center gap-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
                 acessar hub <ArrowRight className="h-3 w-3 transition group-hover:translate-x-1" />
@@ -757,15 +757,14 @@ function VeronicaWire() {
               Leu a notícia. Agora execute.
             </h2>
             <p className="mt-2 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
-              11 comandos práticos no Veronica Hub — do dark content à IA generativa. Acesso
-              vitalício a partir de R$ 19,90.
+              11 formações em preparação no Veronica Hub — do dark content à IA generativa. Comece pela Aula Zero gratuita.
             </p>
           </div>
           <Link
-            to="/"
+            to="/aula-zero"
             className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
           >
-            Entrar no Hub{" "}
+            Começar pela Aula Zero{" "}
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

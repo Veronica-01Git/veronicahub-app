@@ -78,26 +78,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Veronica Hub · Laboratório Digital" },
+      { title: "Veronica Hub · Escola de Inteligência Artificial" },
       {
         name: "description",
         content:
-          "O segredo tá no prompt. Comandos diretos ao ponto para quem quer entrar no digital sem enrolação: IA, dark content, tráfego pago e hacking ético.",
+          "Aprenda e aplique inteligência artificial com projetos guiados, formações e ferramentas Veronica.",
       },
       { name: "author", content: "Veronica Hub" },
-      { property: "og:title", content: "Veronica Hub · Laboratório Digital" },
+      { property: "og:title", content: "Veronica Hub · Escola de Inteligência Artificial" },
       {
         property: "og:description",
         content:
-          "O segredo tá no prompt. Comandos diretos ao ponto para quem quer entrar no digital sem enrolação.",
+          "Aprenda e aplique inteligência artificial com projetos guiados, formações e ferramentas Veronica.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Veronica Hub · Laboratório Digital" },
+      { name: "twitter:title", content: "Veronica Hub · Escola de Inteligência Artificial" },
       {
         name: "twitter:description",
         content:
-          "O segredo tá no prompt. Comandos diretos ao ponto para quem quer entrar no digital sem enrolação.",
+          "Aprenda e aplique inteligência artificial com projetos guiados, formações e ferramentas Veronica.",
       },
       { name: "theme-color", content: "#17F48F" },
       { name: "apple-mobile-web-app-title", content: "Veronica Hub" },

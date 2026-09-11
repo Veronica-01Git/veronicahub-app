@@ -493,7 +493,7 @@ function VeronicaSecurity() {
               Quer entender esses riscos por dentro, não só de fora?
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-[1.6] text-muted-foreground">
-              O comando <strong className="text-foreground">Hacking Ético</strong> te ensina
+              A formação <strong className="text-foreground">Hacking Ético</strong> te ensina
               exatamente isso — pentesting real, bug bounty e laboratório dedicado pra você mesmo
               achar as falhas antes de alguém achar por você.
             </p>
@@ -519,7 +519,7 @@ function VeronicaSecurity() {
                 </div>
               </div>
               <span className="flex flex-shrink-0 items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
-                Ver comando{" "}
+                Ver formação{" "}
                 <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>

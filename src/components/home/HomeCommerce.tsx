@@ -1,3 +1,4 @@
+import { product } from "@/lib/ecosystem";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -48,7 +49,7 @@ export function HomeCommerce() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <Link to="/comandos" className={cardClass}>
+            <Link to={product("formations").to} className={cardClass}>
               <div className="flex h-11 w-11 items-center justify-center rounded-sm border border-neon-green/40 bg-neon-green/10 text-neon-green">
                 <GraduationCap className="h-5 w-5" />
               </div>
@@ -59,7 +60,7 @@ export function HomeCommerce() {
                 Formações Veronica
               </h3>
               <p className="mt-3 text-sm leading-[1.65] text-muted-foreground">
-                Trilhas práticas de criação, vídeo, automação, desenvolvimento, carreira e
+                Trilhas em produção de criação, vídeo, automação, desenvolvimento, carreira e
                 negócios com IA.
               </p>
               <div className="mt-7 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
@@ -68,7 +69,7 @@ export function HomeCommerce() {
               </div>
             </Link>
 
-            <Link to="/prompt-packs" className={cardClass}>
+            <Link to={product("packs").to} className={cardClass}>
               <div className="flex h-11 w-11 items-center justify-center rounded-sm border border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan">
                 <PackageOpen className="h-5 w-5" />
               </div>
@@ -86,17 +87,16 @@ export function HomeCommerce() {
               </div>
             </Link>
 
-            <Link to="/video-ia" className={cardClass}>
+            <Link to={product("studio").to} className={cardClass}>
               <div className="flex h-11 w-11 items-center justify-center rounded-sm border border-neon-green/40 bg-neon-green/10 text-neon-green">
                 <Boxes className="h-5 w-5" />
               </div>
               <div className="mt-8 font-mono-tech text-[9px] uppercase tracking-[0.2em] text-neon-green">
                 Ferramentas próprias
               </div>
-              <h3 className="mt-2 font-display text-2xl text-foreground">Veronica Studio</h3>
+              <h3 className="mt-2 font-display text-2xl text-foreground">{product("studio").name}</h3>
               <p className="mt-3 text-sm leading-[1.65] text-muted-foreground">
-                Um ambiente para aplicar o aprendizado e produzir imagens, vídeos e ativos digitais
-                dentro do ecossistema.
+                Geração de imagens disponível. Vídeo, voz e avatar estão em desenvolvimento.
               </p>
               <div className="mt-7 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
                 Entrar na Studio

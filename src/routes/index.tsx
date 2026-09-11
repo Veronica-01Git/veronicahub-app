@@ -1,10 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  Instagram,
-  Youtube,
-  MessageCircle,
-  Mail,
   Zap,
   Wifi,
   Target,
@@ -15,8 +11,6 @@ import {
   Layers,
   Anchor,
   ShoppingBag,
-  Menu,
-  X,
   Plus,
   Minus,
   Workflow,
@@ -29,11 +23,9 @@ import ogImage from "@/assets/og-veronica-hub.jpg";
 import { useReveal, useCountUp } from "@/hooks/use-reveal";
 import { useParallax } from "@/hooks/use-parallax";
 import {
-  SOCIAL_LINKS,
-  EcosystemMenu,
-  MobileEcosystemIntentMenu,
+  SiteHeader,
+  SiteFooter,
   HeroFrame,
-  AuthWidget,
 } from "@/components/SiteChrome";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
 import { LazyImage } from "@/components/media/LazyImage";
@@ -46,83 +38,9 @@ import { HomeCommerce } from "@/components/home/HomeCommerce";
 import { VeronicaPresence } from "@/components/home/VeronicaPresence";
 import { courses } from "@/lib/courses";
 
-type EcosystemItem = {
-  icon: typeof Wand2;
-  name: string;
-  tag: string;
-  desc: string;
-  ready: boolean;
-  to?: string;
-  note?: string;
-  image?: string;
-  external?: boolean;
-};
-
-const ecosystem: EcosystemItem[] = [
-  {
-    icon: Wand2,
-    name: "Veronica Studio",
-    tag: "Geração com IA",
-    desc: "Imagem, vídeo e voz gerados com IA. Do prompt à entrega, um pipeline pro que roda em qualquer nicho.",
-    ready: true,
-    to: "/video-ia",
-    image: "/images/ecosystem/studio.webp",
-  },
-  {
-    icon: FileText,
-    name: "Currículo-Certo",
-    tag: "Carreira",
-    desc: "Otimização de currículo pra passar em ATS, chamar recrutador e virar entrevista.",
-    ready: true,
-    to: "/veronica-curriculo-certo",
-    image: "/images/ecosystem/curriculo.webp",
-  },
-  {
-    icon: BarChart3,
-    name: "Veronica Analytics",
-    tag: "TikTok Shop",
-    desc: "Calculadora de engajamento e plano de ação pra vender mais no TikTok Shop.",
-    ready: true,
-    to: "/veronica-analytics",
-    image: "/images/ecosystem/analytics.webp",
-  },
-  {
-    icon: ShieldCheck,
-    name: "Veronica Security",
-    tag: "Segurança",
-    desc: "Triagem gratuita de segurança em linguagem simples, mais diagnóstico completo sob demanda.",
-    ready: true,
-    to: "/veronica-security",
-    image: "/images/ecosystem/security.webp",
-  },
-  {
-    icon: Layers,
-    name: "Prompt Packs",
-    tag: "Comandos prontos",
-    desc: "Documentos com prompts prontos pra IA real — Nano Banana Pro, Veo, Midjourney, ElevenLabs.",
-    ready: true,
-    to: "/prompt-packs",
-    image: "/images/ecosystem/prompt-packs.webp",
-  },
-  {
-    icon: Anchor,
-    name: "Veronica Náutica",
-    tag: "Seguro náutico",
-    desc: "Corretagem de seguros náuticos para jetskis guardados em marinas de SC. Projeto em estruturação, sujeito a habilitação regulatória.",
-    ready: true,
-    to: "/veronica-nautica",
-    note: "Em estruturação",
-  },
-  {
-    icon: ShoppingBag,
-    name: "Negócio da China",
-    tag: "Marketplace C2C",
-    desc: "Compra e venda de produtos novos e usados, direto entre pessoas. Domínio próprio, fora deste app.",
-    ready: true,
-    external: true,
-    to: "https://negociodachina.veronicahub.com",
-  },
-];
+import { HOME_PRODUCTS } from "@/lib/ecosystem";
+const HOME_ICONS: Record<string, typeof Wand2> = { studio: Wand2, career: FileText, analytics: BarChart3, security: ShieldCheck, packs: Layers, nautica: Anchor, china: ShoppingBag };
+const ecosystem = HOME_PRODUCTS.map(item => ({ ...item, icon: HOME_ICONS[item.id], tag: item.category, desc: item.description, ready: true, note: item.status, image: ({studio:"studio",career:"curriculo",analytics:"analytics",security:"security",packs:"prompt-packs"} as Record<string,string>)[item.id] ? `/images/ecosystem/${({studio:"studio",career:"curriculo",analytics:"analytics",security:"security",packs:"prompt-packs"} as Record<string,string>)[item.id]}.webp` : undefined }));
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -134,6 +52,8 @@ export const Route = createFileRoute("/")({
         content:
           "Formação prática em inteligência artificial para criar, automatizar, desenvolver e aplicar IA em projetos, trabalho e negócios.",
       },
+      { property: "og:title", content: "Veronica — Escola de Inteligência Artificial" },
+      { name: "twitter:title", content: "Veronica — Escola de Inteligência Artificial" },
       { property: "og:image", content: ogImage },
       { name: "twitter:image", content: ogImage },
     ],
@@ -184,37 +104,24 @@ const faqs = [
   },
   {
     q: "Preciso saber IA pra começar?",
-    a: "Não. Cada formação parte do zero e vai até o avançado — o ponto de partida é nunca ter feito nada disso.",
+    a: "Não. Comece pela Aula Zero gratuita e confira o nível indicado em cada formação.",
   },
   {
     q: "Como funcionam as formações?",
-    a: "100% online, em vídeo, organizadas por área (criação, negócios, marketing, desenvolvimento, tecnologia). Você escolhe por onde começar.",
+    a: "A Aula Zero está disponível. O catálogo de formações está em produção; cada card informa sua disponibilidade.",
   },
   {
     q: "Posso estudar no meu ritmo?",
-    a: "Sim. Sem turma fixa nem horário marcado — no seu ritmo, em qualquer dispositivo.",
+    a: "Sim. A Aula Zero já pode ser feita no seu ritmo. As demais formações estão em preparação.",
   },
   {
     q: "O que encontro dentro do ecossistema Veronica?",
-    a: "Ferramentas reais além das formações: geração de imagem/vídeo com IA na Studio, otimização de currículo, análise de TikTok Shop, diagnóstico de segurança e mais — tudo numa conta só.",
+    a: "Ferramentas reais além das formações: geração de imagens com IA no Studio, otimização de currículo, protótipo de análise de TikTok Shop, diagnóstico de segurança e mais — com disponibilidade indicada em cada área.",
   },
 ];
 
 function Index() {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [veronicaOpen, setVeronicaOpen] = useState(false);
-  useEffect(() => {
-    if (!mobileOpen) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setMobileOpen(false);
-    }
-    document.addEventListener("keydown", onKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
 
   const stats = useReveal<HTMLDivElement>();
   const proof = useReveal<HTMLElement>();
@@ -249,183 +156,7 @@ function Index() {
           <span className="hidden sm:inline">Perguntar à Veronica</span>
         </button>
       )}
-      {/* Nav */}
-      <header className="relative sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55">
-        {/* Sutil linha vermelha de ponta a ponta no topo */}
-        <div
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-destructive/60 to-transparent"
-        />
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <a
-            href="#"
-            className="flex items-center gap-2 font-mono-tech text-sm uppercase tracking-widest"
-          >
-            <span className="h-2 w-2 rounded-full bg-neon-green animate-pulse-dot" />
-            <span className="font-display text-base tracking-tight">Veronica</span>
-            <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">Hub</span>
-          </a>
-          <nav className="hidden items-center gap-1 text-xs font-mono-tech uppercase tracking-wider md:flex">
-            <a
-              href="#sobre"
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-            >
-              Escola
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </a>
-            <Link
-              to="/comandos"
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-            >
-              Formações
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
-            <a
-              href="#produtos"
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-            >
-              Produtos
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </a>
-            <a
-              href="#collabs"
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-cyan"
-            >
-              Collabs
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-cyan transition-transform duration-300 group-hover:scale-x-100" />
-            </a>
-            <button
-              type="button"
-              onClick={() => setVeronicaOpen(true)}
-              className="group relative px-3 py-2 text-muted-foreground transition hover:text-neon-green"
-            >
-              Veronica AI
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </button>
-            <EcosystemMenu />
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/blog"
-              className="group relative hidden px-3 py-2 font-mono-tech text-xs uppercase tracking-wider text-muted-foreground transition hover:text-neon-green sm:block"
-            >
-              Blog
-              <span className="absolute inset-x-3 -bottom-0.5 h-px origin-left scale-x-0 bg-neon-green transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
-            <AuthWidget />
-            <Link
-              to="/comandos"
-              className="group relative hidden items-center gap-2 rounded-sm bg-neon-green px-4 py-2 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-[0_0_0_1px_oklch(0.85_0.22_155),0_8px_24px_-8px_oklch(0.85_0.22_155/0.6)] transition duration-200 hover:-translate-y-0.5 hover:shadow-glow-green active:translate-y-0 active:brightness-95 md:inline-flex"
-            >
-              <span className="text-[10px] opacity-70 group-hover:opacity-100">▸</span>
-              Começar a aprender
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
-              aria-expanded={mobileOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 text-foreground md:hidden"
-            >
-              {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {mobileOpen && (
-        <div className="fixed inset-x-0 top-[65px] bottom-0 z-40 overflow-y-auto bg-background/98 backdrop-blur-md md:hidden">
-          <nav className="flex flex-col gap-1 px-6 py-6 font-mono-tech text-sm uppercase tracking-wider">
-            <AuthWidget variant="mobile" />
-            <button
-              type="button"
-              onClick={() => {
-                setMobileOpen(false);
-                setVeronicaOpen(true);
-              }}
-              className="flex items-center gap-2 border-b border-border/40 py-3.5 text-left text-neon-green"
-            >
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-neon-green/50 bg-neon-green/10 font-display text-[9px]">
-                V
-              </span>
-              Perguntar à Veronica
-            </button>
-            <a
-              href="#sobre"
-              onClick={() => setMobileOpen(false)}
-              className="border-b border-border/40 py-3.5 text-foreground"
-            >
-              Escola
-            </a>
-            <Link
-              to="/comandos"
-              onClick={() => setMobileOpen(false)}
-              className="border-b border-border/40 py-3.5 text-foreground"
-            >
-              Formações
-            </Link>
-            <a
-              href="#produtos"
-              onClick={() => setMobileOpen(false)}
-              className="border-b border-border/40 py-3.5 text-foreground"
-            >
-              Produtos próprios
-            </a>
-            <a
-              href="#collabs"
-              onClick={() => setMobileOpen(false)}
-              className="border-b border-border/40 py-3.5 text-foreground"
-            >
-              Collabs exclusivas
-            </a>
-            <Link
-              to="/blog"
-              onClick={() => setMobileOpen(false)}
-              className="border-b border-border/40 py-3.5 text-foreground"
-            >
-              Blog
-            </Link>
-            <MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} />
-            <Link
-              to="/comandos"
-              onClick={() => setMobileOpen(false)}
-              className="mt-6 inline-flex items-center justify-center gap-2 rounded-sm bg-neon-green px-4 py-3 text-[11px] text-primary-foreground"
-            >
-              Começar a aprender
-            </Link>
-            <div className="mt-6 flex items-center gap-4 text-muted-foreground">
-              <a
-                href={SOCIAL_LINKS.youtube}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-              >
-                <Youtube className="h-5 w-5" />
-              </a>
-              <a
-                href={SOCIAL_LINKS.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a
-                href={SOCIAL_LINKS.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp"
-              >
-                <MessageCircle className="h-5 w-5" />
-              </a>
-              <a href={SOCIAL_LINKS.email} aria-label="E-mail">
-                <Mail className="h-5 w-5" />
-              </a>
-            </div>
-          </nav>
-        </div>
-      )}
+      <SiteHeader />
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-black scanlines">
@@ -490,7 +221,7 @@ function Index() {
             className={`reveal ${stats.visible ? "reveal-visible" : ""} mt-14 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 cv-auto`}
           >
             {[
-              { value: `${c1}`, suffix: "+", label: "Formações no hub" },
+              { value: `${c1}`, suffix: "+", label: "Formações planejadas" },
               { value: `${c2}`, suffix: "%", label: "Online, no seu ritmo" },
               { value: `${c3}`, suffix: "", label: "Ferramentas no ecossistema" },
             ].map((s) => (
@@ -609,15 +340,16 @@ function Index() {
               <Link
                 key={c.title}
                 to="/comandos"
+                hash={c.slug}
                 className="group relative overflow-hidden rounded-sm border border-border/60 bg-surface/70 p-6 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-neon-green/60 hover:bg-surface hover:shadow-glow-green"
               >
                 <div className="flex items-center justify-between">
                   <span className="rounded-full border border-border/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
                     {c.tag}
                   </span>
-                  {c.featured && (
+                  {c.status !== "available" && (
                     <span className="rounded-full bg-neon-green px-2 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-primary-foreground shadow-glow-green">
-                      Mais vendido
+                      Em produção
                     </span>
                   )}
                 </div>
@@ -645,7 +377,7 @@ function Index() {
               Aprenda na formação. Execute na Studio.
             </div>
             <p className="mt-1.5 max-w-xl text-sm leading-[1.6] text-muted-foreground">
-              11 formações prontas — do conteúdo à IA — pra você sair da aula e já rodar nas
+              11 formações em preparação — do conteúdo à IA — pra você sair da aula e já rodar nas
               ferramentas do ecossistema.
             </p>
           </div>
@@ -937,7 +669,7 @@ function Index() {
             </div>
             <p className="mt-1.5 max-w-xl text-sm leading-[1.6] text-muted-foreground">
               Multidisciplinar, atualizado e completo — o ecossistema Veronica te acompanha do
-              conteúdo à venda, sem sair da plataforma.
+              conteúdo à venda, com links identificados para os projetos externos.
             </p>
           </div>
           <Link
@@ -1077,129 +809,7 @@ function Index() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/40 bg-background/80">
-        <div className="mx-auto max-w-7xl px-6 py-16">
-          <div className="grid gap-10 md:grid-cols-4">
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-2 font-mono-tech text-sm uppercase tracking-widest">
-                <span className="h-2 w-2 rounded-full bg-neon-green animate-pulse-dot" />
-                <span className="font-display text-base">Veronica</span>
-                <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground">Hub</span>
-              </div>
-              <p className="mt-4 max-w-sm text-sm leading-[1.65] text-muted-foreground">
-                Escola de inteligência artificial com formações práticas, produtos autorais,
-                ferramentas próprias e collabs construídas para gerar resultados reais.
-              </p>
-              <div className="mt-6 flex items-center gap-3 text-muted-foreground">
-                <a
-                  href={SOCIAL_LINKS.youtube}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="YouTube"
-                  className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"
-                >
-                  <Youtube className="h-4 w-4" />
-                </a>
-                <a
-                  href={SOCIAL_LINKS.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"
-                >
-                  <Instagram className="h-4 w-4" />
-                </a>
-                <a
-                  href={SOCIAL_LINKS.whatsapp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="WhatsApp"
-                  className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                </a>
-                <a
-                  href={SOCIAL_LINKS.email}
-                  aria-label="E-mail"
-                  className="rounded-sm border border-border/60 p-2 transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green"
-                >
-                  <Mail className="h-4 w-4" />
-                </a>
-              </div>
-            </div>
-            <div>
-              <div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
-                Navegar
-              </div>
-              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <Link to="/comandos" className="transition hover:text-neon-green">
-                    Formações
-                  </Link>
-                </li>
-                <li>
-                  <a href="#ecossistema" className="transition hover:text-neon-green">
-                    Ecossistema
-                  </a>
-                </li>
-                <li>
-                  <a href="#pricing" className="transition hover:text-neon-green">
-                    Comece agora
-                  </a>
-                </li>
-                <li>
-                  <a href="#faq" className="transition hover:text-neon-green">
-                    FAQ
-                  </a>
-                </li>
-                <li>
-                  <a href="#sobre" className="transition hover:text-neon-green">
-                    Sobre
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
-                Drops da Veronica
-              </div>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Receba táticas, prompts e cases direto no seu email.
-              </p>
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="mt-4 flex overflow-hidden rounded-sm border border-border/60 focus-within:border-neon-green/60"
-              >
-                <input
-                  type="email"
-                  required
-                  placeholder="seu@email.com"
-                  className="flex-1 bg-transparent px-3 py-2.5 font-mono-tech text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
-                />
-                <button className="bg-neon-green px-4 font-mono-tech text-[10px] uppercase tracking-widest text-primary-foreground transition hover:brightness-110">
-                  OK
-                </button>
-              </form>
-            </div>
-          </div>
-          <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border/40 pt-6 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground md:flex-row md:items-center">
-            <div>© 2026 Veronica Hub · Escola de Inteligência Artificial</div>
-            <div className="flex items-center gap-6">
-              <a href="#" className="transition hover:text-neon-green">
-                Termos
-              </a>
-              <a href="#" className="transition hover:text-neon-green">
-                Privacidade
-              </a>
-              <a href="#" className="transition hover:text-neon-green">
-                Contato
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

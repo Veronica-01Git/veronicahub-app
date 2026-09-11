@@ -6,6 +6,12 @@ import vfx5 from "@/assets/vfx/pexels-cottonbro-6153739.jpg.asset.json";
 import vfx6 from "@/assets/vfx/pexels-merlin-14268798.jpg.asset.json";
 
 export type Course = {
+  slug: string;
+  status: "available" | "planned";
+  cta: string;
+  outcome: string;
+  availability: string;
+  href?: string;
   title: string;
   tag: string;
   lessons: number;
@@ -18,7 +24,7 @@ export type Course = {
 
 // Fonte única — usada tanto pelo teaser da home quanto pela grade completa
 // em /comandos (ex-"Cursos").
-export const courses: Course[] = [
+const plannedCourses = [
   { title: "Canais Dark", tag: "Conteúdo", lessons: 32, hours: "6h", level: "Intermediário", featured: true, image: vfx1.url, perks: ["Nichos ocultos que faturam", "Automação com IA", "Monetização YouTube"] },
   { title: "VSL Cinematográfico", tag: "Vídeo", lessons: 24, hours: "5h", level: "Intermediário", image: vfx6.url, perks: ["Roteiro que converte", "Edição cinematográfica", "CapCut + IA"] },
   { title: "Avatar Digital IA", tag: "IA", lessons: 18, hours: "4h", level: "Iniciante", image: vfx4.url, perks: ["Clone da sua voz", "Avatar realista", "Automação total"] },
@@ -31,3 +37,14 @@ export const courses: Course[] = [
   { title: "Criar Site", tag: "Dev", lessons: 24, hours: "5h", level: "Iniciante", image: vfx1.url, perks: ["Sem código", "Deploy grátis", "SEO técnico"] },
   { title: "Hacking Ético", tag: "Segurança", lessons: 34, hours: "8h", level: "Avançado", image: vfx5.url, perks: ["Pentesting real", "Bug bounty", "Lab dedicado"] },
 ];
+
+export const courses: Course[] = plannedCourses.map(course => ({
+  ...course,
+  level: course.level as Course["level"],
+  perks: course.perks as Course["perks"],
+  slug: course.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+  status: "planned",
+  cta: "Em produção",
+  outcome: course.perks[0],
+  availability: "Em produção — acesso ainda indisponível",
+}));

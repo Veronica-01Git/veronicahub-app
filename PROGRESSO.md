@@ -3,6 +3,62 @@
 Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 (ou outro agente) neste diretório, leia isto primeiro.
 
+## Retomada da validação — 2026-09-10
+
+- Verificação HTTP local: Home, Formações, Prompt Packs, Analytics,
+  Currículo-Certo, Área RH e Studio retornaram 200 com títulos específicos.
+- Wire retornou 500 no ambiente local; DATABASE_URL não está configurada.
+  Não foram alteradas credenciais, integrações ou tratamento do backend.
+- Após autorização explícita para ferramentas de teste, o download do Chrome
+  falhou por certificado não reconhecido no instalador agent-browser; o
+  download oficial do Playwright esgotou o tempo de conexão. QA visual
+  desktop/mobile permanece pendente por limitação do ambiente.
+- Nenhum push/deploy realizado. Autorização para publicar após validação mantida.
+
+## Validação da Fase 1 — atualização em 2026-09-10
+
+- Dependências existentes instaladas com Bun e `--frozen-lockfile`, após nova
+  autorização do usuário; package.json e bun.lock não alterados nesta retomada.
+- `npm run typecheck`: passou. `npm run build`: passou (saída Cloudflare/Nitro).
+- Os cinco testes de arquitetura passaram; sem alterações de backend.
+- QA visual desktop/mobile ainda pendente: instalação adicional de agent-browser
+  rejeitada pela revisão automática; Playwright disponível sem executável de
+  navegador, e navegador remoto bloqueia localhost (`ERR_BLOCKED_BY_CLIENT`).
+- Publicação autorizada pelo usuário quando a validação estiver completa.
+  Nenhum push ou deploy realizado nesta retomada.
+
+## Fase 1 — fundação da arquitetura (2026-09-10)
+
+Implementação local na branch `feat/architecture-foundation-phase1`, baseada em
+`b7e1e1f`. Sem push e sem deploy. Validação completa ainda pendente.
+
+- Registro canônico em `src/lib/ecosystem.ts`: produtos, status editoriais,
+  categorias, seis intenções e destinos. Adaptadores preservam os consumidores
+  existentes; Universe mantém a constelação e lista todas as áreas no diretório.
+- Header/footer compartilhados na Home e páginas públicas. Desktop/mobile usam
+  as mesmas fontes. Sem Admin público; redes no rodapé. Currículo/RH mantêm os
+  próprios controles de sessão/carteira, com navegação global compartilhada.
+- Formações mantém `/comandos`; catálogo com slug, status, CTA, objetivo e
+  disponibilidade. As 11 formações sem entrega identificada ficam em produção.
+  Nenhum card simula acesso pela Home. Aula Zero permanece acessível.
+- Termos/privacidade e newsletter sem destino foram retirados temporariamente.
+  Contato usa o e-mail existente; comunidade sem grupo real virou acesso à escola.
+- Analytics identifica dados demonstrativos; Wire não promete publicação por
+  hora/ao vivo; removida alegação estática de mais vendido. Metadados globais
+  posicionam a marca como Escola de Inteligência Artificial.
+- Backend, autenticação, APIs, banco, pagamentos e imagem otimizada da Hero
+  não foram alterados. AuthWidget comparado com a base: idêntico.
+- Verificação: 5 testes de contratos/rotas passaram com `npm test` (Node 24),
+  parse dos 21 arquivos TS/TSX alterados passou; `git diff --check` limpo.
+- `npm run typecheck` bloqueado: `tsc: not found`; `npm run build` bloqueado:
+  `vite: not found`. Dependências ausentes e nenhuma instalada. Scripts de
+  typecheck/test foram adicionados sem novas dependências.
+- Verificação real em navegador desktop/mobile não executada: aplicação não
+  pode ser iniciada sem suas dependências. Revisão estática não substitui essa
+  etapa. Reexecutar tipos/build e QA das rotas antes de considerar a fase validada.
+- Pendências editoriais: destinos de entrega das formações, documentos legais,
+  newsletter/comunidade reais e comprovação das integrações de Analytics/Wire.
+
 ## Onde estamos
 
 - Repositório: `~/veronicahub-app` (WSL), GitHub `Veronica-01Git/veronicahub-app`.

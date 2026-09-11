@@ -1,3 +1,4 @@
+import { product } from "@/lib/ecosystem";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Wallet, Sparkles, Clock } from "lucide-react";
 
@@ -60,7 +61,7 @@ export function StudioShowcase() {
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
           <Link
-            to="/video-ia"
+            to={product("studio").to}
             className="group relative inline-flex items-center gap-2 overflow-hidden rounded-sm bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
           >
             Gerar minha primeira imagem grátis{" "}

@@ -1281,7 +1281,7 @@ function VeronicaStudio() {
               Quer se aprofundar em cada etapa?
             </div>
             <p className="mt-3 max-w-2xl leading-[1.65] text-muted-foreground">
-              Esses comandos ensinam exatamente o que fazer render aqui dentro — do roteiro de VSL
+              Estas formações em produção vão explorar o que criar aqui dentro — do roteiro de VSL
               ao VFX que separa amador de profissional.
             </p>
 
@@ -1305,7 +1305,7 @@ function VeronicaStudio() {
                     {c.perks[0]}
                   </p>
                   <div className="mt-5 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
-                    Ver comando{" "}
+                    Ver formação{" "}
                     <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                   </div>
                 </Link>
@@ -1318,17 +1318,17 @@ function VeronicaStudio() {
                   className="font-display text-lg text-foreground"
                   style={{ letterSpacing: "-0.02em" }}
                 >
-                  Comando aprendido, execução na hora.
+                  Formações em produção. Studio disponível.
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Termine o comando e volte pra cá — o gerador já tá esperando.
+                  Enquanto as formações são preparadas, explore a geração de imagens.
                 </p>
               </div>
               <Link
                 to="/comandos"
                 className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm border border-neon-cyan/60 bg-background/60 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.18em] text-neon-cyan transition duration-200 hover:-translate-y-0.5 hover:bg-neon-cyan/10 active:translate-y-0"
               >
-                Ver todos os comandos{" "}
+                Ver todas as formações{" "}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>

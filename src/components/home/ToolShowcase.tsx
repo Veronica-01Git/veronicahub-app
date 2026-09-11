@@ -1,3 +1,4 @@
+import { product } from "@/lib/ecosystem";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, FileText, BarChart3, ShieldCheck } from "lucide-react";
 
@@ -18,29 +19,29 @@ type Tool = {
 const TOOLS: Tool[] = [
   {
     icon: FileText,
-    eyebrow: "Currículo-Certo",
+    eyebrow: product("career").name,
     problem: "Seu currículo não deveria depender de tentativa e erro.",
     solution: "Avaliação gratuita orientada para passar em ATS e virar entrevista.",
     cta: "Avaliar meu currículo",
-    to: "/veronica-curriculo-certo",
+    to: product("career").to,
     accent: "green",
   },
   {
     icon: BarChart3,
-    eyebrow: "Veronica Analytics",
+    eyebrow: product("analytics").name,
     problem: "Pare de interpretar números no escuro.",
     solution: "Calculadora de engajamento e plano de ação para TikTok Shop.",
     cta: "Usar Analytics",
-    to: "/veronica-analytics",
+    to: product("analytics").to,
     accent: "cyan",
   },
   {
     icon: ShieldCheck,
-    eyebrow: "Veronica Security",
+    eyebrow: product("security").name,
     problem: "Descubra onde sua presença digital está exposta.",
     solution: "Triagem gratuita de segurança, em linguagem simples.",
     cta: "Fazer triagem",
-    to: "/veronica-security",
+    to: product("security").to,
     accent: "green",
   },
 ];
