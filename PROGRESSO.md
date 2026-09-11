@@ -1,3 +1,13 @@
+## Publicação da Fase 1 — 2026-09-11
+
+- Publicado em produção pelo commit remoto `91c4cdd` na branch `main`.
+- Cloudflare propagou a nova versão em `https://veronicahub.com`.
+- Verificação pública concluída em Home, Formações, Prompt Packs, Analytics,
+  Currículo-Certo, Área RH, Studio e Wire; todas carregaram com os títulos e
+  conteúdos esperados, sem erros da aplicação no console.
+- O Wire carregou normalmente com o banco do ambiente de produção.
+- Typecheck, build e cinco testes de arquitetura passaram antes da publicação.
+
 # Progresso — redesign visual Veronica Hub
 
 Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
