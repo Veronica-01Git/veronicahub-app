@@ -592,12 +592,9 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
     };
   }
 
-  const shouldPersistRadarUrl =
-    selectedSignal && selectedSignal.domain !== "news.google.com";
-  const resolvedSourceUrls = [
-    ...(anchoredToRecentRadar || !shouldPersistRadarUrl ? [] : [selectedSignal.url]),
-    ...submittedSourceUrls,
-  ].filter((url, index, all) => {
+  // O radar serve para selecionar a pauta, não para aparecer como fonte. Só
+  // persistimos URLs que o modelo realmente abriu durante a apuração.
+  const resolvedSourceUrls = submittedSourceUrls.filter((url, index, all) => {
     const canonical = canonicalSourceUrl(url);
     return (
       canonical !== null &&
