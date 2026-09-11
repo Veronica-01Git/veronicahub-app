@@ -6,6 +6,7 @@ import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import {
+  handleArchiveWireOwnedImagesCron,
   handleBackfillWireCoversCron,
   handleGenerateArticleCron,
   handleSetCoverImageCron,
@@ -115,6 +116,15 @@ export default {
         return await handleBackfillWireCoversCron(request);
       } catch (error) {
         console.error("Erro no backfill de capas do Wire:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/archive-wire-owned-images" && request.method === "POST") {
+      try {
+        return await handleArchiveWireOwnedImagesCron(request);
+      } catch (error) {
+        console.error("Erro ao arquivar capas institucionais do Wire:", error);
         return new Response("error", { status: 500 });
       }
     }

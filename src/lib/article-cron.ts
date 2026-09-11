@@ -6,6 +6,29 @@ import { articles, mediaImages, users } from "./schema";
 
 const MAX_LIBRARY_IMAGE_BYTES = 5 * 1024 * 1024;
 
+const WIRE_OWNED_IMAGES = [
+  {
+    path: "/images/wire-reposts/rede-energia-global-ai.webp",
+    filename: "wire-archive-rede-energia-global-ai.webp",
+    altText: "Arquivo da capa anterior — Veronica Wire conecta notícias e aprendizado",
+  },
+  {
+    path: "/images/wire-reposts/yuan-digital-drex-ai.webp",
+    filename: "wire-archive-yuan-digital-drex-ai.webp",
+    altText: "Arquivo da capa anterior — Veronica Analytics",
+  },
+  {
+    path: "/images/wire-reposts/energia-solar-parana-ai.webp",
+    filename: "wire-archive-energia-solar-parana-ai.webp",
+    altText: "Arquivo da capa anterior — comunidade Veronica",
+  },
+  {
+    path: "/images/wire-reposts/balneario-camboriu-clima-ai.webp",
+    filename: "wire-archive-balneario-camboriu-clima-ai.webp",
+    altText: "Arquivo da capa anterior — radar regional de Balneário Camboriú",
+  },
+] as const;
+
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
@@ -82,6 +105,66 @@ async function saveCoverToMediaLibrary(input: {
     uploadedBy: admin.id,
   });
   return true;
+}
+
+export async function handleArchiveWireOwnedImagesCron(request: Request): Promise<Response> {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return new Response("CRON_SECRET não configurada", { status: 500 });
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
+    return new Response("unauthorized", { status: 401 });
+  }
+
+  const db = getDb();
+  const [admin] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.role, "admin"))
+    .limit(1);
+  if (!admin) return new Response("Nenhum administrador disponível", { status: 500 });
+
+  const saved: string[] = [];
+  const existing: string[] = [];
+  for (const image of WIRE_OWNED_IMAGES) {
+    const [row] = await db
+      .select({ id: mediaImages.id })
+      .from(mediaImages)
+      .where(eq(mediaImages.filename, image.filename))
+      .limit(1);
+    if (row) {
+      existing.push(image.filename);
+      continue;
+    }
+
+    const sourceUrl = `https://raw.githubusercontent.com/Veronica-01Git/veronicahub-app/main/public${image.path}`;
+    const response = await fetch(sourceUrl, {
+      headers: { Accept: "image/*", "User-Agent": "Veronica-Wire-Archive/1.0" },
+    });
+    if (!response.ok) {
+      return new Response(`Falha ao arquivar ${image.filename}: ${response.status}`, {
+        status: 502,
+      });
+    }
+    const buffer = await response.arrayBuffer();
+    if (buffer.byteLength === 0 || buffer.byteLength > MAX_LIBRARY_IMAGE_BYTES) {
+      return new Response(`Imagem fora do limite: ${image.filename}`, { status: 400 });
+    }
+    const mimeType = (response.headers.get("content-type") || "image/webp")
+      .split(";")[0]
+      .trim();
+    await db.insert(mediaImages).values({
+      filename: image.filename,
+      mimeType,
+      sizeBytes: buffer.byteLength,
+      width: null,
+      height: null,
+      altText: image.altText,
+      data: arrayBufferToBase64(buffer),
+      uploadedBy: admin.id,
+    });
+    saved.push(image.filename);
+  }
+
+  return Response.json({ ok: true, saved, existing });
 }
 
 // Escolhe a editoria pela hora UTC atual — sem precisar guardar estado em
