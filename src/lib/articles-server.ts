@@ -19,7 +19,7 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 // diretamente, sem essa camada intermediária, e é um modelo de produção do
 // Groq. reasoning_effort baixo mantém a pesquisa dentro do orçamento.
 const DRAFT_MODEL = "openai/gpt-oss-20b";
-const DRAFT_FALLBACK_MODEL = "groq/compound-mini";
+const DRAFT_FALLBACK_MODEL = "openai/gpt-oss-120b";
 const DRAFT_MAX_TOKENS = 1100;
 
 // GDELT funciona como radar gratuito de pauta. Ele não é tratado como fonte
@@ -464,17 +464,17 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
       };
     }
 
-    // O GPT-OSS tem teto diário gratuito. Compound Mini usa pesquisa web
-    // nativa e funciona como reserva automática, sem exigir outra credencial.
+    // Os modelos GPT-OSS têm cotas gratuitas separadas. O 120B também suporta
+    // browser_search e funciona como reserva sem exigir outra credencial.
     try {
-      const fallbackGroq = new Groq({
-        apiKey,
-        defaultHeaders: { "Groq-Model-Version": "latest" },
-      });
+      const fallbackGroq = new Groq({ apiKey });
       response = await fallbackGroq.chat.completions.create({
         model: DRAFT_FALLBACK_MODEL,
         messages,
         max_completion_tokens: DRAFT_MAX_TOKENS,
+        reasoning_effort: "low",
+        tool_choice: "required",
+        tools: [{ type: "browser_search" }],
       });
     } catch (fallbackError) {
       return {
