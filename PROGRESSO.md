@@ -155,7 +155,7 @@ em "Sessão em andamento":
 - **PR #23** (brief "Veronica Wire — evolução", item A de 3) — piso de
   qualidade antes de publicar (mínimo 2 `sourceUrls`, corpo mínimo 700
   caracteres), dedup por similaridade de manchete (últimas 40 publicações,
-  todas editorias, *overlap coefficient* com limiar 0.35 calibrado à mão —
+  todas editorias, _overlap coefficient_ com limiar 0.35 calibrado à mão —
   ver comentário em `findSimilarHeadline` em `articles-server.ts`), prompt
   ajustado pra matérias mais curtas (900-1400 caracteres), endpoint
   `?dryRun=1` em `/api/cron/generate-article` pra simular sem publicar, e
@@ -202,6 +202,7 @@ isso ser resolvido.
 sem crédito, Gemini foi a primeira tentativa de tier grátis. Histórico
 completo de tentativas, cada uma corrigindo o erro anterior mas sempre
 esbarrando em cota:
+
 1. `gemini-flash-latest` (alias) → `429 RESOURCE_EXHAUSTED`.
 2. `gemini-2.5-flash` (nome fixo) → `404` ("no longer available to new
    users", API recomendou `gemini-3.6-flash`).
@@ -222,6 +223,7 @@ esbarrando em cota:
 `content`, sem remapeamento de role como o Gemini exigia). Tier grátis
 do Groq **não pede cartão** — confirmado antes de migrar (pesquisa via
 WebSearch, já que não dá pra testar rede daqui do sandbox).
+
 - **Wire**: modelo `groq/compound` (não um modelo comum) — tem busca na
   web nativa embutida (via Tavily), único equivalente real ao
   `web_search` da Anthropic/`googleSearch` do Gemini que sobrevive sem
@@ -243,6 +245,7 @@ comentadas).
 
 **Brief completo da evolução dividido em 3 PRs** (A e C concluídas, B não
 iniciada):
+
 - **PR A** — qualidade/dedup/capas fixas. ✅ Mesclado (#23).
 - **PR C** — paginação + arquivamento. ✅ Mesclado (#25).
 - **PR B** — reduzir `CYCLE_HOURS` de 5 pra 3 ou 4 + fan-out (cada disparo
@@ -261,6 +264,7 @@ iniciada):
 
 **Pendências pontuais que só o usuário resolve** (não são coisa que dá
 pra "fechar" programaticamente — tentado e documentado por quê):
+
 - `PIXABAY_API_KEY` — falta cadastrar como secret do GitHub Actions.
   Nenhum agente consegue criar essa conta sozinho (cadastro externo,
   sem navegador/rede pra isso no sandbox).
@@ -270,6 +274,7 @@ pra "fechar" programaticamente — tentado e documentado por quê):
   `DATABASE_URL`+`ANTHROPIC_API_KEY`+`PEXELS_API_KEY` no ambiente.
 
 ### Veronica Rede no menu hambúrguer (PR #7, mesclado em `main`)
+
 - `/veronica-rede` (página do programa de afiliados/revendedores) já
   existia no código desde antes, mas era uma rota **órfã**: nenhum lugar
   do site linkava pra ela (nem menu, nem rodapé, nem outra página) —
@@ -283,10 +288,12 @@ pra "fechar" programaticamente — tentado e documentado por quê):
   mesclado (squash) em `main` no commit `a24d7c9`.
 
 ### Home (`src/routes/index.tsx`) — REVERTIDA
+
 Por pedido do usuário, a home voltou a ser exatamente a versão publicada
 (`main`, commit `70de73d`) — `index.tsx` e `VeronicaHero.tsx` foram
 restaurados com `git checkout main -- <arquivo>`. O redesign clara/Apple
 que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
+
 - As classes CSS `.home-hybrid`, `.home-tint-green`, `.home-tint-cyan`,
   `.home-hero-dark` continuam em `src/styles.css` **porque o Veronica
   Wire (`blog.tsx`) depende delas** — não remover essas classes.
@@ -295,6 +302,7 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   da home for retomado no futuro.
 
 ### Studio Criativo (`src/routes/video-ia.tsx`)
+
 - Renomeado de "Veronica Studio". Banner com foto de fundo + 4 cards de
   modalidade (Imagem/Vídeo/Voz/Avatar); compositor só aparece depois de
   escolher modalidade (`modalityChosen`). Sidebar nova (`StudioSidebar`).
@@ -302,6 +310,7 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   (Nano Banana Pro via Higgsfield) ficou intocada.**
 
 ### Veronica Wire (`src/routes/blog.tsx`)
+
 - Redesenhado como portal de notícias de verdade (ticker "ao vivo", tira
   de índices, matéria principal + "mais lidas", newsletter, tags,
   seções por editoria, redação global, faixa final pro Hub). Geopolítica
@@ -309,6 +318,7 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   explicitamente. Página 100% estática, sem lógica de pagamento.
 
 ### Assistente Veronica no Studio Criativo (branch `veronica-assistente-studio`)
+
 - `src/veronica/skills/studio-criativo.ts` — contrato dos 7 passos
   (steps, system prompt) fornecido pelo usuário.
 - `src/veronica/skills/index.ts` — registry (fácil adicionar novas skills).
@@ -332,6 +342,7 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   original (só drawer + registry + chat).
 
 ### Veronica Analytics (`src/routes/veronica-analytics.tsx`)
+
 - Reskin pra paleta clara e viva (rosa/ciano/dourado, inspirada no
   duotone do TikTok) via variáveis `--tt-*` escopadas (já existiam,
   só trocamos os valores) — mesma técnica da home antiga. Calculadora
@@ -340,6 +351,7 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   Criativo, no mesmo padrão do Wire.
 
 ### Login visível em todo o Hub + painel admin (branch `claude/veronicahub-redesign-cont-k92gt4`)
+
 - **`AuthWidget`** (novo componente em `src/components/SiteChrome.tsx`) —
   botão "Entrar" (código por e-mail, mesmo fluxo passwordless que já
   existia só dentro do Currículo-Certo/RH/Studio) agora aparece no
@@ -435,6 +447,7 @@ projeto. O agente consegue se situar lendo este arquivo e o `git log`.
 
 **Regras de segurança combinadas — valem pra qualquer agente que
 continuar isso:**
+
 - Implementar/commitar localmente sem precisar perguntar a cada passo.
 - **Nunca** dar `git push`, publicar ou fazer deploy sem confirmação
   explícita do usuário a cada vez — é o mesmo repositório que roda
@@ -448,6 +461,7 @@ continuar isso:**
   perguntar antes.
 - Nunca colar chaves/segredos (API keys, tokens) direto no chat — sempre
   pedir pro usuário colocar direto no `.env.local`.
+
 ## Fase 2 — reorganização e hierarquia da Home (2026-09-11)
 
 - Trabalho local na branch `feat/home-hierarchy-phase2`, criada a partir de
@@ -473,3 +487,14 @@ continuar isso:**
   bloqueada porque o provedor do Chromium retornou 502/arquivo truncado.
 - Publicação aprovada pelo usuário em 2026-09-11; envio para `main` e
   verificação no domínio de produção executados na sequência.
+
+## Restauração visual da Home (2026-09-11)
+
+- Restaurada a composição tecnológica anterior à simplificação da Fase 2,
+  mantendo a arquitetura, as rotas e as fontes canônicas da Fase 1.
+- Recuperados efeitos de hover, glow, HUD, microinterações, vitrines e a
+  tipografia tecnológica da Hero.
+- A Hero mantém a imagem WebP otimizada da Veronica e não reintroduz vídeo,
+  WebGL ou mídia pesada.
+- Adicionado controle acessível de tema claro/escuro exclusivo da Home, com
+  preferência persistida localmente.

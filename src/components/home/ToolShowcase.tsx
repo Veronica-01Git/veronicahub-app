@@ -1,70 +1,106 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, BarChart3, FileText, ShieldCheck, Wand2 } from "lucide-react";
 import { product } from "@/lib/ecosystem";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, FileText, BarChart3, ShieldCheck } from "lucide-react";
 
-const tools = [
+// Problema → solução → ação para as três ferramentas de resultado do
+// ecossistema. Copy restrita ao que cada rota realmente entrega hoje —
+// ver src/routes/veronica-curriculo-certo.tsx, veronica-analytics.tsx e
+// veronica-security.tsx.
+type Tool = {
+  icon: typeof FileText;
+  eyebrow: string;
+  problem: string;
+  solution: string;
+  cta: string;
+  to: string;
+  accent: "green" | "cyan";
+};
+
+const TOOLS: Tool[] = [
   {
-    product: product("studio"),
-    icon: Wand2,
-    audience: "Para criar imagens e ativos visuais com IA.",
-    action: "Gerar uma imagem",
-  },
-  {
-    product: product("analytics"),
-    icon: BarChart3,
-    audience: "Para testar cálculos de engajamento e explorar o protótipo.",
-    action: "Abrir demonstração",
-  },
-  {
-    product: product("career"),
     icon: FileText,
-    audience: "Para revisar um currículo e prepará-lo para processos seletivos.",
-    action: "Avaliar currículo",
+    eyebrow: product("career").name,
+    problem: "Seu currículo não deveria depender de tentativa e erro.",
+    solution: "Avaliação gratuita orientada para passar em ATS e virar entrevista.",
+    cta: "Avaliar meu currículo",
+    to: product("career").to,
+    accent: "green",
   },
   {
-    product: product("security"),
+    icon: BarChart3,
+    eyebrow: product("analytics").name,
+    problem: "Pare de interpretar números no escuro.",
+    solution: "Calculadora de engajamento e plano de ação para TikTok Shop.",
+    cta: "Usar Analytics",
+    to: product("analytics").to,
+    accent: "cyan",
+  },
+  {
     icon: ShieldCheck,
-    audience: "Para identificar riscos básicos na sua presença digital.",
-    action: "Fazer autoavaliação",
+    eyebrow: product("security").name,
+    problem: "Descubra onde sua presença digital está exposta.",
+    solution: "Triagem gratuita de segurança, em linguagem simples.",
+    cta: "Fazer triagem",
+    to: product("security").to,
+    accent: "green",
   },
 ];
 
 export function ToolShowcase() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-16 md:py-20">
-      <div className="max-w-3xl">
-        <p className="font-mono-tech text-xs uppercase tracking-[0.18em] text-neon-green">
-          Ferramentas para executar
-        </p>
-        <h2 className="mt-3 font-display text-3xl leading-tight tracking-[-0.035em] sm:text-4xl md:text-5xl">
-          Ambientes para transformar aprendizado em ação.
+    <section className="relative mx-auto max-w-7xl px-6 py-24">
+      <div className="mb-14 flex flex-col gap-3">
+        <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
+          <span className="h-px w-8 bg-neon-cyan" />
+          Ferramentas de resultado
+        </div>
+        <h2
+          className="font-display text-4xl sm:text-5xl md:text-6xl"
+          style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}
+        >
+          Do diagnóstico <span className="text-neon-cyan text-glow-cyan">à ação</span>.
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-          Cada ferramenta informa seu escopo atual e leva apenas para uma ação que já existe.
-        </p>
       </div>
-      <div className="mt-10 grid gap-5 md:grid-cols-2">
-        {tools.map((tool) => (
-          <Link
-            key={tool.product.id}
-            to={tool.product.to}
-            className="group rounded-md border border-border/45 bg-surface/30 p-6 transition hover:border-neon-green/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-green"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <tool.icon className="h-6 w-6 text-neon-green" />
-              <span className="rounded-full border border-border/60 px-3 py-1 font-mono-tech text-[11px] uppercase tracking-wider text-muted-foreground">
-                {tool.product.status}
-              </span>
-            </div>
-            <h3 className="mt-6 font-display text-2xl">{tool.product.name}</h3>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              {tool.product.description}. {tool.audience}
-            </p>
-            <span className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-neon-green">
-              {tool.action} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-            </span>
-          </Link>
-        ))}
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {TOOLS.map((t) => {
+          const isGreen = t.accent === "green";
+          return (
+            <Link
+              key={t.eyebrow}
+              to={t.to}
+              className={`group relative flex flex-col overflow-hidden rounded-sm border border-border/60 bg-surface/70 p-6 backdrop-blur transition duration-300 hover:-translate-y-1 ${
+                isGreen
+                  ? "hover:border-neon-green/60 hover:shadow-glow-green"
+                  : "hover:border-neon-cyan/60 hover:shadow-glow-cyan"
+              }`}
+            >
+              <div
+                className={`flex h-11 w-11 items-center justify-center rounded-sm border ${isGreen ? "border-neon-green/50 text-neon-green" : "border-neon-cyan/50 text-neon-cyan"}`}
+              >
+                <t.icon className="h-5 w-5" />
+              </div>
+              <div className="mt-5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                {t.eyebrow}
+              </div>
+              <h3
+                className="mt-2 font-display text-xl text-foreground"
+                style={{ letterSpacing: "-0.03em", lineHeight: "1.15" }}
+              >
+                {t.problem}
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-[1.6] text-muted-foreground">
+                {t.solution}
+              </p>
+              <div
+                className={`mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition ${isGreen ? "group-hover:text-neon-green" : "group-hover:text-neon-cyan"}`}
+              >
+                {t.cta}{" "}
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
