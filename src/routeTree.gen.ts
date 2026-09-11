@@ -30,6 +30,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
+import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -137,6 +138,12 @@ const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
   path: '/blog/editoria/$beat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientesExpressEntulhoPropostaRoute =
+  ClientesExpressEntulhoPropostaRouteImport.update({
+    id: '/clientes/express-entulho/proposta',
+    path: '/clientes/express-entulho/proposta',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
+  '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -183,6 +191,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
+  '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -207,6 +216,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
+  '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/blog/editoria/$beat'
+    | '/clientes/express-entulho/proposta'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/blog'
     | '/blog/editoria/$beat'
+    | '/clientes/express-entulho/proposta'
   id:
     | '__root__'
     | '/'
@@ -278,6 +290,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/blog/editoria/$beat'
+    | '/clientes/express-entulho/proposta'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -302,6 +315,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   BlogEditoriaBeatRoute: typeof BlogEditoriaBeatRoute
+  ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -453,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogEditoriaBeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes/express-entulho/proposta': {
+      id: '/clientes/express-entulho/proposta'
+      path: '/clientes/express-entulho/proposta'
+      fullPath: '/clientes/express-entulho/proposta'
+      preLoaderRoute: typeof ClientesExpressEntulhoPropostaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -478,6 +499,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   BlogEditoriaBeatRoute: BlogEditoriaBeatRoute,
+  ClientesExpressEntulhoPropostaRoute: ClientesExpressEntulhoPropostaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
