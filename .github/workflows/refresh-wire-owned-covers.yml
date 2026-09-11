@@ -1,0 +1,67 @@
+name: Atualiza capas Veronica em movimento
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/refresh-wire-owned-covers.yml"
+      - "scripts/refresh-wire-owned-covers.mjs"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: veronica-wire-owned-covers
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aguarda o deploy da proteção de arquivo
+        if: github.event_name == 'push'
+        run: sleep 45
+
+      - name: Arquiva as capas atuais na biblioteca Admin
+        run: |
+          status=$(curl --silent --show-error --max-time 90 \
+            -o archive-response.json -w "%{http_code}" \
+            -X POST "https://veronicahub.com/api/cron/archive-wire-owned-images" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat archive-response.json
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "Arquivamento recusado (HTTP $status). A troca foi cancelada."
+            exit 1
+          fi
+
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Busca quatro fotos reais no Pexels
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: node scripts/refresh-wire-owned-covers.mjs
+
+      - name: Otimiza em alta resolução e baixo peso
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick
+          for image in public/images/wire-reposts/*-pexels.jpg; do
+            bash scripts/optimize-cover.sh "$image"
+          done
+
+      - name: Publica as novas capas
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/images/wire-reposts/*-pexels.jpg \
+            public/images/wire-reposts/pexels-manifest.json
+          git commit -m "chore(wire): atualiza capas com fotos do Pexels"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+          done
+          exit 1
