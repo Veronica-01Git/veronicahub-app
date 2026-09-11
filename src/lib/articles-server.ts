@@ -19,6 +19,7 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 // diretamente, sem essa camada intermediária, e é um modelo de produção do
 // Groq. reasoning_effort baixo mantém a pesquisa dentro do orçamento.
 const DRAFT_MODEL = "openai/gpt-oss-20b";
+const DRAFT_FALLBACK_MODEL = "groq/compound-mini";
 const DRAFT_MAX_TOKENS = 1100;
 
 // GDELT funciona como radar gratuito de pauta. Ele não é tratado como fonte
@@ -430,26 +431,61 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
   // browser_search é obrigatório: o modelo não pode responder só de memória.
   // O Groq executa a ferramenta server-side e devolve o texto pesquisado junto
   // da resposta; o parser abaixo procura o último objeto editorial válido.
+  const messages = [
+    { role: "system" as const, content: systemPrompt },
+    {
+      role: "user" as const,
+      content: "Pesquise e escreva a matéria conforme as instruções.",
+    },
+  ];
   let response: Groq.Chat.ChatCompletion;
   try {
     const groq = new Groq({ apiKey });
     response = await groq.chat.completions.create({
       model: DRAFT_MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: "Pesquise e escreva a matéria conforme as instruções." },
-      ],
+      messages,
       max_completion_tokens: DRAFT_MAX_TOKENS,
       reasoning_effort: "low",
       tool_choice: "required",
       tools: [{ type: "browser_search" }],
     });
   } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Falha ao gerar rascunho com IA.",
-      retry: false,
-    };
+    const isRateLimit =
+      (typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        (error as { status?: unknown }).status === 429) ||
+      (error instanceof Error && /\b429\b|rate limit/i.test(error.message));
+    if (!isRateLimit) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : "Falha ao gerar rascunho com IA.",
+        retry: false,
+      };
+    }
+
+    // O GPT-OSS tem teto diário gratuito. Compound Mini usa pesquisa web
+    // nativa e funciona como reserva automática, sem exigir outra credencial.
+    try {
+      const fallbackGroq = new Groq({
+        apiKey,
+        defaultHeaders: { "Groq-Model-Version": "latest" },
+      });
+      response = await fallbackGroq.chat.completions.create({
+        model: DRAFT_FALLBACK_MODEL,
+        messages,
+        max_completion_tokens: DRAFT_MAX_TOKENS,
+      });
+    } catch (fallbackError) {
+      return {
+        ok: false,
+        error:
+          fallbackError instanceof Error
+            ? fallbackError.message
+            : "Falha ao gerar rascunho com os dois modelos.",
+        retry: false,
+      };
+    }
   }
 
   const finishReason = response.choices[0]?.finish_reason;
