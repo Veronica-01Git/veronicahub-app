@@ -3,6 +3,7 @@ import { ArrowLeft, BadgeCheck, Check, CircleDot, Copy, ExternalLink, ShieldAler
 import { useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { VeronicaSeal } from "@/components/VeronicaSeal";
+import { SealAtmosphere } from "@/components/seals/SealAtmosphere";
 import { findSeal, SEAL_STATUS_COPY } from "@/lib/seals";
 
 export const Route = createFileRoute("/selo/$serial")({
@@ -25,18 +26,24 @@ function SealVerification() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
       <main>
-        <section className="relative overflow-hidden border-b border-border/40 py-12 md:py-20">
+        <section className="relative isolate overflow-hidden border-b border-border/70 py-12 md:py-20">
+          <SealAtmosphere />
           <div aria-hidden className="absolute inset-0 opacity-70 [background:radial-gradient(circle_at_70%_20%,oklch(0.85_0.22_155/.16),transparent_34%)]" />
           <div className="relative mx-auto max-w-7xl px-6">
             <Link to="/selos" className="inline-flex min-h-11 items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition hover:text-neon-green"><ArrowLeft className="h-3.5 w-3.5" /> Registro de selos</Link>
             <div className="mt-8 grid gap-10 lg:grid-cols-[23rem_1fr] lg:items-center">
-              <div className="relative flex min-h-[23rem] items-center justify-center overflow-hidden rounded-sm border border-border/60 bg-surface/60">
+              <div className="group relative flex min-h-[23rem] items-center justify-center overflow-hidden rounded-sm border border-neon-cyan/25 bg-white/55 [perspective:900px] shadow-[0_35px_120px_oklch(0.56_0.13_195/.13)] backdrop-blur-xl">
                 <div aria-hidden className="absolute inset-0 opacity-60 [background-image:linear-gradient(oklch(0.85_0.22_155/.08)_1px,transparent_1px),linear-gradient(90deg,oklch(0.85_0.22_155/.08)_1px,transparent_1px)] [background-size:22px_22px]" />
                 <div aria-hidden className="absolute h-64 w-64 rounded-full bg-neon-green/10 blur-3xl" />
-                <VeronicaSeal serialNumber={record.serial} issuedTo={record.client} issuedDate={record.issuedAt} productName={isConcept ? "CONCEITO" : "SOLUÇÃO IA"} size="lg" className="relative drop-shadow-[0_30px_45px_oklch(0.85_0.22_155/.18)]" />
+                <div aria-hidden className="absolute h-[19rem] w-[19rem] rounded-full border border-neon-green/25 motion-safe:animate-[spin_24s_linear_infinite] before:absolute before:inset-4 before:rounded-full before:border before:border-dashed before:border-neon-cyan/30" />
+                <div className="relative transition-transform duration-700 [transform:rotateX(4deg)_rotateY(-5deg)] group-hover:[transform:rotateX(0deg)_rotateY(0deg)_scale(1.025)]">
+                  <div aria-hidden className="absolute inset-[12%] rounded-full bg-gradient-to-br from-neon-cyan/25 via-transparent to-neon-green/20 blur-2xl" />
+                  <VeronicaSeal serialNumber={record.serial} issuedTo={record.client} issuedDate={record.issuedAt} productName={isConcept ? "CONCEITO" : "SOLUÇÃO IA"} size="lg" className="relative drop-shadow-[0_30px_45px_oklch(0.58_0.17_155/.24)]" />
+                  <div aria-hidden className="absolute inset-[7%] rounded-full bg-gradient-to-tr from-transparent via-white/30 to-transparent opacity-70 mix-blend-screen motion-safe:animate-pulse" />
+                </div>
               </div>
               <div>
                 <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-[.18em] ${isConcept ? "border-border text-muted-foreground" : "border-neon-green/50 bg-neon-green/[.07] text-neon-green"}`}><CircleDot className="h-3 w-3" />{record.statusLabel}</div>

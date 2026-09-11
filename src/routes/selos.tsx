@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BadgeCheck, Building2, GraduationCap, ScanLine, ShieldCheck } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { VeronicaSeal } from "@/components/VeronicaSeal";
+import { SealAtmosphere } from "@/components/seals/SealAtmosphere";
 import { sealRecords } from "@/lib/seals";
 
 export const Route = createFileRoute("/selos")({
@@ -46,10 +47,11 @@ function RecordCard({ record, index }: { record: (typeof sealRecords)[number]; i
 
 function SealRegistry() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
       <main>
-        <section className="relative overflow-hidden border-b border-border/40 py-16 md:py-24">
+        <section className="relative isolate overflow-hidden border-b border-border/70 py-16 md:py-24">
+          <SealAtmosphere />
           <div aria-hidden className="pointer-events-none absolute inset-0 opacity-80 [background:radial-gradient(circle_at_75%_20%,oklch(0.85_0.22_155/.14),transparent_30%),radial-gradient(circle_at_10%_0%,oklch(0.88_0.15_195/.10),transparent_30%)]" />
           <div className="relative mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1fr_.72fr] lg:items-end">
             <div>
@@ -57,15 +59,18 @@ function SealRegistry() {
               <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[.92] tracking-[-.055em] sm:text-6xl md:text-7xl">Procedência que pode ser <span className="text-neon-green text-glow-green">verificada.</span></h1>
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">Cada número de série registra autoria, escopo, versão e estágio de uma entrega. O selo comprova procedência — não promete resultados comerciais.</p>
             </div>
-            <div className="grid grid-cols-3 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60">
-              {[{ n: realRecords.length, label: "Projeto real" }, { n: "3", label: "Estados" }, { n: "100%", label: "Rastreável" }].map((item) => <div key={item.label} className="bg-background/90 p-4 text-center"><div className="font-display text-2xl text-neon-cyan">{item.n}</div><div className="mt-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</div></div>)}
+            <div className="relative overflow-hidden rounded-sm border border-neon-cyan/25 bg-white/65 p-1 shadow-[0_30px_100px_oklch(0.56_0.13_195/.12)] backdrop-blur-xl">
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-neon-cyan/[.09] via-transparent to-neon-green/[.09]" />
+              <div className="relative grid grid-cols-3 gap-px overflow-hidden rounded-sm bg-border/60">
+                {[{ n: realRecords.length, label: "Projeto real" }, { n: "3", label: "Estados" }, { n: "100%", label: "Rastreável" }].map((item) => <div key={item.label} className="bg-white/80 p-4 text-center backdrop-blur"><div className="font-display text-2xl text-neon-cyan">{item.n}</div><div className="mt-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</div></div>)}
+              </div>
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
           <div className="mb-8 flex items-end justify-between gap-6"><div><div className="font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-green">Registro oficial</div><h2 className="mt-3 font-display text-4xl tracking-[-.04em]">Soluções registradas</h2></div><BadgeCheck className="hidden h-9 w-9 text-neon-green sm:block" /></div>
-          <div className="grid gap-5 lg:grid-cols-2">{realRecords.map((record, index) => <RecordCard key={record.serial} record={record} index={index} />)}</div>
+          <div className="relative"><div aria-hidden className="absolute -inset-8 rounded-full bg-neon-green/[.045] blur-3xl" /><div className="relative grid gap-5 lg:grid-cols-2">{realRecords.map((record, index) => <RecordCard key={record.serial} record={record} index={index} />)}</div></div>
         </section>
 
         <section className="border-y border-border/40 bg-surface/30 py-16 md:py-20">
