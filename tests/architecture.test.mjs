@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import { PRODUCTS, CATEGORIES, INTENTS, INTENT_LINKS, PRIMARY_NAV, HOME_PRODUCTS } from '../src/lib/ecosystem.ts';
+import { sealRecords } from '../src/lib/seals.ts';
 
 // Resolve somente os descritores locais de imagem do catálogo, sem rede.
 registerHooks({
@@ -53,5 +54,18 @@ test('formações têm identificador e disponibilidade; acesso exige destino rea
     assert.notEqual(course.href, '/');
     if (course.status === 'available') assert.ok(course.href && routes.has(course.href));
     else { assert.equal(course.href, undefined); assert.match(course.availability, /produção|breve/i); }
+  }
+});
+
+test('selos têm série única e demonstrações não se apresentam como clientes reais', () => {
+  assert.equal(new Set(sealRecords.map(record => record.serial)).size, sealRecords.length);
+  assert.ok(sealRecords.some(record => record.client === 'Express Entulhos' && !record.isDemonstration));
+  for (const record of sealRecords) {
+    assert.match(record.serial, /^VH-[A-Z0-9-]+$/);
+    assert.ok(record.client && record.solution && record.scope.length > 0 && record.timeline.length > 0);
+    if (record.status === 'concept') {
+      assert.equal(record.isDemonstration, true);
+      assert.match(record.serial, /-DEMO-/);
+    }
   }
 });

@@ -14,6 +14,7 @@ import { Route as AulaZeroRouteImport } from './routes/aula-zero'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
+import { Route as SelosRouteImport } from './routes/selos'
 import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
 import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
@@ -27,6 +28,7 @@ import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
 
 const IndexRoute = IndexRouteImport.update({
@@ -52,6 +54,11 @@ const PromptPacksRoute = PromptPacksRouteImport.update({
 const SeloDemoRoute = SeloDemoRouteImport.update({
   id: '/selo-demo',
   path: '/selo-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelosRoute = SelosRouteImport.update({
+  id: '/selos',
+  path: '/selos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
@@ -120,6 +127,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SeloSerialRoute = SeloSerialRouteImport.update({
+  id: '/selo/$serial',
+  path: '/selo/$serial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
   id: '/blog/editoria/$beat',
   path: '/blog/editoria/$beat',
@@ -132,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
+  '/selos': typeof SelosRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -143,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
@@ -153,6 +167,7 @@ export interface FileRoutesByTo {
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
+  '/selos': typeof SelosRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -164,6 +179,7 @@ export interface FileRoutesByTo {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/selo/$serial': typeof SeloSerialRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
@@ -175,6 +191,7 @@ export interface FileRoutesById {
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
+  '/selos': typeof SelosRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -186,6 +203,7 @@ export interface FileRoutesById {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
@@ -198,6 +216,7 @@ export interface FileRouteTypes {
     | '/comandos'
     | '/prompt-packs'
     | '/selo-demo'
+    | '/selos'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -209,6 +228,7 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/veronica-universe'
     | '/blog/$slug'
+    | '/selo/$serial'
     | '/admin/'
     | '/blog/'
     | '/blog/editoria/$beat'
@@ -219,6 +239,7 @@ export interface FileRouteTypes {
     | '/comandos'
     | '/prompt-packs'
     | '/selo-demo'
+    | '/selos'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -230,6 +251,7 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/veronica-universe'
     | '/blog/$slug'
+    | '/selo/$serial'
     | '/admin'
     | '/blog'
     | '/blog/editoria/$beat'
@@ -240,6 +262,7 @@ export interface FileRouteTypes {
     | '/comandos'
     | '/prompt-packs'
     | '/selo-demo'
+    | '/selos'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -251,6 +274,7 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/veronica-universe'
     | '/blog/$slug'
+    | '/selo/$serial'
     | '/admin/'
     | '/blog/'
     | '/blog/editoria/$beat'
@@ -262,6 +286,7 @@ export interface RootRouteChildren {
   ComandosRoute: typeof ComandosRoute
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
+  SelosRoute: typeof SelosRoute
   VeronicaAnalyticsRoute: typeof VeronicaAnalyticsRoute
   VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
   VeronicaCurriculoCertoRhRoute: typeof VeronicaCurriculoCertoRhRoute
@@ -273,6 +298,7 @@ export interface RootRouteChildren {
   AdminImagensRoute: typeof AdminImagensRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  SeloSerialRoute: typeof SeloSerialRoute
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   BlogEditoriaBeatRoute: typeof BlogEditoriaBeatRoute
@@ -313,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/selo-demo'
       fullPath: '/selo-demo'
       preLoaderRoute: typeof SeloDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/selos': {
+      id: '/selos'
+      path: '/selos'
+      fullPath: '/selos'
+      preLoaderRoute: typeof SelosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/veronica-analytics': {
@@ -406,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/selo/$serial': {
+      id: '/selo/$serial'
+      path: '/selo/$serial'
+      fullPath: '/selo/$serial'
+      preLoaderRoute: typeof SeloSerialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/editoria/$beat': {
       id: '/blog/editoria/$beat'
       path: '/blog/editoria/$beat'
@@ -422,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComandosRoute: ComandosRoute,
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
+  SelosRoute: SelosRoute,
   VeronicaAnalyticsRoute: VeronicaAnalyticsRoute,
   VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
   VeronicaCurriculoCertoRhRoute: VeronicaCurriculoCertoRhRoute,
@@ -433,6 +474,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminImagensRoute: AdminImagensRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   BlogSlugRoute: BlogSlugRoute,
+  SeloSerialRoute: SeloSerialRoute,
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   BlogEditoriaBeatRoute: BlogEditoriaBeatRoute,

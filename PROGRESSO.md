@@ -518,3 +518,20 @@ continuar isso:**
 - Adicionado controle acessível de tema claro/escuro exclusivo da Home, com
   preferência persistida localmente.
 - Publicação da restauração solicitada após aprovação explícita do usuário.
+
+## Registro público de selos (2026-09-11)
+
+- Criado o catálogo público `/selos` e a verificação individual em
+  `/selo/$serial`, preparados para acesso direto por QR Code.
+- O primeiro registro real é da Express Entulhos, com série
+  `VH-AUT-WA-2026-000001` e status transparente “Em desenvolvimento”.
+- Quatro marcas autorais foram incluídas apenas como demonstrações fictícias
+  para os segmentos têxtil e educacional; nenhuma marca global foi apresentada
+  indevidamente como cliente.
+- Cada página informa cliente, solução, escopo, versão, responsável, status e
+  linha do tempo, além de esclarecer os limites do registro de procedência.
+- O selo existente foi preservado em SVG vetorial, com nitidez independente de
+  resolução e sem adicionar mídia pesada ou dependências.
+- `/selos` foi incluída no sitemap. Backend, autenticação, pagamentos e banco
+  permaneceram intactos.
+- `npm run typecheck`, 6/6 testes e `npm run build` aprovados.

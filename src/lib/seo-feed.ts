@@ -13,6 +13,7 @@ const STATIC_PATHS = [
   ...BEAT_VALUES.map((beat) => `/blog/editoria/${beat}`),
   "/comandos",
   "/prompt-packs",
+  "/selos",
   "/veronica-analytics",
   "/veronica-curriculo-certo",
   "/veronica-curriculo-certo-rh",
