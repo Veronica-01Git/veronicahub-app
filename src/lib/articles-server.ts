@@ -406,11 +406,14 @@ async function attemptDraft(
     ? `\n\nRADAR DE PAUTAS RECENTES (use apenas como ponto de partida, nunca como prova):\n${signals
         .map((signal, index) => `${index + 1}. ${signal.title} — ${signal.domain} — ${signal.url}`)
         .join("\n")}`
-    : "\n\nO radar GDELT está indisponível; faça a descoberta da pauta pela busca na web.";
+    : "\n\nO radar externo está indisponível. Descubra pela busca na web uma pauta recente da editoria e confirme-a em dois domínios independentes.";
+  const selectionInstruction = signals.length
+    ? "Escolha uma pauta do radar e informe o número dela em selectedRadarIndex."
+    : "Como o radar está vazio, descubra a pauta diretamente pela busca e use selectedRadarIndex 0.";
   const systemPrompt = `Você é repórter do Veronica Wire, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}).
-Pesquise UM fato real recente, preferencialmente das últimas 24h e no máximo das últimas 72h. Escolha uma pauta do radar, informe o número dela em selectedRadarIndex e confirme-a em outra apuração independente. Priorize uma fonte primária e uma fonte jornalística. Republicações do mesmo texto de agência não contam como duas fontes. Não invente.
+Pesquise UM fato real recente, preferencialmente das últimas 24h e no máximo das últimas 72h. ${selectionInstruction} Confirme-o em outra apuração independente. Priorize uma fonte primária e uma fonte jornalística. Republicações do mesmo texto de agência não contam como duas fontes. Não invente.
 Responda apenas com JSON válido neste formato:
-{"selectedRadarIndex":1,"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-4 parágrafos, 750-1000 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"Desk de tema específico","sourceUrls":["https://fonte-independente-1","https://fonte-independente-2"],"fotoTermos":["english photo term 1","english photo term 2"]}
+{"selectedRadarIndex":${signals.length ? 1 : 0},"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-4 parágrafos, 750-1000 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"Desk de tema específico","sourceUrls":["https://fonte-independente-1","https://fonte-independente-2"],"fotoTermos":["english photo term 1","english photo term 2"]}
 Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultadas; sem páginas iniciais, buscas, redes sociais ou agregadores. Projeções e cenários devem ser atribuídos, nunca escritos como certeza. fotoTermos deve ter 2-3 objetos, lugares ou ambientes fotografáveis em inglês, sem marcas ou pessoas públicas. Se não houver fato verificável, responda {"error":"sem fato verificável no momento"}.${radarContext}`;
 
   // browser_search é obrigatório: o modelo não pode responder só de memória.
@@ -507,7 +510,7 @@ Regras: URLs reais, acessíveis, de domínios distintos e efetivamente consultad
       ? signals[parsedRadarIndex - 1]
       : undefined;
 
-  if (!anchoredToRecentRadar && !selectedSignal) {
+  if (signals.length > 0 && !anchoredToRecentRadar && !selectedSignal) {
     console.error(`draftArticleContent(${beat}): fontes sem URL do radar recente.`);
     return {
       ok: false,
@@ -568,9 +571,6 @@ async function draftArticleContent(
   // (retry=true) — não faz sentido retentar quando o próprio modelo disse
   // que não achou fato verificável, nem quando a chamada à API falhou.
   const signals = await discoverStorySignals(beat);
-  if (signals.length === 0) {
-    return { ok: false, error: "Radar GDELT sem pauta recente verificável no momento." };
-  }
   const first = await attemptDraft(apiKey, beat, signals);
   if (first.ok || !first.retry) return first;
 
