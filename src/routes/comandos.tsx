@@ -1,6 +1,6 @@
 import { product } from "@/lib/ecosystem";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Wand2, FileText, BarChart3, Layers, Play } from "lucide-react";
+import { ArrowRight, Check, Wand2, FileText, BarChart3, Layers, Play, Clock3 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { LazyImage } from "@/components/media/LazyImage";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/comandos")({
       {
         name: "description",
         content:
-          "Os 11 formações do Veronica Hub: dark content, IA generativa, tráfego pago, VSL, hacking ético. Aprenda e execute no ecossistema.",
+          "As 11 formações da Veronica Hub, com nível, escopo, resultado esperado e disponibilidade transparente.",
       },
       { property: "og:title", content: "Formações — Catálogo Completo | Veronica Hub" },
       {
@@ -100,14 +100,19 @@ function Comandos() {
             ao <span className="text-neon-cyan text-glow-cyan">hacking ético</span>.
           </h1>
           <p className="mt-6 max-w-2xl leading-[1.65] text-muted-foreground">
-            Formações em preparação para aprender IA na prática. Enquanto isso, comece pela Aula Zero gratuita.
+            Consulte o escopo e o estágio real de cada formação. Nenhum conteúdo indisponível simula acesso.
           </p>
           <Link
             to="/aula-zero"
             className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-sm border border-neon-green/50 bg-neon-green/[0.07] px-5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green transition hover:-translate-y-0.5 hover:bg-neon-green/10"
           >
-            <Play className="h-3.5 w-3.5 fill-current" /> Fazer a Aula Zero gratuita
+            <Play className="h-3.5 w-3.5 fill-current" /> Acessar Aula Zero disponível
           </Link>
+          <div className="mt-8 flex flex-wrap gap-2" aria-label="Legenda de disponibilidade">
+            <span className="rounded-full border border-neon-green/50 bg-neon-green/10 px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">Disponível · acesso liberado</span>
+            <span className="rounded-full border border-neon-cyan/40 bg-neon-cyan/[0.06] px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">Em produção · conteúdo sendo preparado</span>
+            <span className="rounded-full border border-border/60 px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">Em breve · produção ainda não iniciada</span>
+          </div>
         </div>
       </section>
 
@@ -202,11 +207,9 @@ function Comandos() {
                     <span className="absolute right-3 bottom-3 rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground backdrop-blur group-hover:border-neon-cyan/60 group-hover:text-neon-cyan">
                       {c.tag}
                     </span>
-                    {c.featured && (
-                      <span className="absolute right-3 top-3 rounded-full bg-neon-green px-2 py-0.5 font-mono-tech text-[9px] uppercase tracking-widest text-primary-foreground shadow-glow-green">
-                        Em produção
-                      </span>
-                    )}
+                    <span className="absolute right-3 top-3 rounded-full border border-neon-cyan/50 bg-background/75 px-2 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan backdrop-blur">
+                      Em produção
+                    </span>
                   </div>
                   <h3
                     className="font-display text-2xl text-foreground"
@@ -214,28 +217,29 @@ function Comandos() {
                   >
                     {c.title}
                   </h3>
-                  <div className="mt-3 flex items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                    <span>{c.lessons} aulas previstas</span>
-                    <span className="opacity-40">·</span>
-                    <span>{c.hours} previstas</span>
+                  <p className="mt-3 min-h-12 text-sm leading-relaxed text-muted-foreground">{c.description}</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3 w-3" /> Duração: {c.duration}</span>
                     <span className="opacity-40">·</span>
                     <span className="text-neon-cyan/80">{c.level}</span>
                   </div>
-                  <p className="mt-3 text-sm text-neon-cyan">{c.availability}</p>
-                  <p className="mt-2 text-sm">Objetivo: {c.outcome}</p>
-                  {c.status === "available" && c.href && <a href={c.href} className="inline-flex min-h-11 items-center text-neon-green">{c.cta}</a>}
+                  <p className="mt-4 text-sm text-neon-cyan">{c.availability}</p>
+                  <p className="mt-3 text-sm leading-relaxed"><span className="text-muted-foreground">Resultado esperado:</span> {c.outcome}</p>
                   <ul className="mt-5 space-y-1.5 text-[13px] text-muted-foreground">
-                    {c.perks.map((p) => (
+                    {c.topics.map((p) => (
                       <li key={p} className="flex items-start gap-2">
                         <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-neon-green/80" />
                         <span>{p}</span>
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
-                    {c.cta}{" "}
-                    <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-                  </div>
+                  {c.status === "available" && c.href ? (
+                    <a href={c.href} className="mt-6 inline-flex min-h-11 items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">{c.cta}<ArrowRight className="h-3 w-3" /></a>
+                  ) : (
+                    <span aria-disabled="true" className="mt-6 inline-flex min-h-11 cursor-not-allowed items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                      {c.cta}
+                    </span>
+                  )}
                   <div className="pointer-events-none absolute right-3 bottom-3 h-4 w-4 border-r border-b border-neon-green/0 transition group-hover:border-neon-green/80" />
                 </article>
                 {pack && (

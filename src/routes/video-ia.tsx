@@ -1302,7 +1302,7 @@ function VeronicaStudio() {
                     {c.title}
                   </h3>
                   <p className="mt-2 text-[13px] leading-[1.5] text-muted-foreground">
-                    {c.perks[0]}
+                    {c.description}
                   </p>
                   <div className="mt-5 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-cyan">
                     Ver formação{" "}

@@ -1,3 +1,22 @@
+## Fase 3 — Formações (2026-09-11, local)
+
+- Auditoria partiu de `origin/main` em `bf8568c`; árvore estava limpa. A
+  restauração visual aprovada da Home está em `ab353b0`, registrada como
+  publicada por `53cffd8`, e foi preservada.
+- `/comandos` mantém os 11 cards e agora usa o catálogo canônico para título,
+  descrição, nível, duração transparente, resultado esperado, status e CTA.
+- Removidas contagens e promessas não comprovadas de aulas/horas. As formações
+  seguem como "Em produção" e não recebem link falso; a legenda já distingue
+  "Disponível", "Em produção" e "Em breve".
+- Aula Zero permanece como a entrada gratuita disponível em `/aula-zero`.
+- Cada item reserva `futurePath: /formacoes/$slug`, mas nenhuma página individual
+  vazia foi criada. Home, Studio e Security continuam consumindo a mesma fonte.
+- Backend, autenticação, pagamentos, banco, imagem da Veronica e design amplo da
+  Home não foram alterados. Nenhuma dependência nova foi adicionada.
+- Validação: 5 testes, typecheck e build Cloudflare aprovados. A instalação do
+  navegador para QA visual falhou por certificado `UnknownIssuer`; revisão de
+  conteúdo, CTAs e classes responsivas concluída estaticamente. Sem push/deploy.
+
 ## Publicação da Fase 1 — 2026-09-11
 
 - Publicado em produção pelo commit remoto `91c4cdd` na branch `main`.

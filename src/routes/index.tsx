@@ -424,7 +424,7 @@ function Index() {
                 >
                   {c.title}
                 </h3>
-                <p className="mt-3 text-[13px] leading-[1.5] text-muted-foreground">{c.perks[0]}</p>
+                <p className="mt-3 text-[13px] leading-[1.5] text-muted-foreground">{c.description}</p>
                 <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
                   Ver formação{" "}
                   <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />

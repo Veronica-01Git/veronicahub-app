@@ -514,7 +514,7 @@ function VeronicaSecurity() {
                     {HACKING_ETICO.title}
                   </h3>
                   <div className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {HACKING_ETICO.lessons} aulas · {HACKING_ETICO.hours} · {HACKING_ETICO.level}
+                    Duração {HACKING_ETICO.duration} · {HACKING_ETICO.level}
                   </div>
                 </div>
               </div>

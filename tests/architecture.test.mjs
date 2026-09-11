@@ -43,10 +43,13 @@ test('as seis intenções apontam para produtos públicos existentes', () => {
   for (const intent of INTENTS) assert.ok(PRODUCTS.some(item => item.id === intent.productId && item.public));
 });
 test('formações têm identificador e disponibilidade; acesso exige destino real', () => {
+  assert.equal(courses.length, 11);
   assert.equal(new Set(courses.map(course => course.slug)).size, courses.length);
   for (const course of courses) {
     assert.match(course.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-    assert.ok(course.cta && course.outcome && course.availability);
+    assert.equal(course.futurePath, `/formacoes/${course.slug}`);
+    assert.ok(course.cta && course.description && course.outcome && course.availability);
+    assert.ok(course.level && course.duration);
     assert.notEqual(course.href, '/');
     if (course.status === 'available') assert.ok(course.href && routes.has(course.href));
     else { assert.equal(course.href, undefined); assert.match(course.availability, /produção|breve/i); }
