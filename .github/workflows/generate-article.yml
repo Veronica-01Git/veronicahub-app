@@ -2,8 +2,8 @@ name: Gera e publica matéria (Veronica Wire)
 
 on:
   # Minuto 17 evita a maior fila do GitHub Actions no início da hora. O
-  # pipeline usa Groq no Worker e busca web própria quando os radares externos
-  # não entregam sinais; Anthropic não é necessário para publicar.
+  # pipeline usa Groq no Worker e um radar redundante GDELT/RSS/Google News;
+  # Anthropic não é necessário para publicar.
   schedule:
     - cron: "17 * * * *"
     # Segunda oportunidade na mesma hora. Se a primeira rodada publicar, a
