@@ -448,3 +448,28 @@ continuar isso:**
   perguntar antes.
 - Nunca colar chaves/segredos (API keys, tokens) direto no chat — sempre
   pedir pro usuário colocar direto no `.env.local`.
+## Fase 2 — reorganização e hierarquia da Home (2026-09-11)
+
+- Trabalho local na branch `feat/home-hierarchy-phase2`, criada a partir de
+  `origin/main` no commit `ff7042a`; `e1c1209` confirmado no histórico.
+- Home consolidada em sete blocos: Hero, prova objetiva, escolha por objetivo,
+  formações, ferramentas, método e Wire/encerramento.
+- Hero preserva `VeronicaPresence` e a imagem WebP aprovada, sem vídeo, WebGL
+  ou mídia nova. CTA principal aponta para Aula Zero e o secundário para
+  Formações.
+- Intenções, ferramentas, projetos e destinos continuam derivados de
+  `src/lib/ecosystem.ts`. Destaques de formação usam `src/lib/courses.ts`.
+- Home passou a carregar as três matérias mais recentes pelo fluxo real já
+  usado no Wire, com fallback honesto quando o banco não está disponível.
+- Projetos especiais ficaram próximos ao rodapé e exibem o status canônico.
+- Removidos da Home os blocos repetidos de futuro, marquee, vitrine isolada da
+  Studio, produtos, collabs, prova promocional, FAQ e efeitos decorativos.
+- `npm run typecheck`, 5/5 testes e `npm run build` passaram. SSR local retornou
+  200, título/H1/CTAs corretos e exatamente sete seções.
+- A rota da Home caiu de 41.520 para 14.477 bytes de fonte. Nenhuma dependência,
+  rota interna, autenticação, backend, banco ou pagamento foi alterado.
+- QA responsivo estrutural concluído para breakpoints mobile/desktop, ordem
+  semântica, foco visível e alvos mínimos. A captura visual automatizada ficou
+  bloqueada porque o provedor do Chromium retornou 502/arquivo truncado.
+- Publicação aprovada pelo usuário em 2026-09-11; envio para `main` e
+  verificação no domínio de produção executados na sequência.
