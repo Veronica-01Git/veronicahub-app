@@ -31,7 +31,7 @@ export const SOCIAL_LINKS = {
 };
 
 export { INTENT_LINKS } from "@/lib/ecosystem";
-import { INTENT_LINKS, PRIMARY_NAV, SPECIAL_PROJECTS, HOME_PRODUCTS, type IntentId } from "@/lib/ecosystem";
+import { INTENT_LINKS, PRIMARY_NAV, SPECIAL_PROJECTS, HOME_PRODUCTS, WIRE_TV_REBRAND_ENABLED, type IntentId } from "@/lib/ecosystem";
 export const ECOSYSTEM_LINKS = HOME_PRODUCTS.map(item => ({ ...item, tag: item.description, ready: item.status === "Disponível" }));
 
 const INTENT_ICONS: Record<IntentId, LucideIcon> = {
@@ -49,7 +49,9 @@ const INTENT_ICONS: Record<IntentId, LucideIcon> = {
 // mesmo canal. É um selo de categoria (o pipeline publica de hora em hora,
 // ver PROGRESSO.md), não um relógio ao vivo — sem isso o header faria fetch
 // de artigo em toda página só pra mostrar um badge.
+// Desligado junto com o rename por WIRE_TV_REBRAND_ENABLED (ecosystem.ts).
 function WireLiveBadge({ className = "" }: { className?: string }) {
+  if (!WIRE_TV_REBRAND_ENABLED) return null;
   return (
     <span
       className={`inline-flex shrink-0 items-center gap-1 rounded-full border border-neon-green/40 bg-neon-green/10 px-1.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-wider text-neon-green ${className}`}

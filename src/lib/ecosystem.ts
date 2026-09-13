@@ -1,4 +1,15 @@
 // Fonte canônica de navegação e disponibilidade editorial. Não é telemetria.
+
+// Rebrand do Wire para "Wire TV" com selo "ao vivo" na navegação (2026-09-13).
+// Mesma técnica do GLOBAL_SCAN_BEAM_ENABLED em HoloOrbits.tsx: trocar para
+// false volta exatamente ao estado anterior — nome "Veronica Wire", descrição
+// antiga e nenhum selo pulsante — sem reverter commit nem mexer em JSX. O selo
+// em SiteChrome.tsx lê a mesma constante.
+export const WIRE_TV_REBRAND_ENABLED = true;
+const WIRE_NAME = WIRE_TV_REBRAND_ENABLED ? "Wire TV" : "Veronica Wire";
+const WIRE_DESCRIPTION = WIRE_TV_REBRAND_ENABLED
+  ? "Notícias verificadas, publicadas hora a hora"
+  : "Notícias com fontes e contexto";
 export const CATEGORIES = ["Escola", "Formações", "Ferramentas", "Mídia", "Produtos digitais", "Governança", "Projetos especiais"] as const;
 export type ProductStatus = "Disponível" | "Parcial" | "Demonstração" | "Em produção" | "Em estruturação" | "Externo";
 export type Product = { id: string; name: string; category: typeof CATEGORIES[number]; to: string; status: ProductStatus; description: string; external: boolean; public: boolean };
@@ -85,11 +96,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     "id": "wire",
-    "name": "Wire TV",
+    "name": WIRE_NAME,
     "category": "Mídia",
     "to": "/blog",
     "status": "Disponível",
-    "description": "Notícias verificadas, publicadas hora a hora",
+    "description": WIRE_DESCRIPTION,
     "external": false,
     "public": true
   },
