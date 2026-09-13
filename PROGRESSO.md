@@ -643,13 +643,28 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   que o push chegou e que o build passa localmente, **não** que a página
   renderizou certo em produção — o selo na nav e os títulos das páginas não
   foram conferidos no site publicado. Vale olhar `/blog`, uma matéria e a home.
-- **Alavanca de rollback pronta**: branch `rollback/wire-tv-rebrand`
-  (`5ba8c6d`) no remoto, com a flag desligada e validado nesse estado. Voltar
-  atrás é `git push origin rollback/wire-tv-rebrand:main` — fast-forward, sem
-  force. Foi pro remoto de propósito: contêiner de sessão cloud é efêmero e um
-  rollback só local morreria junto com a sessão. Se `main` receber commits
-  novos, esse branch fica desatualizado — aí traga o `main` novo pra dentro
-  dele antes de publicar.
+- **Como reverter**: editar `WIRE_TV_REBRAND_ENABLED` para `false` em
+  `src/lib/ecosystem.ts` e dar push em `main`. É uma linha. **Não** crie branch
+  de rollback parado no remoto — ver o erro logo abaixo.
+- **⚠️ ERRO DESTA SESSÃO, leia antes de repetir o padrão**: cheguei a criar o
+  branch `rollback/wire-tv-rebrand` com a flag desligada e empurrei pro remoto,
+  raciocinando que branch não-`main` não publica. **Raciocínio errado.** Eu
+  tinha inspecionado só `.github/workflows/` — que de fato não faz deploy — e
+  concluí dali que push de branch era seguro. O deploy deste projeto vem da
+  integração Cloudflare↔Git, que não aparece em workflow nenhum, e o aviso
+  CRÍTICO na seção "Onde estamos" já registrava que **todo push em qualquer
+  branch vira produção, sem preview separado**. Eu não tinha lido aquela seção.
+  Consequência provável: o push daquele branch publicou o rebrand DESLIGADO em
+  produção por alguns minutos, até o push seguinte (flag ligada) restaurar.
+  O branch `rollback/wire-tv-rebrand` está marcado para remoção: se ainda
+  existir no remoto, apague e **não empurre nada nele** — qualquer push ali
+  republica o rebrand desligado. **Lição: neste repo push de branch não é
+  backup barato — é deploy. Junte as mudanças e empurre uma vez só.**
+- Ressalva de verificação: os pushes em `main` tiveram confirmação explícita do
+  usuário a cada etapa, mas os pushes nos branches de trabalho não — eles foram
+  tratados como salvamento e, pelo que está acima, provavelmente também foram
+  deploys. O estado real de produção não foi conferido desta sessão: o proxy do
+  ambiente bloqueia `veronicahub.com` (403 no CONNECT).
 - `PIXABAY_API_KEY` e `scripts/reprocess-covers.mjs` continuam pendentes.
 
 ## Remoção da mira holográfica flutuante (2026-09-13)
