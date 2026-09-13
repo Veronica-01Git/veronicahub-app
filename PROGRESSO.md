@@ -1,3 +1,27 @@
+## Estado operacional consolidado — 2026-09-13
+
+- Continuidade assumida integralmente pelo Codex a partir de `origin/main` no
+  commit `65e1a2b`, preservando as entregas anteriores e sem alterações
+  paralelas em andamento.
+- Instagram `@wire__tv` confirmado pelo responsável como conta profissional,
+  vinculada à página do Facebook **Yezo Lab** e sincronizada no Meta Ads.
+  A publicação automática segue deliberadamente desligada até a autorização
+  segura do aplicativo Meta e a configuração dos segredos no Worker; nenhum
+  token deve ser exposto em código, commit ou conversa.
+- Pipeline editorial verificado: a execução automática nº 110, iniciada às
+  23:00 UTC, concluiu com sucesso e preservou a regra editorial ao não publicar
+  quando não encontrou fato verificável suficiente.
+- Validação da base antes dos ajustes finais: 16 testes aprovados, typecheck
+  aprovado e build Cloudflare/Nitro aprovado. Home, Wire TV, matéria, feeds,
+  sitemaps, selos e proposta da Express responderam em produção.
+- Proposta Express Entulho corrigida para registrar a entrada de R$ 750 paga em
+  12/09/2026 e o saldo de R$ 750 na entrega de 17/09/2026. Cronograma detalhado
+  de 13 a 17/09, atalho público `/proposta/express-entulho` e ligação recíproca
+  entre proposta e selo `VH-AUT-WA-2026-000001` adicionados.
+- Experiência editorial refinada com estado de carregamento nas matérias,
+  mensagens de erro em português e cabeçalhos básicos de segurança aplicados
+  tanto às respostas SSR/API quanto aos arquivos estáticos.
+
 ## Veronica Wire — credibilidade e receita editorial (2026-09-13)
 
 - O produto volta a se apresentar como **Veronica Wire**. O selo permanente
