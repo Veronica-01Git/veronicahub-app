@@ -114,3 +114,20 @@ test('a manchete do card cabe no limite de linhas e sinaliza o corte', () => {
   assert.match(longa.at(-1), /…$/);
   for (const linha of longa) assert.ok(context.measureText(linha).width <= 400, linha);
 });
+
+test('o Worker de cron dispara um workflow que existe de verdade', () => {
+  const worker = readFileSync(new URL('../workers/wire-cron/src/index.ts', import.meta.url), 'utf8');
+  const config = readFileSync(new URL('../workers/wire-cron/wrangler.jsonc', import.meta.url), 'utf8');
+
+  // O Worker chama o workflow pelo nome do arquivo: se ele for renomeado no
+  // .github/workflows, o disparo passa a devolver 404 em silêncio — a falha
+  // apareceria só como ausência de matéria nova.
+  const workflow = worker.match(/const WORKFLOW = "([^"]+)"/);
+  assert.ok(workflow, 'o Worker precisa declarar WORKFLOW');
+  const workflows = readdirSync(new URL('../.github/workflows/', import.meta.url));
+  assert.ok(workflows.includes(workflow[1]), `${workflow[1]} não existe em .github/workflows`);
+
+  const crons = JSON.parse(config.replace(/^\s*\/\/.*$/gm, '')).triggers.crons;
+  assert.ok(Array.isArray(crons) && crons.length > 0, 'wrangler.jsonc precisa declarar crons');
+  for (const cron of crons) assert.equal(cron.trim().split(/\s+/).length, 5, cron);
+});

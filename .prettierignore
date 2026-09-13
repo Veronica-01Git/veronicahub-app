@@ -6,3 +6,6 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+
+# O Prettier reintroduz vírgula final aqui; o arquivo do deploy fica em JSON estrito.
+workers/**/wrangler.jsonc
