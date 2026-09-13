@@ -2,6 +2,7 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import { BEAT_VALUES, CYCLE_HOURS, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
+import { WIRE_NAME } from "./ecosystem";
 import { articles, mediaImages, users } from "./schema";
 
 const MAX_LIBRARY_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -10,7 +11,7 @@ const WIRE_OWNED_IMAGES = [
   {
     path: "/images/wire-reposts/rede-energia-global-ai.webp",
     filename: "wire-archive-rede-energia-global-ai.webp",
-    altText: "Arquivo da capa anterior — Veronica Wire conecta notícias e aprendizado",
+    altText: `Arquivo da capa anterior — ${WIRE_NAME} conecta notícias e aprendizado`,
   },
   {
     path: "/images/wire-reposts/yuan-digital-drex-ai.webp",
@@ -100,7 +101,7 @@ async function saveCoverToMediaLibrary(input: {
     sizeBytes: buffer.byteLength,
     width: null,
     height: null,
-    altText: `Capa Veronica Wire — ${input.headline}`.slice(0, 300),
+    altText: `Capa ${WIRE_NAME} — ${input.headline}`.slice(0, 300),
     data: arrayBufferToBase64(buffer),
     uploadedBy: admin.id,
   });

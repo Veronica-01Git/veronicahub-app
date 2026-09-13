@@ -1,13 +1,16 @@
 // Fonte canônica de navegação e disponibilidade editorial. Não é telemetria.
 
-// Rebrand do Wire para "Wire TV" com selo "ao vivo" na navegação (2026-09-13).
-// Mesma técnica do GLOBAL_SCAN_BEAM_ENABLED em HoloOrbits.tsx: trocar para
-// false volta exatamente ao estado anterior — nome "Veronica Wire", descrição
-// antiga e nenhum selo pulsante — sem reverter commit nem mexer em JSX. O selo
-// em SiteChrome.tsx lê a mesma constante.
-// WIRE_NAME é exportado porque o nome também aparece fora da nav (título e OG
-// do /blog, páginas de matéria e editoria, RSS, schema.org, home e admin); todos
-// leem daqui pra que a flag reverta tudo junto.
+// Rebrand do Wire para "Wire TV" com selo "ao vivo" (2026-09-13). Mesma
+// técnica do GLOBAL_SCAN_BEAM_ENABLED em HoloOrbits.tsx: trocar para false
+// desfaz o rebrand sem reverter commit nem mexer em JSX.
+// WIRE_NAME é exportado porque o nome aparece em toda parte — nav, título e OG
+// do /blog, matéria, editoria, RSS, schema.org, home, admin, concierge — e
+// todos leem daqui pra que a flag alcance tudo de uma vez.
+// ATENÇÃO ao rollback: o que é montado em runtime volta inteiro, mas o que já
+// foi GRAVADO no banco com o nome dentro não volta — altText de capa em
+// article-cron.ts e matérias geradas sob o prompt de articles-server.ts ficam
+// com o nome vigente na hora da escrita. Desligar a flag deixa esse acervo
+// misturado; corrigir exige backfill no banco, não só a flag.
 export const WIRE_TV_REBRAND_ENABLED = true;
 export const WIRE_NAME = WIRE_TV_REBRAND_ENABLED ? "Wire TV" : "Veronica Wire";
 const WIRE_DESCRIPTION = WIRE_TV_REBRAND_ENABLED
