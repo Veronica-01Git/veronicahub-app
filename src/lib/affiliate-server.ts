@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "./db";
 import {
-  affiliateCatalog,
+  affiliateProducts,
   buildAffiliateUrl,
   normalizeHandle,
   type AffiliateProduct,
@@ -55,7 +55,7 @@ const ALLOWED_PLACEMENTS = new Set([
 ]);
 
 function findProduct(id: string): AffiliateProduct | undefined {
-  return affiliateCatalog.products.find((p) => p.id === id);
+  return affiliateProducts.find((p) => p.id === id);
 }
 
 export async function handleAffiliateRedirect(request: Request): Promise<Response> {

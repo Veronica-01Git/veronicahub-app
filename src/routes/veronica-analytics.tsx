@@ -11,7 +11,7 @@ import {
   type TrendingVideo,
 } from "@/lib/trending-videos";
 import {
-  affiliateCatalog,
+  affiliateProducts,
   hasAffiliateProducts,
   buildTrackedPath,
   normalizeHandle,
@@ -255,7 +255,7 @@ function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCateg
   // elo entre o feed de tendências e o que dá pra vender hoje.
   const products = useMemo(() => {
     const inFeed = new Set(feedCategories);
-    return [...affiliateCatalog.products].sort((a, b) => {
+    return [...affiliateProducts].sort((a, b) => {
       const aHot = inFeed.has(a.category) ? 0 : 1;
       const bHot = inFeed.has(b.category) ? 0 : 1;
       return aHot - bHot;
@@ -360,7 +360,7 @@ function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCateg
                 </p>
                 <div className="mt-3 flex items-center justify-between font-mono-tech text-[11px]" style={{ color: "var(--tt-ink-faint)" }}>
                   <span style={{ color: "var(--tt-ink)" }}>{product.priceLabel}</span>
-                  <span>comissão {product.commissionLabel}</span>
+                  {product.commissionLabel && <span>comissão {product.commissionLabel}</span>}
                 </div>
                 {code && clicks > 0 && (
                   <p className="mt-1.5 font-mono-tech text-[10.5px]" style={{ color: "var(--tt-cyan)" }}>
