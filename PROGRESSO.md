@@ -523,7 +523,7 @@ continuar isso:**
 
 - Criado o catálogo público `/selos` e a verificação individual em
   `/selo/$serial`, preparados para acesso direto por QR Code.
-- O primeiro registro real é da Express Entulhos, com série
+- O primeiro registro real é da Express Entulho, com série
   `VH-AUT-WA-2026-000001` e status transparente “Em desenvolvimento”.
 - Quatro marcas autorais foram incluídas apenas como demonstrações fictícias
   para os segmentos têxtil e educacional; nenhuma marca global foi apresentada
