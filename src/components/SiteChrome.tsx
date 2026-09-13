@@ -384,6 +384,12 @@ function SpecialProjectLinks({ onNavigate }: { onNavigate: () => void }) {
   return <div className="space-y-3"><p className="text-xs text-muted-foreground">Projetos especiais</p><div className="flex flex-wrap gap-4">{SPECIAL_PROJECTS.map(item => <a key={item.id} href={item.to} onClick={onNavigate} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} className="text-sm text-muted-foreground hover:text-foreground">{item.name}<span className="block text-xs">{item.status}</span></a>)}</div></div>;
 }
 
+// Fio vermelho do cabeçalho: esmaece nas duas pontas em vez de cortar a tela
+// de ponta a ponta. A cor vem de --neon-red, que tem variante clara em
+// .home-hybrid pras rotas de fundo claro.
+const HEADER_ACCENT_LINE =
+  "linear-gradient(90deg, transparent, var(--neon-red) 20%, var(--neon-red) 80%, transparent)";
+
 // Páginas com carteira mantêm seus próprios controles de sessão.
 export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -404,6 +410,11 @@ export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
       {showAuth && <div className="sm:hidden"><AuthWidget variant="mobile" /></div>}
       {PRIMARY_NAV.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="block border-b border-border/40 py-4 text-base">{item.name}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
     </nav>}
+    {/* Fio de acento — 1px na borda inferior do cabeçalho, esmaecendo nas
+        pontas pra ler como detalhe de design e não como faixa de alerta.
+        Ancorado no próprio <header>, que já é sticky (posicionado), então
+        acompanha a expansão do menu mobile. */}
+    <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px opacity-70" style={{ background: HEADER_ACCENT_LINE }} />
   </header>;
 }
 
