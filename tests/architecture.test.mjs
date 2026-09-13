@@ -99,7 +99,22 @@ test('o card do Instagram e o link do perfil apontam pro mesmo @ da Wire TV', ()
   // se um mudar sem o outro, o card manda o leitor pra um perfil que não é o
   // do link — o tipo de divergência que só aparece depois de publicado.
   assert.equal(WIRE_INSTAGRAM_HANDLE, '@' + new URL(link[1]).pathname.replace(/\//g, ''));
+  assert.equal(WIRE_INSTAGRAM_HANDLE, '@wire__tv');
   assert.match(routeSources, /<ArticleShare/);
+});
+
+test('a automação do Instagram exige segredo e só roda depois da capa', () => {
+  const server = readFileSync(new URL('../src/server.ts', import.meta.url), 'utf8');
+  const cron = readFileSync(new URL('../src/lib/instagram-cron.ts', import.meta.url), 'utf8');
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+
+  assert.match(server, /\/api\/cron\/publish-instagram/);
+  assert.match(cron, /Authorization|authorization/);
+  assert.match(cron, /CRON_SECRET/);
+  assert.match(workflow, /id: set_cover/);
+  assert.match(workflow, /if: steps\.set_cover\.outcome == 'success' && steps\.instagram_card\.outcome == 'success'/);
+  assert.match(workflow, /images\/instagram\/wire-tv-/);
+  assert.match(workflow, /META_INSTAGRAM_AUTOPUBLISH/);
 });
 
 test('a manchete do card cabe no limite de linhas e sinaliza o corte', () => {

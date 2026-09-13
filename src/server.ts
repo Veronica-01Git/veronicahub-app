@@ -16,6 +16,7 @@ import { handleMediaImage } from "./lib/media-images-server";
 import { handleSourceReferral } from "./lib/source-network-server";
 import { handleWireOfferRedirect } from "./lib/wire-commerce-server";
 import { handleAffiliateRedirect } from "./lib/affiliate-server";
+import { handlePublishInstagramCron } from "./lib/instagram-cron";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -164,6 +165,15 @@ export default {
         return await handleArchiveWireOwnedImagesCron(request);
       } catch (error) {
         console.error("Erro ao arquivar capas institucionais do Wire:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/publish-instagram" && request.method === "POST") {
+      try {
+        return await handlePublishInstagramCron(request);
+      } catch (error) {
+        console.error("Erro no cron de publicação do Instagram:", error);
         return new Response("error", { status: 500 });
       }
     }

@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { ShieldAlert, Sparkles, Loader2 } from "lucide-react";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import {
+  ExternalLink,
+  Instagram,
+  Loader2,
+  RefreshCw,
+  Send,
+  ShieldAlert,
+  Sparkles,
+} from "lucide-react";
+import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
 import {
   listArticlesAdmin,
   generateArticleDraftAI,
@@ -11,6 +19,10 @@ import {
 } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, type Beat } from "@/lib/beats";
 import { WIRE_NAME } from "@/lib/ecosystem";
+import {
+  getInstagramPublisherStatusAdmin,
+  publishArticleToInstagramAdmin,
+} from "@/lib/instagram-publisher";
 
 // Rota não listada em ECOSYSTEM_LINKS de propósito, mesmo padrão de
 // /admin — acesso só por URL direta, protegido no servidor via
@@ -40,6 +52,20 @@ type Article = {
 
 type ListState = { ok: true; articles: Article[] } | { ok: false; error: string } | null;
 
+type InstagramStatus = {
+  profile: string;
+  configured: boolean;
+  autoPublishEnabled: boolean;
+  connected: boolean;
+  username: string | null;
+  graphHost: string;
+  graphVersion: string;
+  missing: string[];
+  error: string | null;
+};
+
+type PublisherState = { ok: true; status: InstagramStatus } | { ok: false; error: string } | null;
+
 const emptyForm = {
   id: null as string | null,
   beat: "ia" as Beat,
@@ -56,6 +82,8 @@ function ArticlesAdmin() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [generatingBeat, setGeneratingBeat] = useState<Beat | null>(null);
+  const [publishingSlug, setPublishingSlug] = useState<string | null>(null);
+  const [publisherState, setPublisherState] = useState<PublisherState>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   function refresh() {
@@ -67,6 +95,20 @@ function ArticlesAdmin() {
   }
 
   useEffect(refresh, []);
+
+  function refreshInstagramStatus() {
+    setPublisherState(null);
+    getInstagramPublisherStatusAdmin()
+      .then((res) => setPublisherState(res as PublisherState))
+      .catch((err) =>
+        setPublisherState({
+          ok: false,
+          error: err instanceof Error ? err.message : "Falha ao consultar a conexão Meta.",
+        }),
+      );
+  }
+
+  useEffect(refreshInstagramStatus, []);
 
   async function handleGenerate(beat: Beat) {
     setGeneratingBeat(beat);
@@ -137,8 +179,46 @@ function ArticlesAdmin() {
   async function toggleStatus(a: Article) {
     const next = a.status === "published" ? "draft" : "published";
     const res = await setArticleStatusAdmin({ data: { id: a.id, status: next } });
-    if (!res.ok) setNotice(`Erro: ${res.error}`);
-    else refresh();
+    if (!res.ok) {
+      setNotice(`Erro: ${res.error}`);
+      return;
+    }
+    if (next === "published" && res.instagram) {
+      if (!res.instagram.ok) {
+        setNotice(`Matéria publicada. Instagram pendente: ${res.instagram.error}`);
+      } else if (res.instagram.skipped && res.instagram.reason === "disabled") {
+        setNotice("Matéria publicada. O envio automático ao Instagram está desligado.");
+      } else if (res.instagram.skipped) {
+        setNotice("Matéria publicada. Este link já estava no Instagram, então não foi duplicado.");
+      } else {
+        setNotice("Matéria publicada no site e encaminhada ao Instagram.");
+      }
+    }
+    refresh();
+  }
+
+  async function publishOnInstagram(a: Article) {
+    setPublishingSlug(a.slug);
+    setNotice(null);
+    try {
+      const res = await publishArticleToInstagramAdmin({ data: { slug: a.slug } });
+      if (!res.ok) {
+        setNotice(`Instagram: ${res.error}`);
+      } else if (res.skipped) {
+        setNotice(
+          res.reason === "already-published"
+            ? "Esta matéria já está publicada no Instagram; nenhuma duplicata foi criada."
+            : "Publicação automática desativada.",
+        );
+      } else {
+        setNotice("Matéria publicada com sucesso no Instagram da Wire TV.");
+      }
+      refreshInstagramStatus();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Falha ao publicar no Instagram.");
+    } finally {
+      setPublishingSlug(null);
+    }
   }
 
   async function remove(a: Article) {
@@ -176,12 +256,51 @@ function ArticlesAdmin() {
               </div>
             )}
 
+            <section className="rounded-sm border border-border/60 bg-surface/30 p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-[0.16em] text-neon-green">
+                    <Instagram className="h-4 w-4" /> Distribuição oficial
+                  </div>
+                  <h2 className="mt-2 font-display text-xl">Wire TV · @wire__tv</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {publisherState === null
+                      ? "Verificando a conexão segura com a Meta…"
+                      : !publisherState.ok
+                        ? publisherState.error
+                        : publisherState.status.connected
+                          ? `Conectado${publisherState.status.username ? ` como @${publisherState.status.username}` : ""}. Publicação automática ${publisherState.status.autoPublishEnabled ? "ativa" : "desativada"}.`
+                          : publisherState.status.configured
+                            ? `Credenciais cadastradas, mas sem conexão válida${publisherState.status.error ? `: ${publisherState.status.error}` : "."}`
+                            : `Integração pronta para configurar. Faltam: ${publisherState.status.missing.join(", ")}.`}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={refreshInstagramStatus}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-border/70 px-3 font-mono-tech text-[10px] uppercase tracking-wider transition hover:border-neon-green/60 hover:text-neon-green"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" /> Verificar conexão
+                  </button>
+                  <a
+                    href={SOCIAL_LINKS.wireInstagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-border/70 px-3 font-mono-tech text-[10px] uppercase tracking-wider transition hover:border-neon-green/60 hover:text-neon-green"
+                  >
+                    Abrir perfil <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+            </section>
+
             <section>
               <h2 className="mb-4 font-display text-xl">Gerar rascunho com IA</h2>
               <p className="mb-4 text-sm text-muted-foreground">
                 A IA pesquisa na web um fato real e recente na editoria escolhida e escreve um
-                rascunho — sempre entra como "draft". Nada publica sozinho: revise o texto e as
-                fontes abaixo antes de publicar.
+                rascunho — sempre entra como "draft". O conteúdo gerado por este botão só é
+                publicado depois da sua revisão; o pipeline editorial automático permanece separado.
               </p>
               <div className="flex flex-wrap gap-2">
                 {BEAT_VALUES.map((beat) => (
@@ -353,6 +472,25 @@ function ArticlesAdmin() {
                               >
                                 {a.status === "published" ? "Despublicar" : "Publicar"}
                               </button>
+                              {a.status === "published" && (
+                                <button
+                                  onClick={() => publishOnInstagram(a)}
+                                  disabled={publishingSlug !== null || !a.coverImageUrl}
+                                  title={
+                                    a.coverImageUrl
+                                      ? "Publicar no Instagram oficial da Wire TV"
+                                      : "Adicione uma capa antes de publicar no Instagram"
+                                  }
+                                  className="inline-flex items-center gap-1 text-xs text-neon-cyan hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  {publishingSlug === a.slug ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Send className="h-3 w-3" />
+                                  )}
+                                  Instagram
+                                </button>
+                              )}
                               <button
                                 onClick={() => remove(a)}
                                 className="text-xs text-destructive hover:underline"
