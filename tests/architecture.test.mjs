@@ -139,3 +139,105 @@ test('o Worker de cron dispara um workflow que existe de verdade', () => {
   assert.ok(Array.isArray(crons) && crons.length > 0, 'wrangler.jsonc precisa declarar crons');
   for (const cron of crons) assert.equal(cron.trim().split(/\s+/).length, 5, cron);
 });
+
+test('o diagnóstico do radar não desclassifica um pulo editorial', () => {
+  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+  const server = readFileSync(new URL('../src/lib/articles-server.ts', import.meta.url), 'utf8');
+
+  // isEditorialSkip decide, por PREFIXO, se a rodada foi um pulo editorial
+  // (HTTP 200, workflow verde) ou uma falha real (502, workflow vermelho).
+  const block = cron.match(/function isEditorialSkip[\s\S]*?\[([\s\S]*?)\]\.some/);
+  assert.ok(block, 'isEditorialSkip precisa listar os prefixos');
+  const prefixes = [...block[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(match => match[1]);
+  assert.ok(
+    prefixes.includes('sem fato verificável no momento'),
+    'a desistência do modelo precisa continuar na lista de pulos editoriais',
+  );
+
+  // articles-server carimba a contagem do radar nessa mesma mensagem. Se o
+  // carimbo for para a FRENTE, o prefixo deixa de casar e toda hora sem fato
+  // passa a pintar o workflow de vermelho.
+  const message = server.match(/error: `([^`]*radar:[^`]*)`/);
+  assert.ok(message, 'a mensagem editorial precisa carregar o diagnóstico do radar');
+  assert.ok(
+    message[1].startsWith('${parsed.error}'),
+    `o diagnóstico tem que vir depois da mensagem do modelo, e veio: ${message[1]}`,
+  );
+});
+
+test('capa que a biblioteca já serve não passa por download', () => {
+  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+  const save = cron.slice(cron.indexOf('async function saveCoverToMediaLibrary'));
+  const body = save.slice(0, save.indexOf('\n}\n'));
+
+  // /api/media-images/<id> é servido pela própria aplicação a partir de
+  // mediaImages. Buscar essa URL é o Worker chamando o próprio domínio, que o
+  // Cloudflare encerra com 522 — foi o que derrubou três dos sete slugs do
+  // backfill. A checagem só evita isso se vier ANTES do fetch.
+  const guard = body.indexOf('mediaLibraryImageId(');
+  const download = body.indexOf('await fetch(');
+  assert.ok(guard !== -1, 'saveCoverToMediaLibrary precisa reconhecer capa já hospedada na biblioteca');
+  assert.ok(download !== -1, 'saveCoverToMediaLibrary precisa continuar baixando as demais capas');
+  assert.ok(guard < download, 'a checagem da biblioteca tem que vir antes do download, senão o 522 volta');
+
+  // O desvio para o GitHub cobre /images/; a biblioteca é banco, não arquivo.
+  assert.ok(
+    /url\.pathname\.startsWith\("\/api\/media-images\/"\)/.test(cron),
+    'o reconhecimento precisa casar o caminho real da biblioteca',
+  );
+});
+
+test('a capa sai do banco curado da biblioteca, não de busca ao vivo', () => {
+  const server = readFileSync(new URL('../src/lib/articles-server.ts', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/fetch-cover-photo.mjs', import.meta.url), 'utf8');
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+
+  // O prefixo do nome de arquivo é a única ligação entre o que a pessoa
+  // digita ao subir a imagem no Admin e o que a consulta procura. Se um lado
+  // mudar sem o outro, o banco fica invisível: nada falha, e toda matéria
+  // passa a sair com o fallback fixo da editoria.
+  const prefix = server.match(/LIBRARY_COVER_PREFIX = "([^"]+)"/);
+  assert.ok(prefix, 'articles-server precisa declarar LIBRARY_COVER_PREFIX');
+  assert.ok(
+    server.includes(`\${LIBRARY_COVER_PREFIX}\${beat}-%`),
+    'a consulta precisa filtrar por prefixo + editoria',
+  );
+  assert.ok(
+    workflow.includes(`${prefix[1]}<editoria>-`),
+    `o workflow precisa documentar o nome que a pessoa deve usar (${prefix[1]}<editoria>-)`,
+  );
+
+  // Decisão editorial de 13/09: sem busca ao vivo. Se voltar, a capa volta a
+  // ser escolhida por termo em inglês inventado pelo modelo.
+  assert.ok(!/searchPexels|searchPixabay/.test(script), 'a capa não pode voltar a ser buscada ao vivo');
+  assert.ok(!/PEXELS_API_KEY|PIXABAY_API_KEY/.test(workflow), 'o workflow não deve mais passar chave de banco de fotos');
+
+  // O id escolhido no servidor precisa chegar ao script.
+  assert.ok(/libraryCoverId/.test(workflow), 'o workflow precisa repassar libraryCoverId');
+  assert.ok(/COVER_LIBRARY_ID/.test(script) && /COVER_LIBRARY_ID/.test(workflow), 'COVER_LIBRARY_ID liga workflow e script');
+});
+
+test('o card do Instagram é gerado e commitado no mesmo caminho', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/render-instagram-card.mjs', import.meta.url), 'utf8');
+
+  // O passo gera em WIRE_OUT_DIR e o passo seguinte commita por caminho
+  // literal. Se um mudar sem o outro, o card é gerado e descartado: nada
+  // falha, e a matéria simplesmente não ganha peça de divulgação.
+  const outDir = workflow.match(/WIRE_OUT_DIR:\s*(\S+)/);
+  assert.ok(outDir, 'o workflow precisa dizer onde o card é gerado');
+  const commitBlock = workflow.slice(workflow.indexOf('Commita a capa no repositório'));
+  assert.ok(
+    commitBlock.includes(`${outDir[1]}/wire-tv-`),
+    `o passo de commit precisa referenciar o card gerado em ${outDir[1]}`,
+  );
+  assert.ok(script.includes('WIRE_OUT_DIR'), 'o gerador precisa respeitar WIRE_OUT_DIR');
+
+  // O prefixo do arquivo é escolhido pelo script; o workflow o repete.
+  assert.ok(script.includes('`wire-tv-${slug}.jpg`'), 'o nome do arquivo mudou no gerador');
+
+  // Um commit por publicação: card e capa juntos, porque cada commit no main
+  // vira um deploy e cada deploy troca o que a produção serve.
+  const commitStep = workflow.slice(workflow.indexOf('Commita a capa no repositório'));
+  assert.equal((commitStep.match(/git commit -m/g) ?? []).length, 1, 'a capa e o card devem ir num commit só');
+});

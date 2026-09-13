@@ -40,14 +40,35 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+// Id da biblioteca quando a capa JÁ é servida por ela: /api/media-images/:id
+// lê a linha de mediaImages e devolve os bytes (ver handleMediaImage). Uma
+// capa nesse formato não tem o que ser baixado — ela está na biblioteca por
+// definição.
+function mediaLibraryImageId(coverImageUrl: string): string | null {
+  try {
+    const url = new URL(coverImageUrl);
+    if (url.hostname !== "veronicahub.com" && url.hostname !== "www.veronicahub.com") return null;
+    if (!url.pathname.startsWith("/api/media-images/")) return null;
+    const id = url.pathname.slice("/api/media-images/".length);
+    return id.length > 0 && !id.includes("/") ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 function resolveLibraryImageUrl(coverImageUrl: string): string {
   try {
     const url = new URL(coverImageUrl);
     // Qualquer caminho de /images/ do próprio site, não só /images/blog-covers/:
     // todo o public/ é versionado no repositório, e o que o desvio evita é o
-    // Worker buscar o próprio domínio. Matéria com capa em outro caminho
-    // (as antigas, de antes de blog-covers) caía fora desta condição e
-    // batia no loop interno — foram os 403/522 do backfill.
+    // Worker buscar o próprio domínio.
+    //
+    // Correção de registro: este desvio foi escrito supondo que explicava os
+    // sete 403/522 do backfill. Não explicava. Medido em 13/09, quando o
+    // passo finalmente rodou: nenhuma das sete capas está sob /images/. Três
+    // apontam para /api/media-images/ (tratadas antes do fetch, em
+    // saveCoverToMediaLibrary) e quatro para um CloudFront externo, que
+    // devolve 403 e continua sem solução no código.
     if (
       (url.hostname === "veronicahub.com" || url.hostname === "www.veronicahub.com") &&
       url.pathname.startsWith("/images/")
@@ -74,9 +95,33 @@ async function saveCoverToMediaLibrary(input: {
     .limit(1);
   if (existing) return false;
 
-  // Evita o Worker buscar o próprio domínio durante o backfill. Esse loop
-  // interno recebia 403/522 no Cloudflare; o arquivo versionado no GitHub é
-  // exatamente a mesma capa publicada no site.
+  // Capa que a própria biblioteca já serve. Medido em 13/09, nos três slugs
+  // que falhavam com 522: a coverImageUrl é
+  // https://veronicahub.com/api/media-images/<id>, e esse <id> existe em
+  // mediaImages com bytes de verdade. Baixar isso fazia o Worker chamar o
+  // próprio domínio — subrequest para si mesmo, que o Cloudflare encerra com
+  // 522 — para trazer bytes que já estão na tabela ao lado. Copiar para uma
+  // segunda linha também não serviria: duplicaria a imagem no banco.
+  //
+  // resolveLibraryImageUrl não cobria esse caso e nunca cobriria: ele desvia
+  // /images/ para o arquivo versionado no GitHub, e /api/media-images/ não é
+  // arquivo, é linha de banco.
+  const libraryImageId = mediaLibraryImageId(input.coverImageUrl);
+  if (libraryImageId) {
+    const [alreadyInLibrary] = await db
+      .select({ id: mediaImages.id })
+      .from(mediaImages)
+      .where(eq(mediaImages.id, libraryImageId))
+      .limit(1);
+    if (alreadyInLibrary) return false;
+    throw new Error(
+      `A capa aponta para uma imagem que não existe na biblioteca (${libraryImageId}).`,
+    );
+  }
+
+  // Evita o Worker buscar o próprio domínio durante o backfill: para capas
+  // sob /images/, o arquivo versionado no GitHub é exatamente a mesma imagem
+  // publicada no site.
   const response = await fetch(resolveLibraryImageUrl(input.coverImageUrl), {
     headers: { Accept: "image/*", "User-Agent": "Veronica-Wire-Library/1.0" },
   });
@@ -239,9 +284,13 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
       beat,
       slug: result.article.slug,
       headline: result.article.headline,
+      // Vai para a legenda do card do Instagram, montada no mesmo passo que
+      // gera a imagem. Sem isto a legenda sai só com manchete e link.
+      excerpt: result.article.excerpt,
       desk: result.article.desk,
       fotoTermos: result.fotoTermos,
       recentPhotoIds: result.recentPhotoIds,
+      libraryCoverId: result.libraryCoverId,
     }),
     { headers: { "content-type": "application/json" } },
   );

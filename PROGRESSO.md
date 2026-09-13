@@ -849,3 +849,178 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   Worker dispara precisa existir em `.github/workflows`, senão o disparo vira
   404 silencioso e a falha apareceria só como ausência de matéria nova.
   11/11 testes, typecheck limpo.
+
+## Worker de cron publicado pelo painel do Cloudflare (2026-09-13)
+
+- **Estado que motivou a sessão, medido antes de agir**: nenhuma rodada de
+  `generate-article.yml` depois das 16:33 UTC, e a última com `event=schedule`
+  às 12:51 UTC. O `*/15` de `9043851` está ativo desde 15:57 e passou por
+  **oito janelas seguidas** (16:00 a 17:45) sem disparar nenhuma vez. Aumentar
+  a quantidade de horários no `schedule` está descartado como estratégia: não
+  é atraso, é descarte.
+- **A rodada das 16:33 (manual) não publicou**: `{"ok":true,"skipped":true,
+  "beat":"clima","error":"sem fato verificável no momento"}`. Não é cota nem
+  erro — é a trava editorial funcionando. Consequência: os passos 3 a 12 foram
+  pulados, **incluindo o "Sincroniza capas publicadas com a biblioteca Admin"**,
+  então a correção do `resolveLibraryImageUrl` continua sem ter sido
+  exercitada uma única vez desde que entrou em produção.
+- **Os quatro passos do painel foram feitos pelo usuário**, com o
+  `workers/wire-cron/README.md` como roteiro, cada um confirmado pelo lado da
+  API antes do seguinte:
+  - Worker `wire-tv-cron` criado às 17:08:25 UTC (`workers_list`).
+  - Código publicado: `workers_get_worker_code` devolveu conteúdo **idêntico**
+    a `workers/wire-cron/dashboard.js` do `main` — `diff` sem diferença.
+  - Secret `GITHUB_TOKEN` gravado como tipo Secret (valor criptografado).
+  - Cron Trigger `0 * * * *`, painel mostrando `Every hour` / próxima às
+    18:00:00 UTC.
+- **O caminho pelo painel cria um endereço `workers.dev`** que o
+  `wrangler.jsonc` desliga (`workers_dev: false`). Não é problema: o Worker só
+  tem handler `scheduled`, então o endereço responde erro e não expõe nada.
+  Quem quiser alinhar desliga em Settings → Domains & Routes.
+- **Disparo confirmado**: rodada #101 de `generate-article.yml`, criada
+  **18:00:05 UTC**, `event=workflow_dispatch`, ninguém clicou. Cinco segundos
+  depois da hora cheia — o agendador do GitHub nunca acertou o minuto pedido
+  em três dias de medição. A rodada pulou a publicação
+  (`{"ok":true,"skipped":true,"beat":"geopolitica","error":"sem fato
+  verificável no momento"}`), o que é decisão editorial e não falha do
+  gatilho: o que estava em teste era o disparo.
+- **Pendência 2 continua aberta e não é possível fechar por vontade própria.**
+  As duas rodadas de hoje (16:33 e 18:00) pularam a publicação, então o passo
+  "Sincroniza capas publicadas com a biblioteca Admin" não rodou nenhuma vez
+  desde a correção. Ele é condicionado a `outputs.generated == 'true'`. A
+  próxima sessão que pegar uma rodada com publicação deve ler esse passo e ver
+  se os sete 403/522 viraram 404 (hipótese do repositório) ou continuam 403
+  (hipótese do host externo, Pexels).
+- **Pendência 3 aplicada**: `schedule` do `generate-article.yml` de
+  `*/15 * * * *` para `30 11 * * *`. Rede de segurança diária, não gatilho.
+  Mantida em vez de removida porque o token fine-grained do Worker vence e,
+  quando vencer, o Worker para sem erro visível; uma rodada por dia faz a
+  falha aparecer. Fora do minuto 0 porque o Worker dispara em `:00` e o
+  `concurrency` enfileira em vez de cancelar.
+- **Correção de um registro errado feito nesta mesma sessão**: o commit
+  `50cb2d9` afirma "typecheck exit 0". Está errado — a medição foi
+  `npx tsc --noEmit | tail -3 ; echo $?`, e em pipeline o `$?` é do `tail`.
+  Medido direito, o typecheck tem **1 erro pré-existente** neste ambiente:
+  `TS2688: Cannot find type definition file for 'vite/client'`, porque
+  `tsconfig.json` pede `types: ["vite/client"]` e `node_modules/vite` não
+  existe aqui (consequência do 403 no `@lovable.dev/vite-tanstack-config`).
+  O mesmo erro aparece no `origin/main` puro, então não é regressão. Para
+  medir de verdade: `npx tsc --noEmit; echo $?`, sem pipe, ou contar as
+  linhas `error TS`.
+
+## Pendência das capas resolvida pela metade, com causa medida (2026-09-13)
+
+- **A rodada das 21:00 publicou** — primeira desde 15:49. Slug
+  `inundacoes-em-telangana-apos-chuvas-recordes-de-135-5-mm-em-mancherial`,
+  com foto real do Pexels (id 13865772). Com isso o passo "Sincroniza capas
+  publicadas com a biblioteca Admin" finalmente rodou, quase cinco horas
+  depois da correção que deveria consertá-lo.
+- **Ele falhou de novo, com os mesmos sete slugs e os mesmos códigos**:
+  `saved:0, alreadyPresent:15`, quatro 403 e três 522. Ou seja, a correção do
+  PR #89 (`resolveLibraryImageUrl` cobrindo todo `/images/`) **não era a
+  causa** — mirou no caminho errado.
+- **Causa real, lida no banco** (`SELECT slug, "coverImageUrl" FROM "Article"`
+  nos sete slugs, projeto Neon `aged-scene-12810096`). Os sete se dividem
+  exatamente nos dois códigos de erro, e nenhum está sob `/images/`:
+  - **Três com 522**: `https://veronicahub.com/api/media-images/<id>`. É a
+    própria biblioteca servindo a imagem. Baixar isso é o Worker fazendo
+    subrequest para si mesmo, que o Cloudflare encerra com 522 — para trazer
+    bytes que já estão em `mediaImages`. Confirmado que os três ids existem na
+    tabela com bytes de verdade (120KB, 163KB e 957KB).
+  - **Quatro com 403**: `https://d3u0tzju9qaucj.cloudfront.net/...`. CDN
+    externo, provavelmente resíduo da Lovable. Nem a hipótese do briefing
+    (Pexels) nem a do `/images/` estavam certas.
+- **Consertado**: `saveCoverToMediaLibrary` passa a reconhecer
+  `/api/media-images/<id>` antes de qualquer fetch e trata como já presente,
+  sem baixar e sem duplicar linha no banco. Teste novo trava a ordem — se a
+  checagem for parar depois do fetch, o 522 volta.
+- **Não consertado, e não dá para consertar às cegas**: os quatro do
+  CloudFront. O proxy deste ambiente bloqueia o host (403 no CONNECT), então
+  não dá para saber se o 403 é hotlink, URL assinada vencida ou remoção. Se
+  for permanente, não há solução em código: alguém precisa reenviar essas
+  quatro capas pelo Admin. Vale medir na próxima publicação se sobraram
+  exatamente quatro falhas — isso confirma que os três do 522 sumiram.
+
+## Armadilha: push de branch derruba a capa recém-publicada (2026-09-13)
+
+- **Sintoma**: a matéria das 21:00 apareceu no site sem foto, mesmo com tudo
+  certo no banco (`coverImageUrl` gravada) e no repositório (arquivo de 417 KB
+  commitado pelo próprio workflow em `2f939d3`).
+- **Causa, pela linha do tempo**: 21:00:46 o cron commita a capa no `main`;
+  21:01:59 o passo "Espera o deploy publicar o asset" confirma a capa no ar;
+  21:10:03 um commit de trabalho vai para o branch `claude/...`, que partiu do
+  `main` de ANTES da capa existir; 21:10:57 o Cloudflare publica em produção a
+  partir desse branch. A árvore publicada passou a não ter o arquivo, e a URL
+  gravada no banco virou 404.
+- **Por que é estrutural e não azar**: todo push de qualquer branch publica em
+  produção, e o cron commita uma capa nova no `main` a cada publicação. Então
+  qualquer branch que esteja atrás do `main` remove de produção todas as capas
+  commitadas depois do ponto de partida dele — silenciosamente, porque o banco
+  e o repositório continuam consistentes e nada falha.
+- **Regra para as próximas sessões**: `git fetch origin main && git merge
+  origin/main` IMEDIATAMENTE antes de cada push, não só no começo do trabalho.
+  Uma publicação pode ter acontecido no meio da sessão. E quanto mais tempo o
+  branch fica aberto, maior a janela — mesclar o PR cedo reduz o risco.
+- Consertado nesta sessão em `226408b`, trazendo o `main` para o branch.
+
+## Capa passa a sair de banco curado, sem busca ao vivo (2026-09-13)
+
+- **Motivo**: a matéria das 21:00, sobre enchente em Telangana (Índia), saiu
+  com foto de uma rua alagada americana, com placa "ROAD CLOSED" e
+  sinalização em inglês. O problema não é ser genérica — é *parecer
+  documentar* o fato. Foto escolhida por termo em inglês que o modelo inventou
+  não ilustra, finge registro. Decisão do dono do projeto: banco curado em
+  primeiro lugar, busca ao vivo removida.
+- **Como funciona**: as imagens ficam na biblioteca do Admin, com nome
+  começando em `wire-banco-<editoria>-` (ex.:
+  `wire-banco-clima-chuva-cidade.webp`). É convenção de nome de arquivo em vez
+  de coluna nova porque o upload do Admin grava o nome enviado — então dá para
+  curar tudo pelo navegador, que é o único caminho para quem não tem terminal.
+- **Escolha e rodízio**: `pickLibraryCover` pega a mais antiga que não esteja
+  entre as últimas 40 usadas (`recentCoverPhotoIds`, a mesma antirrepetição
+  que já existia). Sem coluna de "última vez usada": a exclusão já produz
+  rodízio.
+- **Onde a imagem é servida**: o id escolhido vai no JSON do endpoint, o
+  runner do Actions baixa por `/api/media-images/<id>` e o pipeline commita o
+  arquivo estático como sempre fez. Assim a curadoria é pelo navegador mas a
+  entrega é pelo CDN, e a capa nunca vira uma URL `/api/media-images/` — que
+  seria banco servindo imagem a cada leitor, e reabriria a classe de bug do
+  522 no backfill.
+- **Degrada em cascata**: banco vazio, ou download falhando, cai no fallback
+  fixo por editoria (`_fallback/<beat>.jpg`, 5 arquivos de 11/09) e depois no
+  card tipográfico. O `catch` no nível 1 é deliberado: a matéria já está
+  publicada quando esse script roda, então morrer ali a deixaria sem capa.
+- **ATENÇÃO — o banco está vazio hoje.** Nenhuma imagem com esse prefixo foi
+  cadastrada ainda, então toda matéria vai sair com a mesma foto fixa da
+  editoria até que alguém suba imagens pelo Admin. É o comportamento pedido,
+  mas é repetitivo: subir umas 5 a 10 por editoria resolve.
+
+## Card do Instagram passa a sair automático a cada publicação (2026-09-13)
+
+- **Divisão acordada com o dono do projeto**: ele fornece a matéria-prima
+  visual (imagens na biblioteca do Admin), a máquina aplica o padrão. O card
+  sai no estilo sóbrio que já existia, não no estilo telejornal com selo
+  URGENTE — se todo post é urgente, "urgente" deixa de significar algo, e o
+  site se apresenta como cobertura jornalística real.
+- **Como**: passo novo no workflow, entre otimizar a capa e commitá-la, roda
+  `scripts/render-instagram-card.mjs` com `WIRE_OUT_DIR=public/images/instagram`.
+  O gerador ganhou suporte a esse destino; o padrão continua `out/instagram`
+  para uso manual. Mesmo traçado do botão de `/blog/$slug` (os dois importam
+  `src/lib/wire-instagram-card.ts`), então não existem dois cards diferentes.
+- **Card e capa vão no MESMO commit**, de propósito: cada commit no `main` é
+  um deploy, e cada deploy troca o que a produção está servindo. Um commit a
+  mais por publicação dobraria essa troca.
+- **O endpoint passou a devolver `excerpt`**, que alimenta a legenda. Sem ele
+  a legenda sairia só com manchete e link.
+- **Onde encontrar o card**: `https://veronicahub.com/images/instagram/wire-tv-<slug>.jpg`
+  e a legenda no `.txt` de mesmo nome. Sem precisar abrir a matéria nem rodar
+  nada — o que importa para quem não tem terminal.
+- **Por que não guardar o card na biblioteca**: ~375 KB por matéria, 24 por
+  dia, dá ~9 MB/dia contra o limite de 512 MB do Neon — estouraria em menos de
+  dois meses. A biblioteca fica para as imagens de origem, que são poucas e
+  reaproveitadas; o card é asset estático servido pelo CDN.
+- `@napi-rs/canvas` NÃO está no `package.json`, ao contrário do que diz o
+  comentário do script. O passo instala com `npm install --no-save`, mesmo
+  padrão do Playwright.
+- Teste novo trava o acoplamento entre onde o card é gerado e onde é
+  commitado — se divergirem, o card é gerado e descartado sem nada falhar.
