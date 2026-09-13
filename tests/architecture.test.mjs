@@ -127,6 +127,14 @@ test('o Worker de cron dispara um workflow que existe de verdade', () => {
   const workflows = readdirSync(new URL('../.github/workflows/', import.meta.url));
   assert.ok(workflows.includes(workflow[1]), `${workflow[1]} não existe em .github/workflows`);
 
+  // O deploy pelo painel do Cloudflare usa dashboard.js, não o .ts: se os dois
+  // divergirem, o que roda em produção deixa de ser o que está versionado.
+  const dashboard = readFileSync(new URL('../workers/wire-cron/dashboard.js', import.meta.url), 'utf8');
+  for (const name of ['OWNER', 'REPO', 'WORKFLOW', 'REF']) {
+    const pattern = new RegExp(`const ${name} = "([^"]+)"`);
+    assert.equal(dashboard.match(pattern)?.[1], worker.match(pattern)?.[1], name);
+  }
+
   const crons = JSON.parse(config.replace(/^\s*\/\/.*$/gm, '')).triggers.crons;
   assert.ok(Array.isArray(crons) && crons.length > 0, 'wrangler.jsonc precisa declarar crons');
   for (const cron of crons) assert.equal(cron.trim().split(/\s+/).length, 5, cron);
