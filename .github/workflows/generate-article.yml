@@ -94,6 +94,9 @@ jobs:
             echo "recentPhotoIds<<COVER_EOF"
             jq -c '.recentPhotoIds // []' response.json
             echo "COVER_EOF"
+            echo "libraryCoverId<<COVER_EOF"
+            jq -r '.libraryCoverId // ""' response.json
+            echo "COVER_EOF"
           } >> "$GITHUB_OUTPUT"
 
       # A partir daqui é tudo capa de imagem — best-effort. A matéria já foi
@@ -106,22 +109,24 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      # Nível 1/2/3 da cadeia de fallback: Pexels, depois Pixabay, depois
-      # foto genérica fixa por editoria (se já foi commitada em
-      # public/images/blog-covers/_fallback/<beat>.jpg). PEXELS_API_KEY e
-      # PIXABAY_API_KEY vazios (secret não cadastrado ainda) fazem esse
-      # passo não achar nada e cair pro card tipográfico — nunca falha o job.
-      - name: Busca foto real (Pexels/Pixabay/fallback fixo)
+      # Capa vem do banco curado na biblioteca do Admin, não de busca ao vivo.
+      # Decisão de 13/09, depois de a matéria sobre a enchente em Telangana
+      # sair com foto de uma rua americana com placa "ROAD CLOSED": foto de
+      # banco escolhida por termo em inglês inventado pelo modelo não ilustra,
+      # finge documentar. Imagem curada é assumidamente ilustrativa.
+      #
+      # Para alimentar o banco: Admin → Imagens → enviar com nome começando em
+      # wire-banco-<editoria>- (wire-banco-clima-chuva-cidade.webp, por
+      # exemplo). Sem nenhuma cadastrada, cai no fallback fixo da editoria e,
+      # na falta dele, no card tipográfico.
+      - name: Pega capa do banco curado (fallback fixo se vazio)
         if: steps.checkout.outcome == 'success'
         id: fetch_photo
         continue-on-error: true
         env:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
           COVER_BEAT: ${{ steps.generate.outputs.beat }}
-          COVER_FOTO_TERMOS: ${{ steps.generate.outputs.fotoTermos }}
-          COVER_RECENT_PHOTO_IDS: ${{ steps.generate.outputs.recentPhotoIds }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          COVER_LIBRARY_ID: ${{ steps.generate.outputs.libraryCoverId }}
         run: |
           node scripts/fetch-cover-photo.mjs > photo-result.json
           cat photo-result.json

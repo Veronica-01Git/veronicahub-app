@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, desc, eq, gte, lt, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, like, lt, ne, notInArray } from "drizzle-orm";
 import Groq from "groq-sdk";
 import { getDb } from "./db";
-import { articles } from "./schema";
+import { articles, mediaImages } from "./schema";
 import { requireAdmin } from "./admin-server";
 import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 import { WIRE_NAME } from "./ecosystem";
@@ -748,6 +748,43 @@ async function recentCoverPhotoIds(db: ReturnType<typeof getDb>): Promise<string
   return rows.map((r) => r.coverPhotoId).filter((id): id is string => Boolean(id));
 }
 
+// Prefixo que marca, na biblioteca do Admin, uma imagem disponível como capa
+// de uma editoria: wire-banco-<beat>-<o-que-você-quiser>. É convenção de nome
+// de arquivo em vez de coluna nova porque o upload do Admin grava o nome do
+// arquivo enviado, então dá para curar tudo pelo navegador — que é o único
+// caminho disponível para quem não tem terminal.
+export const LIBRARY_COVER_PREFIX = "wire-banco-";
+
+// Capa vinda do banco curado, em vez de busca ao vivo no Pexels/Pixabay.
+// Decisão editorial de 13/09: uma foto de banco de imagens escolhida por
+// termo em inglês inventado pelo modelo não ilustra, ela finge documentar —
+// a matéria sobre a enchente em Telangana saiu com foto de uma rua americana
+// com placa "ROAD CLOSED". Imagem curada é assumidamente ilustrativa.
+//
+// Escolhe a mais antiga que não esteja entre as últimas usadas, o que dá um
+// rodízio natural sem precisar de coluna de "última vez usada": a lista de
+// exclusão é a mesma antirrepetição de foto que já existia.
+async function pickLibraryCover(
+  db: ReturnType<typeof getDb>,
+  beat: Beat,
+  recentPhotoIds: string[],
+): Promise<string | null> {
+  const rows = await db
+    .select({ id: mediaImages.id })
+    .from(mediaImages)
+    .where(
+      recentPhotoIds.length > 0
+        ? and(
+            like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}${beat}-%`),
+            notInArray(mediaImages.id, recentPhotoIds),
+          )
+        : like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}${beat}-%`),
+    )
+    .orderBy(asc(mediaImages.createdAt))
+    .limit(1);
+  return rows[0]?.id ?? null;
+}
+
 // Últimas manchetes publicadas (todas as editorias — o mesmo fato pode vazar
 // entre "economia" e "geopolitica", por exemplo) — entrada de
 // findSimilarHeadline, abaixo.
@@ -965,6 +1002,10 @@ export async function publishArticleFromCron(beat: Beat): Promise<
       article: ReturnType<typeof mapArticle>;
       fotoTermos: string[];
       recentPhotoIds: string[];
+      // Id da imagem escolhida no banco curado da biblioteca, ou null quando
+      // a editoria ainda não tem nenhuma cadastrada — aí o workflow cai no
+      // fallback fixo por editoria e, na falta dele, no card tipográfico.
+      libraryCoverId: string | null;
     }
   | { ok: false; error: string }
 > {
@@ -999,11 +1040,16 @@ export async function publishArticleFromCron(beat: Beat): Promise<
     })
     .returning();
 
+  // Lido uma vez só: serve tanto para o workflow excluir fotos repetidas
+  // quanto para o rodízio do banco curado logo abaixo.
+  const recentPhotoIds = await recentCoverPhotoIds(db);
+
   return {
     ok: true,
     article: mapArticle(row),
     fotoTermos: result.content.fotoTermos,
-    recentPhotoIds: await recentCoverPhotoIds(db),
+    recentPhotoIds,
+    libraryCoverId: await pickLibraryCover(db, beat, recentPhotoIds),
   };
 }
 

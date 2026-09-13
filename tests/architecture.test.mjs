@@ -186,3 +186,33 @@ test('capa que a biblioteca já serve não passa por download', () => {
     'o reconhecimento precisa casar o caminho real da biblioteca',
   );
 });
+
+test('a capa sai do banco curado da biblioteca, não de busca ao vivo', () => {
+  const server = readFileSync(new URL('../src/lib/articles-server.ts', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/fetch-cover-photo.mjs', import.meta.url), 'utf8');
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+
+  // O prefixo do nome de arquivo é a única ligação entre o que a pessoa
+  // digita ao subir a imagem no Admin e o que a consulta procura. Se um lado
+  // mudar sem o outro, o banco fica invisível: nada falha, e toda matéria
+  // passa a sair com o fallback fixo da editoria.
+  const prefix = server.match(/LIBRARY_COVER_PREFIX = "([^"]+)"/);
+  assert.ok(prefix, 'articles-server precisa declarar LIBRARY_COVER_PREFIX');
+  assert.ok(
+    server.includes(`\${LIBRARY_COVER_PREFIX}\${beat}-%`),
+    'a consulta precisa filtrar por prefixo + editoria',
+  );
+  assert.ok(
+    workflow.includes(`${prefix[1]}<editoria>-`),
+    `o workflow precisa documentar o nome que a pessoa deve usar (${prefix[1]}<editoria>-)`,
+  );
+
+  // Decisão editorial de 13/09: sem busca ao vivo. Se voltar, a capa volta a
+  // ser escolhida por termo em inglês inventado pelo modelo.
+  assert.ok(!/searchPexels|searchPixabay/.test(script), 'a capa não pode voltar a ser buscada ao vivo');
+  assert.ok(!/PEXELS_API_KEY|PIXABAY_API_KEY/.test(workflow), 'o workflow não deve mais passar chave de banco de fotos');
+
+  // O id escolhido no servidor precisa chegar ao script.
+  assert.ok(/libraryCoverId/.test(workflow), 'o workflow precisa repassar libraryCoverId');
+  assert.ok(/COVER_LIBRARY_ID/.test(script) && /COVER_LIBRARY_ID/.test(workflow), 'COVER_LIBRARY_ID liga workflow e script');
+});

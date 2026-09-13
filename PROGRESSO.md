@@ -962,3 +962,35 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   Uma publicação pode ter acontecido no meio da sessão. E quanto mais tempo o
   branch fica aberto, maior a janela — mesclar o PR cedo reduz o risco.
 - Consertado nesta sessão em `226408b`, trazendo o `main` para o branch.
+
+## Capa passa a sair de banco curado, sem busca ao vivo (2026-09-13)
+
+- **Motivo**: a matéria das 21:00, sobre enchente em Telangana (Índia), saiu
+  com foto de uma rua alagada americana, com placa "ROAD CLOSED" e
+  sinalização em inglês. O problema não é ser genérica — é *parecer
+  documentar* o fato. Foto escolhida por termo em inglês que o modelo inventou
+  não ilustra, finge registro. Decisão do dono do projeto: banco curado em
+  primeiro lugar, busca ao vivo removida.
+- **Como funciona**: as imagens ficam na biblioteca do Admin, com nome
+  começando em `wire-banco-<editoria>-` (ex.:
+  `wire-banco-clima-chuva-cidade.webp`). É convenção de nome de arquivo em vez
+  de coluna nova porque o upload do Admin grava o nome enviado — então dá para
+  curar tudo pelo navegador, que é o único caminho para quem não tem terminal.
+- **Escolha e rodízio**: `pickLibraryCover` pega a mais antiga que não esteja
+  entre as últimas 40 usadas (`recentCoverPhotoIds`, a mesma antirrepetição
+  que já existia). Sem coluna de "última vez usada": a exclusão já produz
+  rodízio.
+- **Onde a imagem é servida**: o id escolhido vai no JSON do endpoint, o
+  runner do Actions baixa por `/api/media-images/<id>` e o pipeline commita o
+  arquivo estático como sempre fez. Assim a curadoria é pelo navegador mas a
+  entrega é pelo CDN, e a capa nunca vira uma URL `/api/media-images/` — que
+  seria banco servindo imagem a cada leitor, e reabriria a classe de bug do
+  522 no backfill.
+- **Degrada em cascata**: banco vazio, ou download falhando, cai no fallback
+  fixo por editoria (`_fallback/<beat>.jpg`, 5 arquivos de 11/09) e depois no
+  card tipográfico. O `catch` no nível 1 é deliberado: a matéria já está
+  publicada quando esse script roda, então morrer ali a deixaria sem capa.
+- **ATENÇÃO — o banco está vazio hoje.** Nenhuma imagem com esse prefixo foi
+  cadastrada ainda, então toda matéria vai sair com a mesma foto fixa da
+  editoria até que alguém suba imagens pelo Admin. É o comportamento pedido,
+  mas é repetitivo: subir umas 5 a 10 por editoria resolve.

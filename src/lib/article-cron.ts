@@ -287,6 +287,7 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
       desk: result.article.desk,
       fotoTermos: result.fotoTermos,
       recentPhotoIds: result.recentPhotoIds,
+      libraryCoverId: result.libraryCoverId,
     }),
     { headers: { "content-type": "application/json" } },
   );
