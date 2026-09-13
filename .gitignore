@@ -16,6 +16,9 @@ dist-ssr
 .nitro
 *.local
 
+# O projeto usa bun (bun.lock). Lockfile de npm gerado por engano não entra.
+package-lock.json
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
