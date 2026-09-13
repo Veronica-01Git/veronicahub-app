@@ -594,3 +594,60 @@ continuar isso:**
   precisa rodar localmente (WSL) antes de publicar.
 - Commitado localmente (`d90edcb`). **Sem push, sem deploy** — aguardando
   confirmação explícita do usuário, como de costume.
+
+## Wire TV — rebrand completo e publicado (2026-09-13, sessão cloud seguinte)
+
+Continuação direta da seção acima. O patch daquela sessão foi aplicado com
+`git am --3way` em cima do `main` e os commits ganharam hashes novos
+(`ba821f4`, `2afdc7b`, `2480304` — não `d90edcb`/`e6c4a15`/`d0861af`).
+
+- **Correção da seção acima**: o `npm run build` **rodou e passou aqui**, sem
+  stub. O `@lovable.dev/vite-tanstack-config` instalou normalmente (`npm
+  install`, 492 pacotes) — o bloqueio de registro descrito acima não se
+  repetiu neste ambiente. Também não foi preciso validar em WSL antes de
+  publicar, como aquela seção pedia. Trate "build não validado" e "stub
+  local" como história daquela sessão, não como estado atual.
+- Verificado antes de publicar, porque typecheck e teste não cobrem: o selo
+  aparece mesmo nos quatro pontos (`PRIMARY_NAV` são objetos `Product`, que
+  têm `id`; `INTENT_LINKS` têm `productId` — as duas condições do patch batem
+  com as estruturas reais) e `animate-pulse-dot` existe em `src/styles.css`.
+- **O rename do patch cobria só a navegação.** O nome estava hardcoded em ~15
+  outros pontos visíveis, então quem clicasse em "Wire TV" chegava numa página
+  cujo título ainda dizia "Veronica Wire". Corrigido em dois commits:
+  - `0571e63` — `WIRE_NAME` virou export de `ecosystem.ts` e passou a
+    alimentar título/OG do `/blog`, páginas de matéria e editoria, RSS
+    (`seo-feed.ts`), autor no schema.org, `ProofSection` da home, card de
+    `WireGrowth`, base de conhecimento do concierge (`veronica/skills/home.ts`)
+    e os dois rótulos do admin.
+  - `2332d69` — pipeline de geração: prompt do repórter em
+    `articles-server.ts` e os dois `altText` de capa em `article-cron.ts`.
+- Sobrou de propósito o User-Agent `VeronicaWire/1.0` em
+  `articles-server.ts:97` — é identificação HTTP pros servidores de notícia
+  que o radar consulta, não superfície de marca; mexer nisso muda
+  comportamento de rede sem ganho visível. Comentários de código também não
+  foram tocados. Com a flag ligada, essa é a **única** ocorrência do nome
+  antigo em todo o build.
+- **O rollback deixou de ser de custo zero, e o comentário da flag em
+  `ecosystem.ts` foi reescrito por causa disso.** Ele antes prometia que
+  `false` "volta exatamente ao estado anterior". Verdade enquanto tudo era
+  montado em runtime; deixou de ser quando o nome passou a entrar em linha
+  gravada no banco. Cada matéria que o cron publica com a flag ligada grava
+  `altText` "Capa Wire TV — ...", e isso a flag não desfaz. Desligar depois
+  deixa o acervo misturado — consertar exige backfill no banco.
+- Validação, repetida **nos dois estados da flag** a cada commit: `typecheck`
+  exit 0, 6/6 testes, `npm run build` exit 0. Com `WIRE_TV_REBRAND_ENABLED =
+  false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
+  "Ao vivo" — o rollback alcança tudo que é montado em runtime.
+- **Publicado.** `main` está em `2332d69`; os pushes foram feitos com
+  confirmação explícita do usuário a cada etapa. Ressalva honesta: confirmamos
+  que o push chegou e que o build passa localmente, **não** que a página
+  renderizou certo em produção — o selo na nav e os títulos das páginas não
+  foram conferidos no site publicado. Vale olhar `/blog`, uma matéria e a home.
+- **Alavanca de rollback pronta**: branch `rollback/wire-tv-rebrand`
+  (`5ba8c6d`) no remoto, com a flag desligada e validado nesse estado. Voltar
+  atrás é `git push origin rollback/wire-tv-rebrand:main` — fast-forward, sem
+  force. Foi pro remoto de propósito: contêiner de sessão cloud é efêmero e um
+  rollback só local morreria junto com a sessão. Se `main` receber commits
+  novos, esse branch fica desatualizado — aí traga o `main` novo pra dentro
+  dele antes de publicar.
+- `PIXABAY_API_KEY` e `scripts/reprocess-covers.mjs` continuam pendentes.
