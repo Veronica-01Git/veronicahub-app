@@ -139,3 +139,28 @@ test('o Worker de cron dispara um workflow que existe de verdade', () => {
   assert.ok(Array.isArray(crons) && crons.length > 0, 'wrangler.jsonc precisa declarar crons');
   for (const cron of crons) assert.equal(cron.trim().split(/\s+/).length, 5, cron);
 });
+
+test('o diagnóstico do radar não desclassifica um pulo editorial', () => {
+  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+  const server = readFileSync(new URL('../src/lib/articles-server.ts', import.meta.url), 'utf8');
+
+  // isEditorialSkip decide, por PREFIXO, se a rodada foi um pulo editorial
+  // (HTTP 200, workflow verde) ou uma falha real (502, workflow vermelho).
+  const block = cron.match(/function isEditorialSkip[\s\S]*?\[([\s\S]*?)\]\.some/);
+  assert.ok(block, 'isEditorialSkip precisa listar os prefixos');
+  const prefixes = [...block[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(match => match[1]);
+  assert.ok(
+    prefixes.includes('sem fato verificável no momento'),
+    'a desistência do modelo precisa continuar na lista de pulos editoriais',
+  );
+
+  // articles-server carimba a contagem do radar nessa mesma mensagem. Se o
+  // carimbo for para a FRENTE, o prefixo deixa de casar e toda hora sem fato
+  // passa a pintar o workflow de vermelho.
+  const message = server.match(/error: `([^`]*radar:[^`]*)`/);
+  assert.ok(message, 'a mensagem editorial precisa carregar o diagnóstico do radar');
+  assert.ok(
+    message[1].startsWith('${parsed.error}'),
+    `o diagnóstico tem que vir depois da mensagem do modelo, e veio: ${message[1]}`,
+  );
+});

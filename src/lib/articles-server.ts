@@ -478,11 +478,21 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
         "status" in error &&
         (error as { status?: unknown }).status === 429) ||
       (error instanceof Error && /\b429\b|rate limit/i.test(error.message));
+    // output_parse_failed é o Groq recusando a saída do PRÓPRIO modelo: o
+    // gpt-oss emitiu sintaxe de tool call quebrada durante o browser_search e
+    // a API devolveu 400 antes de qualquer resposta editorial. Medido em
+    // 13/09 em duas rodadas, com `failed_generation` sendo "Open that." e
+    // "Scrolling near top maybe meta." — fragmentos da navegação, não matéria
+    // malformada. É falha de amostragem, não de configuração: a mesma chamada
+    // repetida costuma passar. Sem marcar como retentável, uma amostra ruim
+    // derrubava a hora inteira sem nenhuma segunda tentativa.
+    const isOutputParseFailure =
+      error instanceof Error && /output_parse_failed/i.test(error.message);
     if (!isRateLimit) {
       return {
         ok: false,
         error: error instanceof Error ? error.message : "Falha ao gerar rascunho com IA.",
-        retry: false,
+        retry: isOutputParseFailure,
       };
     }
 
@@ -534,7 +544,20 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
   }
 
   if (typeof parsed.error === "string") {
-    return { ok: false, error: parsed.error, retry: false };
+    // O sufixo do radar é diagnóstico, não decoração. Quando o modelo desiste
+    // com "sem fato verificável no momento", as duas causas possíveis são
+    // opostas: ou o radar veio vazio e ele teve que descobrir a pauta sozinho
+    // pela busca (falha de infraestrutura, GDELT/RSS fora do ar), ou o radar
+    // trouxe pauta e ele ainda assim não confirmou em duas fontes (decisão
+    // editoral legítima). Sem esse número não dá para distinguir as duas, e
+    // os console.warn de discoverStorySignals se perdem enquanto os Workers
+    // Logs do site estiverem desligados. Vai no fim da string de propósito:
+    // isEditorialSkip casa por prefixo, então a classificação não muda.
+    return {
+      ok: false,
+      error: `${parsed.error} (radar: ${signals.length} pauta${signals.length === 1 ? "" : "s"})`,
+      retry: false,
+    };
   }
 
   const { selectedRadarIndex, eventDate, headline, excerpt, body, desk, sourceUrls, fotoTermos } =
