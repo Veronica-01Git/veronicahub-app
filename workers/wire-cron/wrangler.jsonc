@@ -3,6 +3,9 @@
   "name": "wire-tv-cron",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-13",
+  // Worker só de cron: não atende requisição, então não precisa de subdomínio
+  // workers.dev. Sem isto o deploy cria uma URL pública que só devolveria erro.
+  "workers_dev": false,
   // De hora em hora, e só uma vez por hora. A redundância de horários existia
   // pra compensar o descarte do agendador do GitHub; com um disparo confiável
   // ela vira desperdício de cota: cada tentativa numa hora que ainda não
