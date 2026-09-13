@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, BadgeCheck, Check, CircleDot, Copy, ExternalLink, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Building2, Check, CircleDot, Copy, Database, ExternalLink, MessageSquare, Network, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { VeronicaSeal } from "@/components/VeronicaSeal";
@@ -19,6 +19,8 @@ function SealVerification() {
 
   const verificationUrl = `https://veronicahub.com/selo/${record.serial}`;
   const isConcept = Boolean(record.isDemonstration);
+  const activeStepIndex = Math.max(0, record.timeline.findIndex((event) => event.state === "current"));
+  const progress = Math.round(((activeStepIndex + 1) / record.timeline.length) * 100);
   async function copyVerification() {
     await navigator.clipboard.writeText(verificationUrl);
     setCopied(true);
@@ -63,7 +65,23 @@ function SealVerification() {
             <dl className="grid content-start overflow-hidden rounded-sm border border-border/60 bg-border/50">{[["Número de série", record.serial], ["Categoria", record.category], ["Versão", record.version], ["Registro", record.issuedAt], ["Desenvolvedor", record.provider], ...(record.support ? [["Suporte", record.support]] : [])].map(([term, value]) => <div key={term} className="grid gap-1 bg-background p-5 sm:grid-cols-[8rem_1fr]"><dt className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">{term}</dt><dd className="text-sm">{value}</dd></div>)}</dl>
           </div>
 
-          <div className="mt-16 border-t border-border/50 pt-12"><div className="font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-cyan">Linha de procedência</div><div className="mt-7 grid gap-4 md:grid-cols-3">{record.timeline.map((event) => <article key={`${event.date}-${event.label}`} className={`rounded-sm border p-5 ${event.state === "current" ? "border-neon-green/50 bg-neon-green/[.06]" : "border-border/60 bg-surface/40"}`}><div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">{event.date}</div><div className="mt-3 text-sm">{event.label}</div></article>)}</div></div>
+          <div className="mt-16 border-t border-border/50 pt-12">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div><div className="font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-cyan">Cronograma de implantação</div><h2 className="mt-3 font-display text-4xl tracking-[-.04em]">Progresso até a entrega</h2></div>
+              <div className="font-mono-tech text-xs uppercase tracking-widest text-muted-foreground"><span className="text-neon-green">{progress}%</span> do ciclo sinalizado</div>
+            </div>
+            <div className="mt-7 h-2 overflow-hidden rounded-full bg-border/50" role="progressbar" aria-label="Progresso do projeto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className="h-full rounded-full bg-gradient-to-r from-neon-green to-neon-cyan shadow-glow-green transition-[width] duration-700" style={{ width: `${progress}%` }} /></div>
+            <div className="mt-7 grid gap-4 md:grid-cols-5">{record.timeline.map((event, index) => <article key={`${event.date}-${event.label}`} className={`relative min-h-44 overflow-hidden rounded-sm border p-5 ${event.state === "current" ? "border-neon-green/60 bg-neon-green/[.08] shadow-[0_22px_70px_oklch(0.58_0.17_155/.12)]" : event.state === "done" ? "border-neon-cyan/35 bg-neon-cyan/[.05]" : "border-border/60 bg-surface/40"}`}><span aria-hidden className="absolute right-3 top-2 font-display text-5xl text-neon-green/[.08]">0{index + 1}</span><div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">{event.date}</div><div className="mt-8 text-sm font-medium leading-relaxed">{event.label}</div><div className={`mt-5 inline-flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-widest ${event.state === "current" ? "text-neon-green" : "text-muted-foreground"}`}><span className={`h-1.5 w-1.5 rounded-full ${event.state === "current" ? "bg-neon-green animate-pulse" : event.state === "done" ? "bg-neon-cyan" : "bg-border"}`} />{event.state === "current" ? "Em andamento" : event.state === "done" ? "Concluído" : "Próxima etapa"}</div></article>)}</div>
+          </div>
+
+          {record.operations && (
+            <section className="mt-16 overflow-hidden rounded-sm border border-neon-cyan/25 bg-[radial-gradient(circle_at_85%_10%,oklch(0.56_0.13_195/.14),transparent_34%),linear-gradient(135deg,white,oklch(0.97_0.01_180))] p-6 shadow-[0_30px_100px_oklch(0.56_0.13_195/.1)] md:p-9">
+              <div className="grid gap-9 lg:grid-cols-[1fr_.9fr]">
+                <div><div className="inline-flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-cyan"><Network className="h-4 w-4" /> Arquitetura da solução</div><h2 className="mt-4 font-display text-4xl tracking-[-.04em]">{record.operations.product}</h2><p className="mt-3 font-mono-tech text-xs uppercase tracking-widest text-neon-green">{record.operations.model}</p><p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">{record.operations.summary}</p><div className="mt-7 grid gap-3 sm:grid-cols-2">{record.operations.environments.map((item) => <div key={item} className="flex items-center gap-3 rounded-sm border border-border/60 bg-white/60 p-4 text-sm"><Building2 className="h-4 w-4 shrink-0 text-neon-green" />{item}</div>)}</div></div>
+                <div className="grid content-start gap-4"><div className="rounded-sm border border-border/60 bg-white/65 p-6"><div className="flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan"><Database className="h-4 w-4" /> Núcleo operacional</div><div className="mt-5 flex flex-wrap gap-2">{record.operations.endpoints.map((item) => <span key={item} className="rounded-full border border-neon-cyan/25 bg-neon-cyan/[.05] px-3 py-2 text-xs text-muted-foreground">{item}</span>)}</div></div><div className="rounded-sm border border-border/60 bg-white/65 p-6"><div className="flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green"><MessageSquare className="h-4 w-4" /> Canais preparados</div><div className="mt-5 flex flex-wrap gap-2">{record.operations.channels.map((item) => <span key={item} className="rounded-full border border-neon-green/25 bg-neon-green/[.05] px-3 py-2 text-xs text-muted-foreground">{item}</span>)}</div></div><p className="text-xs leading-relaxed text-muted-foreground">A Express Entulho é a implantação inaugural. Cada empresa terá ambiente e dados separados; os conectores serão ativados somente após validação e autorização.</p></div>
+              </div>
+            </section>
+          )}
 
           <div className="mt-12 flex items-start gap-3 rounded-sm border border-border/60 bg-surface/30 p-5 text-sm leading-relaxed text-muted-foreground"><BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-neon-green" /><p><strong className="text-foreground">O que a verificação significa:</strong> {SEAL_STATUS_COPY[record.status]} O registro confirma procedência, identidade do projeto e escopo declarado. Não é certificação governamental, auditoria independente ou garantia de resultado financeiro.</p></div>
         </section>
