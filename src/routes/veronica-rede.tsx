@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, MessageCircle, UserPlus, Package, Megaphone, Wallet, Flame } from "lucide-react";
 import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
-import { HudAccent, GOLD } from "@/components/HoloOrbits";
 
 export const Route = createFileRoute("/veronica-rede")({
   component: VeronicaRede,
@@ -22,7 +21,7 @@ export const Route = createFileRoute("/veronica-rede")({
 
 type Particle = { left: number; size: number; delay: number; duration: number; color: string };
 
-const PARTICLE_COLORS = [GOLD, "oklch(0.85 0.22 155)", "oklch(0.88 0.15 195)"];
+const PARTICLE_COLORS = ["oklch(0.75 0.15 85)", "oklch(0.85 0.22 155)", "oklch(0.88 0.15 195)"];
 
 const PARTICLES: Particle[] = Array.from({ length: 9 }).map((_, i) => ({
   left: (i * 47 + 6) % 100,
@@ -57,14 +56,13 @@ function RedeParticles() {
   );
 }
 
-// Fundo "ambiente rico" — gradiente animado de 3 cores + partículas + acento
-// holográfico dourado. Reaproveitado no hero e no CTA final.
-function RichEnvironment({ accentClassName }: { accentClassName: string }) {
+// Fundo "ambiente rico" — gradiente animado de 3 cores + partículas.
+// Reaproveitado no hero e no CTA final.
+function RichEnvironment() {
   return (
     <>
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-rede-aurora md:animate-rede-aurora" />
       <RedeParticles />
-      <HudAccent size={92} hue={GOLD} className={accentClassName} />
     </>
   );
 }
@@ -105,9 +103,9 @@ function VeronicaRede() {
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {/* Hero — ambiente rico: gradiente animado + partículas + holograma dourado */}
+      {/* Hero — ambiente rico: gradiente animado + partículas */}
       <section className="relative overflow-hidden">
-        <RichEnvironment accentClassName="absolute right-6 top-6 lg:right-14" />
+        <RichEnvironment />
         <div className="relative mx-auto max-w-4xl px-6 py-20 text-center md:py-28">
           <div className="mx-auto inline-flex items-center gap-3 rounded-full border border-gold/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-gold backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-dot" />
@@ -216,7 +214,7 @@ function VeronicaRede() {
 
       {/* Quero participar — retoma a energia do hero, mesmo componente reaproveitado */}
       <section id="participar" className="relative overflow-hidden py-24">
-        <RichEnvironment accentClassName="absolute left-6 bottom-6 lg:left-14" />
+        <RichEnvironment />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl" style={{ letterSpacing: "-0.04em", lineHeight: "0.95" }}>
             Quero <span className="text-gradient-rede">participar</span>.

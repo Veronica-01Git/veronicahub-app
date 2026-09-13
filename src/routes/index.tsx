@@ -27,7 +27,6 @@ import { useParallax } from "@/hooks/use-parallax";
 import { SiteHeader, SiteFooter, HeroFrame } from "@/components/SiteChrome";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
 import { LazyImage } from "@/components/media/LazyImage";
-import { HudAccent, GREEN as HOLO_GREEN, CYAN as HOLO_CYAN } from "@/components/HoloOrbits";
 import { IntentPortal } from "@/components/home/IntentPortal";
 import { StudioShowcase } from "@/components/home/StudioShowcase";
 import { ToolShowcase } from "@/components/home/ToolShowcase";
@@ -379,7 +378,6 @@ function Index() {
       {/* Formações teaser — enxuto de propósito. A grade completa com filtro
           por categoria mora em /comandos; aqui é só a porta de entrada. */}
       <section id="comandos" className="relative mx-auto max-w-7xl px-6 py-24">
-        <HudAccent size={72} hue={HOLO_GREEN} className="absolute right-6 top-6" />
         <div className="mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />[ 01 ] Formações · 11 no catálogo
@@ -614,7 +612,6 @@ function Index() {
             />
           ))}
         </div>
-        <HudAccent size={80} hue={HOLO_CYAN} className="absolute right-4 top-4 lg:right-10" />
 
         <div className="relative mb-14 flex flex-col gap-3">
           <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
@@ -774,7 +771,6 @@ function Index() {
               "radial-gradient(circle at 50% 0%, oklch(0.85 0.22 155 / 0.2), transparent 60%)",
           }}
         />
-        <HudAccent size={76} hue={HOLO_GREEN} className="absolute right-6 top-6" />
         <div className="relative mx-auto max-w-3xl px-6 text-center">
           <div className="mx-auto flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
             <span className="h-px w-8 bg-neon-green" />
