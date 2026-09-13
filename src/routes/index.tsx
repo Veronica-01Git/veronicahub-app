@@ -203,7 +203,7 @@ function Index() {
           <span className="hidden sm:inline">Perguntar à Veronica</span>
         </button>
       )}
-      <SiteHeader />
+      <SiteHeader showWireShortcut />
 
       <button
         type="button"

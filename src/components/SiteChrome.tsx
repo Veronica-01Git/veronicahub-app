@@ -62,6 +62,32 @@ function WireLiveBadge({ className = "" }: { className?: string }) {
   );
 }
 
+function WireNewsShortcut({ mobile = false }: { mobile?: boolean }) {
+  return (
+    <Link
+      to="/blog"
+      aria-label="Abrir Wire TV — notícias ao vivo"
+      className={
+        mobile
+          ? "my-3 flex items-center justify-between gap-3 rounded-sm border border-neon-green/35 bg-neon-green/[0.07] px-4 py-3 text-foreground transition hover:border-neon-green/65"
+          : "group hidden items-center gap-2 rounded-sm border border-border/60 px-3 py-2 transition hover:border-neon-green/60 sm:inline-flex"
+      }
+    >
+      <Newspaper className="h-3.5 w-3.5 shrink-0 text-neon-green" />
+      <span className="font-mono-tech text-[10px] font-semibold uppercase tracking-[0.12em]">
+        Wire TV
+      </span>
+      <span className="inline-flex items-center gap-1.5 font-mono-tech text-[9px] uppercase tracking-wider text-neon-red">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neon-red opacity-60" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-neon-red" />
+        </span>
+        Notícias ao vivo
+      </span>
+    </Link>
+  );
+}
+
 export function EcosystemMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -413,7 +439,13 @@ const HEADER_ACCENT_LINE =
   "linear-gradient(90deg, transparent, var(--neon-red) 25%, var(--neon-red) 75%, transparent)";
 
 // Páginas com carteira mantêm seus próprios controles de sessão.
-export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
+export function SiteHeader({
+  showAuth = true,
+  showWireShortcut = false,
+}: {
+  showAuth?: boolean;
+  showWireShortcut?: boolean;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
     const close = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileOpen(false); };
@@ -426,10 +458,11 @@ export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
       <nav aria-label="Navegação principal" className="hidden items-center gap-2 text-sm lg:flex">
         {PRIMARY_NAV.map((item, index) => <span key={item.id} className="contents"><Link to={item.to} className="flex items-center gap-1.5 px-3 py-2 hover:text-neon-green">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <EcosystemMenu />}</span>)}
       </nav>
-      <div className="flex items-center gap-3">{showAuth && <AuthWidget />}<button type="button" onClick={() => setMobileOpen(v => !v)} aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={mobileOpen} aria-controls="mobile-navigation" className="min-h-11 min-w-11 rounded-sm border border-border/60 lg:hidden">{mobileOpen ? <X className="mx-auto h-5 w-5" /> : <Menu className="mx-auto h-5 w-5" />}</button></div>
+      <div className="flex items-center gap-3">{showWireShortcut && <WireNewsShortcut />}{showAuth && <AuthWidget />}<button type="button" onClick={() => setMobileOpen(v => !v)} aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={mobileOpen} aria-controls="mobile-navigation" className="min-h-11 min-w-11 rounded-sm border border-border/60 lg:hidden">{mobileOpen ? <X className="mx-auto h-5 w-5" /> : <Menu className="mx-auto h-5 w-5" />}</button></div>
     </div>
     {mobileOpen && <nav id="mobile-navigation" aria-label="Navegação principal mobile" className="max-h-[80vh] overflow-y-auto border-t border-border/40 bg-background px-6 pb-6 lg:hidden">
       {showAuth && <div className="sm:hidden"><AuthWidget variant="mobile" /></div>}
+      {showWireShortcut && <div className="sm:hidden"><WireNewsShortcut mobile /></div>}
       {PRIMARY_NAV.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="flex items-center justify-between gap-2 border-b border-border/40 py-4 text-base">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
     </nav>}
     {/* Fio de acento — meio pixel na borda SUPERIOR do cabeçalho, esmaecendo
