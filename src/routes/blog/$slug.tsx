@@ -102,7 +102,7 @@ export const Route = createFileRoute("/blog/$slug")({
             dateModified: article.updatedAt ?? article.publishedAt ?? undefined,
             author: {
               "@type": "Organization",
-              name: "Redação Veronica Wire",
+              name: "Redação Wire TV",
               url: `${SITE_URL}/blog/expediente#expediente`,
             },
             publisher: {
@@ -171,7 +171,7 @@ function ArticlePage() {
                 hash="expediente"
                 className="inline-flex items-center gap-2 font-medium text-foreground transition hover:text-neon-green"
               >
-                <UserRound className="h-4 w-4 text-neon-green" /> Redação Veronica Wire
+                <UserRound className="h-4 w-4 text-neon-green" /> Redação Wire TV
               </Link>
               {state.article.publishedAt && (
                 <span>Publicado em {formatEditorialDate(state.article.publishedAt)}</span>
@@ -258,7 +258,7 @@ function ArticlePage() {
                 <Network className="mt-0.5 h-4 w-4 shrink-0 text-neon-green" />
                 <div>
                   <p className="text-[15px] leading-relaxed text-foreground/90">
-                    Esta cobertura integra o ecossistema Veronica Wire, que conecta informação
+                    Esta cobertura integra o ecossistema Wire TV, que conecta informação
                     verificada, educação e aplicação prática.
                   </p>
                   <Link

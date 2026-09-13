@@ -13,7 +13,10 @@
 // misturado; corrigir exige backfill no banco, não só a flag.
 // Mantido como capacidade reversível, mas desligado no modo editorial atual:
 // "ao vivo" só deve aparecer quando existir cobertura contínua de um evento.
-export const WIRE_TV_REBRAND_ENABLED = false;
+export const WIRE_TV_REBRAND_ENABLED = true;
+// Nome e transmissão são estados independentes: o produto se chama Wire TV,
+// mas o selo "ao vivo" só volta quando houver uma cobertura realmente ao vivo.
+export const WIRE_LIVE_BADGE_ENABLED = false;
 export const WIRE_NAME = WIRE_TV_REBRAND_ENABLED ? "Wire TV" : "Veronica Wire";
 const WIRE_DESCRIPTION = WIRE_TV_REBRAND_ENABLED
   ? "Notícias verificadas, publicadas hora a hora"

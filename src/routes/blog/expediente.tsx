@@ -25,7 +25,7 @@ export const Route = createFileRoute("/blog/expediente")({
       {
         name: "description",
         content:
-          "Conheça a responsabilidade institucional, o método editorial, a política de fontes, correções e relações comerciais do Veronica Wire.",
+          "Conheça a responsabilidade institucional, o método editorial, a política de fontes, correções e relações comerciais do Wire TV.",
       },
       { property: "og:title", content: `Expediente e transparência | ${WIRE_NAME}` },
       { property: "og:type", content: "website" },
@@ -130,7 +130,7 @@ function EditorialStandardsPage() {
               </div>
               <h2 className="mt-3 font-display text-3xl sm:text-4xl">Expediente</h2>
               <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground">
-                O Veronica Wire é o canal oficial de notícias e inteligência da Veronica Hub. Não é
+                O Wire TV é o canal oficial de notícias e inteligência da Veronica Hub. Não é
                 um veículo governamental nem representa órgãos públicos.
               </p>
             </div>
@@ -140,7 +140,7 @@ function EditorialStandardsPage() {
                 ["Mantenedora", "Veronica Hub"],
                 ["Laboratório desenvolvedor", "YO LAB & CO."],
                 ["Responsável pelo projeto", "Matheus Amorim"],
-                ["Assinatura editorial", "Redação Veronica Wire"],
+                ["Assinatura editorial", "Redação Wire TV"],
                 ["Sede declarada", "Balneário Camboriú · Santa Catarina · Brasil"],
               ].map(([term, value]) => (
                 <div

@@ -33,7 +33,7 @@ export const Route = createFileRoute("/blog/rede-de-fontes/relatorios")({
       { title: `Relatórios de Fontes | ${WIRE_NAME}` },
       {
         name: "description",
-        content: "Relatório mensal público de acessos encaminhados pelo Veronica Wire às fontes citadas.",
+        content: "Relatório mensal público de acessos encaminhados pelo Wire TV às fontes citadas.",
       },
       { property: "og:title", content: `Relatórios de Fontes | ${WIRE_NAME}` },
       { property: "og:type", content: "website" },

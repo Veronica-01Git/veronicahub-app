@@ -1,4 +1,4 @@
-name: Gera e publica matéria (Veronica Wire)
+name: Gera e publica matéria (Wire TV)
 
 on:
   # Uma matéria por hora, com editoria rotativa calculada pelo Worker. Esse
@@ -53,7 +53,7 @@ jobs:
           if [ "$(jq -r '.skipped == true' response.json)" = "true" ]; then
             reason=$(jq -r '.error // "rodada editorial sem publicação"' response.json)
             {
-              echo "### Veronica Wire — rodada sem publicação"
+              echo "### Wire TV — rodada sem publicação"
               echo
               echo "- Motivo: $reason"
               echo "- Editoria processada: $(jq -r '.beat // "não informada"' response.json)"

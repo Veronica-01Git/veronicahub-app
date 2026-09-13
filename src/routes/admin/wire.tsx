@@ -37,7 +37,7 @@ function WireCommercialPanel() {
           <div className="flex items-center gap-2 font-mono-tech text-xs uppercase tracking-[0.2em] text-neon-green">
             <Target className="h-4 w-4" /> Inteligência comercial editorial
           </div>
-          <h1 className="mt-3 font-display text-3xl sm:text-4xl">Desempenho do Veronica Wire</h1>
+          <h1 className="mt-3 font-display text-3xl sm:text-4xl">Desempenho do Wire TV</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
             Intenções geradas pelas recomendações contextuais das matérias. Cliques não são vendas;
             a receita confirmada deverá ser conciliada com o checkout.

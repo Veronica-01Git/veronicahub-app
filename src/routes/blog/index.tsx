@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
-import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 import { formatAgo } from "@/lib/blog-format";
@@ -161,7 +160,6 @@ function VeronicaWire() {
           </div>
 
           <div className="relative flex min-h-28 items-center justify-center py-5 text-center sm:min-h-36">
-            <WirePulseGlobe size={52} className="absolute left-0 hidden opacity-70 sm:block" />
             <div>
               <div className="wire-serif text-[2.9rem] font-black leading-none tracking-[-0.055em] sm:text-6xl lg:text-7xl">
                 {MASTHEAD_LEAD} <span className="text-[#63e6a6]">{MASTHEAD_ACCENT}</span>

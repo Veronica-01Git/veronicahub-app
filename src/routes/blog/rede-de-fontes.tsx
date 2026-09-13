@@ -28,7 +28,7 @@ export const Route = createFileRoute("/blog/rede-de-fontes")({
       {
         name: "description",
         content:
-          "Conheça os canais editoriais, as fontes citadas e a política de colaboração do Veronica Wire.",
+          "Conheça os canais editoriais, as fontes citadas e a política de colaboração do Wire TV.",
       },
       { property: "og:title", content: `Rede de Fontes | ${WIRE_NAME}` },
       { property: "og:type", content: "website" },
