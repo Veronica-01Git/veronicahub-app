@@ -11,11 +11,12 @@ import {
   type TrendingVideo,
 } from "@/lib/trending-videos";
 import {
-  affiliateCatalog,
+  affiliateProducts,
   hasAffiliateProducts,
   buildTrackedPath,
   normalizeHandle,
 } from "@/lib/affiliate-products";
+import { getMyAffiliate, getMyAffiliateStats } from "@/lib/affiliate-account-server";
 
 export const Route = createFileRoute("/veronica-analytics")({
   component: VeronicaAnalytics,
@@ -220,13 +221,41 @@ function ViralCard({ video }: { video: TrendingVideo }) {
 function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCategory[] }) {
   const [handle, setHandle] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const normalized = normalizeHandle(handle);
+  const [code, setCode] = useState<string | null>(null);
+  const [clicksByProduct, setClicksByProduct] = useState<Record<string, number>>({});
+
+  // Quem está logado tem código fixo e não precisa digitar nada — é o
+  // identificador da conta que vai pro Sub_id. Quem não está segue no @
+  // digitado da Fase 1: funciona, mas não é dele de direito.
+  useEffect(() => {
+    let active = true;
+    getMyAffiliate()
+      .then((res) => {
+        if (!active || !res.ok) return;
+        setCode(res.code);
+        return getMyAffiliateStats().then((stats) => {
+          if (!active || !stats.ok) return;
+          setClicksByProduct(
+            Object.fromEntries(stats.byProduct.map((r) => [r.productId, r.clicks])),
+          );
+        });
+      })
+      .catch(() => {
+        // Sem conta ou sem rede: o caminho do @ digitado continua valendo.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const effectiveHandle = code ?? handle;
+  const normalized = normalizeHandle(effectiveHandle);
 
   // Produto que casa com uma categoria em alta agora sobe na lista — é o
   // elo entre o feed de tendências e o que dá pra vender hoje.
   const products = useMemo(() => {
     const inFeed = new Set(feedCategories);
-    return [...affiliateCatalog.products].sort((a, b) => {
+    return [...affiliateProducts].sort((a, b) => {
       const aHot = inFeed.has(a.category) ? 0 : 1;
       const bHot = inFeed.has(b.category) ? 0 : 1;
       return aHot - bHot;
@@ -257,36 +286,52 @@ function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCateg
           comissão da sua divulgação é reconhecida.
         </p>
 
-        <label className="mt-6 flex max-w-sm flex-col gap-2">
-          <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
-            Seu @ (vira sua marca no link)
-          </span>
-          <input
-            type="text"
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            placeholder="@seuusuario"
-            className="rounded-xl border px-4 py-3 text-[15px] outline-none transition focus:ring-2"
-            style={
-              {
-                borderColor: "var(--tt-line)",
-                background: "var(--tt-surface)",
-                color: "var(--tt-ink)",
-                "--tw-ring-color": "var(--tt-cyan)",
-              } as CSSProperties
-            }
-          />
-          <span className="font-mono-tech text-[10.5px]" style={{ color: "var(--tt-ink-faint)" }}>
-            {normalized
-              ? `no link você aparece como: ${normalized}`
-              : "sem o @ o link funciona, mas a venda não fica ligada a você"}
-          </span>
-        </label>
+        {code ? (
+          <div className="mt-6 max-w-sm rounded-xl border p-4" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface)" }}>
+            <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
+              Seu código de divulgador
+            </span>
+            <p className="mt-1.5 font-mono-tech text-[18px] font-bold" style={{ color: "var(--tt-ink)" }}>
+              {code}
+            </p>
+            <p className="mt-2 text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-soft)" }}>
+              É esse código que vai em todo link que você copiar aqui, e é por ele que a Shopee separa o que veio de
+              você. Ele não muda — link que você já postou continua valendo.
+            </p>
+          </div>
+        ) : (
+          <label className="mt-6 flex max-w-sm flex-col gap-2">
+            <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
+              Seu @ (vira sua marca no link)
+            </span>
+            <input
+              type="text"
+              value={handle}
+              onChange={(e) => setHandle(e.target.value)}
+              placeholder="@seuusuario"
+              className="rounded-xl border px-4 py-3 text-[15px] outline-none transition focus:ring-2"
+              style={
+                {
+                  borderColor: "var(--tt-line)",
+                  background: "var(--tt-surface)",
+                  color: "var(--tt-ink)",
+                  "--tw-ring-color": "var(--tt-cyan)",
+                } as CSSProperties
+              }
+            />
+            <span className="font-mono-tech text-[10.5px]" style={{ color: "var(--tt-ink-faint)" }}>
+              {normalized
+                ? `no link você aparece como: ${normalized} — entre na sua conta pra ter um código fixo e só seu`
+                : "sem o @ o link funciona, mas a venda não fica ligada a você"}
+            </span>
+          </label>
+        )}
 
         <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => {
             const meta = CATEGORY_META[product.category];
-            const path = buildTrackedPath(product, { handle, placement: "analytics_catalogo" });
+            const path = buildTrackedPath(product, { handle: effectiveHandle, placement: "analytics_catalogo" });
+            const clicks = clicksByProduct[product.id] ?? 0;
             const hot = feedCategories.includes(product.category);
             return (
               <div
@@ -315,8 +360,13 @@ function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCateg
                 </p>
                 <div className="mt-3 flex items-center justify-between font-mono-tech text-[11px]" style={{ color: "var(--tt-ink-faint)" }}>
                   <span style={{ color: "var(--tt-ink)" }}>{product.priceLabel}</span>
-                  <span>comissão {product.commissionLabel}</span>
+                  {product.commissionLabel && <span>comissão {product.commissionLabel}</span>}
                 </div>
+                {code && clicks > 0 && (
+                  <p className="mt-1.5 font-mono-tech text-[10.5px]" style={{ color: "var(--tt-cyan)" }}>
+                    {clicks} {clicks === 1 ? "clique seu" : "cliques seus"} em 30 dias
+                  </p>
+                )}
                 <div className="mt-auto flex items-center gap-2 pt-3.5">
                   <button
                     type="button"
@@ -343,7 +393,9 @@ function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCateg
 
         <p className="mt-6 max-w-2xl text-[12px] leading-[1.6]" style={{ color: "var(--tt-ink-faint)" }}>
           A compra é feita na Shopee, sob as regras dela — preço e disponibilidade podem mudar lá a qualquer momento.
-          O Veronica Hub registra o encaminhamento pra medir quais produtos a rede está conseguindo girar.{" "}
+          O Veronica Hub registra o encaminhamento pra medir quais produtos a rede está conseguindo girar:{" "}
+          <strong>clique não é venda</strong> — quem confirma venda e comissão é o relatório da Shopee, separado pelo
+          seu código.{" "}
           <Link to="/veronica-rede" className="underline">
             Como funciona a Veronica Rede
           </Link>

@@ -219,3 +219,48 @@ export const mediaImages = pgTable(
   },
   (table) => [index("MediaImage_createdAt_idx").on(table.createdAt)],
 );
+
+// Divulgador da Veronica Rede. O `code` é o que vai carimbado no Sub_id do
+// link de afiliado da Shopee — é ele que faz a comissão de cada pessoa ser
+// rastreável no relatório da plataforma, então precisa ser estável e único
+// pra sempre. Trocar o código de alguém invalida todo link já postado por
+// essa pessoa; por isso ele nasce com a conta e não tem update.
+export const affiliates = pgTable(
+  "Affiliate",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .unique()
+      .references(() => users.id),
+    code: text("code").notNull().unique(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [index("Affiliate_code_idx").on(table.code)],
+);
+
+// Clique encaminhado pelo /r/afiliado. Mede só a intenção: a venda e a
+// comissão acontecem na Shopee e chegam pelo relatório por Sub_id, não por
+// callback. Guardar os dois lados permite comparar "quantos cliques mandei"
+// com "quantas vendas a Shopee reportou". Sem IP, cookie, e-mail ou
+// user-agent — `affiliateCode` é o apelido público do divulgador.
+export const affiliateLinkClicks = pgTable(
+  "AffiliateLinkClick",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    productId: text("productId").notNull(),
+    category: text("category").notNull(),
+    affiliateHandle: text("affiliateHandle"),
+    placement: text("placement").notNull(),
+    clickedAt: timestamp("clickedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("AffiliateLinkClick_clickedAt_idx").on(table.clickedAt),
+    index("AffiliateLinkClick_productId_clickedAt_idx").on(table.productId, table.clickedAt),
+    index("AffiliateLinkClick_handle_clickedAt_idx").on(table.affiliateHandle, table.clickedAt),
+  ],
+);
