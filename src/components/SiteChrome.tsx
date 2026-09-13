@@ -419,22 +419,19 @@ export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
 }
 
 // Moldura reutilizável de qualquer hero com fundo da Veronica — fade pras
-// bordas se fundirem com o resto da página + corner brackets. Usada tanto
-// pelo CyborgBackdrop (imagem estática) quanto pela hero WebGL da Studio.
+// bordas se fundirem com o resto da página. Usada tanto pelo CyborgBackdrop
+// (imagem estática) quanto pela hero WebGL da Studio. Os corner brackets
+// verde/ciano que ficavam nos cantos foram removidos a pedido do usuário.
 export function HeroFrame() {
   return (
-    <>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--background) 0%, oklch(0.14 0.015 200 / 0.6) 40%, transparent 75%, oklch(0.14 0.015 200 / 0.85) 100%), linear-gradient(180deg, transparent 0%, transparent 55%, var(--background) 100%)",
-        }}
-      />
-      <div aria-hidden className="pointer-events-none absolute left-6 top-6 h-16 w-16 border-l-2 border-t-2 border-neon-green/70" />
-      <div aria-hidden className="pointer-events-none absolute right-6 bottom-6 h-16 w-16 border-r-2 border-b-2 border-neon-cyan/70" />
-    </>
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{
+        background:
+          "linear-gradient(90deg, var(--background) 0%, oklch(0.14 0.015 200 / 0.6) 40%, transparent 75%, oklch(0.14 0.015 200 / 0.85) 100%), linear-gradient(180deg, transparent 0%, transparent 55%, var(--background) 100%)",
+      }}
+    />
   );
 }
 
