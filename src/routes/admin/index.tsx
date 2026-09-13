@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShieldAlert, Newspaper, ImageIcon, Sparkles } from "lucide-react";
+import { ShieldAlert, Newspaper, ImageIcon, Sparkles, BarChart3 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
 import { formatBRL } from "@/lib/account";
@@ -52,6 +52,12 @@ function AdminPanel() {
               className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
             >
               <Newspaper className="h-4 w-4" /> Artigos do {WIRE_NAME}
+            </Link>
+            <Link
+              to="/admin/wire"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+            >
+              <BarChart3 className="h-4 w-4" /> Desempenho do Wire
             </Link>
             <Link
               to="/admin/imagens"

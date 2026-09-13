@@ -1,13 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  Radio,
-  Globe2,
-  Cpu,
-  TrendingUp,
-  Cloud,
-  Landmark,
-} from "lucide-react";
+import { Clock3, FileCheck2, Globe2, Cpu, TrendingUp, Cloud, Landmark } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
@@ -133,7 +126,6 @@ function VeronicaWire() {
   // `featured` já é truthy), mas precisa satisfazer o tipo JSX.ElementType.
   const FeaturedIcon = featuredMeta?.icon ?? Cpu;
   const rail = featured ? articles.filter((a) => a.id !== featured.id).slice(0, 5) : [];
-  const ticker = articles.slice(0, 8).map((a) => a.headline);
   // Evita a mesma matéria aparecer duas vezes na tela (destaque/rail e de
   // novo na seção da própria editoria logo abaixo).
   const shownIds = new Set([featured?.id, ...rail.map((a) => a.id)].filter(Boolean));
@@ -143,28 +135,24 @@ function VeronicaWire() {
     <div className="home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {/* Faixa "ao vivo" — só aparece quando há matéria publicada de verdade */}
-      {ticker.length > 0 && (
+      {/* Última publicação: informativa e estável. "Ao vivo" fica reservado
+          para uma cobertura contínua real, nunca para o cron de publicação. */}
+      {featured && (
         <div className="border-b border-border/40 bg-foreground text-background">
-          <div className="mx-auto flex h-9 max-w-7xl items-center gap-3 px-6">
-            <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-sm bg-destructive px-2 py-0.5 font-mono-tech text-[10px] uppercase tracking-widest text-white">
-              <Radio className="h-3 w-3 animate-pulse-dot" /> AO VIVO
+          <div className="mx-auto flex min-h-10 max-w-7xl items-center gap-3 px-6 py-2">
+            <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-sm border border-neon-green/40 bg-neon-green/10 px-2 py-0.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
+              <Clock3 className="h-3 w-3" /> Últimas
             </span>
-            <div
-              className="flex-1 overflow-hidden"
-              style={{
-                maskImage: "linear-gradient(90deg, transparent, black 5%, black 92%, transparent)",
-              }}
+            <Link
+              to="/blog/$slug"
+              params={{ slug: featured.slug }}
+              className="min-w-0 truncate text-xs text-background/75 transition hover:text-background"
             >
-              <div className="flex animate-marquee gap-8 whitespace-nowrap font-mono-tech text-[11px] text-background/75">
-                {[...ticker, ...ticker].map((h, i) => (
-                  <span key={i} className="flex items-center gap-8">
-                    <span className="text-neon-green">●</span>
-                    {h}
-                  </span>
-                ))}
-              </div>
-            </div>
+              {featured.headline}
+            </Link>
+            <span className="ml-auto hidden shrink-0 font-mono-tech text-[10px] uppercase tracking-widest text-background/45 sm:block">
+              {featuredAgo}
+            </span>
           </div>
         </div>
       )}
@@ -181,7 +169,7 @@ function VeronicaWire() {
                 {MASTHEAD_LEAD} <span className="text-neon-green">{MASTHEAD_ACCENT}</span>
               </div>
               <div className="mt-1 font-mono-tech text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
-                Cobertura contínua e global
+                Notícias com fontes, contexto e aplicação prática
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -221,6 +209,12 @@ function VeronicaWire() {
               Rede de Fontes
             </Link>
             <Link
+              to="/blog/expediente"
+              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
+            >
+              Expediente
+            </Link>
+            <Link
               to="/comandos"
               className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
             >
@@ -235,6 +229,27 @@ function VeronicaWire() {
           </nav>
         </div>
       </header>
+
+      <div className="border-b border-border/50 bg-surface/20">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3 text-xs text-muted-foreground">
+          <Link
+            to="/blog/expediente"
+            hash="metodo"
+            className="inline-flex items-center gap-2 transition hover:text-neon-green"
+          >
+            <FileCheck2 className="h-3.5 w-3.5 text-neon-green" /> Método editorial público
+          </Link>
+          <Link to="/blog/rede-de-fontes" className="transition hover:text-neon-green">
+            Fontes identificadas
+          </Link>
+          <Link to="/blog/expediente" hash="correcoes" className="transition hover:text-neon-green">
+            Política de correções
+          </Link>
+          <a href="/feed.xml" className="transition hover:text-neon-green">
+            RSS
+          </a>
+        </div>
+      </div>
 
       {/* Lead + mais lidas */}
       <section id="topo" className="mx-auto max-w-7xl px-6 py-14 cv-auto">

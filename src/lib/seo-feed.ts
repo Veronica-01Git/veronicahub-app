@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import { getDb } from "./db";
 import { articles } from "./schema";
 import { BEAT_VALUES } from "./beats";
@@ -12,6 +12,9 @@ const STATIC_PATHS = [
   "/",
   "/blog",
   ...BEAT_VALUES.map((beat) => `/blog/editoria/${beat}`),
+  "/blog/expediente",
+  "/blog/rede-de-fontes",
+  "/blog/rede-de-fontes/relatorios",
   "/comandos",
   "/prompt-packs",
   "/selos",
@@ -91,5 +94,35 @@ export async function handleRssFeed(): Promise<Response> {
 
   return new Response(body, {
     headers: { "content-type": "application/rss+xml; charset=utf-8" },
+  });
+}
+
+export async function handleNewsSitemap(): Promise<Response> {
+  const db = getDb();
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  const rows = await db
+    .select({
+      slug: articles.slug,
+      headline: articles.headline,
+      publishedAt: articles.publishedAt,
+    })
+    .from(articles)
+    .where(and(eq(articles.status, "published"), gte(articles.publishedAt, twoDaysAgo)))
+    .orderBy(desc(articles.publishedAt));
+
+  const entries = rows
+    .filter((row) => row.publishedAt)
+    .map(
+      (row) =>
+        `  <url>\n    <loc>${SITE_URL}/blog/${xmlEscape(row.slug)}</loc>\n    <news:news>\n      <news:publication>\n        <news:name>${xmlEscape(WIRE_NAME)}</news:name>\n        <news:language>pt</news:language>\n      </news:publication>\n      <news:publication_date>${row.publishedAt!.toISOString()}</news:publication_date>\n      <news:title>${xmlEscape(row.headline)}</news:title>\n    </news:news>\n  </url>`,
+    );
+
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">\n${entries.join("\n")}\n</urlset>\n`;
+
+  return new Response(body, {
+    headers: {
+      "content-type": "application/xml; charset=utf-8",
+      "cache-control": "public, max-age=300",
+    },
   });
 }

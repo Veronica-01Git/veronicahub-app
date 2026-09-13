@@ -4,6 +4,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import { PRODUCTS, CATEGORIES, INTENTS, INTENT_LINKS, PRIMARY_NAV, HOME_PRODUCTS } from '../src/lib/ecosystem.ts';
 import { sealRecords } from '../src/lib/seals.ts';
+import { BEAT_VALUES } from '../src/lib/beats.ts';
+import { WIRE_OFFERS } from '../src/lib/wire-commerce.ts';
 
 // Resolve somente os descritores locais de imagem do catálogo, sem rede.
 registerHooks({
@@ -68,4 +70,22 @@ test('selos têm série única e demonstrações não se apresentam como cliente
       assert.match(record.serial, /-DEMO-/);
     }
   }
+});
+
+test('cada editoria do Wire possui uma oferta própria mensurável e interna', () => {
+  assert.deepEqual(Object.keys(WIRE_OFFERS).sort(), [...BEAT_VALUES].sort());
+  assert.equal(new Set(Object.values(WIRE_OFFERS).map(offer => offer.id)).size, BEAT_VALUES.length);
+  for (const offer of Object.values(WIRE_OFFERS)) {
+    assert.match(offer.id, /^[a-z0-9-]+$/);
+    assert.ok(offer.path.startsWith('/') && !offer.path.startsWith('//'));
+    assert.ok(routes.has(offer.path), `${offer.id}: ${offer.path}`);
+    assert.ok(offer.title && offer.description && offer.cta && offer.eyebrow);
+  }
+});
+
+test('Wire expõe governança editorial e painel de desempenho em rotas reais', () => {
+  assert.ok(routes.has('/blog/expediente'));
+  assert.ok(routes.has('/admin/wire'));
+  const robots = readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8');
+  assert.match(robots, /news-sitemap\.xml/);
 });

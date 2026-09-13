@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://veronicahub.com/sitemap.xml
+Sitemap: https://veronicahub.com/news-sitemap.xml

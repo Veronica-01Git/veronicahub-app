@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, desc, eq, gte, lt } from "drizzle-orm";
+import { and, count, desc, eq, gte, lt, ne } from "drizzle-orm";
 import Groq from "groq-sdk";
 import { getDb } from "./db";
 import { articles } from "./schema";
@@ -31,7 +31,7 @@ const GDELT_QUERY: Record<Beat, string> = {
   ia: '("artificial intelligence" OR "generative AI" OR "AI model")',
   clima: '("clean energy" OR batteries OR solar OR wind OR climate)',
   economia: '("digital yuan" OR CBDC OR "digital currency")',
-  geopolitica: '((China AND USA) OR (China AND Brazil) OR chips OR semiconductors)',
+  geopolitica: "((China AND USA) OR (China AND Brazil) OR chips OR semiconductors)",
   mercado: '(technology OR "artificial intelligence") (investment OR earnings OR infrastructure)',
 };
 
@@ -70,9 +70,12 @@ const RSS_FEEDS: Record<Beat, string[]> = {
 const SIGNAL_KEYWORDS: Record<Beat, RegExp> = {
   ia: /\b(ai|artificial intelligence|inteligência artificial|model|chip|robot|software)\b/i,
   clima: /\b(climate|clima|energy|energia|solar|wind|eólica|battery|bateria|emission)\b/i,
-  economia: /\b(econom|economia|central bank|banco central|currency|moeda|inflation|inflação|cbdc|yuan|drex|interest|juros)\b/i,
-  geopolitica: /\b(china|chinese|brasil|brazil|united states|eua|trade|comércio|tariff|tarifa|chip|semiconductor|geopolit)\b/i,
-  mercado: /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip)\b/i,
+  economia:
+    /\b(econom|economia|central bank|banco central|currency|moeda|inflation|inflação|cbdc|yuan|drex|interest|juros)\b/i,
+  geopolitica:
+    /\b(china|chinese|brasil|brazil|united states|eua|trade|comércio|tariff|tarifa|chip|semiconductor|geopolit)\b/i,
+  mercado:
+    /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip)\b/i,
 };
 
 type StorySignal = { title: string; url: string; domain: string; seenAt: string };
@@ -373,7 +376,19 @@ export const getArticleBySlug = createServerFn({ method: "GET" })
     if (!row) {
       return { ok: false as const, error: "Matéria não encontrada." };
     }
-    return { ok: true as const, article: mapArticle(row) };
+    const relatedRows = await db
+      .select()
+      .from(articles)
+      .where(
+        and(eq(articles.status, "published"), eq(articles.beat, row.beat), ne(articles.id, row.id)),
+      )
+      .orderBy(desc(articles.publishedAt))
+      .limit(3);
+    return {
+      ok: true as const,
+      article: mapArticle(row),
+      relatedArticles: relatedRows.map(mapArticle),
+    };
   });
 
 export const listArticlesAdmin = createServerFn({ method: "GET" }).handler(async () => {
@@ -525,16 +540,8 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
     return { ok: false, error: parsed.error, retry: false };
   }
 
-  const {
-    selectedRadarIndex,
-    eventDate,
-    headline,
-    excerpt,
-    body,
-    desk,
-    sourceUrls,
-    fotoTermos,
-  } = parsed;
+  const { selectedRadarIndex, eventDate, headline, excerpt, body, desk, sourceUrls, fotoTermos } =
+    parsed;
   if (
     typeof eventDate !== "string" ||
     typeof headline !== "string" ||

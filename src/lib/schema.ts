@@ -168,6 +168,30 @@ export const sourceReferrals = pgTable(
   ],
 );
 
+// Cliques em ofertas próprias exibidas ao fim das matérias. O evento mede a
+// capacidade editorial de encaminhar interesse para produtos Veronica sem
+// guardar IP, cookie, e-mail ou user-agent. Receita confirmada continua sendo
+// responsabilidade do checkout; aqui medimos apenas intenção comercial.
+export const wireOfferClicks = pgTable(
+  "WireOfferClick",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    articleId: text("articleId")
+      .notNull()
+      .references(() => articles.id, { onDelete: "cascade" }),
+    beat: articleBeat("beat").notNull(),
+    offerId: text("offerId").notNull(),
+    placement: text("placement").notNull(),
+    clickedAt: timestamp("clickedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("WireOfferClick_clickedAt_idx").on(table.clickedAt),
+    index("WireOfferClick_offerId_clickedAt_idx").on(table.offerId, table.clickedAt),
+  ],
+);
+
 // Banco de imagens do painel admin (/admin/imagens) — upload manual pelo
 // admin, guardado como base64 no Postgres. Mesmo caminho já usado por
 // Article.coverImageData (ver comentário acima e src/lib/cover-image-server.ts):

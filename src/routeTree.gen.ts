@@ -26,8 +26,10 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
+import { Route as AdminWireRouteImport } from './routes/admin/wire'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
 import { Route as BlogRedeDeFontesRouteImport } from './routes/blog/rede-de-fontes'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
@@ -120,6 +122,11 @@ const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
   path: '/admin/veronica-universe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminWireRoute = AdminWireRouteImport.update({
+  id: '/admin/wire',
+  path: '/admin/wire',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -128,6 +135,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogExpedienteRoute = BlogExpedienteRouteImport.update({
+  id: '/blog/expediente',
+  path: '/blog/expediente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRedeDeFontesRoute = BlogRedeDeFontesRouteImport.update({
@@ -175,7 +187,9 @@ export interface FileRoutesByFullPath {
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
+  '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
@@ -201,7 +215,9 @@ export interface FileRoutesByTo {
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
+  '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
   '/selo/$serial': typeof SeloSerialRoute
   '/admin': typeof AdminIndexRoute
@@ -228,7 +244,9 @@ export interface FileRoutesById {
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
+  '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
@@ -256,7 +274,9 @@ export interface FileRouteTypes {
     | '/admin/artigos'
     | '/admin/imagens'
     | '/admin/veronica-universe'
+    | '/admin/wire'
     | '/blog/$slug'
+    | '/blog/expediente'
     | '/blog/rede-de-fontes'
     | '/selo/$serial'
     | '/admin/'
@@ -282,7 +302,9 @@ export interface FileRouteTypes {
     | '/admin/artigos'
     | '/admin/imagens'
     | '/admin/veronica-universe'
+    | '/admin/wire'
     | '/blog/$slug'
+    | '/blog/expediente'
     | '/blog/rede-de-fontes'
     | '/selo/$serial'
     | '/admin'
@@ -308,7 +330,9 @@ export interface FileRouteTypes {
     | '/admin/artigos'
     | '/admin/imagens'
     | '/admin/veronica-universe'
+    | '/admin/wire'
     | '/blog/$slug'
+    | '/blog/expediente'
     | '/blog/rede-de-fontes'
     | '/selo/$serial'
     | '/admin/'
@@ -335,7 +359,9 @@ export interface RootRouteChildren {
   AdminArtigosRoute: typeof AdminArtigosRoute
   AdminImagensRoute: typeof AdminImagensRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
+  AdminWireRoute: typeof AdminWireRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  BlogExpedienteRoute: typeof BlogExpedienteRoute
   BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
   SeloSerialRoute: typeof SeloSerialRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -465,6 +491,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVeronicaUniverseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/wire': {
+      id: '/admin/wire'
+      path: '/admin/wire'
+      fullPath: '/admin/wire'
+      preLoaderRoute: typeof AdminWireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -477,6 +510,13 @@ declare module '@tanstack/react-router' {
       path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/expediente': {
+      id: '/blog/expediente'
+      path: '/blog/expediente'
+      fullPath: '/blog/expediente'
+      preLoaderRoute: typeof BlogExpedienteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/rede-de-fontes': {
@@ -545,7 +585,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminArtigosRoute: AdminArtigosRoute,
   AdminImagensRoute: AdminImagensRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
+  AdminWireRoute: AdminWireRoute,
   BlogSlugRoute: BlogSlugRoute,
+  BlogExpedienteRoute: BlogExpedienteRoute,
   BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,
   SeloSerialRoute: SeloSerialRoute,
   AdminIndexRoute: AdminIndexRoute,

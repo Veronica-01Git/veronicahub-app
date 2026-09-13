@@ -1,11 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ExternalLink, Network } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock3,
+  ExternalLink,
+  FileCheck2,
+  Network,
+  RefreshCw,
+  UserRound,
+} from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
 import { WIRE_NAME } from "@/lib/ecosystem";
 import { sourceDomain, sourceLabel, trackedSourceHref } from "@/lib/editorial-network";
+import { WIRE_OFFERS, trackedWireOfferHref } from "@/lib/wire-commerce";
 
 const SITE_URL = "https://veronicahub.com";
 
@@ -23,6 +33,29 @@ function derivePhotoSourceLabel(url: string | null): string {
   return "Pexels";
 }
 
+function readingMinutes(body: string): number {
+  const words = body.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 210));
+}
+
+function formatEditorialDate(value: string): string {
+  return new Date(value).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  });
+}
+
+function correctionHref(headline: string, slug: string): string {
+  const subject = encodeURIComponent(`Correção — ${headline}`);
+  const body = encodeURIComponent(
+    `Endereço: ${SITE_URL}/blog/${slug}\n\nTrecho questionado:\n\nFonte de verificação:`,
+  );
+  return `mailto:yo-tech01@outlook.com?subject=${subject}&body=${body}`;
+}
 export const Route = createFileRoute("/blog/$slug")({
   component: ArticlePage,
   loader: ({ params }) => getArticleBySlug({ data: { slug: params.slug } }),
@@ -66,12 +99,17 @@ export const Route = createFileRoute("/blog/$slug")({
             description: article.excerpt,
             image: article.coverImageUrl ? [article.coverImageUrl] : undefined,
             datePublished: article.publishedAt ?? undefined,
-            dateModified: article.publishedAt ?? undefined,
-            author: { "@type": "Organization", name: WIRE_NAME },
+            dateModified: article.updatedAt ?? article.publishedAt ?? undefined,
+            author: {
+              "@type": "Organization",
+              name: "Redação Veronica Wire",
+              url: `${SITE_URL}/blog/expediente#expediente`,
+            },
             publisher: {
               "@type": "Organization",
               name: "Veronica Hub",
-              logo: { "@type": "ImageObject", url: `${SITE_URL}/favicon.ico` },
+              url: SITE_URL,
+              logo: { "@type": "ImageObject", url: `${SITE_URL}/icon.svg` },
             },
             mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
           }),
@@ -83,6 +121,12 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function ArticlePage() {
   const state = Route.useLoaderData();
+  const offer = state.ok ? WIRE_OFFERS[state.article.beat] : null;
+  const hasEditorialUpdate =
+    state.ok &&
+    state.article.publishedAt &&
+    new Date(state.article.updatedAt).getTime() - new Date(state.article.publishedAt).getTime() >
+      60_000;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -103,8 +147,14 @@ function ArticlePage() {
           </div>
         ) : (
           <article className="mt-8">
-            <div className="font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-              {BEAT_LABELS[state.article.beat]}
+            <div className="flex flex-wrap items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest">
+              <span className="rounded-sm bg-neon-green px-2 py-1 text-primary-foreground">
+                Notícia
+              </span>
+              <span className="text-neon-green">{BEAT_LABELS[state.article.beat]}</span>
+              <span className="text-muted-foreground">
+                · {state.article.editorialChannel.label}
+              </span>
             </div>
             <h1
               className="mt-3 font-display text-3xl text-foreground sm:text-4xl"
@@ -115,30 +165,26 @@ function ArticlePage() {
             <p className="mt-4 text-[15px] leading-[1.6] text-muted-foreground">
               {state.article.excerpt}
             </p>
-            {state.article.sourceUrls.length > 0 && (
-              <a
-                href={trackedSourceHref(state.article.slug, 0)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-block text-[13px] text-muted-foreground transition hover:text-neon-green"
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-y border-border/60 py-4 text-sm text-muted-foreground">
+              <Link
+                to="/blog/expediente"
+                hash="expediente"
+                className="inline-flex items-center gap-2 font-medium text-foreground transition hover:text-neon-green"
               >
-                Fonte: {sourceLabel(state.article.sourceUrls[0])} ›
-              </a>
-            )}
-            <div className="mt-4 flex flex-wrap items-center gap-3 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-              <span>{state.article.editorialChannel.label}</span>
+                <UserRound className="h-4 w-4 text-neon-green" /> Redação Veronica Wire
+              </Link>
               {state.article.publishedAt && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span>
-                    {new Date(state.article.publishedAt).toLocaleDateString("pt-BR", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                      timeZone: "America/Sao_Paulo",
-                    })}
-                  </span>
-                </>
+                <span>Publicado em {formatEditorialDate(state.article.publishedAt)}</span>
+              )}
+              <span className="inline-flex items-center gap-1.5">
+                <Clock3 className="h-3.5 w-3.5" /> {readingMinutes(state.article.body)} min de
+                leitura
+              </span>
+              {hasEditorialUpdate && (
+                <span className="inline-flex items-center gap-1.5 text-neon-cyan">
+                  <RefreshCw className="h-3.5 w-3.5" /> Atualizado em{" "}
+                  {formatEditorialDate(state.article.updatedAt)}
+                </span>
               )}
             </div>
 
@@ -159,7 +205,10 @@ function ArticlePage() {
               </a>
             )}
 
-            <div className="mt-8 flex flex-col gap-4 text-[15px] leading-[1.75] text-foreground/90">
+            <div
+              className="mt-9 flex flex-col gap-5 text-[18px] leading-[1.78] text-foreground/90"
+              style={{ fontFamily: '"Newsreader", Georgia, serif' }}
+            >
               {state.article.body
                 .split(/\n{2,}/)
                 .map((p) => p.trim())
@@ -169,6 +218,41 @@ function ArticlePage() {
                 ))}
             </div>
 
+            <div className="mt-9 flex flex-col gap-4 border-t border-border/60 pt-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <div className="inline-flex items-center gap-2">
+                <FileCheck2 className="h-4 w-4 text-neon-green" />
+                Conteúdo sujeito à política pública de correções.
+              </div>
+              <a
+                href={correctionHref(state.article.headline, state.article.slug)}
+                className="font-mono-tech text-xs uppercase tracking-widest text-neon-green transition hover:text-neon-cyan"
+              >
+                Solicitar correção
+              </a>
+            </div>
+
+            {offer && (
+              <aside className="relative mt-10 overflow-hidden rounded-sm border border-neon-green/35 bg-foreground p-7 text-background sm:p-9">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_20%,color-mix(in_oklch,var(--neon-green)_20%,transparent),transparent_36%)]" />
+                <div className="relative max-w-2xl">
+                  <div className="font-mono-tech text-xs uppercase tracking-[0.2em] text-neon-green">
+                    {offer.eyebrow}
+                  </div>
+                  <h2 className="mt-3 font-display text-2xl leading-tight sm:text-3xl">
+                    {offer.title}
+                  </h2>
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-background/65 sm:text-base">
+                    {offer.description}
+                  </p>
+                  <a
+                    href={trackedWireOfferHref(state.article.slug, "article_end")}
+                    className="mt-6 inline-flex items-center gap-2 rounded-sm bg-neon-green px-5 py-3 font-mono-tech text-xs uppercase tracking-widest text-primary-foreground transition hover:brightness-110"
+                  >
+                    {offer.cta} <ArrowRight className="h-4 w-4" />
+                  </a>
+                </div>
+              </aside>
+            )}
             <div className="mt-10 border-y border-border/60 py-6">
               <div className="flex items-start gap-3">
                 <Network className="mt-0.5 h-4 w-4 shrink-0 text-neon-green" />
@@ -183,15 +267,19 @@ function ArticlePage() {
                   >
                     Conhecer a Rede de Fontes <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
+                  <Link
+                    to="/blog/expediente"
+                    className="ml-0 mt-3 inline-flex items-center gap-1.5 font-mono-tech text-xs uppercase tracking-widest text-muted-foreground transition hover:text-foreground sm:ml-5"
+                  >
+                    Método editorial <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
                 </div>
               </div>
             </div>
 
             {state.article.sourceUrls.length > 0 && (
               <div className="mt-10 rounded-sm border border-border/60 bg-surface/30 p-5">
-                <h2 className="font-display text-xl text-foreground">
-                  Fontes consultadas
-                </h2>
+                <h2 className="font-display text-xl text-foreground">Fontes consultadas</h2>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   A Veronica identifica e encaminha o leitor para a publicação original. Citação
                   editorial não representa parceria comercial.
@@ -219,6 +307,43 @@ function ArticlePage() {
                   ))}
                 </ul>
               </div>
+            )}
+
+            {state.relatedArticles.length > 0 && (
+              <section className="mt-12 border-t border-border/60 pt-9">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <div className="font-mono-tech text-xs uppercase tracking-[0.2em] text-neon-green">
+                      Continue acompanhando
+                    </div>
+                    <h2 className="mt-2 font-display text-2xl">Mais desta editoria</h2>
+                  </div>
+                  <Link
+                    to="/blog/editoria/$beat"
+                    params={{ beat: state.article.beat }}
+                    className="text-sm text-muted-foreground transition hover:text-neon-green"
+                  >
+                    Ver editoria
+                  </Link>
+                </div>
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  {state.relatedArticles.map((article) => (
+                    <Link
+                      key={article.id}
+                      to="/blog/$slug"
+                      params={{ slug: article.slug }}
+                      className="group rounded-sm border border-border/60 bg-surface/25 p-5 transition hover:border-neon-green/50"
+                    >
+                      <div className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                        {article.editorialChannel.label}
+                      </div>
+                      <h3 className="mt-3 text-sm font-medium leading-snug transition group-hover:text-neon-green">
+                        {article.headline}
+                      </h3>
+                    </Link>
+                  ))}
+                </div>
+              </section>
             )}
           </article>
         )}

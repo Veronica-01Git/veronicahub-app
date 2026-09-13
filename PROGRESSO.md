@@ -1,3 +1,30 @@
+## Veronica Wire — credibilidade e receita editorial (2026-09-13)
+
+- O produto volta a se apresentar como **Veronica Wire**. O selo permanente
+  "Ao vivo" foi desligado e a home usa "Últimas" com a manchete mais recente;
+  "Ao vivo" fica reservado para cobertura contínua real.
+- Nova rota pública `/blog/expediente`: identidade institucional, responsável
+  pelo projeto, política editorial, método de verificação, uso transparente de
+  automação, correções, integridade comercial e contato da redação.
+- Matérias ganharam classificação "Notícia", assinatura institucional real,
+  publicação e atualização com horário de Brasília, tempo de leitura, texto com
+  tipografia editorial, solicitação de correção e matérias relacionadas.
+- Cada editoria possui uma oferta própria contextual da Veronica depois do
+  conteúdo. O redirecionamento `/r/wire` adiciona UTM e registra somente o
+  clique, sem IP, cookie, e-mail ou user-agent.
+- Nova área protegida `/admin/wire` mostra intenções comerciais dos últimos 30
+  dias e deixa explícito que clique não é venda. Receita confirmada permanece no
+  checkout e será a próxima camada de atribuição.
+- Schema/migração `0008_naive_phalanx.sql` adiciona `WireOfferClick`. O endpoint
+  possui bootstrap idempotente para criar a tabela antes do primeiro registro
+  caso o Worker chegue antes da migração formal.
+- SEO: `NewsArticle` agora referencia Redação, Expediente, data de atualização e
+  organização publicadora; criado `/news-sitemap.xml` apenas com matérias dos
+  últimos dois dias e incluído em `robots.txt`.
+- Validação local: typecheck, build Cloudflare/Nitro e 8 testes passaram. O
+  servidor de preview deste ambiente não abriu por erro de interface de rede;
+  a verificação pública deve ser feita após o deploy.
+
 ## Fase 3 — Formações (2026-09-11, local)
 
 - Auditoria partiu de `origin/main` em `bf8568c`; árvore estava limpa. A

@@ -11,7 +11,9 @@
 // article-cron.ts e matérias geradas sob o prompt de articles-server.ts ficam
 // com o nome vigente na hora da escrita. Desligar a flag deixa esse acervo
 // misturado; corrigir exige backfill no banco, não só a flag.
-export const WIRE_TV_REBRAND_ENABLED = true;
+// Mantido como capacidade reversível, mas desligado no modo editorial atual:
+// "ao vivo" só deve aparecer quando existir cobertura contínua de um evento.
+export const WIRE_TV_REBRAND_ENABLED = false;
 export const WIRE_NAME = WIRE_TV_REBRAND_ENABLED ? "Wire TV" : "Veronica Wire";
 const WIRE_DESCRIPTION = WIRE_TV_REBRAND_ENABLED
   ? "Notícias verificadas, publicadas hora a hora"

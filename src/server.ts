@@ -4,7 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleImageTransform } from "./lib/image-transform-server";
-import { handleSitemap, handleRssFeed } from "./lib/seo-feed";
+import { handleNewsSitemap, handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import {
   handleArchiveWireOwnedImagesCron,
   handleBackfillWireCoversCron,
@@ -14,6 +14,7 @@ import {
 import { handleCoverImage } from "./lib/cover-image-server";
 import { handleMediaImage } from "./lib/media-images-server";
 import { handleSourceReferral } from "./lib/source-network-server";
+import { handleWireOfferRedirect } from "./lib/wire-commerce-server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -85,6 +86,15 @@ export default {
       }
     }
 
+    if (url.pathname === "/news-sitemap.xml") {
+      try {
+        return await handleNewsSitemap();
+      } catch (error) {
+        console.error("Erro ao gerar news-sitemap.xml:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
     if (url.pathname === "/feed.xml") {
       try {
         return await handleRssFeed();
@@ -100,6 +110,15 @@ export default {
       } catch (error) {
         console.error("Erro ao encaminhar para fonte:", error);
         return new Response("fonte indisponível", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/r/wire") {
+      try {
+        return await handleWireOfferRedirect(request);
+      } catch (error) {
+        console.error("Erro ao encaminhar oferta do Wire:", error);
+        return new Response("oferta indisponível", { status: 500 });
       }
     }
 
