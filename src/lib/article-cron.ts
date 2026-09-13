@@ -149,9 +149,7 @@ export async function handleArchiveWireOwnedImagesCron(request: Request): Promis
     if (buffer.byteLength === 0 || buffer.byteLength > MAX_LIBRARY_IMAGE_BYTES) {
       return new Response(`Imagem fora do limite: ${image.filename}`, { status: 400 });
     }
-    const mimeType = (response.headers.get("content-type") || "image/webp")
-      .split(";")[0]
-      .trim();
+    const mimeType = (response.headers.get("content-type") || "image/webp").split(";")[0].trim();
     await db.insert(mediaImages).values({
       filename: image.filename,
       mimeType,
@@ -179,6 +177,8 @@ function currentBeat(): Beat {
 
 function isEditorialSkip(error: string): boolean {
   return [
+    "sem fato verificável no momento",
+    "429",
     "Radar externo sem pauta recente verificável",
     "A matéria não ficou ancorada a uma pauta",
     "A data do fato está fora da janela editorial de 72h",

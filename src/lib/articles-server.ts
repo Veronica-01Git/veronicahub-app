@@ -212,7 +212,9 @@ const RECENT_HISTORY_LIMIT = 40;
 // factual; o leitor nunca recebe uma falsa tela de "primeiras matérias" se o
 // acervo já contém reportagens publicadas.
 const HOME_WINDOW_HOURS = 24;
-const HOME_FEED_LIMIT = 18;
+// O front editorial exibe uma edição mais densa, próxima de um jornal de
+// negócios: destaque, últimas e blocos por tema sem esconder o acervo recente.
+const HOME_FEED_LIMIT = 30;
 
 // Item 6 (paginação): página de cada editoria (/blog/$beat) carrega em
 // blocos de 15 via cursor (publishedAt da última matéria da página
@@ -263,12 +265,7 @@ async function uniqueSlug(db: ReturnType<typeof getDb>, base: string): Promise<s
 }
 
 function mapArticle(row: typeof articles.$inferSelect) {
-  const editorialChannel = resolveEditorialChannel(
-    row.beat,
-    row.desk,
-    row.headline,
-    row.excerpt,
-  );
+  const editorialChannel = resolveEditorialChannel(row.beat, row.desk, row.headline, row.excerpt);
   return {
     id: row.id,
     slug: row.slug,

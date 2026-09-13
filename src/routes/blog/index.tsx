@@ -1,6 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock3, FileCheck2, Globe2, Cpu, TrendingUp, Cloud, Landmark } from "lucide-react";
+import {
+  Activity,
+  ArrowUpRight,
+  Clock3,
+  FileCheck2,
+  Globe2,
+  Cpu,
+  TrendingUp,
+  Cloud,
+  Landmark,
+} from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
@@ -115,7 +125,7 @@ function formatMasthead(date: Date): string {
 
 function VeronicaWire() {
   const now = useLiveClock();
-  const { articles } = Route.useLoaderData();
+  const { articles, current24hCount } = Route.useLoaderData();
 
   const featured = articles[0] ?? null;
   // JSX não aceita `<BEAT_META[x].icon>` como tag (acesso computado não é
@@ -126,69 +136,46 @@ function VeronicaWire() {
   // `featured` já é truthy), mas precisa satisfazer o tipo JSX.ElementType.
   const FeaturedIcon = featuredMeta?.icon ?? Cpu;
   const rail = featured ? articles.filter((a) => a.id !== featured.id).slice(0, 5) : [];
+  const ticker = articles.slice(0, 10);
   // Evita a mesma matéria aparecer duas vezes na tela (destaque/rail e de
   // novo na seção da própria editoria logo abaixo).
   const shownIds = new Set([featured?.id, ...rail.map((a) => a.id)].filter(Boolean));
   const featuredAgo = featured ? formatAgo(featured.publishedAt, now) : "";
 
   return (
-    <div className="home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="home-hybrid wire-editorial min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader />
 
-      {/* Última publicação: informativa e estável. "Ao vivo" fica reservado
-          para uma cobertura contínua real, nunca para o cron de publicação. */}
-      {featured && (
-        <div className="border-b border-border/40 bg-foreground text-background">
-          <div className="mx-auto flex min-h-10 max-w-7xl items-center gap-3 px-6 py-2">
-            <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-sm border border-neon-green/40 bg-neon-green/10 px-2 py-0.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
-              <Clock3 className="h-3 w-3" /> Últimas
+      <header className="wire-masthead border-b border-white/10 bg-[#101010] text-white">
+        <div className="mx-auto max-w-7xl px-6 py-4">
+          <div className="flex items-center justify-between gap-4 border-b border-white/15 pb-3 font-mono-tech text-[10px] uppercase tracking-[0.18em] text-white/55">
+            <span className="inline-flex items-center gap-2 text-[#63e6a6]">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#63e6a6] opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#63e6a6]" />
+              </span>
+              Edição contínua
             </span>
-            <Link
-              to="/blog/$slug"
-              params={{ slug: featured.slug }}
-              className="min-w-0 truncate text-xs text-background/75 transition hover:text-background"
-            >
-              {featured.headline}
-            </Link>
-            <span className="ml-auto hidden shrink-0 font-mono-tech text-[10px] uppercase tracking-widest text-background/45 sm:block">
-              {featuredAgo}
-            </span>
+            <span className="hidden sm:inline">{current24hCount} publicações nas últimas 24h</span>
+            <span suppressHydrationWarning>{formatMasthead(now)}</span>
           </div>
-        </div>
-      )}
 
-      {/* Masthead */}
-      <header className="border-b border-border/50 bg-background/95">
-        <div className="mx-auto max-w-7xl px-6 py-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex min-h-28 items-center justify-center py-5 text-center sm:min-h-36">
+            <WirePulseGlobe size={52} className="absolute left-0 hidden opacity-70 sm:block" />
             <div>
-              <div
-                className="font-display text-3xl text-foreground"
-                style={{ letterSpacing: "-0.02em", lineHeight: 1 }}
-              >
-                {MASTHEAD_LEAD} <span className="text-neon-green">{MASTHEAD_ACCENT}</span>
+              <div className="wire-serif text-[2.9rem] font-black leading-none tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+                {MASTHEAD_LEAD} <span className="text-[#63e6a6]">{MASTHEAD_ACCENT}</span>
               </div>
-              <div className="mt-1 font-mono-tech text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
-                Notícias com fontes, contexto e aplicação prática
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <WirePulseGlobe size={34} className="hidden sm:block" />
-              {/* suppressHydrationWarning: valor calculado do relógio muda entre o
-                  render do servidor e a hidratação no cliente por design (é um
-                  relógio ao vivo) — sem isso o React acusa mismatch por engano. */}
-              <div
-                className="text-right font-mono-tech text-[11px] text-muted-foreground"
-                suppressHydrationWarning
-              >
-                {formatMasthead(now)}
+              <div className="mt-3 text-[11px] uppercase tracking-[0.24em] text-white/55 sm:text-xs">
+                Negócios, tecnologia e poder em perspectiva
               </div>
             </div>
           </div>
-          <nav className="mt-4 flex gap-1 overflow-x-auto border-t border-border/40 pt-3 text-[13px] font-medium">
+
+          <nav className="flex gap-1 overflow-x-auto border-t border-white/15 pt-3 text-sm font-semibold">
             <a
               href="#topo"
-              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-foreground transition hover:text-neon-green"
+              className="whitespace-nowrap border-b-2 border-[#63e6a6] px-3 py-2 text-white"
             >
               Início
             </a>
@@ -197,32 +184,32 @@ function VeronicaWire() {
                 key={b}
                 to="/blog/editoria/$beat"
                 params={{ beat: b }}
-                className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
+                className="whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-white/65 transition hover:border-white/50 hover:text-white"
               >
                 {BEAT_META[b].short}
               </Link>
             ))}
             <Link
               to="/blog/rede-de-fontes"
-              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
+              className="whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-white/65 transition hover:border-white/50 hover:text-white"
             >
               Rede de Fontes
             </Link>
             <Link
               to="/blog/expediente"
-              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
+              className="whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-white/65 transition hover:border-white/50 hover:text-white"
             >
               Expediente
             </Link>
             <Link
               to="/comandos"
-              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
+              className="whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-white/65 transition hover:border-white/50 hover:text-white"
             >
               Formações
             </Link>
             <Link
               to="/"
-              className="ml-auto whitespace-nowrap rounded-sm px-3 py-1.5 font-medium text-neon-green"
+              className="ml-auto whitespace-nowrap border border-[#63e6a6]/50 px-4 py-2 text-[#63e6a6] transition hover:bg-[#63e6a6] hover:text-[#101010]"
             >
               Hub ▸
             </Link>
@@ -230,7 +217,41 @@ function VeronicaWire() {
         </div>
       </header>
 
-      <div className="border-b border-border/50 bg-surface/20">
+      {ticker.length > 0 && (
+        <div className="wire-news-flash border-b border-border bg-white">
+          <div className="mx-auto flex max-w-7xl items-stretch px-6">
+            <div className="z-10 flex shrink-0 items-center gap-2 bg-[#db2525] px-4 py-3 font-mono-tech text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+              <Activity className="h-3.5 w-3.5" /> Agora
+            </div>
+            <div className="wire-ticker-window min-w-0 flex-1 overflow-hidden">
+              <div className="wire-ticker-track flex w-max items-stretch">
+                {ticker.map((article) => (
+                  <Link
+                    key={article.id}
+                    to="/blog/$slug"
+                    params={{ slug: article.slug }}
+                    className="wire-ticker-item flex w-[300px] shrink-0 items-center border-r border-border px-5 py-3 wire-serif text-[15px] font-bold leading-tight text-foreground transition hover:bg-surface hover:text-neon-green sm:w-[380px]"
+                  >
+                    {article.headline}
+                  </Link>
+                ))}
+                <div aria-hidden="true" className="flex">
+                  {ticker.map((article) => (
+                    <span
+                      key={`repeat-${article.id}`}
+                      className="wire-ticker-item flex w-[300px] shrink-0 items-center border-r border-border px-5 py-3 wire-serif text-[15px] font-bold leading-tight text-foreground sm:w-[380px]"
+                    >
+                      {article.headline}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="border-b border-border bg-[#f7f7f5]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3 text-xs text-muted-foreground">
           <Link
             to="/blog/expediente"
@@ -251,8 +272,8 @@ function VeronicaWire() {
         </div>
       </div>
 
-      {/* Lead + mais lidas */}
-      <section id="topo" className="mx-auto max-w-7xl px-6 py-14 cv-auto">
+      {/* Capa da edição: hierarquia de jornal, com manchete e últimas. */}
+      <section id="topo" className="mx-auto max-w-7xl px-6 py-10 sm:py-14 cv-auto">
         {!featured ? (
           <div className="rounded-sm border border-border/60 bg-surface/40 p-8 text-center">
             <h1 className="font-display text-2xl text-foreground">Primeiras matérias a caminho</h1>
@@ -261,70 +282,81 @@ function VeronicaWire() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,.75fr)] lg:gap-10">
             <Link
               to="/blog/$slug"
               params={{ slug: featured.slug }}
-              className="group block overflow-hidden rounded-sm border border-border/60 bg-surface/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-neon-green/50"
+              className="wire-lead group block min-w-0 border-b-2 border-foreground pb-8 lg:border-b-0 lg:border-r lg:pr-10"
             >
-              <CoverThumb
-                beat={featured.beat}
-                coverImageUrl={featured.coverImageUrl}
-                className="aspect-[16/10]"
-              />
-              <div className="p-6 sm:p-8">
-                <div
-                  className="flex items-center gap-2.5 font-mono-tech text-[11px] uppercase tracking-widest"
-                  style={{ color: featuredMeta!.color }}
-                >
-                  <FeaturedIcon className="h-4 w-4" />
-                  {featuredMeta!.label}
-                </div>
-                <h1
-                  className="mt-4 max-w-2xl font-display text-3xl text-foreground sm:text-4xl md:text-[42px]"
-                  style={{ letterSpacing: "-0.025em", lineHeight: 1.08 }}
-                >
-                  {featured.headline}
-                </h1>
-                <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
-                  {featured.excerpt}
-                </p>
-                <div className="mt-4 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
+              <div
+                className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-[0.12em]"
+                style={{ color: featuredMeta!.color }}
+              >
+                <FeaturedIcon className="h-4 w-4" />
+                {featuredMeta!.label}
+              </div>
+              <h1 className="wire-serif mt-4 max-w-4xl text-[2.65rem] font-black leading-[0.98] tracking-[-0.045em] text-foreground transition group-hover:text-neon-green sm:text-6xl lg:text-[4.2rem]">
+                {featured.headline}
+              </h1>
+              <p className="mt-5 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                {featured.excerpt}
+              </p>
+              <div className="mt-5 flex items-center gap-3 border-t border-border pt-4 text-xs uppercase tracking-wider text-muted-foreground">
+                <span className="font-semibold text-foreground">
                   {featured.editorialChannel.label}
-                  {featuredAgo && ` · ${featuredAgo}`}
-                </div>
+                </span>
+                {featuredAgo && <span>{featuredAgo}</span>}
+                <ArrowUpRight className="ml-auto h-4 w-4 text-neon-green transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </div>
+              <div className="wire-media mt-7 overflow-hidden bg-surface">
+                <CoverThumb
+                  beat={featured.beat}
+                  coverImageUrl={featured.coverImageUrl}
+                  className="aspect-[16/9] transition duration-700 ease-out group-hover:scale-[1.025]"
+                />
               </div>
             </Link>
 
             {rail.length > 0 && (
-              <div className="flex flex-col overflow-hidden rounded-sm border border-border/60">
-                <div className="border-b border-border/60 bg-surface/70 px-5 py-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                  Mais recentes
+              <aside className="min-w-0">
+                <div className="mb-1 flex items-center justify-between border-b-2 border-foreground pb-3">
+                  <h2 className="wire-serif text-2xl font-black">Últimas notícias</h2>
+                  <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Atualização contínua
+                  </span>
                 </div>
                 {rail.map((a, i) => (
                   <Link
                     key={a.id}
                     to="/blog/$slug"
                     params={{ slug: a.slug }}
-                    className="group flex items-start gap-3 border-b border-border/40 bg-background px-5 py-4 transition last:border-0 hover:bg-surface/60"
+                    className="wire-side-story group grid grid-cols-[minmax(0,1fr)_104px] gap-4 border-b border-border py-5 transition hover:bg-surface/45"
+                    style={{ animationDelay: `${i * 70}ms` }}
                   >
-                    <span
-                      className="font-mono-tech text-[15px] font-bold"
-                      style={{ color: BEAT_META[a.beat].color }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <div className="flex-1">
-                      <span className="block text-[13.5px] leading-[1.4] text-foreground transition group-hover:text-neon-green">
+                    <div className="min-w-0">
+                      <span
+                        className="mb-2 block text-[10px] font-bold uppercase tracking-[0.12em]"
+                        style={{ color: BEAT_META[a.beat].color }}
+                      >
+                        {BEAT_META[a.beat].short}
+                      </span>
+                      <span className="wire-serif block text-[18px] font-bold leading-[1.08] text-foreground transition group-hover:text-neon-green">
                         {a.headline}
                       </span>
-                      <span className="mt-1 block font-mono-tech text-[9.5px] uppercase tracking-widest text-muted-foreground">
+                      <span className="mt-2 block text-xs uppercase tracking-wider text-muted-foreground">
                         {formatAgo(a.publishedAt, now)}
                       </span>
                     </div>
+                    <div className="wire-media overflow-hidden bg-surface">
+                      <CoverThumb
+                        beat={a.beat}
+                        coverImageUrl={a.coverImageUrl}
+                        className="aspect-square transition duration-500 group-hover:scale-105"
+                      />
+                    </div>
                   </Link>
                 ))}
-              </div>
+              </aside>
             )}
           </div>
         )}
@@ -339,41 +371,41 @@ function VeronicaWire() {
           <section
             key={beat}
             id={`beat-${beat}`}
-            className="border-t border-border/40 py-16 cv-auto"
+            className="border-t border-border bg-white py-12 sm:py-16 cv-auto"
           >
             <div className="mx-auto max-w-7xl px-6">
-              <div className="mb-8 flex items-center justify-between gap-3">
-                <div
-                  className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest"
-                  style={{ color: meta.color }}
-                >
-                  <span className="h-px w-8" style={{ background: meta.color }} />
-                  {meta.label}
+              <div className="mb-7 flex items-end justify-between gap-3 border-b-2 border-foreground pb-3">
+                <div className="flex items-center gap-3">
+                  <span className="h-7 w-1" style={{ background: meta.color }} />
+                  <h2 className="wire-serif text-2xl font-black tracking-[-0.025em] text-foreground sm:text-3xl">
+                    {meta.label}
+                  </h2>
                 </div>
                 <Link
                   to="/blog/editoria/$beat"
                   params={{ beat }}
                   className="font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
                 >
-                  Ver todas ›
+                  Ver editoria <ArrowUpRight className="ml-1 inline h-3.5 w-3.5" />
                 </Link>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map((a) => (
+              <div className="grid gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {items.map((a, index) => (
                   <Link
                     key={a.id}
                     to="/blog/$slug"
                     params={{ slug: a.slug }}
-                    className="group flex flex-col overflow-hidden rounded-sm border border-border/60 bg-surface/30 backdrop-blur transition duration-300 hover:-translate-y-1"
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = meta.color)}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "")}
+                    className="wire-story-card group flex flex-col border-b border-border pb-6 transition duration-300 hover:-translate-y-1"
+                    style={{ animationDelay: `${Math.min(index, 5) * 60}ms` }}
                   >
-                    <CoverThumb
-                      beat={a.beat}
-                      coverImageUrl={a.coverImageUrl}
-                      className="aspect-[16/10]"
-                    />
-                    <div className="flex flex-1 flex-col gap-3 p-6">
+                    <div className="wire-media overflow-hidden bg-surface">
+                      <CoverThumb
+                        beat={a.beat}
+                        coverImageUrl={a.coverImageUrl}
+                        className="aspect-[16/10] transition duration-700 ease-out group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="flex flex-1 flex-col gap-3 pt-4">
                       <div className="flex items-center justify-between font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-1.5" style={{ color: meta.color }}>
                           <meta.icon className="h-3.5 w-3.5" />
@@ -381,13 +413,10 @@ function VeronicaWire() {
                         </span>
                         <span>{formatAgo(a.publishedAt, now)}</span>
                       </div>
-                      <h3
-                        className="font-display text-xl text-foreground"
-                        style={{ letterSpacing: "-0.02em", lineHeight: 1.15 }}
-                      >
+                      <h3 className="wire-serif text-[1.35rem] font-bold leading-[1.08] tracking-[-0.02em] text-foreground transition group-hover:text-neon-green">
                         {a.headline}
                       </h3>
-                      <p className="text-[13px] leading-[1.55] text-muted-foreground">
+                      <p className="line-clamp-3 text-sm leading-[1.55] text-muted-foreground">
                         {a.excerpt}
                       </p>
                     </div>

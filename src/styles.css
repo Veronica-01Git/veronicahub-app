@@ -108,7 +108,12 @@
   --sidebar-ring: oklch(0.85 0.22 155);
 
   --gradient-neon: linear-gradient(135deg, oklch(0.85 0.22 155), oklch(0.88 0.15 195));
-  --gradient-rede: linear-gradient(100deg, oklch(0.85 0.22 155), oklch(0.75 0.15 85), oklch(0.88 0.15 195));
+  --gradient-rede: linear-gradient(
+    100deg,
+    oklch(0.85 0.22 155),
+    oklch(0.75 0.15 85),
+    oklch(0.88 0.15 195)
+  );
   --shadow-glow-green: 0 0 40px oklch(0.85 0.22 155 / 0.4), 0 0 80px oklch(0.85 0.22 155 / 0.2);
   --shadow-glow-cyan: 0 0 40px oklch(0.88 0.15 195 / 0.4), 0 0 80px oklch(0.88 0.15 195 / 0.2);
   --shadow-glow-gold: 0 0 40px oklch(0.75 0.15 85 / 0.4), 0 0 80px oklch(0.75 0.15 85 / 0.2);
@@ -192,11 +197,19 @@
       radial-gradient(ellipse at top, oklch(0.22 0.05 180 / 0.25), transparent 60%),
       linear-gradient(oklch(0.85 0.22 155 / 0.04) 1px, transparent 1px),
       linear-gradient(90deg, oklch(0.85 0.22 155 / 0.04) 1px, transparent 1px);
-    background-size: 100% 100%, 48px 48px, 48px 48px;
-    background-position: 0 0, 0 0, 0 0;
+    background-size:
+      100% 100%,
+      48px 48px,
+      48px 48px;
+    background-position:
+      0 0,
+      0 0,
+      0 0;
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-display);
     font-weight: 800;
     letter-spacing: -0.035em;
@@ -301,31 +314,59 @@
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 oklch(0.85 0.22 155 / 0.7); }
-  50% { opacity: 0.7; box-shadow: 0 0 0 6px oklch(0.85 0.22 155 / 0); }
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 oklch(0.85 0.22 155 / 0.7);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 0 6px oklch(0.85 0.22 155 / 0);
+  }
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 0.95; }
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
 }
 
 @keyframes flicker {
-  0%, 100% { opacity: 0.22; }
-  50% { opacity: 0.3; }
-  73% { opacity: 0.19; }
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  73% {
+    opacity: 0.19;
+  }
 }
 
 /* Veronica Rede — ambiente rico: gradiente animado de 3 cores (verde,
    dourado, ciano) e partículas subindo. CSS puro, sem canvas/JS. */
 @keyframes rede-aurora {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @utility bg-rede-aurora {
@@ -346,10 +387,20 @@
 }
 
 @keyframes rede-particle-rise {
-  0% { transform: translateY(0); opacity: 0; }
-  12% { opacity: 0.6; }
-  85% { opacity: 0.15; }
-  100% { transform: translateY(-65vh); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-65vh);
+    opacity: 0;
+  }
 }
 
 @utility animate-rede-particle {
@@ -376,7 +427,9 @@
 @utility reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 700ms ease-out, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 700ms ease-out,
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
 
@@ -391,6 +444,118 @@
   contain-intrinsic-size: 1px 900px;
 }
 
+/* Veronica Wire — direção editorial de jornal de negócios. A serifa cria
+   autoridade e contraste; o verde preserva a assinatura tecnológica da Hub. */
+.wire-editorial {
+  --wire-serif: Georgia, "Times New Roman", ui-serif, serif;
+  background-image:
+    linear-gradient(oklch(0.2 0 0 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.2 0 0 / 0.018) 1px, transparent 1px);
+  background-size:
+    100% 44px,
+    44px 100%;
+}
+
+.wire-serif {
+  font-family: var(--wire-serif);
+  text-wrap: balance;
+}
+
+.wire-masthead {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.wire-masthead::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background:
+    radial-gradient(circle at 50% -30%, oklch(0.72 0.16 155 / 0.16), transparent 42%),
+    linear-gradient(105deg, transparent 0 46%, oklch(0.78 0.16 155 / 0.055) 50%, transparent 54%);
+  background-size:
+    100% 100%,
+    220% 100%;
+  animation: wire-masthead-scan 11s ease-in-out infinite;
+}
+
+.wire-ticker-track {
+  animation: wire-headlines 72s linear infinite;
+  will-change: transform;
+}
+
+.wire-news-flash:hover .wire-ticker-track,
+.wire-news-flash:focus-within .wire-ticker-track {
+  animation-play-state: paused;
+}
+
+.wire-ticker-window {
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+}
+
+.wire-media {
+  position: relative;
+  isolation: isolate;
+}
+
+.wire-media::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+    112deg,
+    transparent 38%,
+    rgb(255 255 255 / 0.23) 49%,
+    transparent 60%
+  );
+  transform: translateX(-125%);
+  transition: transform 900ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.group:hover .wire-media::after {
+  transform: translateX(125%);
+}
+
+.wire-side-story,
+.wire-story-card,
+.wire-lead {
+  animation: wire-rise 650ms both cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+@keyframes wire-headlines {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes wire-masthead-scan {
+  0%,
+  100% {
+    background-position:
+      50% 0,
+      110% 0;
+  }
+  50% {
+    background-position:
+      50% 0,
+      -110% 0;
+  }
+}
+
+@keyframes wire-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -400,32 +565,71 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .reveal { opacity: 1 !important; transform: none !important; }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .wire-ticker-window {
+    overflow-x: auto;
+    mask-image: none;
+  }
 }
 
 @keyframes holo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes holo-spin-rev {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
 }
 @keyframes holo-breathe {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50% { opacity: 0.45; transform: scale(1.06); }
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.06);
+  }
 }
 
 @keyframes holo-beam {
-  0%   { top: -2%; opacity: 0; }
-  8%   { opacity: 0.85; }
-  92%  { opacity: 0.85; }
-  100% { top: 102%; opacity: 0; }
+  0% {
+    top: -2%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  92% {
+    opacity: 0.85;
+  }
+  100% {
+    top: 102%;
+    opacity: 0;
+  }
 }
 
 @keyframes sparkle-twinkle {
-  0%, 100% { opacity: 0; transform: scale(0.4); }
-  50% { opacity: 1; transform: scale(1); }
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @utility animate-sparkle {
@@ -433,8 +637,14 @@
 }
 
 @keyframes stamp-in {
-  from { opacity: 0; transform: rotate(-18deg) scale(0.85); }
-  to { opacity: 1; transform: rotate(-9deg) scale(1); }
+  from {
+    opacity: 0;
+    transform: rotate(-18deg) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-9deg) scale(1);
+  }
 }
 
 @utility animate-stamp-in {
@@ -442,8 +652,14 @@
 }
 
 @keyframes holo-drift-c {
-  0%, 100% { transform: translate(0, 0); }
-  35%  { transform: translate(12px, -14px); }
-  70%  { transform: translate(-8px, 16px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  35% {
+    transform: translate(12px, -14px);
+  }
+  70% {
+    transform: translate(-8px, 16px);
+  }
 }
-
