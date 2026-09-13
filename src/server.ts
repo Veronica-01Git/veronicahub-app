@@ -15,6 +15,7 @@ import { handleCoverImage } from "./lib/cover-image-server";
 import { handleMediaImage } from "./lib/media-images-server";
 import { handleSourceReferral } from "./lib/source-network-server";
 import { handleWireOfferRedirect } from "./lib/wire-commerce-server";
+import { handleAffiliateRedirect } from "./lib/affiliate-server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -119,6 +120,15 @@ export default {
       } catch (error) {
         console.error("Erro ao encaminhar oferta do Wire:", error);
         return new Response("oferta indisponível", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/r/afiliado") {
+      try {
+        return await handleAffiliateRedirect(request);
+      } catch (error) {
+        console.error("Erro ao encaminhar produto de afiliado:", error);
+        return new Response("produto indisponível", { status: 500 });
       }
     }
 
