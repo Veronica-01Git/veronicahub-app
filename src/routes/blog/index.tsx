@@ -26,6 +26,14 @@ import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 import { formatAgo } from "@/lib/blog-format";
 import { WIRE_NAME } from "@/lib/ecosystem";
 
+// O masthead pinta a última palavra da marca em verde e o resto em branco
+// ("VERONICA wire" antes, "WIRE tv" depois). Derivado do nome em vez de escrito
+// à mão porque era o único ponto que a flag não alcançava: as duas palavras
+// vivem em elementos separados, então nenhuma busca pela marca inteira o achava.
+const MASTHEAD_PARTS = WIRE_NAME.toUpperCase().split(" ");
+const MASTHEAD_ACCENT = MASTHEAD_PARTS.pop() ?? "";
+const MASTHEAD_LEAD = MASTHEAD_PARTS.join(" ");
+
 export const Route = createFileRoute("/blog/")({
   component: VeronicaWire,
   loader: () => getPublishedArticles(),
@@ -425,7 +433,7 @@ function VeronicaWire() {
                 className="font-display text-3xl text-foreground"
                 style={{ letterSpacing: "-0.02em", lineHeight: 1 }}
               >
-                VERONICA <span className="text-neon-green">WIRE</span>
+                {MASTHEAD_LEAD} <span className="text-neon-green">{MASTHEAD_ACCENT}</span>
               </div>
               <div className="mt-1 font-mono-tech text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
                 Cobertura contínua e global
