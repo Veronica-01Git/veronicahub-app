@@ -63,8 +63,9 @@
 - Rotina agendada por `create_trigger` **não** herda as ferramentas
   `mcp__github__*`. Não serve como substituto de automação.
 - Teto real de publicação: cota diária da Groq, 200k tokens/dia.
-- Instagram não tem conector conectado (o Windsor.ai devolveu lista vazia em
-  13/09). Postar é manual.
+- Instagram: **não** use Windsor.ai como caminho (devolveu lista vazia em
+  13/09, nenhuma conta conectada). A publicação vai direto na API da Meta —
+  ver `instagram-publisher.server.ts`, construído na frente de Analytics.
 
 ## O que está no ar
 
@@ -81,6 +82,12 @@
   de mesmo nome.
 - **Geração resiliente**: `output_parse_failed` da Groq passou a ser
   retentável, e a mensagem de pulo editorial carrega a contagem do radar.
+- **Publicação no Instagram** existe em código (`/api/cron/publish-instagram`,
+  `instagram-publisher.server.ts`), construída na frente de Analytics em cima
+  do passo que gera o card. Só publica com `META_INSTAGRAM_AUTOPUBLISH=true`
+  mais `META_INSTAGRAM_ACCOUNT_ID` e `META_INSTAGRAM_ACCESS_TOKEN` no Worker
+  do site. **Estado dessas variáveis em produção não verificado** — o conector
+  do Cloudflare não mostra variável de ambiente; confira no painel.
 
 ## Pendências reais
 
