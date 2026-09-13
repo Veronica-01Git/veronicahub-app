@@ -877,3 +877,23 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   `wrangler.jsonc` desliga (`workers_dev: false`). Não é problema: o Worker só
   tem handler `scheduled`, então o endereço responde erro e não expõe nada.
   Quem quiser alinhar desliga em Settings → Domains & Routes.
+- **Disparo confirmado**: rodada #101 de `generate-article.yml`, criada
+  **18:00:05 UTC**, `event=workflow_dispatch`, ninguém clicou. Cinco segundos
+  depois da hora cheia — o agendador do GitHub nunca acertou o minuto pedido
+  em três dias de medição. A rodada pulou a publicação
+  (`{"ok":true,"skipped":true,"beat":"geopolitica","error":"sem fato
+  verificável no momento"}`), o que é decisão editorial e não falha do
+  gatilho: o que estava em teste era o disparo.
+- **Pendência 2 continua aberta e não é possível fechar por vontade própria.**
+  As duas rodadas de hoje (16:33 e 18:00) pularam a publicação, então o passo
+  "Sincroniza capas publicadas com a biblioteca Admin" não rodou nenhuma vez
+  desde a correção. Ele é condicionado a `outputs.generated == 'true'`. A
+  próxima sessão que pegar uma rodada com publicação deve ler esse passo e ver
+  se os sete 403/522 viraram 404 (hipótese do repositório) ou continuam 403
+  (hipótese do host externo, Pexels).
+- **Pendência 3 aplicada**: `schedule` do `generate-article.yml` de
+  `*/15 * * * *` para `30 11 * * *`. Rede de segurança diária, não gatilho.
+  Mantida em vez de removida porque o token fine-grained do Worker vence e,
+  quando vencer, o Worker para sem erro visível; uma rodada por dia faz a
+  falha aparecer. Fora do minuto 0 porque o Worker dispara em `:00` e o
+  `concurrency` enfileira em vez de cancelar.

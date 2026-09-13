@@ -1,25 +1,30 @@
 name: Gera e publica matéria (Wire TV)
 
 on:
-  # Uma matéria por hora, com editoria rotativa calculada pelo Worker. Esse
-  # ritmo entrega até 24 publicações por dia sem estourar a cota gratuita ao
-  # tentar gerar cinco matérias simultâneas.
+  # Uma matéria por hora, com editoria rotativa calculada pelo endpoint. Quem
+  # dá o ritmo é o Cron Trigger do Cloudflare, no Worker `wire-tv-cron`
+  # (`workers/wire-cron/`), que manda `workflow_dispatch` de hora em hora.
+  # Publicado em 13/09; a primeira virada saiu às 18:00:05 UTC, cinco segundos
+  # depois da hora cheia.
   #
-  # Quatro horários por hora, não um: o agendador do GitHub é best-effort e
-  # descarta disparo. Medido neste repositório com os dois horários antigos
-  # (:17 e :47, 48 disparos/dia esperados): 9 rodadas em 11/09, 15 em 12/09,
-  # 6 em 13/09 — nenhuma no minuto pedido, sempre 4 a 27 min atrasada, com
-  # buracos de 4h48 e 5h15. Com quatro janelas, um descarte vira atraso de
-  # minutos em vez de sumiço de meio dia.
+  # O `schedule` daqui deixou de ser o gatilho e virou rede de segurança, uma
+  # vez por dia. Não dá para confiar nele como principal: o agendador do GitHub
+  # é best-effort e descarta disparo. Medido neste repositório com `:17`/`:47`
+  # (48 disparos/dia esperados): 9 rodadas em 11/09, 15 em 12/09, 6 em 13/09 —
+  # nenhuma no minuto pedido, sempre 4 a 27 min atrasada, com buracos de 4h48 e
+  # 5h15. Passar para `*/15` não melhorou nada: das 15:57 às 18:00 de 13/09
+  # foram oito janelas seguidas sem um único disparo.
   #
-  # Repetir na mesma hora é barato: publishArticleFromCron consulta a trava
-  # de janela (windowAlreadyPublished) ANTES de chamar a IA, então a segunda
-  # rodada da hora devolve "pulando" sem gastar token. O repositório é
-  # público, então minuto de Actions também não pesa. O custo real aparece
-  # só nas horas em que nada publicou ainda: aí as quatro tentativas chamam
-  # a IA, e o teto diário da Groq (200k tokens) chega mais cedo.
+  # Por que uma rodada diária em vez de remover de vez: o token que o Worker
+  # usa é fine-grained e vence. Quando vencer, o Worker para em silêncio, sem
+  # erro em nenhum lugar que se olhe no dia a dia. Esta rodada custa no máximo
+  # uma chamada de IA por dia e faz a falha aparecer como ausência de matéria
+  # nova em vez de sumiço despercebido.
+  #
+  # Fora do minuto 0 de propósito: o Worker dispara em :00 e o `concurrency`
+  # abaixo enfileira em vez de cancelar, então coincidir só criaria espera.
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "30 11 * * *"
   # Mudanças no próprio pipeline disparam uma rodada de validação. O filtro
   # impede que commits de capas criem um ciclo de novas publicações.
   push:
