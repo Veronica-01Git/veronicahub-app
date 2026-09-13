@@ -129,6 +129,10 @@ export function HudAccent({ size = 68, hue = GREEN, className = "" }: { size?: n
 // (WirePulseGlobe no masthead, ver src/components/blog/WirePulseGlobe.tsx).
 const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo", "/veronica-nautica", "/blog"];
 
+// Varredura vertical global desativada a pedido do usuário. Para reativar,
+// altere para true; o elemento e os keyframes holo-beam continuam preservados.
+const GLOBAL_SCAN_BEAM_ENABLED = false;
+
 export function HoloOrbits() {
   const [on, setOn] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -147,10 +151,17 @@ export function HoloOrbits() {
       <div className="absolute inset-0" style={{
         background: "radial-gradient(ellipse 120% 80% at 50% 50%, transparent 55%, oklch(0.14 0.015 200 / 0.55) 100%)",
       }} />
-      <div className="absolute inset-x-0 h-[2px]" style={{
-        background: `linear-gradient(90deg, transparent, ${GREEN}, transparent)`,
-        filter: "blur(1.5px)", opacity: 0.4, animation: "holo-beam 16s cubic-bezier(0.4,0,0.2,1) infinite",
-      }} />
+      {GLOBAL_SCAN_BEAM_ENABLED && (
+        <div
+          className="absolute inset-x-0 h-[2px]"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${GREEN}, transparent)`,
+            filter: "blur(1.5px)",
+            opacity: 0.4,
+            animation: "holo-beam 16s cubic-bezier(0.4,0,0.2,1) infinite",
+          }}
+        />
+      )}
       <div className="absolute right-[3.5%] top-[27%] opacity-[0.34]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
       <div className="absolute right-[6%] bottom-[19%] opacity-[0.26]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
       <div className="absolute left-5 top-20 h-14 w-14 border-l-2 border-t-2" style={{ borderColor: `${GREEN}`, opacity: 0.3 }} />

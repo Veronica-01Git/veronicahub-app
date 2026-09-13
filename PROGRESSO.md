@@ -535,3 +535,20 @@ continuar isso:**
 - `/selos` foi incluída no sitemap. Backend, autenticação, pagamentos e banco
   permaneceram intactos.
 - `npm run typecheck`, 6/6 testes e `npm run build` aprovados.
+## Desativação da varredura vertical global (2026-09-13)
+
+- Base: `main` em `fe7218e`; branch de trabalho `fix/disable-global-scan-beam`.
+- `GLOBAL_SCAN_BEAM_ENABLED = false` em `src/components/HoloOrbits.tsx`
+  impede a montagem da linha verde que atravessava a tela de cima para baixo.
+- O elemento, sua animação `holo-beam` e os keyframes em `src/styles.css`
+  foram preservados; reativação disponível alterando a constante para `true`.
+- Escopo global pelo componente já montado no RootShell. HUDs, demais efeitos,
+  temas, navegação, imagem da Veronica e backend permanecem intactos.
+- 6/6 testes, typecheck e build de produção passaram. Lint direcionado:
+  somente ocorrências preexistentes de Prettier (32 na base, 28 após a mudança),
+  nenhuma no bloco alterado. `git diff --check` sem erros.
+- QA visual local bloqueado: Vite com erro `uv_interface_addresses` neste
+  ambiente e navegador remoto com `ERR_BLOCKED_BY_CLIENT` para localhost.
+- Usuário autorizou publicação em 2026-09-13. Antes do envio, verificação no
+  navegador de produção confirmou uma linha `holo-beam` ativa na Home.
+  Confirmação posterior da publicação ainda pendente neste registro.
