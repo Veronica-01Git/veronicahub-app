@@ -1,8 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Sparkles, ShoppingBag, RotateCcw, ArrowRight, Flame, Play } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { calcEngagement, TIER_META, type EngagementResult, type Tier } from "@/lib/tiktok-engagement";
+import {
+  trendingFeed,
+  formatRefreshedLabel,
+  formatNextRefreshLabel,
+  type FeedCategory,
+  type TrendingVideo,
+} from "@/lib/trending-videos";
 
 export const Route = createFileRoute("/veronica-analytics")({
   component: VeronicaAnalytics,
@@ -44,81 +51,31 @@ const TIER_COLOR: Record<Tier, string> = {
   excelente: "var(--tt-cyan)",
 };
 
-const TRENDING_TICKER = [
-  { label: "sérum facial", delta: "+340%" },
-  { label: "organizador de cabos", delta: "em alta" },
-  { label: "faixa postural", delta: "+178%" },
-  { label: "categoria beleza — exemplo", delta: "" },
-];
-
-// Feed ilustrativo — mesma natureza do ticker acima (mostra o formato do
-// produto, não é um feed ao vivo puxando dado real de GMV).
-type FeedCategory = "beleza" | "casa" | "saude";
-
-type ViralVideo = {
-  id: number;
-  rank: number;
-  category: FeedCategory;
-  title: string;
-  views: string;
-  gmvLabel: string;
-  gmvValue: number;
-  growthLabel: string;
-  growthValue: number;
-  gradient: string;
-};
+// Ticker derivado do próprio feed curado — evita duas fontes de verdade
+// desalinhadas quando a rotina de 48h reescreve trending-videos.json.
+const trendingTicker = trendingFeed.videos.map((v) => ({
+  label: v.title.split("—")[0].trim().toLowerCase(),
+  delta: v.growthLabel,
+}));
 
 const FILTER_CATEGORIES: { key: "todos" | FeedCategory; label: string }[] = [
   { key: "todos", label: "todos" },
   { key: "beleza", label: "beleza" },
   { key: "casa", label: "casa" },
   { key: "saude", label: "saúde" },
+  { key: "moda", label: "moda" },
+  { key: "pet", label: "pet" },
+  { key: "eletronicos", label: "eletrônicos" },
 ];
 
 const CATEGORY_META: Record<FeedCategory, { label: string; color: string }> = {
   beleza: { label: "beleza", color: "var(--tt-pink)" },
   casa: { label: "casa", color: "var(--tt-cyan)" },
   saude: { label: "saúde", color: "var(--tt-gold)" },
+  moda: { label: "moda", color: "var(--tt-pink)" },
+  pet: { label: "pet", color: "var(--tt-cyan)" },
+  eletronicos: { label: "eletrônicos", color: "var(--tt-gold)" },
 };
-
-const VIRAL_FEED: ViralVideo[] = [
-  {
-    id: 1,
-    rank: 1,
-    category: "beleza",
-    title: "Sérum facial com aplicador gelado — antes/depois em 7s",
-    views: "2.1M visualizações",
-    gmvLabel: "GMV fictício ~R$ 84K",
-    gmvValue: 84000,
-    growthLabel: "+340%",
-    growthValue: 340,
-    gradient: "linear-gradient(150deg, #ffd9e2, #ffb3c6)",
-  },
-  {
-    id: 2,
-    rank: 2,
-    category: "casa",
-    title: "Organizador de cabos magnético — dor da bagunça na mesa",
-    views: "1.4M visualizações",
-    gmvLabel: "GMV fictício ~R$ 61K",
-    gmvValue: 61000,
-    growthLabel: "+210%",
-    growthValue: 210,
-    gradient: "linear-gradient(150deg, #d6fbfa, #a3f0ed)",
-  },
-  {
-    id: 3,
-    rank: 3,
-    category: "saude",
-    title: "Faixa postural — prova social com 3 depoimentos rápidos",
-    views: "980K visualizações",
-    gmvLabel: "GMV fictício ~R$ 47K",
-    gmvValue: 47000,
-    growthLabel: "+178%",
-    growthValue: 178,
-    gradient: "linear-gradient(150deg, #fff0cc, #ffdd94)",
-  },
-];
 
 type SortKey = "gmv" | "recente" | "crescimento";
 
@@ -185,7 +142,7 @@ function NumberField({
   );
 }
 
-function ViralCard({ video }: { video: ViralVideo }) {
+function ViralCard({ video }: { video: TrendingVideo }) {
   const meta = CATEGORY_META[video.category];
   return (
     <Link
@@ -224,6 +181,9 @@ function ViralCard({ video }: { video: ViralVideo }) {
           </span>
           <span>{video.views}</span>
         </div>
+        <p className="mt-2.5 text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-soft)" }}>
+          {video.hook}
+        </p>
         <div
           className="mt-auto flex items-center gap-1.5 border-t pt-2.5 font-mono-tech text-[11px] font-semibold transition group-hover:text-[var(--tt-pink)]"
           style={{ borderColor: "var(--tt-line)", color: "var(--tt-ink)", marginTop: "10px" }}
@@ -239,14 +199,26 @@ function VeronicaAnalytics() {
   const [activeCategory, setActiveCategory] = useState<"todos" | FeedCategory>("todos");
   const [sortBy, setSortBy] = useState<SortKey>("gmv");
 
+  const feed = trendingFeed.videos;
+
   const sortedFeed = useMemo(() => {
-    const filtered = activeCategory === "todos" ? VIRAL_FEED : VIRAL_FEED.filter((v) => v.category === activeCategory);
+    const filtered = activeCategory === "todos" ? feed : feed.filter((v) => v.category === activeCategory);
     const copy = [...filtered];
     if (sortBy === "gmv") copy.sort((a, b) => b.gmvValue - a.gmvValue);
     if (sortBy === "crescimento") copy.sort((a, b) => b.growthValue - a.growthValue);
-    if (sortBy === "recente") copy.sort((a, b) => a.id - b.id);
+    if (sortBy === "recente") copy.sort((a, b) => a.rank - b.rank);
     return copy;
-  }, [activeCategory, sortBy]);
+  }, [feed, activeCategory, sortBy]);
+
+  // Re-renderiza a cada minuto só pra manter "atualizado há Xh" / "nova leva
+  // em Yh" honestos sem precisar recarregar a página.
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => forceTick((n) => n + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const refreshedLabel = formatRefreshedLabel(trendingFeed.refreshedAt);
+  const nextRefreshLabel = formatNextRefreshLabel(trendingFeed.refreshedAt, trendingFeed.cycleHours);
 
   const [followers, setFollowers] = useState("");
   const [avgLikes, setAvgLikes] = useState("");
@@ -283,16 +255,16 @@ function VeronicaAnalytics() {
       {/* Ticker de tendências — mesmo tom "wire" do resto do site redesenhado */}
       <div className="overflow-hidden border-b" style={{ background: "var(--tt-ink)", borderColor: "var(--tt-line)" }}>
         <div className="flex animate-marquee gap-9 whitespace-nowrap py-2 font-mono-tech text-[11px]" style={{ animationDuration: "28s" }}>
-          {[...TRENDING_TICKER, ...TRENDING_TICKER].map((t, i) => (
+          {[...trendingTicker, ...trendingTicker].map((t, i) => (
             <span key={i} className="flex items-center gap-2 text-white/80">
               <Flame className="h-3 w-3" style={{ color: "var(--tt-gold)" }} />
-              Demonstração: {t.label} {t.delta && <span style={{ color: "var(--tt-cyan)" }}>{t.delta}</span>}
+              {t.label} {t.delta && <span style={{ color: "var(--tt-cyan)" }}>{t.delta}</span>}
             </span>
           ))}
         </div>
       </div>
 
-      {/* Hero — exemplos demonstrativos, sem telemetria de plataforma */}
+      {/* Hero — feed viral curado a cada 48h, "o que está bombando agora" */}
       <section className="relative overflow-hidden border-b px-6 py-14 md:py-20" style={{ borderColor: "var(--tt-line)" }}>
         <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--tt-cyan) 10%, transparent), transparent 55%), radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--tt-pink) 10%, transparent), transparent 55%)" }} />
         <div className="relative mx-auto max-w-5xl">
@@ -303,13 +275,13 @@ function VeronicaAnalytics() {
           </div>
           <div className="mt-5 flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--tt-pink)" }}>
             <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full" style={{ background: "var(--tt-pink)" }} />
-            Dados demonstrativos — protótipo sem conexão direta com a plataforma
+            Curadoria de tendências · {refreshedLabel} · {nextRefreshLabel}
           </div>
           <h1
             className="mt-4 font-display text-4xl sm:text-5xl md:text-6xl"
             style={{ letterSpacing: "-0.03em", lineHeight: "0.98" }}
           >
-            Explore o formato de{" "}
+            O que está bombando em{" "}
             <span
               style={{
                 backgroundImage: "linear-gradient(90deg, var(--tt-pink), var(--tt-gold))",
@@ -318,13 +290,14 @@ function VeronicaAnalytics() {
                 color: "transparent",
               }}
             >
-              oportunidades
+              vídeo
             </span>{" "}
-            demonstrativas.
+            agora.
           </h1>
           <p className="mt-5 max-w-xl text-[15px] leading-[1.65] sm:text-[16px]" style={{ color: "var(--tt-ink-soft)" }}>
-            Exemplos fictícios de vídeos e métricas para demonstrar filtros e ordenação. Explore o formato e depois
-            aprenda a fazer igual no Studio Criativo.
+            Os formatos de vídeo em alta no TikTok Shop, curados por pesquisa pública e trocados a cada 48h. As
+            views e o GMV são estimativas de curadoria, não telemetria auditada da plataforma. Pega o formato e
+            refaz igual no Studio Criativo.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-2">
@@ -353,7 +326,7 @@ function VeronicaAnalytics() {
               className="rounded-full border px-4 py-2 font-mono-tech text-[11.5px]"
               style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface)", color: "var(--tt-ink-soft)" }}
             >
-              <option value="gmv">GMV demonstrativo ↓</option>
+              <option value="gmv">GMV estimado ↓</option>
               <option value="recente">Mais recentes</option>
               <option value="crescimento">Crescimento %</option>
             </select>
@@ -364,9 +337,12 @@ function VeronicaAnalytics() {
       {/* Feed viral */}
       <section className="border-b px-6 py-12 md:py-16" style={{ borderColor: "var(--tt-line)" }}>
         <div className="mx-auto max-w-5xl">
-          <div className="mb-5 flex items-center gap-2 text-[16px] font-bold" style={{ color: "var(--tt-ink)" }}>
-            <Flame className="h-4 w-4" style={{ color: "var(--tt-pink)" }} /> Exemplos demonstrativos
+          <div className="flex items-center gap-2 text-[16px] font-bold" style={{ color: "var(--tt-ink)" }}>
+            <Flame className="h-4 w-4" style={{ color: "var(--tt-pink)" }} /> Vídeos virais do momento
           </div>
+          <p className="mb-5 mt-1.5 font-mono-tech text-[11px]" style={{ color: "var(--tt-ink-faint)" }}>
+            {trendingFeed.sourceLabel} · {refreshedLabel} · {nextRefreshLabel}
+          </p>
           {sortedFeed.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sortedFeed.map((video) => (
@@ -375,7 +351,7 @@ function VeronicaAnalytics() {
             </div>
           ) : (
             <p className="text-[13.5px]" style={{ color: "var(--tt-ink-faint)" }}>
-              Nenhum exemplo nesta categoria.
+              Nenhum vídeo viral nessa categoria ainda — volta em breve.
             </p>
           )}
         </div>

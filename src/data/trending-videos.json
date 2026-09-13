@@ -1,0 +1,46 @@
+{
+  "cycleHours": 48,
+  "refreshedAt": "2026-09-13T11:32:36.000Z",
+  "sourceLabel": "Curadoria Veronica Analytics · tendências TikTok Shop",
+  "videos": [
+    {
+      "id": "2026-09-13-01",
+      "rank": 1,
+      "category": "beleza",
+      "title": "Camada de perfume na câmera — 3 borrifadas, 1 'assinatura' de cheiro",
+      "views": "3.1M visualizações",
+      "gmvLabel": "GMV ~R$ 104K",
+      "gmvValue": 104000,
+      "growthLabel": "+310%",
+      "growthValue": 310,
+      "gradient": "linear-gradient(150deg, #ffe0e6, #ff9fb8)",
+      "hook": "perfume virou o topo de beleza no feed — monta tua combinação de camadas e grava antes que meia internet poste a mesma."
+    },
+    {
+      "id": "2026-09-13-02",
+      "rank": 2,
+      "category": "casa",
+      "title": "Pasta de limpeza no box encardido — mancha sumindo em 8s",
+      "views": "2.4M visualizações",
+      "gmvLabel": "GMV ~R$ 71K",
+      "gmvValue": 71000,
+      "growthLabel": "+248%",
+      "growthValue": 248,
+      "gradient": "linear-gradient(150deg, #d6f4ff, #8fd8f2)",
+      "hook": "sujeira sumindo na frente da câmera segura o dedo na tela — grava o teu box mais encardido hoje, esse formato tá no pico."
+    },
+    {
+      "id": "2026-09-13-03",
+      "rank": 3,
+      "category": "saude",
+      "title": "Massageador de pescoço pós-expediente — 'como funciona' em 30s",
+      "views": "1.6M visualizações",
+      "gmvLabel": "GMV ~R$ 52K",
+      "gmvValue": 52000,
+      "growthLabel": "+196%",
+      "growthValue": 196,
+      "gradient": "linear-gradient(150deg, #ffeccc, #ffcf7a)",
+      "hook": "vídeo explicando o 'como funciona' tá puxando mais que review — grava a tua rotina de 5 min antes do nicho encher."
+    }
+  ]
+}
