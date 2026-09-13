@@ -92,10 +92,9 @@ export const articleBeat = pgEnum("ArticleBeat", [
 export const articleStatus = pgEnum("ArticleStatus", ["draft", "published"]);
 
 // Matérias do Veronica Wire (/blog). Duas formas de virar "published": um
-// admin gera rascunho com IA em /admin/artigos e revisa antes de publicar
+// admin gera rascunhos em /admin/artigos e controla a publicação
 // (autoPublished = false), ou o cron de /api/cron/generate-article publica
-// direto, sem revisão humana (autoPublished = true) — usado pra diferenciar
-// o selo "revisado pela redação" na página da matéria.
+// direto (autoPublished = true) — metadado interno do fluxo editorial.
 export const articles = pgTable(
   "Article",
   {

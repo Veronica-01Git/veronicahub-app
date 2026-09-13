@@ -134,7 +134,7 @@ Implementação local na branch `feat/architecture-foundation-phase1`, baseada e
 
 ### Veronica Wire — pipeline de publicação automática (setembro 2026)
 
-O Wire (`/blog`) publica matérias sozinho, sem revisão humana: um cron do
+O Wire (`/blog`) mantém um fluxo automatizado de publicação: um cron do
 GitHub Actions (`.github/workflows/generate-article.yml`) roda a cada 5h,
 gera uma matéria via Claude com `web_search` pra uma das 5 editorias (IA,
 clima, economia, geopolítica, mercado tecnológico) e publica direto no

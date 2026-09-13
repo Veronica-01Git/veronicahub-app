@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { WireArticleAction } from "@/components/blog/WireGrowth";
@@ -185,17 +185,6 @@ function ArticlePage() {
                       year: "numeric",
                       timeZone: "America/Sao_Paulo",
                     })}
-                  </span>
-                </>
-              )}
-              {state.article.aiGenerated && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span className="inline-flex items-center gap-1 text-neon-cyan">
-                    <Sparkles className="h-3 w-3" />
-                    {state.article.autoPublished
-                      ? "gerado e publicado por IA, sem revisão humana"
-                      : "rascunho com IA, revisado pela redação"}
                   </span>
                 </>
               )}
