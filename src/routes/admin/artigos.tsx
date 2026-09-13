@@ -10,6 +10,7 @@ import {
   deleteArticleAdmin,
 } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, type Beat } from "@/lib/beats";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 // Rota não listada em ECOSYSTEM_LINKS de propósito, mesmo padrão de
 // /admin — acesso só por URL direta, protegido no servidor via
@@ -154,7 +155,7 @@ function ArticlesAdmin() {
       <div className="mx-auto max-w-5xl px-6 py-14">
         <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
           <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-          Artigos — Veronica Wire
+          Artigos — {WIRE_NAME}
         </div>
 
         {state && !state.ok ? (

@@ -2,6 +2,7 @@ import { eq, desc } from "drizzle-orm";
 import { getDb } from "./db";
 import { articles } from "./schema";
 import { BEAT_VALUES } from "./beats";
+import { WIRE_NAME } from "./ecosystem";
 
 const SITE_URL = "https://veronicahub.com";
 
@@ -86,7 +87,7 @@ export async function handleRssFeed(): Promise<Response> {
     }  </item>`;
   });
 
-  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n  <title>Veronica Wire</title>\n  <link>${SITE_URL}/blog</link>\n  <description>Cobertura contínua de IA, energia limpa, geopolítica e mercado tecnológico global — pela Veronica Hub.</description>\n  <language>pt-BR</language>\n${items.join("\n")}\n</channel>\n</rss>\n`;
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n  <title>${xmlEscape(WIRE_NAME)}</title>\n  <link>${SITE_URL}/blog</link>\n  <description>Cobertura contínua de IA, energia limpa, geopolítica e mercado tecnológico global — pela Veronica Hub.</description>\n  <language>pt-BR</language>\n${items.join("\n")}\n</channel>\n</rss>\n`;
 
   return new Response(body, {
     headers: { "content-type": "application/rss+xml; charset=utf-8" },

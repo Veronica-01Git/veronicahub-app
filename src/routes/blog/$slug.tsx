@@ -5,6 +5,7 @@ import { CoverThumb } from "@/components/blog/CoverThumb";
 import { WireArticleAction } from "@/components/blog/WireGrowth";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 const SITE_URL = "https://veronicahub.com";
 
@@ -76,14 +77,14 @@ export const Route = createFileRoute("/blog/$slug")({
   head: ({ loaderData, params }) => {
     if (!loaderData?.ok) {
       return {
-        meta: [{ title: "Matéria não encontrada | Veronica Wire" }],
+        meta: [{ title: `Matéria não encontrada | ${WIRE_NAME}` }],
       };
     }
     const { article } = loaderData;
     const canonical = `${SITE_URL}/blog/${params.slug}`;
     return {
       meta: [
-        { title: `${article.headline} | Veronica Wire` },
+        { title: `${article.headline} | ${WIRE_NAME}` },
         { name: "description", content: article.excerpt },
         { property: "og:title", content: article.headline },
         { property: "og:description", content: article.excerpt },
@@ -114,7 +115,7 @@ export const Route = createFileRoute("/blog/$slug")({
             image: article.coverImageUrl ? [article.coverImageUrl] : undefined,
             datePublished: article.publishedAt ?? undefined,
             dateModified: article.publishedAt ?? undefined,
-            author: { "@type": "Organization", name: "Veronica Wire" },
+            author: { "@type": "Organization", name: WIRE_NAME },
             publisher: {
               "@type": "Organization",
               name: "Veronica Hub",
@@ -140,7 +141,7 @@ function ArticlePage() {
           to="/blog"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-neon-green"
         >
-          <ArrowLeft className="h-4 w-4" /> Voltar pro Veronica Wire
+          <ArrowLeft className="h-4 w-4" /> Voltar pro {WIRE_NAME}
         </Link>
 
         {!state.ok ? (

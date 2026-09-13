@@ -31,7 +31,7 @@ export const SOCIAL_LINKS = {
 };
 
 export { INTENT_LINKS } from "@/lib/ecosystem";
-import { INTENT_LINKS, PRIMARY_NAV, SPECIAL_PROJECTS, HOME_PRODUCTS, type IntentId } from "@/lib/ecosystem";
+import { INTENT_LINKS, PRIMARY_NAV, SPECIAL_PROJECTS, HOME_PRODUCTS, WIRE_TV_REBRAND_ENABLED, type IntentId } from "@/lib/ecosystem";
 export const ECOSYSTEM_LINKS = HOME_PRODUCTS.map(item => ({ ...item, tag: item.description, ready: item.status === "Disponível" }));
 
 const INTENT_ICONS: Record<IntentId, LucideIcon> = {
@@ -42,6 +42,25 @@ const INTENT_ICONS: Record<IntentId, LucideIcon> = {
   work: Briefcase,
   update: Newspaper,
 };
+
+// Selo "ao vivo" do Wire TV — reaproveita o mesmo ponto pulsante e a mesma
+// paleta do masthead em src/routes/blog/index.tsx (animate-pulse-dot +
+// neon-green), pra quem vê o link em qualquer nav já reconhecer que é o
+// mesmo canal. É um selo de categoria (o pipeline publica de hora em hora,
+// ver PROGRESSO.md), não um relógio ao vivo — sem isso o header faria fetch
+// de artigo em toda página só pra mostrar um badge.
+// Desligado junto com o rename por WIRE_TV_REBRAND_ENABLED (ecosystem.ts).
+function WireLiveBadge({ className = "" }: { className?: string }) {
+  if (!WIRE_TV_REBRAND_ENABLED) return null;
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border border-neon-green/40 bg-neon-green/10 px-1.5 py-0.5 font-mono-tech text-[9px] uppercase tracking-wider text-neon-green ${className}`}
+    >
+      <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-neon-green" />
+      Ao vivo
+    </span>
+  );
+}
 
 export function EcosystemMenu() {
   const [open, setOpen] = useState(false);
@@ -108,8 +127,9 @@ export function EcosystemMenu() {
                     <span className="block font-display text-base text-foreground transition group-hover:text-neon-green">
                       {item.label}
                     </span>
-                    <span className="mt-0.5 block font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
+                    <span className="mt-0.5 flex items-center gap-1.5 font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
                       {item.name}
+                      {item.productId === "wire" && <WireLiveBadge />}
                     </span>
                     <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">
                       {item.tag}
@@ -150,8 +170,9 @@ export function MobileEcosystemIntentMenu({ onNavigate }: { onNavigate: () => vo
                 <span className="block font-display text-[15px] normal-case tracking-normal text-foreground">
                   {item.label}
                 </span>
-                <span className="block text-[10px] normal-case tracking-normal text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-[10px] normal-case tracking-normal text-muted-foreground">
                   {item.name}
+                  {item.productId === "wire" && <WireLiveBadge />}
                 </span>
               </span>
             </Link>
@@ -402,13 +423,13 @@ export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
     <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4">
       <Link to="/" aria-label="Veronica Hub — início" className="shrink-0 font-display text-base">Veronica · Hub</Link>
       <nav aria-label="Navegação principal" className="hidden items-center gap-2 text-sm lg:flex">
-        {PRIMARY_NAV.map((item, index) => <span key={item.id} className="contents"><Link to={item.to} className="px-3 py-2 hover:text-neon-green">{item.name}</Link>{index === 0 && <EcosystemMenu />}</span>)}
+        {PRIMARY_NAV.map((item, index) => <span key={item.id} className="contents"><Link to={item.to} className="flex items-center gap-1.5 px-3 py-2 hover:text-neon-green">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <EcosystemMenu />}</span>)}
       </nav>
       <div className="flex items-center gap-3">{showAuth && <AuthWidget />}<button type="button" onClick={() => setMobileOpen(v => !v)} aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={mobileOpen} aria-controls="mobile-navigation" className="min-h-11 min-w-11 rounded-sm border border-border/60 lg:hidden">{mobileOpen ? <X className="mx-auto h-5 w-5" /> : <Menu className="mx-auto h-5 w-5" />}</button></div>
     </div>
     {mobileOpen && <nav id="mobile-navigation" aria-label="Navegação principal mobile" className="max-h-[80vh] overflow-y-auto border-t border-border/40 bg-background px-6 pb-6 lg:hidden">
       {showAuth && <div className="sm:hidden"><AuthWidget variant="mobile" /></div>}
-      {PRIMARY_NAV.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="block border-b border-border/40 py-4 text-base">{item.name}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
+      {PRIMARY_NAV.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="flex items-center justify-between gap-2 border-b border-border/40 py-4 text-base">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
     </nav>}
     {/* Fio de acento — 1px na borda inferior do cabeçalho, esmaecendo nas
         pontas pra ler como detalhe de design e não como faixa de alerta.
@@ -460,7 +481,7 @@ export function SiteFooter() {
   return <footer className="text-foreground border-t border-border/40 bg-background px-6 py-10">
     <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
       <div><Link to="/" className="font-display text-lg">Veronica Hub</Link><p className="mt-3 text-sm text-muted-foreground">Escola de Inteligência Artificial</p><p className="mt-2 text-xs text-muted-foreground">© 2026 Veronica Hub</p></div>
-      <nav aria-label="Navegação do rodapé" className="flex flex-col items-start gap-3">{PRIMARY_NAV.map(item => <Link key={item.id} to={item.to} className="text-sm hover:text-neon-green">{item.name}</Link>)}<a href={SOCIAL_LINKS.email} className="text-sm">Contato</a></nav>
+      <nav aria-label="Navegação do rodapé" className="flex flex-col items-start gap-3">{PRIMARY_NAV.map(item => <Link key={item.id} to={item.to} className="flex items-center gap-1.5 text-sm hover:text-neon-green">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>)}<a href={SOCIAL_LINKS.email} className="text-sm">Contato</a></nav>
       <div><p className="mb-3 text-sm">Acompanhe a Veronica</p><div className="flex flex-wrap gap-4">{[{label:"YouTube",href:SOCIAL_LINKS.youtube},{label:"Instagram",href:SOCIAL_LINKS.instagram},{label:"WhatsApp",href:SOCIAL_LINKS.whatsapp}].map(item => <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-neon-green">{item.label}</a>)}</div></div>
     </div>
   </footer>;

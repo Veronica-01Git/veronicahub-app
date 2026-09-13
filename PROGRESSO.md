@@ -558,6 +558,43 @@ continuar isso:**
 - Pexels e Pixabay: acesso pelo navegador desta sessão bloqueado por CAPTCHA;
   nenhuma conexão autenticada nova concluída.
 
+## Wire TV — rename de nav + selo "ao vivo" (2026-09-13, sessão cloud)
+
+- Pedido do usuário: renomear o link do Wire na navegação pra "Wire TV" e
+  deixar visualmente claro que é conteúdo tipo canal de notícia (ao vivo,
+  atualizado com frequência).
+- `src/lib/ecosystem.ts`: produto `wire` renomeado de "Veronica Wire" pra
+  "Wire TV"; descrição trocada pra "Notícias verificadas, publicadas hora a
+  hora". Como é fonte única, o rename já propagou pra nav desktop, nav
+  mobile, rodapé e os dois menus "Ferramentas" (dropdown desktop/mobile)
+  sem editar cada um.
+- `src/components/SiteChrome.tsx`: novo `WireLiveBadge` (ponto pulsante +
+  "Ao vivo", reaproveitando `animate-pulse-dot`/`neon-green` já usados no
+  masthead do `/blog`) nos quatro pontos onde o link aparece. É selo de
+  categoria fixo, não relógio ao vivo — não busca artigo no header/rodapé.
+- **Correção importante para quem ler as seções de Wire mais acima**: a
+  cadência de publicação **já está em `CYCLE_HOURS = 1`** (`src/lib/beats.ts`)
+  com dois disparos por hora no GitHub Actions (`.github/workflows/
+  generate-article.yml`, minutos 17 e 47), já migrada pra Groq
+  (`openai/gpt-oss-20b`, fallback `120b`). **Não está pausada** e o "PR B"
+  (frequência/fan-out) descrito como "não iniciado" nas seções anteriores
+  **já está parcialmente feito** — a frequência subiu de 5h pra 1h em algum
+  momento não documentado aqui (commits de capa automática em 10-13/set
+  confirmam publicação real acontecendo). Ainda faltam do PR B: log
+  estruturado (`WireCronLog`) e alerta de rodada silenciosa sem publicar.
+  As seções "Onde estamos" / "Pendências conhecidas" mais acima ainda dizem
+  o contrário — são texto desatualizado, não refletem o código atual.
+- `PIXABAY_API_KEY` e `scripts/reprocess-covers.mjs` continuam pendentes
+  como antes.
+- Validação: `npm run typecheck` passou (via stub local do pacote privado
+  `@lovable.dev/vite-tanstack-config`, bloqueado neste sandbox pela mesma
+  razão já documentada acima — sem crédito de registro). 6/6 testes de
+  `npm test` passaram sem alteração. Build completo (`npm run build`) não
+  pôde ser validado no sandbox pelo mesmo bloqueio de pacote privado —
+  precisa rodar localmente (WSL) antes de publicar.
+- Commitado localmente (`d90edcb`). **Sem push, sem deploy** — aguardando
+  confirmação explícita do usuário, como de costume.
+
 ## Remoção da mira holográfica flutuante (2026-09-13)
 
 - Base: `claude/elegant-bardeen-vzi64n` em `3a41094`; mesma branch de trabalho.

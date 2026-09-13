@@ -24,19 +24,19 @@ import { WireOwnedStories } from "@/components/blog/WireGrowth";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 import { formatAgo } from "@/lib/blog-format";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 export const Route = createFileRoute("/blog/")({
   component: VeronicaWire,
   loader: () => getPublishedArticles(),
   head: () => ({
     meta: [
-      { title: "Veronica Wire — Cobertura contínua e global | Veronica Hub" },
+      { title: `${WIRE_NAME} — Cobertura contínua e global | Veronica Hub` },
       {
         name: "description",
-        content:
-          "Veronica Wire: IA, energia limpa, yuan digital, geopolítica China, EUA e Brasil, e o realinhamento do mercado tecnológico global — cobertura contínua.",
+        content: `${WIRE_NAME}: IA, energia limpa, yuan digital, geopolítica China, EUA e Brasil, e o realinhamento do mercado tecnológico global — cobertura contínua.`,
       },
-      { property: "og:title", content: "Veronica Wire — Cobertura contínua e global" },
+      { property: "og:title", content: `${WIRE_NAME} — Cobertura contínua e global` },
       {
         property: "og:description",
         content:
