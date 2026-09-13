@@ -16,10 +16,33 @@ através do preset da Lovable, que gera a configuração de deploy sozinho — n
 há arquivo do wrangler onde declarar `triggers`, e um erro no entry do site
 derruba a aplicação inteira, que publica em produção a cada push.
 
-## Como colocar no ar
+## Dois caminhos para colocar no ar
 
-São quatro passos, todos na sua máquina — este Worker não é publicado pela
-integração Git do Cloudflare, é `wrangler deploy` manual.
+O caminho pelo terminal (`wrangler`) exige Node instalado na máquina. Quem não
+tem Node faz tudo pelo painel do Cloudflare — o Worker tem 40 linhas e nenhuma
+dependência, então cabe no editor do navegador.
+
+### Caminho pelo painel (sem terminal)
+
+1. **Crie o Worker.** dash.cloudflare.com → Workers & Pages → Create →
+   Create Worker → nome `wire-tv-cron` → Deploy (sai com o "Hello World"
+   padrão, que o passo seguinte substitui).
+2. **Cole o código.** No Worker → Edit code → apague tudo e cole o conteúdo de
+   `dashboard.js` (é este mesmo Worker, sem os tipos, porque o editor do painel
+   não processa TypeScript) → Deploy.
+3. **Guarde o token.** Settings → Variables and Secrets → Add → tipo **Secret**,
+   nome `GITHUB_TOKEN`, valor = o token do GitHub → Deploy.
+4. **Crie o gatilho.** Settings → Triggers → Cron Triggers → Add Cron Trigger →
+   `0 * * * *` → Add.
+
+Nesse caminho o `wrangler.jsonc` deste diretório não é lido por ninguém: ele
+documenta a configuração, e quem vale é o que está no painel. Se mudar o cron
+em um, mude no outro.
+
+### Caminho pelo terminal
+
+Quatro passos. Este Worker não é publicado pela integração Git do Cloudflare:
+é `wrangler deploy` manual, e precisa de Node na máquina.
 
 1. **Crie o token do GitHub.** Em GitHub → Settings → Developer settings →
    Personal access tokens → Fine-grained tokens → Generate new token:
