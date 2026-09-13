@@ -1,5 +1,5 @@
 import { and, eq, isNotNull } from "drizzle-orm";
-import { BEAT_VALUES, CYCLE_HOURS, type Beat } from "./beats";
+import { BEAT_VALUES, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
 import { WIRE_NAME } from "./ecosystem";
@@ -204,13 +204,13 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
     return new Response("unauthorized", { status: 401 });
   }
 
-  const beat = currentBeat();
-
   // ?dryRun=1: roda o rascunho + as mesmas checagens de publicação (piso de
   // qualidade, similaridade de manchete, dedup de janela) mas NUNCA grava —
   // pra inspecionar o que o pipeline geraria antes de aumentar a frequência
   // (brief "evolução"). Gasta uma chamada de IA de verdade.
   const url = new URL(request.url);
+  const requestedBeat = url.searchParams.get("beat");
+  const beat = requestedBeat && isBeat(requestedBeat) ? requestedBeat : currentBeat();
   if (url.searchParams.get("dryRun") === "1") {
     const simulated = await simulateArticleFromCron(beat);
     return new Response(JSON.stringify({ dryRun: true, beat, ...simulated }), {

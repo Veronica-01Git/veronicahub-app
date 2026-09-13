@@ -5,9 +5,8 @@
 export const BEAT_VALUES = ["ia", "clima", "economia", "geopolitica", "mercado"] as const;
 export type Beat = (typeof BEAT_VALUES)[number];
 
-// Uma edição por hora. A editoria gira deterministicamente entre as cinco
-// verticais, então cada uma recebe uma nova pauta a cada cinco horas sem
-// precisar de estado adicional no banco.
+// Janela editorial horária usada pela trava de duplicação. O workflow agenda
+// cada uma das cinco editorias separadamente dentro da mesma hora.
 export const CYCLE_HOURS = 1;
 
 export function isBeat(value: unknown): value is Beat {

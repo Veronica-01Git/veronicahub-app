@@ -59,7 +59,7 @@ test('formações têm identificador e disponibilidade; acesso exige destino rea
 
 test('selos têm série única e demonstrações não se apresentam como clientes reais', () => {
   assert.equal(new Set(sealRecords.map(record => record.serial)).size, sealRecords.length);
-  assert.ok(sealRecords.some(record => record.client === 'Express Entulhos' && !record.isDemonstration));
+  assert.ok(sealRecords.some(record => record.client === 'Express Entulho' && !record.isDemonstration));
   for (const record of sealRecords) {
     assert.match(record.serial, /^VH-[A-Z0-9-]+$/);
     assert.ok(record.client && record.solution && record.scope.length > 0 && record.timeline.length > 0);
