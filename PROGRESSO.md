@@ -849,3 +849,31 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   Worker dispara precisa existir em `.github/workflows`, senão o disparo vira
   404 silencioso e a falha apareceria só como ausência de matéria nova.
   11/11 testes, typecheck limpo.
+
+## Worker de cron publicado pelo painel do Cloudflare (2026-09-13)
+
+- **Estado que motivou a sessão, medido antes de agir**: nenhuma rodada de
+  `generate-article.yml` depois das 16:33 UTC, e a última com `event=schedule`
+  às 12:51 UTC. O `*/15` de `9043851` está ativo desde 15:57 e passou por
+  **oito janelas seguidas** (16:00 a 17:45) sem disparar nenhuma vez. Aumentar
+  a quantidade de horários no `schedule` está descartado como estratégia: não
+  é atraso, é descarte.
+- **A rodada das 16:33 (manual) não publicou**: `{"ok":true,"skipped":true,
+  "beat":"clima","error":"sem fato verificável no momento"}`. Não é cota nem
+  erro — é a trava editorial funcionando. Consequência: os passos 3 a 12 foram
+  pulados, **incluindo o "Sincroniza capas publicadas com a biblioteca Admin"**,
+  então a correção do `resolveLibraryImageUrl` continua sem ter sido
+  exercitada uma única vez desde que entrou em produção.
+- **Os quatro passos do painel foram feitos pelo usuário**, com o
+  `workers/wire-cron/README.md` como roteiro, cada um confirmado pelo lado da
+  API antes do seguinte:
+  - Worker `wire-tv-cron` criado às 17:08:25 UTC (`workers_list`).
+  - Código publicado: `workers_get_worker_code` devolveu conteúdo **idêntico**
+    a `workers/wire-cron/dashboard.js` do `main` — `diff` sem diferença.
+  - Secret `GITHUB_TOKEN` gravado como tipo Secret (valor criptografado).
+  - Cron Trigger `0 * * * *`, painel mostrando `Every hour` / próxima às
+    18:00:00 UTC.
+- **O caminho pelo painel cria um endereço `workers.dev`** que o
+  `wrangler.jsonc` desliga (`workers_dev: false`). Não é problema: o Worker só
+  tem handler `scheduled`, então o endereço responde erro e não expõe nada.
+  Quem quiser alinhar desliga em Settings → Domains & Routes.
