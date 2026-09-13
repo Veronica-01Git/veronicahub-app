@@ -1,0 +1,46 @@
+{
+  "cycleHours": 48,
+  "refreshedAt": "2026-09-13T15:48:24.000Z",
+  "sourceLabel": "Curadoria Veronica Analytics · tendências TikTok Shop",
+  "videos": [
+    {
+      "id": "2026-09-13-01",
+      "rank": 1,
+      "category": "moda",
+      "title": "Haul de conjunto combinado — look inteiro montado em 15s",
+      "views": "2.9M visualizações",
+      "gmvLabel": "GMV ~R$ 98K",
+      "gmvValue": 98000,
+      "growthLabel": "+285%",
+      "growthValue": 285,
+      "gradient": "linear-gradient(150deg, #ffe0e6, #ff9fb8)",
+      "hook": "moda é a categoria mais comprada agora e a temporada de Dia do Cliente já começou — grava o look em movimento antes da enxurrada de haul."
+    },
+    {
+      "id": "2026-09-13-02",
+      "rank": 2,
+      "category": "pet",
+      "title": "Escova a vapor no pet — pelo embaraçado virando nuvem em 10s",
+      "views": "2.2M visualizações",
+      "gmvLabel": "GMV ~R$ 67K",
+      "gmvValue": 67000,
+      "growthLabel": "+240%",
+      "growthValue": 240,
+      "gradient": "linear-gradient(150deg, #d6f4ff, #8fd8f2)",
+      "hook": "pet com antes/depois visual é compartilhamento fácil — chama teu cachorro e grava hoje, o formato ainda tá pouco disputado."
+    },
+    {
+      "id": "2026-09-13-03",
+      "rank": 3,
+      "category": "eletronicos",
+      "title": "Mini projetor no quintal — cinema ao ar livre montado em 20s",
+      "views": "1.7M visualizações",
+      "gmvLabel": "GMV ~R$ 58K",
+      "gmvValue": 58000,
+      "growthLabel": "+205%",
+      "growthValue": 205,
+      "gradient": "linear-gradient(150deg, #ffeccc, #ffcf7a)",
+      "hook": "projetor portátil explodiu junto com a onda de noite de cinema em casa — monta a cena uma vez e tira três vídeos dela."
+    }
+  ]
+}
