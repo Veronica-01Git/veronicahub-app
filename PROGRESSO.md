@@ -941,7 +941,21 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   quatro capas pelo Admin. Vale medir na próxima publicação se sobraram
   exatamente quatro falhas — isso confirma que os três do 522 sumiram.
 
-## Armadilha: push de branch derruba a capa recém-publicada (2026-09-13)
+## Armadilha: push de branch derruba a capa recém-publicada (2026-09-13) — RESOLVIDA NA PLATAFORMA
+
+> **Atualização do mesmo dia, mais tarde.** Outra frente de trabalho
+> desmarcou **"Builds for non-production branches"** na integração Git do
+> Cloudflare. Push de branch não publica mais em produção — só o `main`
+> publica. A armadilha descrita abaixo **não existe mais**, e quem ler isto
+> não precisa mais contornar nada por causa dela.
+>
+> A regra de mesclar o `main` antes de empurrar continua valendo, mas por
+> outro motivo: evitar conflito de merge quando há mais de uma sessão
+> trabalhando no repositório. Não é mais questão de derrubar produção.
+>
+> O relato abaixo fica como registro de causa raiz — foi assim que o problema
+> apareceu e foi diagnosticado, por dois caminhos independentes no mesmo dia
+> (aqui pela capa sumida, e na frente de afiliação pelo mesmo mecanismo).
 
 - **Sintoma**: a matéria das 21:00 apareceu no site sem foto, mesmo com tudo
   certo no banco (`coverImageUrl` gravada) e no repositório (arquivo de 417 KB
@@ -952,16 +966,20 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   `main` de ANTES da capa existir; 21:10:57 o Cloudflare publica em produção a
   partir desse branch. A árvore publicada passou a não ter o arquivo, e a URL
   gravada no banco virou 404.
-- **Por que é estrutural e não azar**: todo push de qualquer branch publica em
-  produção, e o cron commita uma capa nova no `main` a cada publicação. Então
-  qualquer branch que esteja atrás do `main` remove de produção todas as capas
-  commitadas depois do ponto de partida dele — silenciosamente, porque o banco
-  e o repositório continuam consistentes e nada falha.
-- **Regra para as próximas sessões**: `git fetch origin main && git merge
-  origin/main` IMEDIATAMENTE antes de cada push, não só no começo do trabalho.
-  Uma publicação pode ter acontecido no meio da sessão. E quanto mais tempo o
-  branch fica aberto, maior a janela — mesclar o PR cedo reduz o risco.
-- Consertado nesta sessão em `226408b`, trazendo o `main` para o branch.
+- **Por que era estrutural e não azar** (enquanto builds de branch estavam
+  ligados): todo push de qualquer branch publicava em produção, e o cron
+  commita uma capa nova no `main` a cada publicação. Então qualquer branch
+  atrás do `main` removia de produção as capas commitadas depois do ponto de
+  partida dele — silenciosamente, porque o banco e o repositório continuavam
+  consistentes e nada falhava.
+- **Efeito colateral que também acabou**: com dois lados publicando, a
+  produção alternava entre o `main` e o branch conforme quem empurrou por
+  último. Medido às 22:00: a rodada do cron pegou o build do `main` e as
+  correções que estavam só no branch não estavam no ar. Isso invalidava
+  medição — uma verificação podia dar resultados diferentes conforme o
+  minuto. Com só o `main` publicando, medir voltou a fazer sentido.
+- Contornado na hora em `226408b`, trazendo o `main` para o branch; resolvido
+  de verdade depois, desligando builds de branch no painel.
 
 ## Capa passa a sair de banco curado, sem busca ao vivo (2026-09-13)
 
