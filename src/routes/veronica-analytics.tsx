@@ -281,9 +281,12 @@ function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCateg
           <ShoppingBag className="h-4 w-4" style={{ color: "var(--tt-cyan)" }} /> Escolha o produto que você vai vender
         </div>
         <p className="mt-1.5 max-w-2xl text-[13.5px] leading-[1.6]" style={{ color: "var(--tt-ink-soft)" }}>
-          Produtos que a Veronica já é afiliada na Shopee. Você põe seu @, copia o link com a sua marca e divulga no
-          TikTok ou onde quiser — a venda acontece na Shopee e o seu identificador vai carimbado no link, que é como a
-          comissão da sua divulgação é reconhecida.
+          Produtos que a Veronica já é afiliada na Shopee.{" "}
+          {code
+            ? "Copia o link com o seu código e divulga no TikTok ou onde quiser"
+            : "Você põe seu @, copia o link com a sua marca e divulga no TikTok ou onde quiser"}{" "}
+          — a venda acontece na Shopee e o seu identificador vai carimbado no link, que é como a comissão da sua
+          divulgação é reconhecida.
         </p>
 
         {code ? (
