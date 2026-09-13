@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
+import { ArticleShare } from "@/components/blog/ArticleShare";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
 import { WIRE_NAME } from "@/lib/ecosystem";
@@ -204,6 +205,14 @@ function ArticlePage() {
                 {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
               </a>
             )}
+
+            <ArticleShare
+              headline={state.article.headline}
+              excerpt={state.article.excerpt}
+              slug={state.article.slug}
+              beatLabel={BEAT_LABELS[state.article.beat]}
+              coverImageUrl={state.article.coverImageUrl}
+            />
 
             <div
               className="mt-9 flex flex-col gap-5 text-[18px] leading-[1.78] text-foreground/90"

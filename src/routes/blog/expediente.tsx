@@ -45,7 +45,7 @@ export const Route = createFileRoute("/blog/expediente")({
             url: SITE_URL,
           },
           email: "yo-tech01@outlook.com",
-          sameAs: ["https://youtube.com/@veronica-hub", "https://instagram.com/veronicahub_"],
+          sameAs: [SOCIAL_LINKS.youtube, SOCIAL_LINKS.instagram, SOCIAL_LINKS.wireInstagram],
         }),
       },
     ],

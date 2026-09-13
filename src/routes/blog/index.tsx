@@ -11,7 +11,7 @@ import {
   Cloud,
   Landmark,
 } from "lucide-react";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { getPublishedArticles } from "@/lib/articles-server";
 import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
@@ -205,6 +205,14 @@ function VeronicaWire() {
             >
               Formações
             </Link>
+            <a
+              href={SOCIAL_LINKS.wireInstagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-white/65 transition hover:border-white/50 hover:text-white"
+            >
+              Instagram ↗
+            </a>
             <Link
               to="/"
               className="ml-auto whitespace-nowrap border border-[#63e6a6]/50 px-4 py-2 text-[#63e6a6] transition hover:bg-[#63e6a6] hover:text-[#101010]"
