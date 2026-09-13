@@ -1,66 +1,38 @@
 import { useState } from "react";
-import { Check, Copy, Download, Instagram, Share2 } from "lucide-react";
+import { Check, Copy, Download, Instagram, Share2, Type } from "lucide-react";
 import { SOCIAL_LINKS } from "@/components/SiteChrome";
+import {
+  buildWireCaption,
+  drawWireInstagramCard,
+  WIRE_CARD_HEIGHT,
+  WIRE_CARD_WIDTH,
+  WIRE_INSTAGRAM_HANDLE,
+  type WireCardImage,
+} from "@/lib/wire-instagram-card";
 
 const SITE_URL = "https://veronicahub.com";
 
-type ShareStatus = "idle" | "preparing" | "shared" | "downloaded" | "copied" | "error";
+type ShareStatus =
+  | "idle"
+  | "preparing"
+  | "shared"
+  | "downloaded"
+  | "copiedLink"
+  | "copiedCaption"
+  | "error";
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+function loadImage(src: string): Promise<WireCardImage> {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    // As capas são servidas pelo mesmo domínio do site, então o modo CORS
+    // passa e o canvas não fica "sujo" (toBlob continua permitido). Se a
+    // matéria apontar pra uma capa de outro domínio sem CORS, o onerror
+    // abaixo dispara e o card é redesenhado sem foto.
     image.crossOrigin = "anonymous";
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error("Não foi possível carregar a capa."));
     image.src = src;
   });
-}
-
-function cropCover(
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  width: number,
-  height: number,
-) {
-  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
-  const sourceWidth = width / scale;
-  const sourceHeight = height / scale;
-  const sourceX = (image.naturalWidth - sourceWidth) / 2;
-  const sourceY = (image.naturalHeight - sourceHeight) / 2;
-  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
-}
-
-function headlineLines(
-  context: CanvasRenderingContext2D,
-  headline: string,
-  maxWidth: number,
-  maxLines: number,
-): string[] {
-  const words = headline.trim().split(/\s+/);
-  const lines: string[] = [];
-  let line = "";
-
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (context.measureText(test).width <= maxWidth) {
-      line = test;
-      continue;
-    }
-    if (line) lines.push(line);
-    line = word;
-    if (lines.length === maxLines - 1) break;
-  }
-
-  if (line && lines.length < maxLines) lines.push(line);
-  const usedWords = lines.join(" ").split(/\s+/).length;
-  if (usedWords < words.length && lines.length) {
-    let last = lines[lines.length - 1];
-    while (context.measureText(`${last}…`).width > maxWidth && last.includes(" ")) {
-      last = last.slice(0, last.lastIndexOf(" "));
-    }
-    lines[lines.length - 1] = `${last}…`;
-  }
-  return lines;
 }
 
 function exportJpeg(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -77,74 +49,19 @@ function exportJpeg(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
-async function buildInstagramCard(input: {
+async function buildCardBlob(input: {
   headline: string;
   beatLabel: string;
   coverImageUrl: string | null;
   canonicalUrl: string;
 }): Promise<Blob> {
   const canvas = document.createElement("canvas");
-  canvas.width = 1080;
-  canvas.height = 1350;
+  canvas.width = WIRE_CARD_WIDTH;
+  canvas.height = WIRE_CARD_HEIGHT;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Seu navegador não conseguiu preparar o card.");
-
-  const draw = async (withCover: boolean) => {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    const base = context.createLinearGradient(0, 0, 1080, 1350);
-    base.addColorStop(0, "#07110e");
-    base.addColorStop(0.55, "#101312");
-    base.addColorStop(1, "#050606");
-    context.fillStyle = base;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    if (withCover && input.coverImageUrl) {
-      const image = await loadImage(input.coverImageUrl);
-      cropCover(context, image, 1080, 1350);
-    }
-
-    const veil = context.createLinearGradient(0, 0, 0, 1350);
-    veil.addColorStop(0, "rgba(0,0,0,.22)");
-    veil.addColorStop(0.42, "rgba(0,0,0,.34)");
-    veil.addColorStop(0.68, "rgba(0,0,0,.82)");
-    veil.addColorStop(1, "rgba(0,0,0,.97)");
-    context.fillStyle = veil;
-    context.fillRect(0, 0, 1080, 1350);
-
-    context.fillStyle = "#63e6a6";
-    context.fillRect(76, 72, 54, 5);
-    context.font = "700 30px Arial, sans-serif";
-    context.letterSpacing = "5px";
-    context.fillText("WIRE TV", 76, 128);
-
-    context.fillStyle = "rgba(255,255,255,.76)";
-    context.font = "700 24px Arial, sans-serif";
-    context.letterSpacing = "3px";
-    context.fillText(input.beatLabel.toUpperCase(), 76, 760);
-
-    context.fillStyle = "#ffffff";
-    context.font = "700 65px Georgia, serif";
-    context.letterSpacing = "0px";
-    const lines = headlineLines(context, input.headline, 928, 5);
-    lines.forEach((line, index) => context.fillText(line, 76, 842 + index * 76));
-
-    context.fillStyle = "#63e6a6";
-    context.fillRect(76, 1240, 928, 2);
-    context.fillStyle = "rgba(255,255,255,.8)";
-    context.font = "500 22px Arial, sans-serif";
-    context.fillText("@wire___tv", 76, 1295);
-    context.textAlign = "right";
-    context.fillText(input.canonicalUrl.replace("https://", ""), 1004, 1295);
-    context.textAlign = "left";
-  };
-
-  try {
-    await draw(Boolean(input.coverImageUrl));
-    return await exportJpeg(canvas);
-  } catch {
-    await draw(false);
-    return exportJpeg(canvas);
-  }
+  await drawWireInstagramCard(context, input, loadImage);
+  return exportJpeg(canvas);
 }
 
 function downloadCard(blob: Blob, slug: string) {
@@ -173,7 +90,7 @@ export function ArticleShare({
 }) {
   const [status, setStatus] = useState<ShareStatus>("idle");
   const canonicalUrl = `${SITE_URL}/blog/${slug}`;
-  const caption = `${headline}\n\n${excerpt}\n\nLeia a matéria completa: ${canonicalUrl}\n\n@wire___tv`;
+  const caption = buildWireCaption({ headline, excerpt, canonicalUrl });
 
   async function copy(value: string) {
     await navigator.clipboard.writeText(value);
@@ -182,28 +99,32 @@ export function ArticleShare({
   async function handleInstagramShare() {
     setStatus("preparing");
     try {
-      const blob = await buildInstagramCard({ headline, beatLabel, coverImageUrl, canonicalUrl });
+      const blob = await buildCardBlob({ headline, beatLabel, coverImageUrl, canonicalUrl });
       const file = new File([blob], `wire-tv-${slug}.jpg`, { type: "image/jpeg" });
       const canShareFile = Boolean(
         typeof navigator.share === "function" &&
-          typeof navigator.canShare === "function" &&
-          navigator.canShare({ files: [file] }),
+        typeof navigator.canShare === "function" &&
+        navigator.canShare({ files: [file] }),
+      );
+
+      // A legenda vai pra área de transferência nos dois caminhos: o app do
+      // Instagram descarta o texto que vem junto da imagem no menu de
+      // compartilhamento, então sem isso o card chega ao feed sem legenda.
+      const copiedCaption = await copy(caption).then(
+        () => true,
+        () => false,
       );
 
       if (canShareFile) {
-        await navigator.share({
-          files: [file],
-          title: headline,
-          text: `${headline}\n\nLeia em ${canonicalUrl}\n@wire___tv`,
-        });
-        setStatus("shared");
+        await navigator.share({ files: [file], title: headline, text: caption });
+        setStatus(copiedCaption ? "shared" : "downloaded");
         return;
       }
 
       downloadCard(blob, slug);
-      await copy(caption).catch(() => undefined);
       setStatus("downloaded");
     } catch (error) {
+      // Fechar o menu de compartilhamento do sistema não é falha.
       if (error instanceof DOMException && error.name === "AbortError") {
         setStatus("idle");
         return;
@@ -212,10 +133,10 @@ export function ArticleShare({
     }
   }
 
-  async function handleCopyLink() {
+  async function handleCopy(value: string, next: ShareStatus) {
     try {
-      await copy(canonicalUrl);
-      setStatus("copied");
+      await copy(value);
+      setStatus(next);
     } catch {
       setStatus("error");
     }
@@ -224,11 +145,14 @@ export function ArticleShare({
   const statusText: Record<ShareStatus, string> = {
     idle: "Card vertical 1080 × 1350 com legenda pronta para o feed.",
     preparing: "Preparando o card editorial…",
-    shared: "Compartilhamento aberto no seu celular.",
-    downloaded: "Card baixado e legenda copiada. Abra o Instagram para publicar.",
-    copied: "Link da matéria copiado.",
+    shared: "Card enviado e legenda copiada. Cole a legenda ao publicar.",
+    downloaded: "Card salvo e legenda copiada. Abra o Instagram para publicar.",
+    copiedLink: "Link da matéria copiado.",
+    copiedCaption: "Legenda copiada.",
     error: "Não foi possível compartilhar neste navegador. Copie o link e tente novamente.",
   };
+
+  const shareDone = status === "shared" || status === "downloaded";
 
   return (
     <section
@@ -254,7 +178,7 @@ export function ArticleShare({
           >
             {status === "preparing" ? (
               <Download className="h-3.5 w-3.5 animate-pulse" />
-            ) : status === "shared" || status === "downloaded" ? (
+            ) : shareDone ? (
               <Check className="h-3.5 w-3.5" />
             ) : (
               <Share2 className="h-3.5 w-3.5" />
@@ -263,7 +187,14 @@ export function ArticleShare({
           </button>
           <button
             type="button"
-            onClick={handleCopyLink}
+            onClick={() => handleCopy(caption, "copiedCaption")}
+            className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-border/70 px-3 font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground transition hover:border-neon-green/60 hover:text-neon-green"
+          >
+            <Type className="h-3.5 w-3.5" /> Copiar legenda
+          </button>
+          <button
+            type="button"
+            onClick={() => handleCopy(canonicalUrl, "copiedLink")}
             className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-border/70 px-3 font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground transition hover:border-neon-green/60 hover:text-neon-green"
           >
             <Copy className="h-3.5 w-3.5" /> Copiar link
@@ -274,7 +205,7 @@ export function ArticleShare({
             rel="noopener noreferrer"
             className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-border/70 px-3 font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground transition hover:border-neon-green/60 hover:text-neon-green"
           >
-            <Instagram className="h-3.5 w-3.5" /> @wire___tv
+            <Instagram className="h-3.5 w-3.5" /> {WIRE_INSTAGRAM_HANDLE}
           </a>
         </div>
       </div>

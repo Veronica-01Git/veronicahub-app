@@ -728,3 +728,51 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
 - QA visual no navegador não realizado pelo mesmo bloqueio de instalação.
 - Enviado para `claude/elegant-bardeen-vzi64n` pelo commit `bd0b2b0`. Sem
   publicação em produção nesta etapa.
+
+## Compartilhamento da Wire TV no Instagram (2026-09-13, sessão cloud seguinte)
+
+- Base: `claude/bold-hawking-2ism1x` em `a3bd67d`. A sessão anterior acabou no
+  meio: `6d8edf8`/`1d4a2d4` (atalho da Wire TV no cabeçalho, sem duplicar),
+  `e3e9239` (indicador "ao vivo" reduzido a um ponto de 6 px com pulsação
+  suave e `prefers-reduced-motion` respeitado) e `a3bd67d` (o compartilhamento)
+  foram empurrados sem verificação e sem registro aqui. Esta sessão conferiu,
+  corrigiu e documentou os quatro.
+- **Estado herdado**: `ArticleShare` em `/blog/$slug` desenhava um card
+  1080 × 1350 num canvas e oferecia `navigator.share` com fallback de
+  download. O `@` do perfil (`wire___tv`) entrou em `SOCIAL_LINKS`, na nav do
+  `/blog` e no `sameAs` do expediente.
+- **Dois defeitos reais encontrados na verificação, ambos corrigidos**:
+  1. O rodapé do card imprimia a URL canônica inteira alinhada à direita na
+     mesma linha do `@wire___tv`. Com slug longo (o caso comum — os slugs têm
+     até 80 caracteres) os dois textos se atropelavam e o rodapé saía
+     ilegível. Agora vai só o domínio; o endereço completo continua na
+     legenda, que é de onde o leitor copia.
+  2. A legenda só ia pra área de transferência no caminho de download. No
+     celular, que é onde o `navigator.share` existe, o app do Instagram
+     descarta o texto que acompanha a imagem — o card chegava ao feed sem
+     legenda nenhuma. Agora a legenda é copiada nos dois caminhos, e há um
+     botão "Copiar legenda" explícito ao lado de "Copiar link".
+- **Traçado do card virou módulo**: `src/lib/wire-instagram-card.ts`
+  (dimensões, fontes, quebra da manchete, legenda, desenho). O componente só
+  cuida do que é do navegador — `Image`, `toBlob`, download, Web Share.
+- **`scripts/render-instagram-card.mjs`**: gera o mesmo card fora do
+  navegador, com `@napi-rs/canvas` (já era dependência) importando o módulo
+  em TS direto, como os testes fazem. Serve pra preparar postagem sem abrir o
+  site. Saída em `out/` (ignorado no git). Achado do caminho Node: o `Image`
+  do `@napi-rs` só decodifica de verdade via `loadImage()` — atribuir o buffer
+  em `.src` devolve as dimensões certas e desenha vazio.
+- Perfil da Wire TV também no rodapé do site (`SiteFooter`), que só listava o
+  Instagram da Veronica.
+- **Verificação**: 10/10 testes (dois novos — o `@` do card e o do link do
+  site saem da mesma fonte; a quebra da manchete respeita o limite de linhas e
+  sinaliza corte com reticências), typecheck limpo em `src/`, Prettier nos
+  arquivos novos. O card foi renderizado de fato nos dois caminhos: Node
+  (`@napi-rs/canvas`) e Chromium headless rodando o módulo compilado — capa,
+  manchete, editoria e rodapé conferidos na imagem. Foi assim que os dois
+  defeitos acima apareceram.
+- Não verificado: a página publicada. `bun install` agora funciona, mas
+  `@lovable.dev/vite-tanstack-config` continua 403 pela política de rede, então
+  não há `vite dev`/`build`; e o proxy segue bloqueando `veronicahub.com`
+  (403 no CONNECT), então não dá pra abrir o site publicado daqui.
+- Lembrete que continua valendo: **push em qualquer branch vira produção**
+  neste repo (integração Cloudflare↔Git). Foi um push só, no fim.

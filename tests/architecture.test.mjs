@@ -6,6 +6,7 @@ import { PRODUCTS, CATEGORIES, INTENTS, INTENT_LINKS, PRIMARY_NAV, HOME_PRODUCTS
 import { sealRecords } from '../src/lib/seals.ts';
 import { BEAT_VALUES } from '../src/lib/beats.ts';
 import { WIRE_OFFERS } from '../src/lib/wire-commerce.ts';
+import { WIRE_INSTAGRAM_HANDLE, wrapHeadline } from '../src/lib/wire-instagram-card.ts';
 
 // Resolve somente os descritores locais de imagem do catálogo, sem rede.
 registerHooks({
@@ -88,4 +89,28 @@ test('Wire expõe governança editorial e painel de desempenho em rotas reais', 
   assert.ok(routes.has('/admin/wire'));
   const robots = readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8');
   assert.match(robots, /news-sitemap\.xml/);
+});
+
+test('o card do Instagram e o link do perfil apontam pro mesmo @ da Wire TV', () => {
+  const chrome = readFileSync(new URL('../src/components/SiteChrome.tsx', import.meta.url), 'utf8');
+  const link = chrome.match(/wireInstagram:\s*"([^"]+)"/);
+  assert.ok(link, 'SOCIAL_LINKS.wireInstagram precisa existir');
+  // O @ impresso no card e o perfil linkado no site saem do mesmo lugar:
+  // se um mudar sem o outro, o card manda o leitor pra um perfil que não é o
+  // do link — o tipo de divergência que só aparece depois de publicado.
+  assert.equal(WIRE_INSTAGRAM_HANDLE, '@' + new URL(link[1]).pathname.replace(/\//g, ''));
+  assert.match(routeSources, /<ArticleShare/);
+});
+
+test('a manchete do card cabe no limite de linhas e sinaliza o corte', () => {
+  const context = { measureText: text => ({ width: text.length * 20 }) };
+  const curta = wrapHeadline(context, 'Nvidia negocia investimento bilionário', 400, 5);
+  assert.ok(curta.length <= 5);
+  assert.equal(curta.join(' '), 'Nvidia negocia investimento bilionário');
+  assert.ok(!curta.at(-1).endsWith('…'));
+
+  const longa = wrapHeadline(context, 'palavra '.repeat(60).trim(), 400, 5);
+  assert.equal(longa.length, 5);
+  assert.match(longa.at(-1), /…$/);
+  for (const linha of longa) assert.ok(context.measureText(linha).width <= 400, linha);
 });
