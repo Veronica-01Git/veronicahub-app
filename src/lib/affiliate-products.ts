@@ -6,46 +6,75 @@ import type { FeedCategory } from "./trending-videos";
 // Shopee, com o link de afiliado dela; o papel do Hub é escolher o produto,
 // carimbar quem divulgou e medir o encaminhamento.
 //
-// A atribuição por pessoa é real, não estimada: a Shopee aceita Sub_ids no
-// link (até 5 parâmetros) e devolve cliques E conversões separados por
-// Sub_id no relatório do afiliado. Então cada divulgador vira um valor de
-// Sub_id, e o relatório da Shopee diz quanto cada um vendeu.
+// COMO A SHOPEE CARREGA OS SUB_IDS (confirmado numa URL real, não suposto):
+// os 5 Sub_ids não viajam como parâmetros separados — vão todos dentro de
+// `utm_content`, juntos, separados por hífen. Um link gerado no painel com
+// Sub_id "veronica" sai como `utm_content=veronica----`: primeiro
+// compartimento preenchido, quatro vazios.
 //
-// O nome do parâmetro de Sub_id fica em `subIdParams` (dado, não código) de
-// propósito: o gerador de links da Shopee já mudou de formato antes, e
-// corrigir isso não pode exigir deploy de código.
+// Duas consequências que o código tem que respeitar:
+//  1. hífen é separador, então nenhum valor de Sub_id pode conter hífen —
+//     `normalizeHandle` converte tudo pra [a-z0-9_] justamente por isso;
+//  2. é parâmetro comum de URL, então dá pra reescrever por divulgador sem
+//     precisar gerar um link novo no painel pra cada pessoa.
+//
+// O formato fica em `subId` (dado, não código) porque a Shopee já mudou o
+// formato de link antes, e corrigir isso não pode exigir deploy.
 
 export type AffiliateProduct = {
   id: string;
   name: string;
   category: FeedCategory;
-  /** Link de afiliado gerado no painel da Shopee, sem Sub_id — ele é anexado aqui. */
+  /** Link de afiliado gerado no painel da Shopee. O utm_content é reescrito aqui. */
   affiliateUrl: string;
   priceLabel: string;
-  /** Comissão anunciada pela Shopee pro produto, como texto ("~8%"). */
-  commissionLabel: string;
+  /** Comissão anunciada pela Shopee, como texto ("~8%"). Some do card quando ausente. */
+  commissionLabel?: string;
   /** Por que esse produto casa com vídeo curto — aparece no card. */
   angle: string;
 };
 
 export type AffiliateCatalog = {
-  subIdParams: { affiliate: string; placement: string; category: string };
+  subId: {
+    param: string;
+    separator: string;
+    slots: number;
+    order: ("affiliate" | "placement" | "category")[];
+  };
   products: AffiliateProduct[];
 };
 
 export const affiliateCatalog = raw as AffiliateCatalog;
 
-export const hasAffiliateProducts = affiliateCatalog.products.length > 0;
-
-export function affiliateProductsByCategory(category: "todos" | FeedCategory): AffiliateProduct[] {
-  if (category === "todos") return affiliateCatalog.products;
-  return affiliateCatalog.products.filter((p) => p.category === category);
+// Link encurtado (s.shopee.com.br/XXXX) redireciona pra um destino fixo e
+// descarta o que a gente colar por fora — o divulgador copiaria um link que
+// parece dele e a venda cairia no Sub_id de quem gerou o link. A falha é
+// silenciosa: o clique é registrado certo aqui e errado lá. Por isso o
+// catálogo recusa link curto em vez de confiar que ninguém vai cadastrar um.
+export function isShortLink(url: string): boolean {
+  try {
+    return new URL(url).hostname === "s.shopee.com.br";
+  } catch {
+    return true;
+  }
 }
 
-// Vira o identificador do divulgador dentro do Sub_id. A Shopee trata o
-// Sub_id como texto livre, mas acento e espaço já se perderam em relatório
-// antes — então normaliza aqui e é esse valor normalizado que a pessoa vê,
-// pra ela conseguir conferir no próprio painel depois.
+// Produto com link curto fica fora do ar em vez de atribuir venda pra
+// pessoa errada — ver isShortLink logo acima.
+export const affiliateProducts = affiliateCatalog.products.filter(
+  (p) => !isShortLink(p.affiliateUrl),
+);
+
+export const hasAffiliateProducts = affiliateProducts.length > 0;
+
+export function affiliateProductsByCategory(category: "todos" | FeedCategory): AffiliateProduct[] {
+  if (category === "todos") return affiliateProducts;
+  return affiliateProducts.filter((p) => p.category === category);
+}
+
+// Vira o identificador do divulgador dentro do Sub_id. Sem acento, sem
+// espaço e — o que mais importa — sem hífen, que é o separador dos
+// compartimentos dentro do utm_content.
 export function normalizeHandle(handle: string): string {
   return handle
     .trim()
@@ -59,21 +88,27 @@ export function normalizeHandle(handle: string): string {
 }
 
 /**
- * Monta o link final da Shopee com os Sub_ids carimbados. Preserva o que já
- * vier no link original e sobrescreve só os parâmetros que controlamos.
+ * Monta o link final da Shopee reescrevendo o utm_content com os Sub_ids
+ * desta divulgação. Preserva todo o resto do link original (assinatura,
+ * campanha, termo) — mexer neles invalidaria o rastreamento da Shopee.
  */
 export function buildAffiliateUrl(
   product: AffiliateProduct,
   { handle, placement }: { handle: string; placement: string },
 ): string {
-  const { subIdParams } = affiliateCatalog;
+  const { param, separator, slots, order } = affiliateCatalog.subId;
   const url = new URL(product.affiliateUrl);
-  const normalized = normalizeHandle(handle);
 
-  if (normalized) url.searchParams.set(subIdParams.affiliate, normalized);
-  url.searchParams.set(subIdParams.placement, placement);
-  url.searchParams.set(subIdParams.category, product.category);
+  const values: Record<string, string> = {
+    affiliate: normalizeHandle(handle),
+    placement: normalizeHandle(placement),
+    category: normalizeHandle(product.category),
+  };
 
+  const filled = order.map((key) => values[key] ?? "");
+  while (filled.length < slots) filled.push("");
+
+  url.searchParams.set(param, filled.slice(0, slots).join(separator));
   return url.toString();
 }
 

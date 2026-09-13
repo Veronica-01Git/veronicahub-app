@@ -1,8 +1,18 @@
 {
-  "subIdParams": {
-    "affiliate": "sub_id1",
-    "placement": "sub_id2",
-    "category": "sub_id3"
+  "subId": {
+    "param": "utm_content",
+    "separator": "-",
+    "slots": 5,
+    "order": ["affiliate", "placement", "category"]
   },
-  "products": []
+  "products": [
+    {
+      "id": "auxiliar-partida-compressor",
+      "name": "Auxiliar de partida com compressor de ar — carregador de bateria veicular",
+      "category": "eletronicos",
+      "affiliateUrl": "https://shopee.com.br/product/1867200811/58267394973?exp_group=rollout&gads_t_sig=gqRjZGVrxHCFomtpsTE0MjUxOnRzc19zZGtfa2V5omt20QACpGFsZ2_SAAAAZKNkZWvAomN0xEAAAAAMCDZ1QISG3Y9eQ8yPVgAOiad7g2PqyaqkWO_9nGG8rv2GeSvTKVy0YH9Uq_tAMSkaB8ROm0FmD1_y4Fc6qmNpcGhlcnRleHTEmQAAAAzI_i5SL5NYsOi0otqhZMCE1yko1DoOotNE-XBdEerGylug9p7S8Jfn0Dmm2taCiM3FfzmRGe6uhwJwB941tRaQiQsxHA9M9RRB2JJoPzX1pmReAuZ6QDkZvGgE5jeUC__pulMkQuPex834p1soC-nUMqIMEZdq8pHewMEK0Yrl6-C9bYzMzk_Cnweikizgm2olYoJynQ&lang=pt-BR&mmp_pid=an_18327971206&uls_trackid=56kk9p0i013h&utm_campaign=id_9sQC2aZUn6b&utm_content=veronica----&utm_medium=affiliates&utm_source=an_18327971206&utm_term=fisqbts8cuap",
+      "priceLabel": "a partir de R$ 77,89",
+      "angle": "pane seca e pneu murcho são medo real de quem dirige — o vídeo se escreve sozinho: carro morto, 10 segundos, carro ligado."
+    }
+  ]
 }
