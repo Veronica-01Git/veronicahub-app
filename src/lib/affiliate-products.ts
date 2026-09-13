@@ -41,6 +41,12 @@ export type AffiliateCatalog = {
     slots: number;
     order: ("affiliate" | "placement" | "category")[];
   };
+  revenueShare: {
+    /** Fatia do divulgador, em % da comissão recebida da Shopee. */
+    affiliatePct: number;
+    basis: "comissao_shopee";
+    note: string;
+  };
   products: AffiliateProduct[];
 };
 
@@ -110,6 +116,28 @@ export function buildAffiliateUrl(
 
   url.searchParams.set(param, filled.slice(0, slots).join(separator));
   return url.toString();
+}
+
+// DIVISÃO DA COMISSÃO — regra registrada, ainda não paga por ninguém.
+//
+// A divisão é sobre a comissão que a Shopee paga, não sobre o valor da
+// venda. Isso é deliberado: a taxa da Shopee muda de produto pra produto, e
+// dividir a venda faria um produto de taxa baixa custar dinheiro em vez de
+// render. Sobre a comissão, a conta nunca fica negativa.
+//
+// Nada aqui credita saldo: a venda acontece na Shopee e não existe callback
+// dela pra cá, então a conciliação depende do relatório por Sub_id. Esta
+// função existe pra que a regra seja executável e testável quando essa
+// entrada existir — e pra que ela não viva só num acordo verbal.
+export function splitCommissionCents(commissionCents: number): {
+  affiliateCents: number;
+  houseCents: number;
+} {
+  const total = Math.max(0, Math.trunc(commissionCents));
+  // O arredondamento sobra pra casa, nunca pro divulgador: assim as duas
+  // partes sempre somam exatamente o total, sem centavo criado do nada.
+  const affiliateCents = Math.floor((total * affiliateCatalog.revenueShare.affiliatePct) / 100);
+  return { affiliateCents, houseCents: total - affiliateCents };
 }
 
 /** Link interno rastreado — passa pelo /r/afiliado antes de ir pra Shopee. */

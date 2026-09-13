@@ -5,6 +5,11 @@
     "slots": 5,
     "order": ["affiliate", "placement", "category"]
   },
+  "revenueShare": {
+    "affiliatePct": 50,
+    "basis": "comissao_shopee",
+    "note": "Metade do que a Shopee pagar vai pro divulgador. Divisao sobre a comissao recebida, nao sobre o valor da venda: assim nenhum produto da prejuizo, qualquer que seja a taxa da Shopee. Regra so registrada — nao ha credito de comissao implementado, e a pagina nao exibe percentual."
+  },
   "products": [
     {
       "id": "auxiliar-partida-compressor",
