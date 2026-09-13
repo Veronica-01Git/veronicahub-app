@@ -1,4 +1,5 @@
 import { Check, Wallet, Wand2, Mail, Newspaper, Layers } from "lucide-react";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 // Prova real — cada item aqui é verificável no próprio código do repo, sem
 // depoimento fabricado, sem estrela, sem número de avaliação inventado.
@@ -24,7 +25,7 @@ const FACTS = [
   },
   {
     icon: Newspaper,
-    title: "Veronica Wire",
+    title: WIRE_NAME,
     desc: "Blog com artigos reais, publicados de verdade.",
   },
   {

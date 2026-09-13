@@ -1,10 +1,11 @@
 import { ArrowUpRight, BarChart3, CloudRain, Play, Radio, Target } from "lucide-react";
 import type { Beat } from "@/lib/beats";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 const OWNED_STORIES = [
   {
     eyebrow: "Operação própria",
-    title: "Veronica Wire conecta notícias e aprendizado",
+    title: `${WIRE_NAME} conecta notícias e aprendizado`,
     description: "Notícias publicadas com fontes, conectando informação, aprendizado e execução.",
     href: "/comandos?utm_source=wire&utm_medium=owned_story&utm_campaign=wire_24h",
     cta: "Conhecer as formações",

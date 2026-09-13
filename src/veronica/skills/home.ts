@@ -10,6 +10,7 @@
  */
 
 import type { StudioCriativoStep } from "./studio-criativo";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 export const homeSteps: StudioCriativoStep[] = [];
 
@@ -66,7 +67,7 @@ O ecossistema além dos cursos — cada um é uma página própria dentro do Hub
   programa 100% ativo.
 - Negócio da China (negociodachina.veronicahub.com) — marketplace C2C de
   produtos novos e usados, domínio e app próprios, fora deste app.
-- Veronica Wire (/blog) — o jornal digital do Hub: cobertura contínua de IA,
+- ${WIRE_NAME} (/blog) — o jornal digital do Hub: cobertura contínua de IA,
   clima/energia limpa, economia, geopolítica (China, EUA e Brasil) e mercado
   de tecnologia. Editorias: IA, Clima, Economia, Geopolítica, Mercado. Página
   de conteúdo, sem lógica de pagamento.

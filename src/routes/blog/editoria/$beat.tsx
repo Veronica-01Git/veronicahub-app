@@ -6,6 +6,7 @@ import { CoverThumb, BEAT_COLOR } from "@/components/blog/CoverThumb";
 import { getArticlesByBeat } from "@/lib/articles-server";
 import { formatAgo } from "@/lib/blog-format";
 import { BEAT_LABELS, isBeat, type Beat } from "@/lib/beats";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 // Rota separada de /blog/$slug (não /blog/$beat) de propósito: dois
 // segmentos dinâmicos irmãos no mesmo nível (/blog/$slug e /blog/$beat)
@@ -31,14 +32,14 @@ export const Route = createFileRoute("/blog/editoria/$beat")({
   },
   head: ({ params }) => {
     if (!isBeat(params.beat)) {
-      return { meta: [{ title: "Editoria não encontrada | Veronica Wire" }] };
+      return { meta: [{ title: `Editoria não encontrada | ${WIRE_NAME}` }] };
     }
     const label = BEAT_LABELS[params.beat];
     return {
       meta: [
-        { title: `${label} | Veronica Wire` },
-        { name: "description", content: `Todas as matérias do Veronica Wire em ${label}.` },
-        { property: "og:title", content: `${label} | Veronica Wire` },
+        { title: `${label} | ${WIRE_NAME}` },
+        { name: "description", content: `Todas as matérias do ${WIRE_NAME} em ${label}.` },
+        { property: "og:title", content: `${label} | ${WIRE_NAME}` },
         { property: "og:type", content: "website" },
       ],
       links: [{ rel: "canonical", href: `${SITE_URL}/blog/editoria/${params.beat}` }],
@@ -78,7 +79,7 @@ function BeatPage() {
             to="/blog"
             className="inline-flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground transition hover:text-neon-green"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Veronica Wire
+            <ArrowLeft className="h-3.5 w-3.5" /> {WIRE_NAME}
           </Link>
           <div
             className="mt-4 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest"

@@ -5,8 +5,11 @@
 // false volta exatamente ao estado anterior — nome "Veronica Wire", descrição
 // antiga e nenhum selo pulsante — sem reverter commit nem mexer em JSX. O selo
 // em SiteChrome.tsx lê a mesma constante.
+// WIRE_NAME é exportado porque o nome também aparece fora da nav (título e OG
+// do /blog, páginas de matéria e editoria, RSS, schema.org, home e admin); todos
+// leem daqui pra que a flag reverta tudo junto.
 export const WIRE_TV_REBRAND_ENABLED = true;
-const WIRE_NAME = WIRE_TV_REBRAND_ENABLED ? "Wire TV" : "Veronica Wire";
+export const WIRE_NAME = WIRE_TV_REBRAND_ENABLED ? "Wire TV" : "Veronica Wire";
 const WIRE_DESCRIPTION = WIRE_TV_REBRAND_ENABLED
   ? "Notícias verificadas, publicadas hora a hora"
   : "Notícias com fontes e contexto";

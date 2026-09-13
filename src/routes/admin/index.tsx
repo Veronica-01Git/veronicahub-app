@@ -4,6 +4,7 @@ import { ShieldAlert, Newspaper, ImageIcon, Sparkles } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
 import { formatBRL } from "@/lib/account";
+import { WIRE_NAME } from "@/lib/ecosystem";
 
 // Rota não listada em ECOSYSTEM_LINKS de propósito — acesso só por URL
 // direta, e mesmo assim protegido de verdade no servidor (getAdminOverview
@@ -50,7 +51,7 @@ function AdminPanel() {
               to="/admin/artigos"
               className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
             >
-              <Newspaper className="h-4 w-4" /> Artigos do Veronica Wire
+              <Newspaper className="h-4 w-4" /> Artigos do {WIRE_NAME}
             </Link>
             <Link
               to="/admin/imagens"
