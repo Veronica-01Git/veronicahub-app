@@ -85,11 +85,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     "id": "wire",
-    "name": "Veronica Wire",
+    "name": "Wire TV",
     "category": "Mídia",
     "to": "/blog",
     "status": "Disponível",
-    "description": "Notícias com fontes e contexto",
+    "description": "Notícias verificadas, publicadas hora a hora",
     "external": false,
     "public": true
   },
