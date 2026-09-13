@@ -37,3 +37,6 @@ assets/processed/
 *.njsproj
 *.sln
 *.sw?
+
+# Material de publicação gerado por scripts/render-instagram-card.mjs
+out/

@@ -521,7 +521,7 @@ export function SiteFooter() {
     <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
       <div><Link to="/" className="font-display text-lg">Veronica Hub</Link><p className="mt-3 text-sm text-muted-foreground">Escola de Inteligência Artificial</p><p className="mt-2 text-xs text-muted-foreground">© 2026 Veronica Hub</p></div>
       <nav aria-label="Navegação do rodapé" className="flex flex-col items-start gap-3">{PRIMARY_NAV.map(item => <Link key={item.id} to={item.to} className="flex items-center gap-1.5 text-sm hover:text-neon-green">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>)}<a href={SOCIAL_LINKS.email} className="text-sm">Contato</a></nav>
-      <div><p className="mb-3 text-sm">Acompanhe a Veronica</p><div className="flex flex-wrap gap-4">{[{label:"YouTube",href:SOCIAL_LINKS.youtube},{label:"Instagram",href:SOCIAL_LINKS.instagram},{label:"WhatsApp",href:SOCIAL_LINKS.whatsapp}].map(item => <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-neon-green">{item.label}</a>)}</div></div>
+      <div><p className="mb-3 text-sm">Acompanhe a Veronica</p><div className="flex flex-wrap gap-4">{[{label:"YouTube",href:SOCIAL_LINKS.youtube},{label:"Instagram",href:SOCIAL_LINKS.instagram},{label:"Instagram Wire TV",href:SOCIAL_LINKS.wireInstagram},{label:"WhatsApp",href:SOCIAL_LINKS.whatsapp}].map(item => <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-neon-green">{item.label}</a>)}</div></div>
     </div>
   </footer>;
 }

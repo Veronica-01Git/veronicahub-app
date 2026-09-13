@@ -728,3 +728,89 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
 - QA visual no navegador não realizado pelo mesmo bloqueio de instalação.
 - Enviado para `claude/elegant-bardeen-vzi64n` pelo commit `bd0b2b0`. Sem
   publicação em produção nesta etapa.
+
+## Compartilhamento da Wire TV no Instagram (2026-09-13, sessão cloud seguinte)
+
+- Base: `claude/bold-hawking-2ism1x` em `a3bd67d`. A sessão anterior acabou no
+  meio: `6d8edf8`/`1d4a2d4` (atalho da Wire TV no cabeçalho, sem duplicar),
+  `e3e9239` (indicador "ao vivo" reduzido a um ponto de 6 px com pulsação
+  suave e `prefers-reduced-motion` respeitado) e `a3bd67d` (o compartilhamento)
+  foram empurrados sem verificação e sem registro aqui. Esta sessão conferiu,
+  corrigiu e documentou os quatro.
+- **Estado herdado**: `ArticleShare` em `/blog/$slug` desenhava um card
+  1080 × 1350 num canvas e oferecia `navigator.share` com fallback de
+  download. O `@` do perfil (`wire___tv`) entrou em `SOCIAL_LINKS`, na nav do
+  `/blog` e no `sameAs` do expediente.
+- **Dois defeitos reais encontrados na verificação, ambos corrigidos**:
+  1. O rodapé do card imprimia a URL canônica inteira alinhada à direita na
+     mesma linha do `@wire___tv`. Com slug longo (o caso comum — os slugs têm
+     até 80 caracteres) os dois textos se atropelavam e o rodapé saía
+     ilegível. Agora vai só o domínio; o endereço completo continua na
+     legenda, que é de onde o leitor copia.
+  2. A legenda só ia pra área de transferência no caminho de download. No
+     celular, que é onde o `navigator.share` existe, o app do Instagram
+     descarta o texto que acompanha a imagem — o card chegava ao feed sem
+     legenda nenhuma. Agora a legenda é copiada nos dois caminhos, e há um
+     botão "Copiar legenda" explícito ao lado de "Copiar link".
+- **Traçado do card virou módulo**: `src/lib/wire-instagram-card.ts`
+  (dimensões, fontes, quebra da manchete, legenda, desenho). O componente só
+  cuida do que é do navegador — `Image`, `toBlob`, download, Web Share.
+- **`scripts/render-instagram-card.mjs`**: gera o mesmo card fora do
+  navegador, com `@napi-rs/canvas` (já era dependência) importando o módulo
+  em TS direto, como os testes fazem. Serve pra preparar postagem sem abrir o
+  site. Saída em `out/` (ignorado no git). Achado do caminho Node: o `Image`
+  do `@napi-rs` só decodifica de verdade via `loadImage()` — atribuir o buffer
+  em `.src` devolve as dimensões certas e desenha vazio.
+- Perfil da Wire TV também no rodapé do site (`SiteFooter`), que só listava o
+  Instagram da Veronica.
+- **Verificação**: 10/10 testes (dois novos — o `@` do card e o do link do
+  site saem da mesma fonte; a quebra da manchete respeita o limite de linhas e
+  sinaliza corte com reticências), typecheck limpo em `src/`, Prettier nos
+  arquivos novos. O card foi renderizado de fato nos dois caminhos: Node
+  (`@napi-rs/canvas`) e Chromium headless rodando o módulo compilado — capa,
+  manchete, editoria e rodapé conferidos na imagem. Foi assim que os dois
+  defeitos acima apareceram.
+- Não verificado: a página publicada. `bun install` agora funciona, mas
+  `@lovable.dev/vite-tanstack-config` continua 403 pela política de rede, então
+  não há `vite dev`/`build`; e o proxy segue bloqueando `veronicahub.com`
+  (403 no CONNECT), então não dá pra abrir o site publicado daqui.
+- Lembrete que continua valendo: **push em qualquer branch vira produção**
+  neste repo (integração Cloudflare↔Git). Foi um push só, no fim.
+
+## Cron editorial: por que a cadência horária nunca existiu (2026-09-13)
+
+- Sintoma relatado: nenhuma matéria nova depois das 14:03 UTC.
+- **Causa 1 — o agendador do GitHub descarta disparo.** Com `:17` e `:47` são
+  48 disparos/dia esperados. Rodaram 9 em 11/09, 15 em 12/09 e 6 em 13/09.
+  Nenhuma rodada começou no minuto pedido: sempre 4 a 27 min atrasada
+  (11:47 → 12:02, 05:47 → 06:14). Buracos de 4h48 (01:26 → 06:14) e 5h15
+  (06:47 → 12:02) já tinham acontecido antes de hoje. Ou seja: a cadência
+  horária nunca funcionou; o silêncio de hoje só foi o maior buraco. É
+  comportamento documentado do GitHub — `schedule` é best-effort.
+  **Correção**: um único `*/15 * * * *` no lugar dos dois horários. Barato
+  nos dois eixos: `publishArticleFromCron` consulta `windowAlreadyPublished`
+  ANTES de `draftAndValidate`, então repetir na mesma janela não gasta token;
+  e o repositório é **público**, então minuto de Actions é ilimitado. O custo
+  real é nas horas sem publicação: aí as quatro tentativas chamam a IA.
+- **Causa 2 — teto diário da Groq.** Log da rodada das 12:02, textual:
+  `tokens per day (TPD): Limit 200000, Used 200000` no `openai/gpt-oss-120b`.
+  Três das cinco editorias morreram aí. Era o regime antigo (cinco matérias
+  por hora); `0d0654e` das 13:25 cortou pra uma por hora, o que deve dividir
+  o consumo por ~5, mas isso ainda não foi observado por um dia inteiro.
+  **Este é o teto real de quantas matérias saem por dia** — nenhuma mudança
+  de cron contorna isso.
+- **Falso alarme registrado pra não ser reinvestigado**: as respostas 502 com
+  `skipped:false` para "sem fato verificável no momento" e para o 429 não são
+  bug do `isEditorialSkip`. Esses dois prefixos entraram na lista em `407e91e`,
+  publicado às 12:30; a rodada que falhou é das 12:02, 28 min antes.
+- **Correção no backfill da biblioteca**: `resolveLibraryImageUrl` desviava
+  pro raw.githubusercontent apenas `/images/blog-covers/`. Matéria com capa em
+  caminho antigo ficava fora da condição e o Worker buscava o próprio domínio
+  — 403/522, as sete falhas do passo "Sincroniza capas". Todo o `public/` é
+  versionado, então a condição passa a valer pra qualquer `/images/` do site.
+  Sete capas continuam ausentes do repositório (nenhum arquivo em
+  `public/images/blog-covers/` pra esses slugs), então elas vão passar a
+  falhar com 404 honesto em vez de 403/522 — isso é pendência separada.
+- **Atenção pra próxima sessão**: mudança de `schedule` só vale a partir do
+  branch padrão. Enquanto este trabalho não entrar em `main`, o cron continua
+  em `:17`/`:47`.

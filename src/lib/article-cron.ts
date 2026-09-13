@@ -43,9 +43,14 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 function resolveLibraryImageUrl(coverImageUrl: string): string {
   try {
     const url = new URL(coverImageUrl);
+    // Qualquer caminho de /images/ do próprio site, não só /images/blog-covers/:
+    // todo o public/ é versionado no repositório, e o que o desvio evita é o
+    // Worker buscar o próprio domínio. Matéria com capa em outro caminho
+    // (as antigas, de antes de blog-covers) caía fora desta condição e
+    // batia no loop interno — foram os 403/522 do backfill.
     if (
       (url.hostname === "veronicahub.com" || url.hostname === "www.veronicahub.com") &&
-      url.pathname.startsWith("/images/blog-covers/")
+      url.pathname.startsWith("/images/")
     ) {
       return `https://raw.githubusercontent.com/Veronica-01Git/veronicahub-app/main/public${url.pathname}`;
     }
