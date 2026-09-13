@@ -405,6 +405,12 @@ function SpecialProjectLinks({ onNavigate }: { onNavigate: () => void }) {
   return <div className="space-y-3"><p className="text-xs text-muted-foreground">Projetos especiais</p><div className="flex flex-wrap gap-4">{SPECIAL_PROJECTS.map(item => <a key={item.id} href={item.to} onClick={onNavigate} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} className="text-sm text-muted-foreground hover:text-foreground">{item.name}<span className="block text-xs">{item.status}</span></a>)}</div></div>;
 }
 
+// Fio vermelho do cabeçalho: esmaece nas duas pontas em vez de cortar a tela
+// de ponta a ponta. A cor vem de --neon-red, que tem variante clara em
+// .home-hybrid pras rotas de fundo claro.
+const HEADER_ACCENT_LINE =
+  "linear-gradient(90deg, transparent, var(--neon-red) 20%, var(--neon-red) 80%, transparent)";
+
 // Páginas com carteira mantêm seus próprios controles de sessão.
 export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -425,26 +431,28 @@ export function SiteHeader({ showAuth = true }: { showAuth?: boolean }) {
       {showAuth && <div className="sm:hidden"><AuthWidget variant="mobile" /></div>}
       {PRIMARY_NAV.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="flex items-center justify-between gap-2 border-b border-border/40 py-4 text-base">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
     </nav>}
+    {/* Fio de acento — 1px na borda inferior do cabeçalho, esmaecendo nas
+        pontas pra ler como detalhe de design e não como faixa de alerta.
+        Ancorado no próprio <header>, que já é sticky (posicionado), então
+        acompanha a expansão do menu mobile. */}
+    <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px opacity-70" style={{ background: HEADER_ACCENT_LINE }} />
   </header>;
 }
 
 // Moldura reutilizável de qualquer hero com fundo da Veronica — fade pras
-// bordas se fundirem com o resto da página + corner brackets. Usada tanto
-// pelo CyborgBackdrop (imagem estática) quanto pela hero WebGL da Studio.
+// bordas se fundirem com o resto da página. Usada tanto pelo CyborgBackdrop
+// (imagem estática) quanto pela hero WebGL da Studio. Os corner brackets
+// verde/ciano que ficavam nos cantos foram removidos a pedido do usuário.
 export function HeroFrame() {
   return (
-    <>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--background) 0%, oklch(0.14 0.015 200 / 0.6) 40%, transparent 75%, oklch(0.14 0.015 200 / 0.85) 100%), linear-gradient(180deg, transparent 0%, transparent 55%, var(--background) 100%)",
-        }}
-      />
-      <div aria-hidden className="pointer-events-none absolute left-6 top-6 h-16 w-16 border-l-2 border-t-2 border-neon-green/70" />
-      <div aria-hidden className="pointer-events-none absolute right-6 bottom-6 h-16 w-16 border-r-2 border-b-2 border-neon-cyan/70" />
-    </>
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{
+        background:
+          "linear-gradient(90deg, var(--background) 0%, oklch(0.14 0.015 200 / 0.6) 40%, transparent 75%, oklch(0.14 0.015 200 / 0.85) 100%), linear-gradient(180deg, transparent 0%, transparent 55%, var(--background) 100%)",
+      }}
+    />
   );
 }
 

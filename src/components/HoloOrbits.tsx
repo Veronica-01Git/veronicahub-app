@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 
 export const GREEN = "oklch(0.85 0.22 155)";
 export const CYAN = "oklch(0.88 0.15 195)";
-export const GOLD = "oklch(0.75 0.15 85)";
 const VIOLET = "oklch(0.65 0.2 250)";
 
 function NeuralNet({ w = 230, h = 185 }: { w?: number; h?: number }) {
@@ -71,60 +70,9 @@ function NeuralNet({ w = 230, h = 185 }: { w?: number; h?: number }) {
   );
 }
 
-export function HudScanner({ size = 110, hue = GREEN }: { size?: number; hue?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden
-      style={{ filter: `drop-shadow(0 0 1.5px ${hue})` }}>
-      <g stroke={hue} fill="none">
-        <path d="M8 26 V8 H26" strokeWidth="1.4" opacity="0.6" />
-        <path d="M74 8 H92 V26" strokeWidth="1.4" opacity="0.45" />
-        <path d="M92 74 V92 H74" strokeWidth="1.4" opacity="0.35" />
-        <path d="M26 92 H8 V74" strokeWidth="1.4" opacity="0.45" />
-        <circle cx="50" cy="50" r="34" strokeWidth="0.6" opacity="0.3" strokeDasharray="2 8">
-          <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="20s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="50" cy="50" r="27" strokeWidth="0.7" opacity="0.3" strokeDasharray="4 7">
-          <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="12s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="50" cy="50" r="19" strokeWidth="0.9" opacity="0.42" strokeDasharray="34 86">
-          <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="6s" repeatCount="indefinite" />
-        </circle>
-        <path d="M50 30 V40 M50 60 V70 M30 50 H40 M60 50 H70" strokeWidth="0.8" opacity="0.5" />
-        <line x1="12" y1="50" x2="88" y2="50" strokeWidth="0.6" opacity="0.35">
-          <animate attributeName="y1" values="14;86;14" dur="4.5s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="14;86;14" dur="4.5s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0;0.5;0" dur="6.5s" repeatCount="indefinite" />
-        </line>
-      </g>
-      <circle cx="50" cy="50" r="2.4" fill={hue} opacity="0.4">
-        <animate attributeName="opacity" values="1;0.15;1" dur="1.8s" repeatCount="indefinite" />
-        <animate attributeName="r" values="3.4;4.6;3.4" dur="1.8s" repeatCount="indefinite" />
-      </circle>
-    </svg>
-  );
-}
-
-// HudScanner posicionado como acento decorativo dentro do conteúdo de uma
-// página (diferente do overlay global HoloOrbits, que é fixed site-wide).
-// SMIL não é coberto pela regra CSS global de prefers-reduced-motion, então
-// checa e some por completo quando a preferência está ativa.
-export function HudAccent({ size = 68, hue = GREEN, className = "" }: { size?: number; hue?: string; className?: string }) {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
-  if (reduced) return null;
-  return (
-    <div aria-hidden className={`pointer-events-none hidden opacity-70 sm:block ${className}`}>
-      <HudScanner size={size} hue={hue} />
-    </div>
-  );
-}
-
 // Routes with their own light "paper" identity, or a deliberately sober
 // institutional tone, opt out of this dark-cyber overlay. /blog (Veronica
-// Wire) opted out a pedido do usuário: o HudScanner ("mira") + a
-// holo-beam (linha verde varrendo a tela) competiam com a leitura de
+// Wire) opted out a pedido do usuário: o overlay competia com a leitura de
 // notícia — a própria página do Wire já tem seu próprio acento "ao vivo"
 // (WirePulseGlobe no masthead, ver src/components/blog/WirePulseGlobe.tsx).
 const LIGHT_THEME_ROUTES = ["/veronica-curriculo-certo", "/veronica-nautica", "/blog"];
@@ -162,8 +110,6 @@ export function HoloOrbits() {
           }}
         />
       )}
-      <div className="absolute right-[3.5%] top-[27%] opacity-[0.34]" style={{ animation: "holo-drift-a 19s ease-in-out infinite" }}><HudScanner size={118} hue={GREEN} /></div>
-      <div className="absolute right-[6%] bottom-[19%] opacity-[0.26]" style={{ animation: "holo-drift-b 24s ease-in-out infinite" }}><HudScanner size={72} hue={CYAN} /></div>
       <div className="absolute left-5 top-20 h-14 w-14 border-l-2 border-t-2" style={{ borderColor: `${GREEN}`, opacity: 0.3 }} />
       <div className="absolute right-5 bottom-20 h-14 w-14 border-r-2 border-b-2" style={{ borderColor: `${CYAN}`, opacity: 0.3 }} />
     </div>

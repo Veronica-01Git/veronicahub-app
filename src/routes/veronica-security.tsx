@@ -22,7 +22,7 @@ import { courses } from "@/lib/courses";
 // Backdrop temático da hero — central de operações de cibersegurança,
 // gerada no Higgsfield já na paleta neon-green/cyan do Hub. Auto-hospedada
 // em public/images/security/ (otimizada em .webp), mesma técnica visual do
-// CyborgBackdrop compartilhado (fade + corner brackets via HeroFrame).
+// CyborgBackdrop compartilhado (fade das bordas via HeroFrame).
 function SecurityBackdrop() {
   return (
     <>

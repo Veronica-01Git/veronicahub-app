@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 // eixos diferentes simulam meridianos de um globo (mesmo truque de
 // perspectiva usado em globos SVG), com 4 pontos pulsando fora de fase nas
 // bordas — um por desk do Wire (São Paulo/San Francisco/Pequim/Londres),
-// como se um sinal estivesse chegando de cada fuso agora. Mesma técnica de
-// HudScanner (components/HoloOrbits.tsx): SMIL puro, então não é coberto
-// pela regra CSS global de prefers-reduced-motion — checa na mão e some.
+// como se um sinal estivesse chegando de cada fuso agora. Animação em SMIL
+// puro, que não é coberto pela regra CSS global de prefers-reduced-motion —
+// checa na mão e some.
 const GREEN = "oklch(0.85 0.22 155)";
 const CYAN = "oklch(0.88 0.15 195)";
 

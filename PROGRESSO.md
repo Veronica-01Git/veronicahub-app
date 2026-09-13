@@ -651,3 +651,38 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   novos, esse branch fica desatualizado — aí traga o `main` novo pra dentro
   dele antes de publicar.
 - `PIXABAY_API_KEY` e `scripts/reprocess-covers.mjs` continuam pendentes.
+
+## Remoção da mira holográfica flutuante (2026-09-13)
+
+- Base: `claude/elegant-bardeen-vzi64n` em `3a41094`; mesma branch de trabalho.
+- Identificada a pedido do usuário: a "mira" é o componente `HudScanner`
+  (`src/components/HoloOrbits.tsx`) — SVG+SMIL com anéis girando, retículo
+  central e cantos de HUD. Chegava à tela por dois caminhos: duas instâncias
+  com `holo-drift-a/b` dentro do overlay global `HoloOrbits` (fixed, site-wide)
+  e o wrapper `HudAccent`, plantado como acento dentro do conteúdo de páginas.
+- Removidos: `HudScanner`, `HudAccent`, as duas instâncias do overlay global,
+  três usos de `HudAccent` na Home (`/`, seções 01, 03 e 04) e um em
+  `/veronica-rede`, os keyframes `holo-drift-a` e `holo-drift-b` em
+  `src/styles.css` (órfãos após a remoção) e o export `GOLD`.
+- `HoloOrbits` segue montado no RootShell com o que não é mira: a vinheta
+  radial e os dois cantos de HUD. A `holo-beam` continua preservada e
+  desativada por `GLOBAL_SCAN_BEAM_ENABLED = false`, como registrado acima.
+- `GOLD` não servia só à mira: também alimentava `PARTICLE_COLORS` em
+  `/veronica-rede`. O valor `oklch(0.75 0.15 85)` passou a literal na lista,
+  no mesmo padrão das outras duas cores, que já eram literais.
+- `RichEnvironment` perdeu a prop `accentClassName`, que só existia para
+  posicionar o acento; os dois chamadores (hero e CTA final) foram atualizados.
+- Comentários que citavam `HudScanner` atualizados em `HoloOrbits.tsx`,
+  `src/components/blog/WirePulseGlobe.tsx` e no hero de `/veronica-rede`.
+- Backend, autenticação, navegação, temas, imagem da Veronica e demais efeitos
+  permanecem intactos. Nenhuma dependência adicionada ou removida.
+- 6/6 testes e typecheck limpo em `src/`. Lint direcionado aos quatro arquivos
+  tocados: apenas ocorrências preexistentes de Prettier (59 na base, 51 após a
+  mudança), nenhuma introduzida.
+- Build de produção não executado: `bun install` falha neste ambiente porque a
+  registry privada de `@lovable.dev/vite-tanstack-config` responde 403 pela
+  política de rede. A validação rodou com o pacote isolado; `package.json` e
+  `bun.lock` foram restaurados e ficaram fora do commit.
+- QA visual no navegador não realizado pelo mesmo bloqueio de instalação.
+- Enviado para `claude/elegant-bardeen-vzi64n` pelo commit `bd0b2b0`. Sem
+  publicação em produção nesta etapa.

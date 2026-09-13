@@ -56,6 +56,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-neon-green: var(--neon-green);
   --color-neon-cyan: var(--neon-cyan);
+  --color-neon-red: var(--neon-red);
   --color-gold: var(--gold);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
@@ -74,6 +75,9 @@
   --popover-foreground: oklch(0.97 0.01 180);
   --neon-green: oklch(0.85 0.22 155);
   --neon-cyan: oklch(0.88 0.15 195);
+  /* Vermelho de acento — só decorativo (o fio do cabeçalho). Estado de erro
+     continua sendo --destructive, que é mais saturado de propósito. */
+  --neon-red: oklch(0.68 0.23 25);
   /* Dourado/âmbar — tom de riqueza, exclusivo da Veronica Rede */
   --gold: oklch(0.75 0.15 85);
   --primary: oklch(0.85 0.22 155);
@@ -133,6 +137,7 @@
   --muted-foreground: oklch(0.46 0.012 250);
   --neon-green: oklch(0.58 0.17 155);
   --neon-cyan: oklch(0.56 0.13 195);
+  --neon-red: oklch(0.55 0.2 27);
   --shadow-glow-green: 0 0 32px oklch(0.58 0.17 155 / 0.22), 0 0 64px oklch(0.58 0.17 155 / 0.1);
   --shadow-glow-cyan: 0 0 32px oklch(0.56 0.13 195 / 0.22), 0 0 64px oklch(0.56 0.13 195 / 0.1);
   color-scheme: light;
@@ -164,6 +169,7 @@
   --muted-foreground: oklch(0.65 0.03 190);
   --neon-green: oklch(0.85 0.22 155);
   --neon-cyan: oklch(0.88 0.15 195);
+  --neon-red: oklch(0.68 0.23 25);
   --shadow-glow-green: 0 0 40px oklch(0.85 0.22 155 / 0.4), 0 0 80px oklch(0.85 0.22 155 / 0.2);
   --shadow-glow-cyan: 0 0 40px oklch(0.88 0.15 195 / 0.4), 0 0 80px oklch(0.88 0.15 195 / 0.2);
   color-scheme: dark;
@@ -417,17 +423,6 @@
   100% { top: 102%; opacity: 0; }
 }
 
-@keyframes holo-drift-a {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25%  { transform: translate(-14px, 18px) rotate(2deg); }
-  50%  { transform: translate(8px, 30px) rotate(-1deg); }
-  75%  { transform: translate(16px, 10px) rotate(1.5deg); }
-}
-@keyframes holo-drift-b {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  30%  { transform: translate(18px, -16px) rotate(-2deg); }
-  60%  { transform: translate(-10px, -26px) rotate(2deg); }
-}
 @keyframes sparkle-twinkle {
   0%, 100% { opacity: 0; transform: scale(0.4); }
   50% { opacity: 1; transform: scale(1); }
