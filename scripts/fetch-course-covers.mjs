@@ -31,7 +31,7 @@ const COURSE_TERM = {
   "avatar-digital-ia": "neon portrait lighting studio profile",
   afiliado: "laptop online shopping ecommerce desk",
   ifood: "food delivery courier motorcycle city night",
-  "meta-ads": "analytics dashboard charts screen",
+  "meta-ads": "dark room multiple monitors data charts night",
   "vfx-com-ia": "green screen visual effects studio",
   copywriting: "typewriter notebook writing desk",
   "app-no-code": "mobile app wireframe screens desk",
@@ -40,6 +40,17 @@ const COURSE_TERM = {
 };
 
 async function main() {
+  // Sem argumento, busca as 11. Com um ou mais slugs, busca só esses — serve
+  // pra trocar UMA capa que não ficou boa sem sortear de novo as outras dez.
+  const only = process.argv.slice(2).filter(Boolean);
+  const desconhecidos = only.filter((s) => !(s in COURSE_TERM));
+  if (desconhecidos.length > 0) {
+    console.error(`Slug desconhecido: ${desconhecidos.join(", ")}`);
+    console.error(`Conhecidos: ${Object.keys(COURSE_TERM).join(", ")}`);
+    process.exit(1);
+  }
+  const alvo = only.length > 0 ? only : Object.keys(COURSE_TERM);
+
   const pexelsKey = process.env.PEXELS_API_KEY;
   const pixabayKey = process.env.PIXABAY_API_KEY;
   if (!pexelsKey && !pixabayKey) {
@@ -63,7 +74,8 @@ async function main() {
   const failed = [];
   const credits = [];
 
-  for (const [slug, term] of Object.entries(COURSE_TERM)) {
+  for (const slug of alvo) {
+    const term = COURSE_TERM[slug];
     let found = pexelsKey ? await searchPexels(term, pexelsKey, usedPhotoIds) : null;
     if (!found && pixabayKey) found = await searchPixabay(term, pixabayKey, usedPhotoIds);
 
@@ -83,8 +95,7 @@ async function main() {
     ok.push(slug);
   }
 
-  const total = Object.keys(COURSE_TERM).length;
-  console.log(`\n--- Resumo: ${ok.length}/${total} formações ---`);
+  console.log(`\n--- Resumo: ${ok.length}/${alvo.length} formações ---`);
   if (credits.length > 0) console.log(`\nCréditos:\n${credits.join("\n")}`);
   if (failed.length > 0) {
     console.log(`\nSem foto: ${failed.join(", ")}`);
