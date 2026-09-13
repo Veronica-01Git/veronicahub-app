@@ -51,7 +51,8 @@ async function resolveCover(slug, beat) {
 async function main() {
   const slug = required("WIRE_SLUG");
   const headline = required("WIRE_HEADLINE");
-  const excerpt = required("WIRE_EXCERPT");
+  // Sem resumo a legenda sai só com manchete, link e @ — nada é inventado.
+  const excerpt = (process.env.WIRE_EXCERPT ?? "").trim();
   const beat = required("WIRE_BEAT");
   if (!isBeat(beat)) throw new Error(`WIRE_BEAT inválido: ${beat}`);
 

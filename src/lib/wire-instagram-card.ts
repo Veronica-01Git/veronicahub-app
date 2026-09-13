@@ -109,18 +109,21 @@ export function wrapHeadline(
 // Instagram não aceita link clicável na legenda — quem lê copia daqui.
 export function buildWireCaption(input: {
   headline: string;
-  excerpt: string;
+  excerpt?: string;
   canonicalUrl: string;
 }): string {
+  // O resumo é opcional: quando a legenda é montada fora do site (script de
+  // publicação), nem sempre ele está à mão, e um parágrafo vazio no meio da
+  // legenda aparece como duas linhas em branco no feed.
+  const excerpt = input.excerpt?.trim();
   return [
     input.headline,
-    "",
-    input.excerpt,
-    "",
+    excerpt,
     `Leia a matéria completa: ${input.canonicalUrl}`,
-    "",
     WIRE_INSTAGRAM_HANDLE,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 // No rodapé do card entra só o domínio: o endereço completo de uma matéria
