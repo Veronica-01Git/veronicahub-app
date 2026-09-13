@@ -10,6 +10,12 @@ import {
   type FeedCategory,
   type TrendingVideo,
 } from "@/lib/trending-videos";
+import {
+  affiliateCatalog,
+  hasAffiliateProducts,
+  buildTrackedPath,
+  normalizeHandle,
+} from "@/lib/affiliate-products";
 
 export const Route = createFileRoute("/veronica-analytics")({
   component: VeronicaAnalytics,
@@ -204,6 +210,149 @@ function ViralCard({ video }: { video: TrendingVideo }) {
   );
 }
 
+// Catálogo de afiliado: a pessoa escolhe o produto, carimba o próprio
+// apelido e sai com um link rastreado. A venda acontece na Shopee, com o
+// Sub_id identificando quem divulgou — é o Sub_id que faz a comissão do
+// divulgador ser rastreável no relatório, não um contador nosso.
+//
+// A seção inteira some quando o catálogo está vazio: melhor não existir do
+// que existir prometendo produto que ainda não foi cadastrado.
+function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCategory[] }) {
+  const [handle, setHandle] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const normalized = normalizeHandle(handle);
+
+  // Produto que casa com uma categoria em alta agora sobe na lista — é o
+  // elo entre o feed de tendências e o que dá pra vender hoje.
+  const products = useMemo(() => {
+    const inFeed = new Set(feedCategories);
+    return [...affiliateCatalog.products].sort((a, b) => {
+      const aHot = inFeed.has(a.category) ? 0 : 1;
+      const bHot = inFeed.has(b.category) ? 0 : 1;
+      return aHot - bHot;
+    });
+  }, [feedCategories]);
+
+  async function handleCopy(productId: string, path: string) {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${path}`);
+      setCopiedId(productId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      // Clipboard bloqueado (permissão ou contexto inseguro): o link continua
+      // clicável no botão ao lado, então não vale interromper a pessoa.
+      setCopiedId(null);
+    }
+  }
+
+  return (
+    <section id="afiliar" className="border-b px-6 py-12 md:py-16" style={{ borderColor: "var(--tt-line)" }}>
+      <div className="mx-auto max-w-5xl">
+        <div className="flex items-center gap-2 text-[16px] font-bold" style={{ color: "var(--tt-ink)" }}>
+          <ShoppingBag className="h-4 w-4" style={{ color: "var(--tt-cyan)" }} /> Escolha o produto que você vai vender
+        </div>
+        <p className="mt-1.5 max-w-2xl text-[13.5px] leading-[1.6]" style={{ color: "var(--tt-ink-soft)" }}>
+          Produtos que a Veronica já é afiliada na Shopee. Você põe seu @, copia o link com a sua marca e divulga no
+          TikTok ou onde quiser — a venda acontece na Shopee e o seu identificador vai carimbado no link, que é como a
+          comissão da sua divulgação é reconhecida.
+        </p>
+
+        <label className="mt-6 flex max-w-sm flex-col gap-2">
+          <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
+            Seu @ (vira sua marca no link)
+          </span>
+          <input
+            type="text"
+            value={handle}
+            onChange={(e) => setHandle(e.target.value)}
+            placeholder="@seuusuario"
+            className="rounded-xl border px-4 py-3 text-[15px] outline-none transition focus:ring-2"
+            style={
+              {
+                borderColor: "var(--tt-line)",
+                background: "var(--tt-surface)",
+                color: "var(--tt-ink)",
+                "--tw-ring-color": "var(--tt-cyan)",
+              } as CSSProperties
+            }
+          />
+          <span className="font-mono-tech text-[10.5px]" style={{ color: "var(--tt-ink-faint)" }}>
+            {normalized
+              ? `no link você aparece como: ${normalized}`
+              : "sem o @ o link funciona, mas a venda não fica ligada a você"}
+          </span>
+        </label>
+
+        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => {
+            const meta = CATEGORY_META[product.category];
+            const path = buildTrackedPath(product, { handle, placement: "analytics_catalogo" });
+            const hot = feedCategories.includes(product.category);
+            return (
+              <div
+                key={product.id}
+                className="flex flex-col rounded-2xl border p-4"
+                style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className="rounded-full px-2 py-0.5 font-mono-tech text-[10.5px] font-semibold"
+                    style={{ background: `color-mix(in oklab, ${meta.color} 14%, white)`, color: meta.color }}
+                  >
+                    {meta.label}
+                  </span>
+                  {hot && (
+                    <span className="flex items-center gap-1 font-mono-tech text-[10px] font-semibold" style={{ color: "var(--tt-pink)" }}>
+                      <Flame className="h-2.5 w-2.5" /> em alta agora
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2.5 text-[14px] font-semibold leading-[1.35]" style={{ color: "var(--tt-ink)" }}>
+                  {product.name}
+                </p>
+                <p className="mt-1.5 text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-soft)" }}>
+                  {product.angle}
+                </p>
+                <div className="mt-3 flex items-center justify-between font-mono-tech text-[11px]" style={{ color: "var(--tt-ink-faint)" }}>
+                  <span style={{ color: "var(--tt-ink)" }}>{product.priceLabel}</span>
+                  <span>comissão {product.commissionLabel}</span>
+                </div>
+                <div className="mt-auto flex items-center gap-2 pt-3.5">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(product.id, path)}
+                    className="flex-1 rounded-xl border px-3 py-2 font-mono-tech text-[11px] font-semibold transition hover:-translate-y-0.5"
+                    style={{ borderColor: "var(--tt-line)", color: "var(--tt-ink)" }}
+                  >
+                    {copiedId === product.id ? "link copiado" : "copiar meu link"}
+                  </button>
+                  <a
+                    href={path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-xl px-3 py-2 font-mono-tech text-[11px] font-semibold text-white transition hover:-translate-y-0.5"
+                    style={{ background: "var(--tt-ink)" }}
+                  >
+                    ver na Shopee
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="mt-6 max-w-2xl text-[12px] leading-[1.6]" style={{ color: "var(--tt-ink-faint)" }}>
+          A compra é feita na Shopee, sob as regras dela — preço e disponibilidade podem mudar lá a qualquer momento.
+          O Veronica Hub registra o encaminhamento pra medir quais produtos a rede está conseguindo girar.{" "}
+          <Link to="/veronica-rede" className="underline">
+            Como funciona a Veronica Rede
+          </Link>
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function VeronicaAnalytics() {
   const [activeCategory, setActiveCategory] = useState<"todos" | FeedCategory>("todos");
   const [sortBy, setSortBy] = useState<SortKey>("gmv");
@@ -365,6 +514,10 @@ function VeronicaAnalytics() {
           )}
         </div>
       </section>
+
+      {hasAffiliateProducts && (
+        <AffiliateCatalogSection feedCategories={feed.map((v) => v.category)} />
+      )}
 
       {/* Calculator */}
       <section id="calculadora" className="border-b px-6 py-16 md:py-20" style={{ borderColor: "var(--tt-line)" }}>
