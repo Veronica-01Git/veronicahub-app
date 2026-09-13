@@ -164,3 +164,25 @@ test('o diagnóstico do radar não desclassifica um pulo editorial', () => {
     `o diagnóstico tem que vir depois da mensagem do modelo, e veio: ${message[1]}`,
   );
 });
+
+test('capa que a biblioteca já serve não passa por download', () => {
+  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+  const save = cron.slice(cron.indexOf('async function saveCoverToMediaLibrary'));
+  const body = save.slice(0, save.indexOf('\n}\n'));
+
+  // /api/media-images/<id> é servido pela própria aplicação a partir de
+  // mediaImages. Buscar essa URL é o Worker chamando o próprio domínio, que o
+  // Cloudflare encerra com 522 — foi o que derrubou três dos sete slugs do
+  // backfill. A checagem só evita isso se vier ANTES do fetch.
+  const guard = body.indexOf('mediaLibraryImageId(');
+  const download = body.indexOf('await fetch(');
+  assert.ok(guard !== -1, 'saveCoverToMediaLibrary precisa reconhecer capa já hospedada na biblioteca');
+  assert.ok(download !== -1, 'saveCoverToMediaLibrary precisa continuar baixando as demais capas');
+  assert.ok(guard < download, 'a checagem da biblioteca tem que vir antes do download, senão o 522 volta');
+
+  // O desvio para o GitHub cobre /images/; a biblioteca é banco, não arquivo.
+  assert.ok(
+    /url\.pathname\.startsWith\("\/api\/media-images\/"\)/.test(cron),
+    'o reconhecimento precisa casar o caminho real da biblioteca',
+  );
+});

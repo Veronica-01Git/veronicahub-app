@@ -907,3 +907,36 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   O mesmo erro aparece no `origin/main` puro, então não é regressão. Para
   medir de verdade: `npx tsc --noEmit; echo $?`, sem pipe, ou contar as
   linhas `error TS`.
+
+## Pendência das capas resolvida pela metade, com causa medida (2026-09-13)
+
+- **A rodada das 21:00 publicou** — primeira desde 15:49. Slug
+  `inundacoes-em-telangana-apos-chuvas-recordes-de-135-5-mm-em-mancherial`,
+  com foto real do Pexels (id 13865772). Com isso o passo "Sincroniza capas
+  publicadas com a biblioteca Admin" finalmente rodou, quase cinco horas
+  depois da correção que deveria consertá-lo.
+- **Ele falhou de novo, com os mesmos sete slugs e os mesmos códigos**:
+  `saved:0, alreadyPresent:15`, quatro 403 e três 522. Ou seja, a correção do
+  PR #89 (`resolveLibraryImageUrl` cobrindo todo `/images/`) **não era a
+  causa** — mirou no caminho errado.
+- **Causa real, lida no banco** (`SELECT slug, "coverImageUrl" FROM "Article"`
+  nos sete slugs, projeto Neon `aged-scene-12810096`). Os sete se dividem
+  exatamente nos dois códigos de erro, e nenhum está sob `/images/`:
+  - **Três com 522**: `https://veronicahub.com/api/media-images/<id>`. É a
+    própria biblioteca servindo a imagem. Baixar isso é o Worker fazendo
+    subrequest para si mesmo, que o Cloudflare encerra com 522 — para trazer
+    bytes que já estão em `mediaImages`. Confirmado que os três ids existem na
+    tabela com bytes de verdade (120KB, 163KB e 957KB).
+  - **Quatro com 403**: `https://d3u0tzju9qaucj.cloudfront.net/...`. CDN
+    externo, provavelmente resíduo da Lovable. Nem a hipótese do briefing
+    (Pexels) nem a do `/images/` estavam certas.
+- **Consertado**: `saveCoverToMediaLibrary` passa a reconhecer
+  `/api/media-images/<id>` antes de qualquer fetch e trata como já presente,
+  sem baixar e sem duplicar linha no banco. Teste novo trava a ordem — se a
+  checagem for parar depois do fetch, o 522 volta.
+- **Não consertado, e não dá para consertar às cegas**: os quatro do
+  CloudFront. O proxy deste ambiente bloqueia o host (403 no CONNECT), então
+  não dá para saber se o 403 é hotlink, URL assinada vencida ou remoção. Se
+  for permanente, não há solução em código: alguém precisa reenviar essas
+  quatro capas pelo Admin. Vale medir na próxima publicação se sobraram
+  exatamente quatro falhas — isso confirma que os três do 522 sumiram.
