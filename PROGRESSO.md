@@ -551,4 +551,9 @@ continuar isso:**
   ambiente e navegador remoto com `ERR_BLOCKED_BY_CLIENT` para localhost.
 - Usuário autorizou publicação em 2026-09-13. Antes do envio, verificação no
   navegador de produção confirmou uma linha `holo-beam` ativa na Home.
-  Confirmação posterior da publicação ainda pendente neste registro.
+- Publicado na `main` pelo commit `ae3edf1`. Cloudflare Workers confirmou
+  build/deploy com sucesso (build `54c25ed4-fa2a-467e-b596-0f3a0d0ac6bd`).
+- Verificação em produção após hidratação: Home nos temas claro e escuro e
+  `/comandos` com zero elementos `holo-beam` e os dois HUDs globais preservados.
+- Pexels e Pixabay: acesso pelo navegador desta sessão bloqueado por CAPTCHA;
+  nenhuma conexão autenticada nova concluída.
