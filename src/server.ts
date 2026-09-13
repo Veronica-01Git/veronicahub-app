@@ -13,6 +13,7 @@ import {
 } from "./lib/article-cron";
 import { handleCoverImage } from "./lib/cover-image-server";
 import { handleMediaImage } from "./lib/media-images-server";
+import { handleSourceReferral } from "./lib/source-network-server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -90,6 +91,15 @@ export default {
       } catch (error) {
         console.error("Erro ao gerar feed.xml:", error);
         return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/r/fonte") {
+      try {
+        return await handleSourceReferral(request);
+      } catch (error) {
+        console.error("Erro ao encaminhar para fonte:", error);
+        return new Response("fonte indisponível", { status: 500 });
       }
     }
 

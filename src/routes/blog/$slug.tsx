@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink, Network } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
-import { WireArticleAction } from "@/components/blog/WireGrowth";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
 import { WIRE_NAME } from "@/lib/ecosystem";
+import { sourceDomain, sourceLabel, trackedSourceHref } from "@/lib/editorial-network";
 
 const SITE_URL = "https://veronicahub.com";
 
@@ -21,54 +21,6 @@ function derivePhotoSourceLabel(url: string | null): string {
     // ignora URL inválida — cai no fallback abaixo
   }
   return "Pexels";
-}
-
-// Nomes conhecidos dos veículos mais citados pelo Wire até agora — fallback
-// pra qualquer domínio novo é capitalizar os pedaços do hostname. Sem campo
-// dedicado de "fonte" no banco (só sourceUrls), então isso deriva o nome de
-// exibição a partir da própria URL, sem inventar nada que não esteja nela.
-const KNOWN_SOURCES: Record<string, string> = {
-  "caixinglobal.com": "Caixin Global",
-  "scmp.com": "SCMP",
-  "coindesk.com": "CoinDesk",
-  "crowdfundinsider.com": "Crowdfund Insider",
-  "paymentexpert.com": "Payment Expert",
-  "atlanticcouncil.org": "Atlantic Council",
-  "unite.ai": "Unite.AI",
-  "cerebras.ai": "Cerebras",
-  "openai.com": "OpenAI",
-  "mlq.ai": "MLQ.ai",
-  "exame.com": "Exame",
-  "revistaforum.com.br": "Revista Fórum",
-  "tecnoblog.net": "Tecnoblog",
-  "ajupress.com": "Aju Press",
-  "tomshardware.com": "Tom's Hardware",
-  "brasil247.com": "Brasil 247",
-  "cenarioenergia.com.br": "Cenário Energia",
-  "cebc.org.br": "CEBC",
-  "timesbrasil.com.br": "Times Brasil",
-  "monitormercantil.com.br": "Monitor Mercantil",
-  "theblock.co": "The Block",
-  "forbes.com": "Forbes",
-  "epe.gov.br": "EPE",
-  "xpi.com.br": "XP Investimentos",
-  "epowerbay.com": "ePowerBay",
-};
-
-function deriveSourceLabel(url: string): string {
-  let hostname: string;
-  try {
-    hostname = new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-  if (KNOWN_SOURCES[hostname]) return KNOWN_SOURCES[hostname];
-  // Domínio com subdomínio (ex: investors.cerebras.ai) — tenta o eTLD+1.
-  const parts = hostname.split(".");
-  const root = parts.length > 2 ? parts.slice(-2).join(".") : hostname;
-  if (KNOWN_SOURCES[root]) return KNOWN_SOURCES[root];
-  const label = hostname.split(".")[0];
-  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -165,16 +117,16 @@ function ArticlePage() {
             </p>
             {state.article.sourceUrls.length > 0 && (
               <a
-                href={state.article.sourceUrls[0]}
+                href={trackedSourceHref(state.article.slug, 0)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-block text-[13px] text-muted-foreground transition hover:text-neon-green"
               >
-                Fonte: {deriveSourceLabel(state.article.sourceUrls[0])} ›
+                Fonte: {sourceLabel(state.article.sourceUrls[0])} ›
               </a>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-3 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-              <span>{state.article.desk}</span>
+              <span>{state.article.editorialChannel.label}</span>
               {state.article.publishedAt && (
                 <>
                   <span className="opacity-40">·</span>
@@ -217,23 +169,51 @@ function ArticlePage() {
                 ))}
             </div>
 
-            <WireArticleAction beat={state.article.beat} />
+            <div className="mt-10 border-y border-border/60 py-6">
+              <div className="flex items-start gap-3">
+                <Network className="mt-0.5 h-4 w-4 shrink-0 text-neon-green" />
+                <div>
+                  <p className="text-[15px] leading-relaxed text-foreground/90">
+                    Esta cobertura integra o ecossistema Veronica Wire, que conecta informação
+                    verificada, educação e aplicação prática.
+                  </p>
+                  <Link
+                    to="/blog/rede-de-fontes"
+                    className="mt-3 inline-flex items-center gap-1.5 font-mono-tech text-xs uppercase tracking-widest text-neon-green transition hover:text-neon-cyan"
+                  >
+                    Conhecer a Rede de Fontes <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
 
             {state.article.sourceUrls.length > 0 && (
               <div className="mt-10 rounded-sm border border-border/60 bg-surface/30 p-5">
-                <h2 className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                  Fontes
+                <h2 className="font-display text-xl text-foreground">
+                  Fontes consultadas
                 </h2>
-                <ul className="mt-2 flex flex-col gap-1">
-                  {state.article.sourceUrls.map((url) => (
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  A Veronica identifica e encaminha o leitor para a publicação original. Citação
+                  editorial não representa parceria comercial.
+                </p>
+                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {state.article.sourceUrls.map((url, index) => (
                     <li key={url}>
                       <a
-                        href={url}
+                        href={trackedSourceHref(state.article.slug, index)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-neon-green hover:underline"
+                        className="group flex h-full items-center justify-between gap-3 rounded-sm border border-border/60 bg-background px-4 py-3 transition hover:border-neon-green/60"
                       >
-                        {url}
+                        <span>
+                          <span className="block text-sm font-medium text-foreground group-hover:text-neon-green">
+                            {sourceLabel(url)}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {sourceDomain(url)}
+                          </span>
+                        </span>
+                        <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-neon-green" />
                       </a>
                     </li>
                   ))}

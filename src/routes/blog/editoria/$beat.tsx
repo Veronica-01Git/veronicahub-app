@@ -6,6 +6,7 @@ import { CoverThumb, BEAT_COLOR } from "@/components/blog/CoverThumb";
 import { getArticlesByBeat } from "@/lib/articles-server";
 import { formatAgo } from "@/lib/blog-format";
 import { BEAT_LABELS, isBeat, type Beat } from "@/lib/beats";
+import { EDITORIAL_CHANNELS } from "@/lib/editorial-network";
 import { WIRE_NAME } from "@/lib/ecosystem";
 
 // Rota separada de /blog/$slug (não /blog/$beat) de propósito: dois
@@ -55,7 +56,12 @@ function BeatPage() {
   const [articles, setArticles] = useState(initial.articles);
   const [cursor, setCursor] = useState(initial.nextCursor);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [channelId, setChannelId] = useState<string | null>(null);
   const now = useState(() => new Date())[0];
+  const channels = EDITORIAL_CHANNELS[beat];
+  const visibleArticles = channelId
+    ? articles.filter((article) => article.editorialChannel.id === channelId)
+    : articles;
 
   async function loadMore() {
     if (!cursor || loadingMore) return;
@@ -94,6 +100,35 @@ function BeatPage() {
           >
             {meta.label}
           </h1>
+          <div className="mt-6 flex flex-wrap gap-2" aria-label="Canais editoriais">
+            <button
+              type="button"
+              onClick={() => setChannelId(null)}
+              aria-pressed={channelId === null}
+              className={`rounded-full border px-4 py-2 text-sm transition ${
+                channelId === null
+                  ? "border-neon-green bg-neon-green/10 text-foreground"
+                  : "border-border/60 text-muted-foreground hover:border-neon-green/50"
+              }`}
+            >
+              Todos
+            </button>
+            {channels.map((channel) => (
+              <button
+                key={channel.id}
+                type="button"
+                onClick={() => setChannelId(channel.id)}
+                aria-pressed={channelId === channel.id}
+                className={`rounded-full border px-4 py-2 text-sm transition ${
+                  channelId === channel.id
+                    ? "border-neon-green bg-neon-green/10 text-foreground"
+                    : "border-border/60 text-muted-foreground hover:border-neon-green/50"
+                }`}
+              >
+                {channel.label}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -110,7 +145,7 @@ function BeatPage() {
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.map((a) => (
+              {visibleArticles.map((a) => (
                 <Link
                   key={a.id}
                   to="/blog/$slug"
@@ -126,7 +161,7 @@ function BeatPage() {
                   />
                   <div className="flex flex-1 flex-col gap-3 p-6">
                     <div className="flex items-center justify-between font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                      <span>{a.desk}</span>
+                      <span>{a.editorialChannel.label}</span>
                       <span>{formatAgo(a.publishedAt, now)}</span>
                     </div>
                     <h3
@@ -140,6 +175,15 @@ function BeatPage() {
                 </Link>
               ))}
             </div>
+
+            {visibleArticles.length === 0 && channelId && (
+              <div className="rounded-sm border border-dashed border-border/60 p-8 text-center">
+                <h2 className="font-medium">Ainda não há matéria neste canal</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  A cobertura continuará sendo distribuída entre os dois canais editoriais.
+                </p>
+              </div>
+            )}
 
             {cursor && (
               <div className="mt-10 flex justify-center">

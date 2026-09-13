@@ -50,6 +50,13 @@
       "when": 1788243287799,
       "tag": "0006_sudden_squadron_supreme",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789292905773,
+      "tag": "0007_foamy_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

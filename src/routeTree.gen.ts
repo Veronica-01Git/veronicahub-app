@@ -28,8 +28,10 @@ import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as BlogRedeDeFontesRouteImport } from './routes/blog/rede-de-fontes'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
+import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/rede-de-fontes/relatorios'
 import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
 
 const IndexRoute = IndexRouteImport.update({
@@ -128,6 +130,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRedeDeFontesRoute = BlogRedeDeFontesRouteImport.update({
+  id: '/blog/rede-de-fontes',
+  path: '/blog/rede-de-fontes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SeloSerialRoute = SeloSerialRouteImport.update({
   id: '/selo/$serial',
   path: '/selo/$serial',
@@ -138,6 +145,12 @@ const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
   path: '/blog/editoria/$beat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRedeDeFontesRelatoriosRoute =
+  BlogRedeDeFontesRelatoriosRouteImport.update({
+    id: '/relatorios',
+    path: '/relatorios',
+    getParentRoute: () => BlogRedeDeFontesRoute,
+  } as any)
 const ClientesExpressEntulhoPropostaRoute =
   ClientesExpressEntulhoPropostaRouteImport.update({
     id: '/clientes/express-entulho/proposta',
@@ -163,10 +176,12 @@ export interface FileRoutesByFullPath {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
+  '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRoutesByTo {
@@ -187,10 +202,12 @@ export interface FileRoutesByTo {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
   '/selo/$serial': typeof SeloSerialRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
+  '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRoutesById {
@@ -212,10 +229,12 @@ export interface FileRoutesById {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
+  '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRouteTypes {
@@ -238,10 +257,12 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/veronica-universe'
     | '/blog/$slug'
+    | '/blog/rede-de-fontes'
     | '/selo/$serial'
     | '/admin/'
     | '/blog/'
     | '/blog/editoria/$beat'
+    | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/proposta'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -262,10 +283,12 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/veronica-universe'
     | '/blog/$slug'
+    | '/blog/rede-de-fontes'
     | '/selo/$serial'
     | '/admin'
     | '/blog'
     | '/blog/editoria/$beat'
+    | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/proposta'
   id:
     | '__root__'
@@ -286,10 +309,12 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/veronica-universe'
     | '/blog/$slug'
+    | '/blog/rede-de-fontes'
     | '/selo/$serial'
     | '/admin/'
     | '/blog/'
     | '/blog/editoria/$beat'
+    | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/proposta'
   fileRoutesById: FileRoutesById
 }
@@ -311,6 +336,7 @@ export interface RootRouteChildren {
   AdminImagensRoute: typeof AdminImagensRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
   SeloSerialRoute: typeof SeloSerialRoute
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -453,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/rede-de-fontes': {
+      id: '/blog/rede-de-fontes'
+      path: '/blog/rede-de-fontes'
+      fullPath: '/blog/rede-de-fontes'
+      preLoaderRoute: typeof BlogRedeDeFontesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/selo/$serial': {
       id: '/selo/$serial'
       path: '/selo/$serial'
@@ -467,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogEditoriaBeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/rede-de-fontes/relatorios': {
+      id: '/blog/rede-de-fontes/relatorios'
+      path: '/relatorios'
+      fullPath: '/blog/rede-de-fontes/relatorios'
+      preLoaderRoute: typeof BlogRedeDeFontesRelatoriosRouteImport
+      parentRoute: typeof BlogRedeDeFontesRoute
+    }
     '/clientes/express-entulho/proposta': {
       id: '/clientes/express-entulho/proposta'
       path: '/clientes/express-entulho/proposta'
@@ -476,6 +516,17 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface BlogRedeDeFontesRouteChildren {
+  BlogRedeDeFontesRelatoriosRoute: typeof BlogRedeDeFontesRelatoriosRoute
+}
+
+const BlogRedeDeFontesRouteChildren: BlogRedeDeFontesRouteChildren = {
+  BlogRedeDeFontesRelatoriosRoute: BlogRedeDeFontesRelatoriosRoute,
+}
+
+const BlogRedeDeFontesRouteWithChildren =
+  BlogRedeDeFontesRoute._addFileChildren(BlogRedeDeFontesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -495,6 +546,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminImagensRoute: AdminImagensRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   BlogSlugRoute: BlogSlugRoute,
+  BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,
   SeloSerialRoute: SeloSerialRoute,
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,

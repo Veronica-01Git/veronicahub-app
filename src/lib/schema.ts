@@ -146,6 +146,28 @@ export const articles = pgTable(
   ],
 );
 
+// Cliques de saída para as fontes citadas. Não guarda IP, cookie, e-mail ou
+// user-agent: o relatório público precisa medir tráfego enviado, não pessoas.
+export const sourceReferrals = pgTable(
+  "SourceReferral",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    articleId: text("articleId")
+      .notNull()
+      .references(() => articles.id, { onDelete: "cascade" }),
+    beat: articleBeat("beat").notNull(),
+    sourceDomain: text("sourceDomain").notNull(),
+    destinationUrl: text("destinationUrl").notNull(),
+    clickedAt: timestamp("clickedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("SourceReferral_clickedAt_idx").on(table.clickedAt),
+    index("SourceReferral_sourceDomain_clickedAt_idx").on(table.sourceDomain, table.clickedAt),
+  ],
+);
+
 // Banco de imagens do painel admin (/admin/imagens) — upload manual pelo
 // admin, guardado como base64 no Postgres. Mesmo caminho já usado por
 // Article.coverImageData (ver comentário acima e src/lib/cover-image-server.ts):

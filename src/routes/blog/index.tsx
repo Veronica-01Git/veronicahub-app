@@ -215,6 +215,12 @@ function VeronicaWire() {
               </Link>
             ))}
             <Link
+              to="/blog/rede-de-fontes"
+              className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
+            >
+              Rede de Fontes
+            </Link>
+            <Link
               to="/comandos"
               className="whitespace-nowrap rounded-sm px-3 py-1.5 text-muted-foreground transition hover:text-foreground"
             >
@@ -269,7 +275,7 @@ function VeronicaWire() {
                   {featured.excerpt}
                 </p>
                 <div className="mt-4 font-mono-tech text-[10.5px] uppercase tracking-widest text-muted-foreground">
-                  {featured.desk}
+                  {featured.editorialChannel.label}
                   {featuredAgo && ` · ${featuredAgo}`}
                 </div>
               </div>
@@ -356,7 +362,7 @@ function VeronicaWire() {
                       <div className="flex items-center justify-between font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-1.5" style={{ color: meta.color }}>
                           <meta.icon className="h-3.5 w-3.5" />
-                          {a.desk}
+                          {a.editorialChannel.label}
                         </span>
                         <span>{formatAgo(a.publishedAt, now)}</span>
                       </div>
