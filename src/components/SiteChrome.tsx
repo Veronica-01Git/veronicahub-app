@@ -78,10 +78,10 @@ function WireNewsShortcut({ mobile = false }: { mobile?: boolean }) {
         Wire TV
       </span>
       <span className="inline-flex items-center gap-1.5 font-mono-tech text-[9px] uppercase tracking-wider text-neon-red">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neon-red opacity-60" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-neon-red" />
-        </span>
+        <span
+          aria-hidden
+          className="h-1.5 w-1.5 rounded-full bg-neon-red shadow-[0_0_5px_var(--neon-red)] animate-pulse motion-reduce:animate-none"
+        />
         Notícias ao vivo
       </span>
     </Link>
