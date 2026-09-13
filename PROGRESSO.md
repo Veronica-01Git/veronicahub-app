@@ -940,3 +940,25 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   for permanente, não há solução em código: alguém precisa reenviar essas
   quatro capas pelo Admin. Vale medir na próxima publicação se sobraram
   exatamente quatro falhas — isso confirma que os três do 522 sumiram.
+
+## Armadilha: push de branch derruba a capa recém-publicada (2026-09-13)
+
+- **Sintoma**: a matéria das 21:00 apareceu no site sem foto, mesmo com tudo
+  certo no banco (`coverImageUrl` gravada) e no repositório (arquivo de 417 KB
+  commitado pelo próprio workflow em `2f939d3`).
+- **Causa, pela linha do tempo**: 21:00:46 o cron commita a capa no `main`;
+  21:01:59 o passo "Espera o deploy publicar o asset" confirma a capa no ar;
+  21:10:03 um commit de trabalho vai para o branch `claude/...`, que partiu do
+  `main` de ANTES da capa existir; 21:10:57 o Cloudflare publica em produção a
+  partir desse branch. A árvore publicada passou a não ter o arquivo, e a URL
+  gravada no banco virou 404.
+- **Por que é estrutural e não azar**: todo push de qualquer branch publica em
+  produção, e o cron commita uma capa nova no `main` a cada publicação. Então
+  qualquer branch que esteja atrás do `main` remove de produção todas as capas
+  commitadas depois do ponto de partida dele — silenciosamente, porque o banco
+  e o repositório continuam consistentes e nada falha.
+- **Regra para as próximas sessões**: `git fetch origin main && git merge
+  origin/main` IMEDIATAMENTE antes de cada push, não só no começo do trabalho.
+  Uma publicação pode ter acontecido no meio da sessão. E quanto mais tempo o
+  branch fica aberto, maior a janela — mesclar o PR cedo reduz o risco.
+- Consertado nesta sessão em `226408b`, trazendo o `main` para o branch.
