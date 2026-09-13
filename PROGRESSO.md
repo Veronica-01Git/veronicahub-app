@@ -1,3 +1,114 @@
+# Veronica Hub — estado atual
+
+> **Como ler este arquivo.** Este primeiro bloco é o único que precisa ser
+> verdade AGORA, e ele é **reescrito** a cada sessão, nunca acrescentado.
+> Tudo que vem depois de `# HISTÓRICO` é registro do que aconteceu, na ordem
+> em que aconteceu, e **contém afirmações que já foram superadas** — é normal
+> e é para ficar assim, porque saber como se chegou a uma decisão tem valor.
+> Em qualquer divergência entre o histórico e este bloco, **vale este bloco**.
+>
+> Se você é uma sessão nova: leia daqui até `# HISTÓRICO` e comece a
+> trabalhar. Só desça ao histórico quando precisar entender por que alguma
+> coisa é do jeito que é.
+>
+> _Última revisão: 2026-09-13, 22:40 UTC._
+
+## Onde as coisas vivem
+
+- Repositório `Veronica-01Git/veronicahub-app`; produção em https://veronicahub.com
+- **Worker de produção do site: `veronicahub-app`.** Existe um
+  `veronica-01git-veronicahub-app` na mesma conta Cloudflare que **não** serve
+  o domínio — está parado e desatualizado. Não use.
+- **Worker do cron editorial: `wire-tv-cron`**, criado em 13/09 pelo painel.
+  Dispara `workflow_dispatch` de `generate-article.yml` de hora em hora
+  (`0 * * * *`). Código versionado em `workers/wire-cron/`; o deploy é pelo
+  painel, colando `dashboard.js` — há teste que trava a paridade com o `.ts`.
+- Banco: Postgres no Neon, projeto `veronicahub` (`aged-scene-12810096`).
+  Tabelas em PascalCase (`Article`, `MediaImage`).
+
+## Regras de trabalho
+
+- **Deploy sai do `main`.** Desde 13/09, "Builds for non-production branches"
+  está desmarcado na integração Git do Cloudflare. Antes disso todo push de
+  qualquer branch publicava direto em produção — se você encontrar esse aviso
+  no histórico, ele está superado.
+- **Rode migration de banco ANTES do push** que carrega o schema novo. Já
+  houve susto real: coluna nova publicada antes da migration teria derrubado
+  o login do Hub inteiro.
+- **Mescle `origin/main` imediatamente antes de cada push.** Não é mais para
+  proteger produção; é porque costuma haver mais de uma sessão trabalhando ao
+  mesmo tempo. Em 13/09 havia duas em paralelo (Wire e Analytics/afiliado).
+- **Peça confirmação antes de mexer** em `wallet-server.ts`,
+  `auth-server.ts`, `mercadopago.ts`, `higgsfield.ts` e no schema do banco:
+  rodam dinheiro real em produção.
+- Nunca cole chave ou token no chat — vão para `.env.local` ou para secret.
+- Commits, PRs e comentários em português. Registro de sessão neste arquivo:
+  entrada nova no fim do histórico, e **atualize este bloco de estado**.
+
+## Limites do ambiente (medidos — não gaste tempo redescobrindo)
+
+- `bun install` completo falha: `@lovable.dev/vite-tanstack-config` responde
+  403 pela política de rede. **Não há `vite dev` nem build local.** Funcionam:
+  `npx tsc --noEmit`, `node --test tests/architecture.test.mjs`,
+  `npx prettier`, e `npm install --no-save <pacote>` avulso.
+- Ao medir typecheck, **não use pipe**: `npx tsc --noEmit | tail` faz o `$?`
+  ser o do `tail`. Rode direto ou conte linhas `error TS`.
+- O proxy bloqueia `veronicahub.com`, `api.gdeltproject.org` e o CloudFront de
+  assets (403 no CONNECT). Não dá para abrir o site publicado, testar os
+  endpoints `/api/cron/*` nem checar o radar de pautas daqui.
+- O conector do Cloudflare é **somente leitura** para Workers (`workers_list`,
+  `workers_get_worker`, `workers_get_worker_code`). Não existe ferramenta de
+  deploy, cron trigger, secret ou configuração de build — isso é sempre pelo
+  painel, com o usuário.
+- Rotina agendada por `create_trigger` **não** herda as ferramentas
+  `mcp__github__*`. Não serve como substituto de automação.
+- Teto real de publicação: cota diária da Groq, 200k tokens/dia.
+- Instagram não tem conector conectado (o Windsor.ai devolveu lista vazia em
+  13/09). Postar é manual.
+
+## O que está no ar
+
+- **Cron editorial pelo Cloudflare.** Cinco viradas medidas em 13/09, todas
+  disparadas 4 a 5 segundos depois da hora cheia. O `schedule` do
+  `generate-article.yml` virou rede de segurança diária (`30 11 * * *`) — o
+  agendador do GitHub descarta disparo e não serve como gatilho principal.
+- **Capa vem de banco curado**, não de busca ao vivo. As imagens ficam na
+  biblioteca do Admin com nome começando em `wire-banco-<editoria>-`.
+  Degrada para a foto fixa da editoria e, na falta dela, para o card
+  tipográfico. Pexels/Pixabay saíram da cadeia da capa.
+- **Card do Instagram** é gerado a cada publicação, no mesmo commit da capa, e
+  publicado em `/images/instagram/wire-tv-<slug>.jpg` com a legenda no `.txt`
+  de mesmo nome.
+- **Geração resiliente**: `output_parse_failed` da Groq passou a ser
+  retentável, e a mensagem de pulo editorial carrega a contagem do radar.
+
+## Pendências reais
+
+1. **O banco de imagens está vazio.** Nenhuma imagem com o prefixo
+   `wire-banco-<editoria>-` foi cadastrada, então toda matéria sai com a mesma
+   foto fixa da editoria. Só o usuário resolve, subindo imagens pelo Admin.
+2. **Quatro capas antigas falham no backfill da biblioteca**, todas com 403 de
+   `d3u0tzju9qaucj.cloudfront.net`. O ambiente bloqueia esse host, então não
+   dá para saber se é hotlink, URL assinada vencida ou remoção. Se for
+   permanente, não há solução em código: alguém reenvia pelo Admin.
+3. **"sem fato verificável" em série.** Em 13/09 a Wire passou horas sem
+   publicar, com esse retorno em editorias diferentes. A contagem do radar já
+   é carimbada na mensagem para distinguir radar vazio (infraestrutura) de
+   recusa editorial legítima, mas **o carimbo ainda não foi observado nenhuma
+   vez** — falta uma rodada que pule já com o código novo no ar.
+4. **O card do Instagram nunca rodou em produção.** Foi testado localmente e
+   o acoplamento está travado por teste, mas nenhuma publicação passou por ele
+   ainda.
+5. **Os cinco `_fallback/<beat>.jpg` são fotos do Pexels de 11/09** e nunca
+   foram revisados com o critério novo (imagem não pode parecer documentar o
+   fato). Julgamento editorial, precisa do usuário.
+
+# HISTÓRICO
+
+> Daqui para baixo é registro cronológico, preservado como foi escrito.
+> **Pode conter afirmações superadas** — inclusive avisos enfáticos que já
+> não valem. O bloco de estado, no topo, é a fonte de verdade.
+
 ## Veronica Wire — credibilidade e receita editorial (2026-09-13)
 
 - O produto volta a se apresentar como **Veronica Wire**. O selo permanente
@@ -54,7 +165,7 @@
 - O Wire carregou normalmente com o banco do ambiente de produção.
 - Typecheck, build e cinco testes de arquitetura passaram antes da publicação.
 
-# Progresso — redesign visual Veronica Hub
+## Progresso — redesign visual Veronica Hub (registro antigo)
 
 Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 (ou outro agente) neste diretório, leia isto primeiro.
@@ -114,48 +225,6 @@ Implementação local na branch `feat/architecture-foundation-phase1`, baseada e
   etapa. Reexecutar tipos/build e QA das rotas antes de considerar a fase validada.
 - Pendências editoriais: destinos de entrega das formações, documentos legais,
   newsletter/comunidade reais e comprovação das integrações de Analytics/Wire.
-
-## Onde estamos
-
-- Repositório: `~/veronicahub-app` (WSL), GitHub `Veronica-01Git/veronicahub-app`.
-- **JÁ PUBLICADO:** `main`/`origin/main` está no commit `ee3ab65`
-  (PR #25 — paginação por editoria + arquivamento da home do Veronica
-  Wire, ver seção "Veronica Wire" abaixo) — deploy automático do
-  Cloudflare disparou a partir desse push em `main`.
-  (O commit `a24d7c9`/PR #7 mencionado logo abaixo é histórico — muita
-  coisa aconteceu desde então, tudo documentado na seção Veronica Wire.)
-- **Worker de produção correto: `veronicahub-app`** (não
-  `veronica-01git-veronicahub-app`). A conta Cloudflare tem os dois —
-  `veronica-01git-veronicahub-app` existe mas NÃO é o que serve o
-  domínio (ficou parado no commit `99b006c`, desatualizado). Se for usar
-  `wrangler secret put` ou qualquer comando `--name`, usar
-  `veronicahub-app`.
-- **⚠️ CRÍTICO — o deploy automático do Cloudflare dispara a CADA PUSH
-  em QUALQUER branch conectada, não só em `main`.** Confirmado na
-  prática: dar `git push` numa branch de feature (`claude/…`) já gerou
-  um "Deployment successful!" direto no ambiente `production` do
-  Worker (comentário do bot `cloudflare-workers-and-pages` no PR,
-  apontando pra `.../veronicahub-app/production/builds/...`). **Não
-  existe deploy de preview separado nesse projeto** — todo push vira
-  produção na hora, esteja em `main` ou não. Isso já causou um susto
-  real: uma mudança de schema (coluna `role` nova) foi publicada antes
-  da migration rodar no banco, o que quebraria login em todo o Hub até
-  a migration ser aplicada (resolvido rápido, mas foi por pouco).
-  **Regra prática daqui pra frente: rodar qualquer migration de banco
-  ANTES de dar `git push` em qualquer branch — não só antes de mesclar
-  em `main`.**
-- Branch antiga de trabalho `claude/veronicahub-redesign-cont-k92gt4`
-  (redesign visual — seções abaixo) — status atual não confirmado nesta
-  atualização, não tocada na sessão do Veronica Wire.
-- Branches de trabalho do Veronica Wire usadas nesta sessão
-  (`claude/wire-evolucao`, `claude/wire-pagination`) já tiveram seus PRs
-  mesclados — nenhuma tem mudança pendente. Pra continuar o Wire, criar
-  branch nova a partir de `origin/main` (padrão já estabelecido: sempre
-  `git fetch origin main && git checkout -B <nome> origin/main` antes de
-  começar, nunca reaproveitar uma branch cujo PR já foi mesclado por
-  squash — o histórico diverge e o próximo PR mostra diff duplicado).
-- Repositório irmão `~/negocio-da-china-app` (China Exchange) não foi
-  tocado.
 
 ## O que já foi feito
 
@@ -443,70 +512,6 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
   regenera esse arquivo do zero automaticamente e substitui essa edição
   manual pela versão canônica — não deve dar conflito, só confirma que
   ficou certo.
-
-## Pendências conhecidas
-
-**Veronica Wire (mais recente/ativo):** PRs A e C do brief de evolução já
-mesclados, capas genéricas já populadas. Só restam `PIXABAY_API_KEY`,
-`reprocess-covers.mjs` (local) e o PR B (frequência/fan-out/log —
-bloqueado em 2 respostas do usuário) — ver seção "Veronica Wire" acima
-pros detalhes. Itens abaixo são do redesign visual mais antigo, não
-confirmados nesta atualização.
-
-1. Adicionar `ANTHROPIC_API_KEY` em `.env.local` pra o chat da Veronica
-   funcionar de verdade.
-2. "Formalizar" trechos que ainda ficaram no estilo cyber antigo em
-   Studio Criativo/Wire, e o menu "Ecossistema" do cabeçalho
-   (`EcosystemMenu` em `SiteChrome.tsx`, compartilhado — afeta todas as
-   rotas, não mexido ainda).
-3. Vídeos por passo do Studio Criativo (`studio-criativo/01-*.mp4` etc.)
-   ainda não existem/foram gravados — o drawer já trata isso com um
-   placeholder honesto ("Vídeo deste passo em breve").
-4. ~~Merge pendente~~ — RESOLVIDO: tudo já foi mesclado em `main`
-   (commit `99b006c`), publicado no GitHub e com deploy feito no
-   Cloudflare Worker. `veronicahub.com` já serve essa versão.
-5. Rotas ainda no visual antigo, aguardando referência de design do
-   usuário: Currículo-Certo, Security, Náutica.
-6. ~~Página "/descobrir"~~ — RESOLVIDO: a referência HTML
-   (`descobrir-exemplar-v2-claro.html`) foi aplicada dentro do Veronica
-   Analytics (`src/routes/veronica-analytics.tsx`), não como rota
-   separada. A página agora abre com a seção "O que está bombando
-   agora" (ticker, chips de filtro por categoria, ordenação, grid de
-   cards virais com GMV/crescimento mockados, cada card linkando pro
-   Studio Criativo) e a calculadora de engajamento original continua
-   logo abaixo, intacta. Ainda não commitado/publicado — feito na
-   branch `claude/veronicahub-redesign-cont-k92gt4`.
-
-## Como continuar
-
-```bash
-cd ~/veronicahub-app
-git status                  # confirma branch atual e se há mudanças não commitadas
-git branch                  # branch de trabalho atual: claude/veronicahub-redesign-cont-k92gt4
-bun run dev                  # sobe o servidor local em http://localhost:8080
-```
-
-Pra abrir uma sessão nova de agente de IA aqui (Claude Code ou outro)
-sem depender desta conversa: abra PowerShell → `wsl` → os comandos
-acima → `claude` (ou o comando do agente escolhido) dentro da pasta do
-projeto. O agente consegue se situar lendo este arquivo e o `git log`.
-
-**Regras de segurança combinadas — valem pra qualquer agente que
-continuar isso:**
-
-- Implementar/commitar localmente sem precisar perguntar a cada passo.
-- **Nunca** dar `git push`, publicar ou fazer deploy sem confirmação
-  explícita do usuário a cada vez — é o mesmo repositório que roda
-  carteira e Mercado Pago reais em produção (`veronicahub.com`).
-- Nunca mexer em `src/lib/wallet-server.ts`, `src/lib/auth-server.ts`,
-  `src/lib/mercadopago.ts`, `src/lib/higgsfield.ts`, nem no schema do
-  banco — essas partes já estão validadas em produção com dinheiro
-  real. Mudanças nessa área pedem confirmação extra, sempre.
-- Não mexer no repositório irmão `~/negocio-da-china-app` nem no app
-  principal `~/veronicahub-app` fora do que está documentado aqui sem
-  perguntar antes.
-- Nunca colar chaves/segredos (API keys, tokens) direto no chat — sempre
-  pedir pro usuário colocar direto no `.env.local`.
 
 ## Fase 2 — reorganização e hierarquia da Home (2026-09-11)
 
