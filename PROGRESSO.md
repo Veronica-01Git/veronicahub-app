@@ -897,3 +897,13 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   quando vencer, o Worker para sem erro visível; uma rodada por dia faz a
   falha aparecer. Fora do minuto 0 porque o Worker dispara em `:00` e o
   `concurrency` enfileira em vez de cancelar.
+- **Correção de um registro errado feito nesta mesma sessão**: o commit
+  `50cb2d9` afirma "typecheck exit 0". Está errado — a medição foi
+  `npx tsc --noEmit | tail -3 ; echo $?`, e em pipeline o `$?` é do `tail`.
+  Medido direito, o typecheck tem **1 erro pré-existente** neste ambiente:
+  `TS2688: Cannot find type definition file for 'vite/client'`, porque
+  `tsconfig.json` pede `types: ["vite/client"]` e `node_modules/vite` não
+  existe aqui (consequência do 403 no `@lovable.dev/vite-tanstack-config`).
+  O mesmo erro aparece no `origin/main` puro, então não é regressão. Para
+  medir de verdade: `npx tsc --noEmit; echo $?`, sem pipe, ou contar as
+  linhas `error TS`.
