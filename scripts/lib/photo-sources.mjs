@@ -31,6 +31,11 @@ export async function searchPexels(term, apiKey, excludeIds) {
   editorialUrl.searchParams.set("fit", "crop");
   editorialUrl.searchParams.set("w", "1600");
   editorialUrl.searchParams.set("h", "900");
+  // fm=jpg força a saída em JPEG. Sem isso o CDN devolve o formato do
+  // original: quando a foto escolhida é PNG, o arquivo vinha como PNG mas era
+  // gravado com extensão .jpg — 1.8MB em vez de ~100KB, e com content-type
+  // errado ao ser servido. Aconteceu de verdade na capa de /comandos.
+  editorialUrl.searchParams.set("fm", "jpg");
 
   return {
     imageUrl: editorialUrl.toString(),
@@ -70,9 +75,23 @@ export async function searchPixabay(term, apiKey, excludeIds) {
   };
 }
 
+// Todo consumidor grava estes bytes com extensão .jpg, então o que não for
+// JPEG precisa estourar aqui em vez de virar arquivo mal rotulado no repo.
+// Existem hoje capas do Wire commitadas sem nenhuma assinatura de imagem, que
+// o navegador não decodifica — esta checagem impede que isso se repita.
+function isJpeg(bytes) {
+  return bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+}
+
 export async function downloadTo(url, outPath) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`download falhou: HTTP ${res.status}`);
   const bytes = new Uint8Array(await res.arrayBuffer());
+  if (!isJpeg(bytes)) {
+    const head = Buffer.from(bytes.slice(0, 4)).toString("hex");
+    throw new Error(
+      `resposta não é JPEG (primeiros bytes: ${head}, ${bytes.length} B) — ${url}`,
+    );
+  }
   await writeFile(outPath, bytes);
 }
