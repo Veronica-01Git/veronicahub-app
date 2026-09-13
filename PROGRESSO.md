@@ -814,3 +814,38 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
 - **Atenção pra próxima sessão**: mudança de `schedule` só vale a partir do
   branch padrão. Enquanto este trabalho não entrar em `main`, o cron continua
   em `:17`/`:47`.
+
+## Gatilho editorial migrado para o Cron Trigger do Cloudflare (2026-09-13)
+
+- Motivo na seção anterior: o agendador do GitHub descarta disparo, e nenhuma
+  quantidade de horários no `schedule` resolve de fato.
+- **Worker separado, `workers/wire-cron/`**, não o `scheduled` do Worker do
+  site. O site é construído pelo nitro através do preset da Lovable, que gera
+  a configuração de deploy sozinho: não existe arquivo do wrangler no
+  repositório onde declarar `triggers`, o pacote é privado e responde 403
+  neste ambiente (então não dá pra rodar o build e conferir), e todo push aqui
+  publica em produção. Um erro no entry do site derruba a aplicação inteira; o
+  Worker de cron tem 40 linhas e falha sozinho.
+- **O que ele dispara**: `workflow_dispatch` de `generate-article.yml` na API
+  do GitHub — não o endpoint do site. O pipeline do GitHub é quem tem a chave
+  do Pexels e o passo que commita a capa; chamar o endpoint direto publicaria
+  matéria **sem capa**, porque os passos de capa são condicionados a
+  `steps.generate.outputs.generated == 'true'`. Sem capa o card do Instagram
+  também sai no fundo preto. Decisão confirmada com o usuário.
+- **Cadência: `0 * * * *`, um disparo por hora.** A redundância de horários só
+  existia pra compensar o descarte do GitHub. Com gatilho confiável ela vira
+  desperdício: numa hora que ainda não publicou, cada tentativa gasta chamada
+  de IA, e o teto da Groq (200k tokens/dia) dá pra ~20 chamadas por dia.
+- **Pendente, e só o usuário pode fazer** (não há credencial do Cloudflare nem
+  wrangler neste ambiente, e o MCP do Cloudflare é somente leitura pra
+  Workers): criar o token fine-grained do GitHub com `Actions: Read and write`,
+  `wrangler deploy` e `wrangler secret put GITHUB_TOKEN`. Passo a passo em
+  `workers/wire-cron/README.md`.
+- **Depois de confirmado o disparo**: reduzir o `schedule` do
+  `generate-article.yml` (hoje em `*/15`) a um horário único de recuperação ou
+  removê-lo. Antes disso não — enquanto o Worker não estiver no ar com o
+  secret, o `*/15` é o único gatilho que existe.
+- Teste novo cobre o acoplamento frágil: o nome do arquivo de workflow que o
+  Worker dispara precisa existir em `.github/workflows`, senão o disparo vira
+  404 silencioso e a falha apareceria só como ausência de matéria nova.
+  11/11 testes, typecheck limpo.

@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wire-tv-cron",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-13",
+  // De hora em hora, e só uma vez por hora. A redundância de horários existia
+  // pra compensar o descarte do agendador do GitHub; com um disparo confiável
+  // ela vira desperdício de cota: cada tentativa numa hora que ainda não
+  // publicou consome uma chamada de IA, e o teto diário da Groq (200k tokens)
+  // dá para cerca de vinte chamadas por dia. Um segundo horário só vale a pena
+  // se a cota for ampliada.
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+  "observability": {
+    "enabled": true
+  }
+}
