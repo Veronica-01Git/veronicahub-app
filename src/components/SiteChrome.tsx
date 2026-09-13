@@ -447,6 +447,9 @@ export function SiteHeader({
   showWireShortcut?: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const headerNav = showWireShortcut
+    ? PRIMARY_NAV.filter((item) => item.id !== "wire")
+    : PRIMARY_NAV;
   useEffect(() => {
     const close = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileOpen(false); };
     document.addEventListener("keydown", close);
@@ -456,14 +459,14 @@ export function SiteHeader({
     <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4">
       <Link to="/" aria-label="Veronica Hub — início" className="shrink-0 font-display text-base">Veronica · Hub</Link>
       <nav aria-label="Navegação principal" className="hidden items-center gap-2 text-sm lg:flex">
-        {PRIMARY_NAV.map((item, index) => <span key={item.id} className="contents"><Link to={item.to} className="flex items-center gap-1.5 px-3 py-2 hover:text-neon-green">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <EcosystemMenu />}</span>)}
+        {headerNav.map((item, index) => <span key={item.id} className="contents"><Link to={item.to} className="flex items-center gap-1.5 px-3 py-2 hover:text-neon-green">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <EcosystemMenu />}</span>)}
       </nav>
       <div className="flex items-center gap-3">{showWireShortcut && <WireNewsShortcut />}{showAuth && <AuthWidget />}<button type="button" onClick={() => setMobileOpen(v => !v)} aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={mobileOpen} aria-controls="mobile-navigation" className="min-h-11 min-w-11 rounded-sm border border-border/60 lg:hidden">{mobileOpen ? <X className="mx-auto h-5 w-5" /> : <Menu className="mx-auto h-5 w-5" />}</button></div>
     </div>
     {mobileOpen && <nav id="mobile-navigation" aria-label="Navegação principal mobile" className="max-h-[80vh] overflow-y-auto border-t border-border/40 bg-background px-6 pb-6 lg:hidden">
       {showAuth && <div className="sm:hidden"><AuthWidget variant="mobile" /></div>}
       {showWireShortcut && <div className="sm:hidden"><WireNewsShortcut mobile /></div>}
-      {PRIMARY_NAV.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="flex items-center justify-between gap-2 border-b border-border/40 py-4 text-base">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
+      {headerNav.map((item, index) => <div key={item.id}><Link to={item.to} onClick={() => setMobileOpen(false)} className="flex items-center justify-between gap-2 border-b border-border/40 py-4 text-base">{item.name}{item.id === "wire" && <WireLiveBadge />}</Link>{index === 0 && <details><summary className="cursor-pointer py-4 text-base">Ferramentas</summary><MobileEcosystemIntentMenu onNavigate={() => setMobileOpen(false)} /></details>}</div>)}
     </nav>}
     {/* Fio de acento — meio pixel na borda SUPERIOR do cabeçalho, esmaecendo
         nas pontas pra ler como detalhe de design e não como faixa de alerta.
