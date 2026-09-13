@@ -14,6 +14,14 @@ export type SealRecord = {
   scope: readonly string[];
   timeline: readonly { date: string; label: string; state: "done" | "current" | "next" }[];
   support?: string;
+  operations?: {
+    product: string;
+    model: string;
+    summary: string;
+    environments: readonly string[];
+    endpoints: readonly string[];
+    channels: readonly string[];
+  };
   isDemonstration?: boolean;
 };
 
@@ -28,7 +36,7 @@ export const SEAL_STATUS_COPY: Record<SealStatus, string> = {
 export const sealRecords: readonly SealRecord[] = [
   {
     serial: "VH-AUT-WA-2026-000001",
-    client: "Express Entulhos",
+    client: "Express Entulho",
     solution: "Agente de IA para WhatsApp e Leads",
     category: "Automação de atendimento",
     issuedAt: "11/09/2026",
@@ -36,7 +44,7 @@ export const sealRecords: readonly SealRecord[] = [
     statusLabel: "Em desenvolvimento",
     version: "0.1 · Implantação",
     provider: "YO LAB & CO. · Laboratório da Veronica Hub",
-    summary: "Registro de procedência do projeto de automação comercial e atendimento da Express Entulhos.",
+    summary: "Registro de procedência do agente operacional de WhatsApp e da implantação inaugural do Veronica Operations para a Express Entulho.",
     scope: [
       "Agente de IA para atendimento no WhatsApp",
       "Organização e encaminhamento de leads",
@@ -44,11 +52,21 @@ export const sealRecords: readonly SealRecord[] = [
       "Suporte por 30 dias após a entrega",
     ],
     timeline: [
-      { date: "11 SET 2026", label: "Projeto registrado", state: "done" },
-      { date: "EM CURSO", label: "Desenvolvimento e homologação", state: "current" },
-      { date: "PRÓXIMO", label: "Implantação e início do suporte", state: "next" },
+      { date: "13 SET 2026", label: "Arquitetura definitiva, personalidade e núcleo conversacional", state: "current" },
+      { date: "14 SET 2026", label: "Demonstração com o proprietário e coleta das regras", state: "next" },
+      { date: "15 SET 2026", label: "Base de conhecimento e conector possível", state: "next" },
+      { date: "16 SET 2026", label: "Testes, correções e homologação", state: "next" },
+      { date: "17 SET 2026", label: "Entrega do MVP funcional e início da assistência", state: "next" },
     ],
     support: "30 dias após a implantação",
+    operations: {
+      product: "Veronica Operations — Agentes para negócios locais",
+      model: "Arquitetura multiempresa (multi-tenant)",
+      summary: "Um único núcleo operacional atende diferentes empresas mantendo WhatsApp, identidade, preços, frota, agenda, regras, usuários, métricas, integrações e históricos completamente separados.",
+      environments: ["WhatsApp", "Identidade e linguagem", "Preços e área atendida", "Frota e disponibilidade", "Agenda e regras", "Usuários e métricas", "Integrações", "Consumo de IA e histórico"],
+      endpoints: ["Leads", "Disponibilidade", "Agendamentos", "Clientes", "Conversas", "Transferência humana", "Webhooks do WhatsApp", "Conectores operacionais"],
+      channels: ["WhatsApp", "Site", "Instagram", "Facebook", "Chat interno", "Voz", "Aplicativo"],
+    },
   },
   {
     serial: "VH-AUT-TX-DEMO-0001",
