@@ -1,46 +1,49 @@
 {
   "cycleHours": 48,
-  "refreshedAt": "2026-09-13T15:48:24.000Z",
+  "refreshedAt": "2026-09-13T16:34:10.000Z",
   "sourceLabel": "Curadoria Veronica Analytics · tendências TikTok Shop",
   "videos": [
     {
       "id": "2026-09-13-01",
       "rank": 1,
-      "category": "moda",
-      "title": "Haul de conjunto combinado — look inteiro montado em 15s",
-      "views": "2.9M visualizações",
-      "gmvLabel": "GMV ~R$ 98K",
-      "gmvValue": 98000,
-      "growthLabel": "+285%",
-      "growthValue": 285,
+      "category": "beleza",
+      "title": "Cílios magnéticos com delineador — olho nu e olho pronto em 8s",
+      "views": "3.2M visualizações",
+      "gmvLabel": "GMV ~R$ 102K",
+      "gmvValue": 102000,
+      "growthLabel": "+298%",
+      "growthValue": 298,
       "gradient": "linear-gradient(150deg, #ffe0e6, #ff9fb8)",
-      "hook": "moda é a categoria mais comprada agora e a temporada de Dia do Cliente já começou — grava o look em movimento antes da enxurrada de haul."
+      "thumbnailUrl": "/images/trending/2026-09-13-01.jpg",
+      "hook": "a transformação acontece na frente da câmera em segundos — grava o corte seco de olho nu pra olho pronto antes que todo mundo copie."
     },
     {
       "id": "2026-09-13-02",
       "rank": 2,
-      "category": "pet",
-      "title": "Escova a vapor no pet — pelo embaraçado virando nuvem em 10s",
-      "views": "2.2M visualizações",
-      "gmvLabel": "GMV ~R$ 67K",
-      "gmvValue": 67000,
-      "growthLabel": "+240%",
-      "growthValue": 240,
+      "category": "casa",
+      "title": "Gadget de cozinha multiuso — três tarefas chatas em 20s",
+      "views": "2.3M visualizações",
+      "gmvLabel": "GMV ~R$ 74K",
+      "gmvValue": 74000,
+      "growthLabel": "+252%",
+      "growthValue": 252,
       "gradient": "linear-gradient(150deg, #d6f4ff, #8fd8f2)",
-      "hook": "pet com antes/depois visual é compartilhamento fácil — chama teu cachorro e grava hoje, o formato ainda tá pouco disputado."
+      "thumbnailUrl": "/images/trending/2026-09-13-02.jpg",
+      "hook": "utilidade que resolve na hora é compra por impulso — mostra as três tarefas em sequência, sem explicar, e deixa o preço no fim."
     },
     {
       "id": "2026-09-13-03",
       "rank": 3,
-      "category": "eletronicos",
-      "title": "Mini projetor no quintal — cinema ao ar livre montado em 20s",
-      "views": "1.7M visualizações",
-      "gmvLabel": "GMV ~R$ 58K",
-      "gmvValue": 58000,
-      "growthLabel": "+205%",
-      "growthValue": 205,
+      "category": "saude",
+      "title": "Faixa elástica em casa — circuito de 4 exercícios em 20s",
+      "views": "1.8M visualizações",
+      "gmvLabel": "GMV ~R$ 61K",
+      "gmvValue": 61000,
+      "growthLabel": "+214%",
+      "growthValue": 214,
       "gradient": "linear-gradient(150deg, #ffeccc, #ffcf7a)",
-      "hook": "projetor portátil explodiu junto com a onda de noite de cinema em casa — monta a cena uma vez e tira três vídeos dela."
+      "thumbnailUrl": "/images/trending/2026-09-13-03.jpg",
+      "hook": "treino caseiro curto é o que mais cresce em bem-estar — filma o circuito inteiro numa tomada só e posta ainda hoje."
     }
   ]
 }

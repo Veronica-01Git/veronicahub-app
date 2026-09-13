@@ -151,6 +151,15 @@ function ViralCard({ video }: { video: TrendingVideo }) {
       style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}
     >
       <div className="relative flex aspect-[9/16] max-h-[250px] items-center justify-center" style={{ backgroundImage: video.gradient }}>
+        {video.thumbnailUrl && (
+          <img
+            src={video.thumbnailUrl}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
         <span
           className="absolute left-2.5 top-2.5 rounded-full px-2 py-1 font-mono-tech text-[10px] font-semibold text-white"
           style={{ background: "var(--tt-ink)" }}
@@ -163,7 +172,7 @@ function ViralCard({ video }: { video: TrendingVideo }) {
         >
           {video.rank}
         </span>
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/85 shadow-md">
+        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/85 shadow-md">
           <Play className="ml-0.5 h-3.5 w-3.5" style={{ color: "var(--tt-ink)", fill: "var(--tt-ink)" }} />
         </span>
         <span
