@@ -13,7 +13,7 @@
 // no container — sem isso o gerador cai numa fonte qualquer e o card sai
 // com outro espaçamento.
 
-export const WIRE_INSTAGRAM_HANDLE = "@wire___tv";
+export const WIRE_INSTAGRAM_HANDLE = "@wire__tv";
 export const WIRE_CARD_WIDTH = 1080;
 export const WIRE_CARD_HEIGHT = 1350;
 

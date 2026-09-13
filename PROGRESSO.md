@@ -567,6 +567,7 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
 - `/selos` foi incluída no sitemap. Backend, autenticação, pagamentos e banco
   permaneceram intactos.
 - `npm run typecheck`, 6/6 testes e `npm run build` aprovados.
+
 ## Desativação da varredura vertical global (2026-09-13)
 
 - Base: `main` em `fe7218e`; branch de trabalho `fix/disable-global-scan-beam`.
@@ -607,7 +608,7 @@ que tinha sido feita **não está mais em uso em nenhuma rota**, mas:
 - **Correção importante para quem ler as seções de Wire mais acima**: a
   cadência de publicação **já está em `CYCLE_HOURS = 1`** (`src/lib/beats.ts`)
   com dois disparos por hora no GitHub Actions (`.github/workflows/
-  generate-article.yml`, minutos 17 e 47), já migrada pra Groq
+generate-article.yml`, minutos 17 e 47), já migrada pra Groq
   (`openai/gpt-oss-20b`, fallback `120b`). **Não está pausada** e o "PR B"
   (frequência/fan-out) descrito como "não iniciado" nas seções anteriores
   **já está parcialmente feito** — a frequência subiu de 5h pra 1h em algum
@@ -635,7 +636,7 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
 
 - **Correção da seção acima**: o `npm run build` **rodou e passou aqui**, sem
   stub. O `@lovable.dev/vite-tanstack-config` instalou normalmente (`npm
-  install`, 492 pacotes) — o bloqueio de registro descrito acima não se
+install`, 492 pacotes) — o bloqueio de registro descrito acima não se
   repetiu neste ambiente. Também não foi preciso validar em WSL antes de
   publicar, como aquela seção pedia. Trate "build não validado" e "stub
   local" como história daquela sessão, não como estado atual.
@@ -668,7 +669,7 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   deixa o acervo misturado — consertar exige backfill no banco.
 - Validação, repetida **nos dois estados da flag** a cada commit: `typecheck`
   exit 0, 6/6 testes, `npm run build` exit 0. Com `WIRE_TV_REBRAND_ENABLED =
-  false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
+false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   "Ao vivo" — o rollback alcança tudo que é montado em runtime.
 - **Publicado.** `main` está em `2332d69`; os pushes foram feitos com
   confirmação explícita do usuário a cada etapa. Ressalva honesta: confirmamos
@@ -744,11 +745,11 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   corrigiu e documentou os quatro.
 - **Estado herdado**: `ArticleShare` em `/blog/$slug` desenhava um card
   1080 × 1350 num canvas e oferecia `navigator.share` com fallback de
-  download. O `@` do perfil (`wire___tv`) entrou em `SOCIAL_LINKS`, na nav do
+  download. O `@` do perfil (`wire__tv`) entrou em `SOCIAL_LINKS`, na nav do
   `/blog` e no `sameAs` do expediente.
 - **Dois defeitos reais encontrados na verificação, ambos corrigidos**:
   1. O rodapé do card imprimia a URL canônica inteira alinhada à direita na
-     mesma linha do `@wire___tv`. Com slug longo (o caso comum — os slugs têm
+     mesma linha do `@wire__tv`. Com slug longo (o caso comum — os slugs têm
      até 80 caracteres) os dois textos se atropelavam e o rodapé saía
      ilegível. Agora vai só o domínio; o endereço completo continua na
      legenda, que é de onde o leitor copia.
@@ -1047,3 +1048,30 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   padrão do Playwright.
 - Teste novo trava o acoplamento entre onde o card é gerado e onde é
   commitado — se divergirem, o card é gerado e descartado sem nada falhar.
+
+## Wire TV → Instagram oficial (2026-09-13)
+
+- Base consolidada: a `main` avançou novamente durante a implementação; a
+  integração final foi aplicada sobre `8ac5d11`, preservando o trabalho
+  posterior de afiliados, capas, banco curado e cron editorial.
+- Perfil canônico corrigido em todo o runtime para **`@wire__tv`** (dois
+  sublinhados), incluindo `SOCIAL_LINKS` e o card compartilhável.
+- Novo conector server-only em `src/lib/instagram-publisher.server.ts` para a
+  Meta Graph API: valida a conta de destino, cria o container, aguarda o
+  processamento e publica a mídia. A credencial nunca chega ao navegador.
+- Proteção contra erro operacional: antes de publicar, o conector confirma que
+  a credencial pertence a `@wire__tv`; também procura a URL canônica em até 500
+  posts recentes e não cria duplicata.
+- Endpoint `/api/cron/publish-instagram` protegido pelo mesmo `CRON_SECRET` do
+  pipeline. O workflow só o chama depois de o card vertical estar gerado,
+  publicado e a capa registrada no artigo; a URL aceita é limitada ao diretório
+  oficial `/images/instagram/wire-tv-*`. Falha da Meta é best-effort e não
+  derruba a matéria.
+- `/admin/artigos` ganhou diagnóstico da conexão e botão de publicação manual
+  por matéria. O botão manual funciona para homologação mesmo com o automático
+  desligado.
+- Variáveis documentadas em `.env.example`. Estado seguro inicial:
+  `META_INSTAGRAM_AUTOPUBLISH=false`. Para ativar faltam o ID da conta
+  profissional e o token oficial da Meta; nenhum segredo foi criado ou
+  inventado no código.
+- Verificação local: 16/16 testes, typecheck e build Cloudflare completos.

@@ -254,6 +254,7 @@ jobs:
 
       - name: Seta coverImageUrl da matéria
         if: steps.commit.outcome == 'success'
+        id: set_cover
         env:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
           PHOTO_ID: ${{ steps.fetch_photo.outputs.photoId }}
@@ -279,6 +280,35 @@ jobs:
             -d "$body")
           echo "HTTP status: $status"
           cat set-cover-response.json
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi
+
+      # Best-effort e com trava dupla: o Worker só publica quando
+      # META_INSTAGRAM_AUTOPUBLISH=true e procura a URL canônica nos posts
+      # recentes antes de criar outro. Uma falha na Meta não derruba a matéria.
+      - name: Publica a matéria no Instagram da Wire TV
+        if: steps.set_cover.outcome == 'success' && steps.instagram_card.outcome == 'success'
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+        run: |
+          image_url="https://veronicahub.com/images/instagram/wire-tv-${COVER_SLUG}.jpg"
+          body=$(jq -n \
+            --arg slug "$COVER_SLUG" \
+            --arg imageUrl "$image_url" \
+            '{slug: $slug, imageUrl: $imageUrl}')
+          status=$(curl --silent --show-error \
+            --max-time 60 \
+            --retry 2 \
+            --retry-all-errors \
+            -o instagram-response.json -w "%{http_code}" \
+            -X POST "https://veronicahub.com/api/cron/publish-instagram" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "$body")
+          echo "HTTP status: $status"
+          cat instagram-response.json
           if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
             exit 1
           fi

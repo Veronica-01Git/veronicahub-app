@@ -26,7 +26,7 @@ export const HUB_URL = "https://veronicahub.com";
 export const SOCIAL_LINKS = {
   youtube: "https://youtube.com/@veronica-hub",
   instagram: "https://instagram.com/veronicahub_",
-  wireInstagram: "https://instagram.com/wire___tv",
+  wireInstagram: "https://instagram.com/wire__tv",
   whatsapp: "https://wa.me/5547996057436",
   email: "mailto:yo-tech01@outlook.com",
 };
@@ -62,7 +62,6 @@ function WireLiveBadge({ className = "" }: { className?: string }) {
     </span>
   );
 }
-
 function WireNewsShortcut({ mobile = false }: { mobile?: boolean }) {
   return (
     <Link

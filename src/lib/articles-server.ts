@@ -1211,7 +1211,20 @@ export const setArticleStatusAdmin = createServerFn({ method: "POST" })
       .where(eq(articles.id, data.id))
       .returning();
     if (!row) return { ok: false as const, error: "Matéria não encontrada." };
-    return { ok: true as const, article: mapArticle(row) };
+    let instagram = null;
+    if (data.status === "published" && row.coverImageUrl) {
+      try {
+        const { publishArticleBySlugToInstagram } = await import("./instagram-publisher.server");
+        instagram = await publishArticleBySlugToInstagram(row.slug, { automatic: true });
+      } catch (error) {
+        instagram = {
+          ok: false as const,
+          error:
+            error instanceof Error ? error.message : "Falha ao encaminhar a matéria ao Instagram.",
+        };
+      }
+    }
+    return { ok: true as const, article: mapArticle(row), instagram };
   });
 
 const idValidator = (input: unknown) => {
