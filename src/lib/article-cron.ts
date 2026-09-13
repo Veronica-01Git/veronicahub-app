@@ -284,6 +284,9 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
       beat,
       slug: result.article.slug,
       headline: result.article.headline,
+      // Vai para a legenda do card do Instagram, montada no mesmo passo que
+      // gera a imagem. Sem isto a legenda sai só com manchete e link.
+      excerpt: result.article.excerpt,
       desk: result.article.desk,
       fotoTermos: result.fotoTermos,
       recentPhotoIds: result.recentPhotoIds,

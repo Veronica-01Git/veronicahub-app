@@ -994,3 +994,33 @@ Continuação direta da seção acima. O patch daquela sessão foi aplicado com
   cadastrada ainda, então toda matéria vai sair com a mesma foto fixa da
   editoria até que alguém suba imagens pelo Admin. É o comportamento pedido,
   mas é repetitivo: subir umas 5 a 10 por editoria resolve.
+
+## Card do Instagram passa a sair automático a cada publicação (2026-09-13)
+
+- **Divisão acordada com o dono do projeto**: ele fornece a matéria-prima
+  visual (imagens na biblioteca do Admin), a máquina aplica o padrão. O card
+  sai no estilo sóbrio que já existia, não no estilo telejornal com selo
+  URGENTE — se todo post é urgente, "urgente" deixa de significar algo, e o
+  site se apresenta como cobertura jornalística real.
+- **Como**: passo novo no workflow, entre otimizar a capa e commitá-la, roda
+  `scripts/render-instagram-card.mjs` com `WIRE_OUT_DIR=public/images/instagram`.
+  O gerador ganhou suporte a esse destino; o padrão continua `out/instagram`
+  para uso manual. Mesmo traçado do botão de `/blog/$slug` (os dois importam
+  `src/lib/wire-instagram-card.ts`), então não existem dois cards diferentes.
+- **Card e capa vão no MESMO commit**, de propósito: cada commit no `main` é
+  um deploy, e cada deploy troca o que a produção está servindo. Um commit a
+  mais por publicação dobraria essa troca.
+- **O endpoint passou a devolver `excerpt`**, que alimenta a legenda. Sem ele
+  a legenda sairia só com manchete e link.
+- **Onde encontrar o card**: `https://veronicahub.com/images/instagram/wire-tv-<slug>.jpg`
+  e a legenda no `.txt` de mesmo nome. Sem precisar abrir a matéria nem rodar
+  nada — o que importa para quem não tem terminal.
+- **Por que não guardar o card na biblioteca**: ~375 KB por matéria, 24 por
+  dia, dá ~9 MB/dia contra o limite de 512 MB do Neon — estouraria em menos de
+  dois meses. A biblioteca fica para as imagens de origem, que são poucas e
+  reaproveitadas; o card é asset estático servido pelo CDN.
+- `@napi-rs/canvas` NÃO está no `package.json`, ao contrário do que diz o
+  comentário do script. O passo instala com `npm install --no-save`, mesmo
+  padrão do Playwright.
+- Teste novo trava o acoplamento entre onde o card é gerado e onde é
+  commitado — se divergirem, o card é gerado e descartado sem nada falhar.

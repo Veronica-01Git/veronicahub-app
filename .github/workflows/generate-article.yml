@@ -82,6 +82,9 @@ jobs:
             echo "headline<<COVER_EOF"
             jq -r '.headline' response.json
             echo "COVER_EOF"
+            echo "excerpt<<COVER_EOF"
+            jq -r '.excerpt // ""' response.json
+            echo "COVER_EOF"
             echo "beat<<COVER_EOF"
             jq -r '.beat' response.json
             echo "COVER_EOF"
@@ -180,6 +183,29 @@ jobs:
           sudo apt-get install -y -qq imagemagick
           bash scripts/optimize-cover.sh "public/images/blog-covers/${COVER_SLUG}.jpg"
 
+      # Card do feed do Instagram, gerado junto com a capa em vez de depender
+      # de alguém abrir a matéria e clicar em compartilhar. Mesmo traçado do
+      # botão de /blog/$slug (ambos usam src/lib/wire-instagram-card.ts), então
+      # não existem dois cards diferentes. Sai como asset do site, em
+      # /images/instagram/, para quem vai postar só abrir o endereço e baixar.
+      #
+      # continue-on-error porque isto é material de divulgação: se falhar, a
+      # matéria continua publicada e com capa, e o botão da página segue como
+      # caminho manual.
+      - name: Gera o card do Instagram
+        if: steps.fetch_photo.outputs.found == 'true' || steps.render.outcome == 'success'
+        id: instagram_card
+        continue-on-error: true
+        env:
+          WIRE_SLUG: ${{ steps.generate.outputs.slug }}
+          WIRE_HEADLINE: ${{ steps.generate.outputs.headline }}
+          WIRE_EXCERPT: ${{ steps.generate.outputs.excerpt }}
+          WIRE_BEAT: ${{ steps.generate.outputs.beat }}
+          WIRE_OUT_DIR: public/images/instagram
+        run: |
+          npm install --no-save --no-package-lock @napi-rs/canvas
+          node scripts/render-instagram-card.mjs
+
       - name: Commita a capa no repositório
         if: steps.fetch_photo.outputs.found == 'true' || steps.render.outcome == 'success'
         id: commit
@@ -190,6 +216,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "public/images/blog-covers/${COVER_SLUG}.jpg"
+          # O card e a legenda entram no MESMO commit da capa: um commit a
+          # mais no main significa um deploy a mais, e cada deploy troca o que
+          # a produção está servindo. Se o passo anterior falhou, os arquivos
+          # não existem e o commit segue só com a capa.
+          for extra in "public/images/instagram/wire-tv-${COVER_SLUG}.jpg" "public/images/instagram/wire-tv-${COVER_SLUG}.txt"; do
+            if [ -f "$extra" ]; then git add "$extra"; fi
+          done
           git commit -m "chore(wire): capa automática — ${COVER_SLUG}"
           # Outra conversa/automação pode atualizar main enquanto a foto é
           # baixada. Rebaseia o commit único da capa antes de enviar, evitando

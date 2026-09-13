@@ -74,7 +74,13 @@ async function main() {
     () => loadImage(cover.bytes),
   );
 
-  const outDir = path.join(root, "out/instagram");
+  // Padrão out/instagram (fora do build, material de publicação). O workflow
+  // do cron aponta para public/images/instagram para o card virar asset do
+  // site e ficar acessível por URL — assim quem vai postar não depende de
+  // rodar nada, só abre o endereço e baixa.
+  const outDir = process.env.WIRE_OUT_DIR
+    ? path.resolve(root, process.env.WIRE_OUT_DIR)
+    : path.join(root, "out/instagram");
   await mkdir(outDir, { recursive: true });
   const imageFile = path.join(outDir, `wire-tv-${slug}.jpg`);
   const captionFile = path.join(outDir, `wire-tv-${slug}.txt`);

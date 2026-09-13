@@ -216,3 +216,28 @@ test('a capa sai do banco curado da biblioteca, não de busca ao vivo', () => {
   assert.ok(/libraryCoverId/.test(workflow), 'o workflow precisa repassar libraryCoverId');
   assert.ok(/COVER_LIBRARY_ID/.test(script) && /COVER_LIBRARY_ID/.test(workflow), 'COVER_LIBRARY_ID liga workflow e script');
 });
+
+test('o card do Instagram é gerado e commitado no mesmo caminho', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/render-instagram-card.mjs', import.meta.url), 'utf8');
+
+  // O passo gera em WIRE_OUT_DIR e o passo seguinte commita por caminho
+  // literal. Se um mudar sem o outro, o card é gerado e descartado: nada
+  // falha, e a matéria simplesmente não ganha peça de divulgação.
+  const outDir = workflow.match(/WIRE_OUT_DIR:\s*(\S+)/);
+  assert.ok(outDir, 'o workflow precisa dizer onde o card é gerado');
+  const commitBlock = workflow.slice(workflow.indexOf('Commita a capa no repositório'));
+  assert.ok(
+    commitBlock.includes(`${outDir[1]}/wire-tv-`),
+    `o passo de commit precisa referenciar o card gerado em ${outDir[1]}`,
+  );
+  assert.ok(script.includes('WIRE_OUT_DIR'), 'o gerador precisa respeitar WIRE_OUT_DIR');
+
+  // O prefixo do arquivo é escolhido pelo script; o workflow o repete.
+  assert.ok(script.includes('`wire-tv-${slug}.jpg`'), 'o nome do arquivo mudou no gerador');
+
+  // Um commit por publicação: card e capa juntos, porque cada commit no main
+  // vira um deploy e cada deploy troca o que a produção serve.
+  const commitStep = workflow.slice(workflow.indexOf('Commita a capa no repositório'));
+  assert.equal((commitStep.match(/git commit -m/g) ?? []).length, 1, 'a capa e o card devem ir num commit só');
+});
