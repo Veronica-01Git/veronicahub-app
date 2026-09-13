@@ -1,9 +1,10 @@
 name: Gera e publica matéria (Veronica Wire)
 
 on:
-  # Cada rodada processa as cinco editorias. O pipeline usa Groq no Worker,
-  # radar GDELT/RSS/Google News e uma trava mecânica de 72h para a data do
-  # fato; Anthropic não é necessário.
+  # Uma matéria por hora, com editoria rotativa calculada pelo Worker. Esse
+  # ritmo entrega até 24 publicações por dia sem estourar a cota gratuita ao
+  # tentar gerar cinco matérias simultâneas. O segundo horário é recuperação:
+  # a trava por janela impede duplicata quando a primeira chamada publicou.
   schedule:
     - cron: "17 * * * *"
     # Segunda oportunidade na mesma hora. Se a primeira rodada publicar, a
@@ -27,11 +28,6 @@ permissions:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        beat: [ia, clima, economia, geopolitica, mercado]
     steps:
       - name: Chama o endpoint de geração automática
         id: generate
@@ -46,7 +42,7 @@ jobs:
           status=$(curl --silent --show-error \
             --max-time 120 \
             -o response.json -w "%{http_code}" \
-            -X POST "https://veronicahub.com/api/cron/generate-article?beat=${{ matrix.beat }}" \
+            -X POST "https://veronicahub.com/api/cron/generate-article" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
           echo "HTTP status: $status"
           cat response.json
@@ -60,7 +56,6 @@ jobs:
               echo "### Veronica Wire — rodada sem publicação"
               echo
               echo "- Motivo: $reason"
-              echo "- Editoria solicitada: ${{ matrix.beat }}"
               echo "- Editoria processada: $(jq -r '.beat // "não informada"' response.json)"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
