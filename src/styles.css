@@ -180,6 +180,35 @@
   color-scheme: dark;
 }
 
+/* Express Operations — working surface clara e objetiva. O escopo preserva
+   os tokens globais da Veronica e impede que o painel altere outras rotas. */
+.express-ops-light {
+  --background: oklch(0.97 0.004 150);
+  --foreground: oklch(0.18 0.012 150);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.012 150);
+  --border: oklch(0.9 0.008 150 / 0.9);
+  --muted: oklch(0.96 0.006 150);
+  --muted-foreground: oklch(0.5 0.012 150);
+  --neon-green: oklch(0.56 0.16 150);
+  color-scheme: light;
+  font-family: Inter, var(--font-sans);
+  background-image:
+    radial-gradient(circle at 88% 8%, oklch(0.82 0.09 150 / 0.14), transparent 24rem),
+    linear-gradient(oklch(0.97 0.004 150), oklch(0.96 0.006 150));
+}
+
+.express-ops-light button,
+.express-ops-light a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.express-ops-light button:focus-visible,
+.express-ops-light a:focus-visible {
+  outline: 3px solid oklch(0.65 0.16 150 / 0.45);
+  outline-offset: 3px;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

@@ -80,6 +80,22 @@
 
 # Progresso — redesign visual Veronica Hub
 
+## Express Operations — demonstração visual (2026-09-14, local)
+
+- Criada a rota não indexável `/clientes/express-entulho/operacoes-demo` como
+  demonstração front-end, sem backend, banco, webhook ou integração ativa.
+- A página abre diretamente numa superfície operacional clara e responsiva,
+  com visão geral, atendimento, agenda e rotas, frota, clientes e financeiro.
+- Dados pessoais dos prints não foram reutilizados. Conversas e operações são
+  anonimizadas e rotuladas como simulação; números desconhecidos permanecem
+  como “Aguardando cadastro”.
+- O protótipo materializa o fluxo de atraso, aprovação humana, planejamento do
+  próximo dia e a taxa de sucesso demonstrativa de 10%.
+- Marca de procedência aplicada com `VH-AUT-WA-2026-000001`, YO LAB & CO. e
+  Inteligências Veronica. Nenhuma mudança em schema, pagamentos ou backend.
+- Trabalho isolado na branch local `feat/express-operations-demo`; sem push e
+  sem deploy.
+
 Arquivo de retomada rápida. Se você abrir uma sessão nova do Claude Code
 (ou outro agente) neste diretório, leia isto primeiro.
 
