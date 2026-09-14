@@ -11,7 +11,7 @@
 > trabalhar. Só desça ao histórico quando precisar entender por que alguma
 > coisa é do jeito que é.
 >
-> _Última revisão: 2026-09-13, 22:40 UTC._
+> _Última revisão: 2026-09-14, 05:45 UTC._
 
 ## Onde as coisas vivem
 
@@ -69,8 +69,10 @@
 
 ## O que está no ar
 
-- **Cron editorial pelo Cloudflare.** Cinco viradas medidas em 13/09, todas
-  disparadas 4 a 5 segundos depois da hora cheia. O `schedule` do
+- **Cron editorial pelo Cloudflare.** Dez viradas consecutivas medidas entre
+  20:00 de 13/09 e 05:00 de 14/09: **todas** dispararam em `:00:04` ou
+  `:00:05`, nenhuma perdida. Quatro delas publicaram; as outras seis foram
+  recusa editorial, não falha. O `schedule` do
   `generate-article.yml` virou rede de segurança diária (`30 11 * * *`) — o
   agendador do GitHub descarta disparo e não serve como gatilho principal.
 - **Capa vem de banco curado**, não de busca ao vivo. As imagens ficam na
@@ -86,8 +88,10 @@
   `instagram-publisher.server.ts`), construída na frente de Analytics em cima
   do passo que gera o card. Só publica com `META_INSTAGRAM_AUTOPUBLISH=true`
   mais `META_INSTAGRAM_ACCOUNT_ID` e `META_INSTAGRAM_ACCESS_TOKEN` no Worker
-  do site. **Estado dessas variáveis em produção não verificado** — o conector
-  do Cloudflare não mostra variável de ambiente; confira no painel.
+  do site. **Medido em 14/09 05:03**, pelo log do Actions: o endpoint responde
+  `Conexão Meta incompleta: META_INSTAGRAM_ACCOUNT_ID,
+  META_INSTAGRAM_ACCESS_TOKEN` — as credenciais não existem e nada foi
+  postado. O passo é `continue-on-error`, então não derruba a publicação.
 
 ## Pendências reais
 
@@ -95,17 +99,22 @@
    `wire-banco-<editoria>-` foi cadastrada, então toda matéria sai com a mesma
    foto fixa da editoria. Só o usuário resolve, subindo imagens pelo Admin.
 2. **Quatro capas antigas falham no backfill da biblioteca**, todas com 403 de
-   `d3u0tzju9qaucj.cloudfront.net`. O ambiente bloqueia esse host, então não
+   `d3u0tzju9qaucj.cloudfront.net`. **Confirmado em 14/09 05:04**: a resposta
+   traz exatamente essas quatro e nenhum 522 — os três que apontavam para
+   `/api/media-images/` foram resolvidos e `alreadyPresent` subiu de 15 para 21. O ambiente bloqueia esse host, então não
    dá para saber se é hotlink, URL assinada vencida ou remoção. Se for
    permanente, não há solução em código: alguém reenvia pelo Admin.
 3. **"sem fato verificável" em série.** Em 13/09 a Wire passou horas sem
    publicar, com esse retorno em editorias diferentes. A contagem do radar já
-   é carimbada na mensagem para distinguir radar vazio (infraestrutura) de
-   recusa editorial legítima, mas **o carimbo ainda não foi observado nenhuma
-   vez** — falta uma rodada que pule já com o código novo no ar.
-4. **O card do Instagram nunca rodou em produção.** Foi testado localmente e
-   o acoplamento está travado por teste, mas nenhuma publicação passou por ele
-   ainda.
+   é carimbada na mensagem. **Respondido em 14/09 03:00**: a mensagem veio
+   `sem fato verificável no momento (radar: 2 pautas)`. Não é radar vazio nem
+   falha de infraestrutura — o radar entrega pauta e o modelo recusa por não
+   confirmar em duas fontes independentes. É a trava editorial funcionando.
+   A pergunta que sobra não é técnica: a barra está no lugar certo? Na noite
+   de 13→14/09 o ritmo foi de quatro publicações em dez horas.
+4. ~~O card do Instagram nunca rodou em produção.~~ **Resolvido**: rodou nas
+   publicações de 14/09 (passo "Gera o card do Instagram", verde), com capa e
+   card no mesmo commit, como projetado.
 5. **Os cinco `_fallback/<beat>.jpg` são fotos do Pexels de 11/09** e nunca
    foram revisados com o critério novo (imagem não pode parecer documentar o
    fato). Julgamento editorial, precisa do usuário.
@@ -115,6 +124,30 @@
 > Daqui para baixo é registro cronológico, preservado como foi escrito.
 > **Pode conter afirmações superadas** — inclusive avisos enfáticos que já
 > não valem. O bloco de estado, no topo, é a fonte de verdade.
+## Estado operacional consolidado — 2026-09-13
+
+- Continuidade assumida integralmente pelo Codex a partir de `origin/main` no
+  commit `65e1a2b`, preservando as entregas anteriores e sem alterações
+  paralelas em andamento.
+- Instagram `@wire__tv` confirmado pelo responsável como conta profissional,
+  vinculada à página do Facebook **Yezo Lab** e sincronizada no Meta Ads.
+  A publicação automática segue deliberadamente desligada até a autorização
+  segura do aplicativo Meta e a configuração dos segredos no Worker; nenhum
+  token deve ser exposto em código, commit ou conversa.
+- Pipeline editorial verificado: a execução automática nº 110, iniciada às
+  23:00 UTC, concluiu com sucesso e preservou a regra editorial ao não publicar
+  quando não encontrou fato verificável suficiente.
+- Validação da base antes dos ajustes finais: 16 testes aprovados, typecheck
+  aprovado e build Cloudflare/Nitro aprovado. Home, Wire TV, matéria, feeds,
+  sitemaps, selos e proposta da Express responderam em produção.
+- Proposta Express Entulho corrigida para registrar a entrada de R$ 750 paga em
+  12/09/2026 e o saldo de R$ 750 na entrega de 17/09/2026. Cronograma detalhado
+  de 13 a 17/09, atalho público `/proposta/express-entulho` e ligação recíproca
+  entre proposta e selo `VH-AUT-WA-2026-000001` adicionados.
+- Experiência editorial refinada com estado de carregamento nas matérias,
+  mensagens de erro em português e cabeçalhos básicos de segurança aplicados
+  tanto às respostas SSR/API quanto aos arquivos estáticos.
+
 
 ## Veronica Wire — credibilidade e receita editorial (2026-09-13)
 

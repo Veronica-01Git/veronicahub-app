@@ -31,6 +31,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
 import { Route as BlogRedeDeFontesRouteImport } from './routes/blog/rede-de-fontes'
+import { Route as PropostaExpressEntulhoRouteImport } from './routes/proposta/express-entulho'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
 import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/rede-de-fontes/relatorios'
@@ -147,6 +148,11 @@ const BlogRedeDeFontesRoute = BlogRedeDeFontesRouteImport.update({
   path: '/blog/rede-de-fontes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropostaExpressEntulhoRoute = PropostaExpressEntulhoRouteImport.update({
+  id: '/proposta/express-entulho',
+  path: '/proposta/express-entulho',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SeloSerialRoute = SeloSerialRouteImport.update({
   id: '/selo/$serial',
   path: '/selo/$serial',
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/proposta/express-entulho'
     | '/selo/$serial'
     | '/admin/'
     | '/blog/'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/proposta/express-entulho'
     | '/selo/$serial'
     | '/admin'
     | '/blog'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/proposta/express-entulho'
     | '/selo/$serial'
     | '/admin/'
     | '/blog/'
@@ -363,6 +375,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   BlogExpedienteRoute: typeof BlogExpedienteRoute
   BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
+  PropostaExpressEntulhoRoute: typeof PropostaExpressEntulhoRoute
   SeloSerialRoute: typeof SeloSerialRoute
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -526,6 +539,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRedeDeFontesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposta/express-entulho': {
+      id: '/proposta/express-entulho'
+      path: '/proposta/express-entulho'
+      fullPath: '/proposta/express-entulho'
+      preLoaderRoute: typeof PropostaExpressEntulhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/selo/$serial': {
       id: '/selo/$serial'
       path: '/selo/$serial'
@@ -589,6 +609,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   BlogExpedienteRoute: BlogExpedienteRoute,
   BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,
+  PropostaExpressEntulhoRoute: PropostaExpressEntulhoRoute,
   SeloSerialRoute: SeloSerialRoute,
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,

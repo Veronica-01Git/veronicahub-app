@@ -59,6 +59,9 @@ function correctionHref(headline: string, slug: string): string {
 }
 export const Route = createFileRoute("/blog/$slug")({
   component: ArticlePage,
+  pendingComponent: ArticlePending,
+  pendingMs: 300,
+  pendingMinMs: 350,
   loader: ({ params }) => getArticleBySlug({ data: { slug: params.slug } }),
   head: ({ loaderData, params }) => {
     if (!loaderData?.ok) {
@@ -119,6 +122,25 @@ export const Route = createFileRoute("/blog/$slug")({
     };
   },
 });
+
+function ArticlePending() {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <main className="mx-auto max-w-3xl px-6 py-14" aria-busy="true" aria-live="polite">
+        <div className="h-4 w-36 animate-pulse rounded bg-border/70" />
+        <div className="mt-10 h-3 w-44 animate-pulse rounded bg-neon-green/25" />
+        <div className="mt-5 h-12 w-full animate-pulse rounded bg-border/65" />
+        <div className="mt-3 h-12 w-4/5 animate-pulse rounded bg-border/65" />
+        <div className="mt-7 h-4 w-full animate-pulse rounded bg-border/45" />
+        <div className="mt-3 h-4 w-3/4 animate-pulse rounded bg-border/45" />
+        <div className="mt-8 aspect-[16/10] w-full animate-pulse rounded-sm bg-surface" />
+        <p className="sr-only">Carregando matéria da Wire TV…</p>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
 
 function ArticlePage() {
   const state = Route.useLoaderData();
