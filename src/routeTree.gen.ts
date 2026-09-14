@@ -35,6 +35,7 @@ import { Route as PropostaExpressEntulhoRouteImport } from './routes/proposta/ex
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
 import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/rede-de-fontes/relatorios'
+import { Route as ClientesExpressEntulhoOperacoesDemoRouteImport } from './routes/clientes/express-entulho/operacoes-demo'
 import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
 
 const IndexRoute = IndexRouteImport.update({
@@ -169,6 +170,12 @@ const BlogRedeDeFontesRelatoriosRoute =
     path: '/relatorios',
     getParentRoute: () => BlogRedeDeFontesRoute,
   } as any)
+const ClientesExpressEntulhoOperacoesDemoRoute =
+  ClientesExpressEntulhoOperacoesDemoRouteImport.update({
+    id: '/clientes/express-entulho/operacoes-demo',
+    path: '/clientes/express-entulho/operacoes-demo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ClientesExpressEntulhoPropostaRoute =
   ClientesExpressEntulhoPropostaRouteImport.update({
     id: '/clientes/express-entulho/proposta',
@@ -203,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
+  '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRoutesByTo {
@@ -232,6 +240,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
+  '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRoutesById {
@@ -262,6 +271,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
+  '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
 }
 export interface FileRouteTypes {
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
+    | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
+    | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
   id:
     | '__root__'
@@ -351,6 +363,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
+    | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
   fileRoutesById: FileRoutesById
 }
@@ -380,6 +393,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   BlogEditoriaBeatRoute: typeof BlogEditoriaBeatRoute
+  ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
 }
 
@@ -567,6 +581,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRedeDeFontesRelatoriosRouteImport
       parentRoute: typeof BlogRedeDeFontesRoute
     }
+    '/clientes/express-entulho/operacoes-demo': {
+      id: '/clientes/express-entulho/operacoes-demo'
+      path: '/clientes/express-entulho/operacoes-demo'
+      fullPath: '/clientes/express-entulho/operacoes-demo'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/express-entulho/proposta': {
       id: '/clientes/express-entulho/proposta'
       path: '/clientes/express-entulho/proposta'
@@ -614,6 +635,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   BlogEditoriaBeatRoute: BlogEditoriaBeatRoute,
+  ClientesExpressEntulhoOperacoesDemoRoute:
+    ClientesExpressEntulhoOperacoesDemoRoute,
   ClientesExpressEntulhoPropostaRoute: ClientesExpressEntulhoPropostaRoute,
 }
 export const routeTree = rootRouteImport
