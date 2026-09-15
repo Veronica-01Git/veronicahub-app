@@ -100,6 +100,9 @@ jobs:
             echo "libraryCoverId<<COVER_EOF"
             jq -r '.libraryCoverId // ""' response.json
             echo "COVER_EOF"
+            echo "libraryCoverCredit<<COVER_EOF"
+            jq -r '.libraryCoverCredit // ""' response.json
+            echo "COVER_EOF"
           } >> "$GITHUB_OUTPUT"
 
       # A partir daqui é tudo capa de imagem — best-effort. A matéria já foi
@@ -130,6 +133,7 @@ jobs:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
           COVER_BEAT: ${{ steps.generate.outputs.beat }}
           COVER_LIBRARY_ID: ${{ steps.generate.outputs.libraryCoverId }}
+          COVER_LIBRARY_CREDIT: ${{ steps.generate.outputs.libraryCoverCredit }}
         run: |
           node scripts/fetch-cover-photo.mjs > photo-result.json
           cat photo-result.json

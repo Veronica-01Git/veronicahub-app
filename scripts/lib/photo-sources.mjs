@@ -7,43 +7,56 @@ import { writeFile } from "node:fs/promises";
 // final usa 1600x900: nítida nos cards e em telas retina, mas leve para web.
 export const MIN_WIDTH = 3840;
 
-export async function searchPexels(term, apiKey, excludeIds) {
+// Deriva a URL de entrega 1600x900 a partir do original. fm=jpg força a saída
+// em JPEG: sem isso o CDN devolve o formato do original, e quando a foto é PNG
+// o arquivo vinha como PNG mas era gravado com extensão .jpg — 1.8MB em vez de
+// ~100KB, e com content-type errado ao ser servido. Aconteceu de verdade na
+// capa de /comandos.
+function editorialUrl(original) {
+  const url = new URL(original);
+  url.searchParams.set("auto", "compress");
+  url.searchParams.set("cs", "tinysrgb");
+  url.searchParams.set("fit", "crop");
+  url.searchParams.set("w", "1600");
+  url.searchParams.set("h", "900");
+  url.searchParams.set("fm", "jpg");
+  return url.toString();
+}
+
+function mapPexelsPhoto(photo) {
+  return {
+    imageUrl: editorialUrl(photo.src.original),
+    photoId: String(photo.id),
+    photoCredit: photo.photographer ?? null,
+    photoUrl: photo.url ?? null,
+    source: "pexels",
+  };
+}
+
+// Várias fotos de um termo, para montar banco (scripts/fill-cover-bank.mjs).
+// searchPexels abaixo é o caso de uma só, e chama esta para não existirem dois
+// caminhos diferentes montando a mesma URL de entrega.
+export async function searchPexelsMany(term, apiKey, excludeIds, limit = 15) {
   const url = new URL("https://api.pexels.com/v1/search");
   url.searchParams.set("query", term);
   url.searchParams.set("orientation", "landscape");
-  url.searchParams.set("per_page", "15");
+  url.searchParams.set("per_page", String(Math.min(Math.max(limit, 1), 80)));
 
   const res = await fetch(url, { headers: { Authorization: apiKey } });
   if (!res.ok) {
     console.error(`Pexels "${term}": HTTP ${res.status}`);
-    return null;
+    return [];
   }
   const data = await res.json();
   const photos = Array.isArray(data.photos) ? data.photos : [];
-  const pick = photos.find(
-    (p) => p.width >= MIN_WIDTH && !excludeIds.has(String(p.id)) && p.src?.original,
-  );
-  if (!pick) return null;
+  return photos
+    .filter((p) => p.width >= MIN_WIDTH && !excludeIds.has(String(p.id)) && p.src?.original)
+    .map(mapPexelsPhoto);
+}
 
-  const editorialUrl = new URL(pick.src.original);
-  editorialUrl.searchParams.set("auto", "compress");
-  editorialUrl.searchParams.set("cs", "tinysrgb");
-  editorialUrl.searchParams.set("fit", "crop");
-  editorialUrl.searchParams.set("w", "1600");
-  editorialUrl.searchParams.set("h", "900");
-  // fm=jpg força a saída em JPEG. Sem isso o CDN devolve o formato do
-  // original: quando a foto escolhida é PNG, o arquivo vinha como PNG mas era
-  // gravado com extensão .jpg — 1.8MB em vez de ~100KB, e com content-type
-  // errado ao ser servido. Aconteceu de verdade na capa de /comandos.
-  editorialUrl.searchParams.set("fm", "jpg");
-
-  return {
-    imageUrl: editorialUrl.toString(),
-    photoId: String(pick.id),
-    photoCredit: pick.photographer ?? null,
-    photoUrl: pick.url ?? null,
-    source: "pexels",
-  };
+export async function searchPexels(term, apiKey, excludeIds) {
+  const [first] = await searchPexelsMany(term, apiKey, excludeIds, 15);
+  return first ?? null;
 }
 
 export async function searchPixabay(term, apiKey, excludeIds) {
@@ -89,9 +102,7 @@ export async function downloadTo(url, outPath) {
   const bytes = new Uint8Array(await res.arrayBuffer());
   if (!isJpeg(bytes)) {
     const head = Buffer.from(bytes.slice(0, 4)).toString("hex");
-    throw new Error(
-      `resposta não é JPEG (primeiros bytes: ${head}, ${bytes.length} B) — ${url}`,
-    );
+    throw new Error(`resposta não é JPEG (primeiros bytes: ${head}, ${bytes.length} B) — ${url}`);
   }
   await writeFile(outPath, bytes);
 }

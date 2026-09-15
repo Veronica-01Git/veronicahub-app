@@ -18,7 +18,7 @@
 //
 // Uso:
 //   COVER_SLUG=foo COVER_BEAT=ia \
-//   COVER_LIBRARY_ID=abc123 \
+//   COVER_LIBRARY_ID=abc123 COVER_LIBRARY_CREDIT="Fulano/Pexels" \
 //     node scripts/fetch-cover-photo.mjs
 //
 // Imprime uma linha de JSON em stdout: {} se nada foi encontrado (o
@@ -61,8 +61,17 @@ async function main() {
   if (libraryCoverId) {
     try {
       await downloadTo(`https://veronicahub.com/api/media-images/${libraryCoverId}`, outPath);
+      // O crédito vem pronto do servidor, que o leu do altText da imagem (a
+      // biblioteca não tem coluna para ele). Sai vazio para foto que alguém
+      // subiu à mão pelo Admin, e aí a matéria fica sem crédito — correto:
+      // não dá para creditar quem não se sabe quem é.
       console.log(
-        JSON.stringify({ path: outPath, photoId: libraryCoverId, source: "biblioteca-admin" }),
+        JSON.stringify({
+          path: outPath,
+          photoId: libraryCoverId,
+          photoCredit: (process.env.COVER_LIBRARY_CREDIT ?? "").trim() || undefined,
+          source: "biblioteca-admin",
+        }),
       );
       return;
     } catch (error) {

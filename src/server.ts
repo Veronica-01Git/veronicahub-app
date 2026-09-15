@@ -17,6 +17,7 @@ import { handleSourceReferral } from "./lib/source-network-server";
 import { handleWireOfferRedirect } from "./lib/wire-commerce-server";
 import { handleAffiliateRedirect } from "./lib/affiliate-server";
 import { handlePublishInstagramCron } from "./lib/instagram-cron";
+import { handleCoverBankAddCron, handleCoverBankInventoryCron } from "./lib/cover-bank-cron";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -180,6 +181,26 @@ const app = {
         return await handleArchiveWireOwnedImagesCron(request);
       } catch (error) {
         console.error("Erro ao arquivar capas institucionais do Wire:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    // Abastecimento do banco curado de capas: o runner do Actions consulta o
+    // inventário (GET), busca no Pexels o que falta e cadastra um por um (POST).
+    if (url.pathname === "/api/cron/cover-bank" && request.method === "GET") {
+      try {
+        return await handleCoverBankInventoryCron(request);
+      } catch (error) {
+        console.error("Erro ao ler o banco curado de capas:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/cover-bank" && request.method === "POST") {
+      try {
+        return await handleCoverBankAddCron(request);
+      } catch (error) {
+        console.error("Erro ao cadastrar imagem no banco curado de capas:", error);
         return new Response("error", { status: 500 });
       }
     }

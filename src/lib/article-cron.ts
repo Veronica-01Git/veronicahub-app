@@ -290,7 +290,11 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
       desk: result.article.desk,
       fotoTermos: result.fotoTermos,
       recentPhotoIds: result.recentPhotoIds,
-      libraryCoverId: result.libraryCoverId,
+      libraryCoverId: result.libraryCover?.id ?? null,
+      // Crédito do fotógrafo, quando a imagem veio do abastecimento
+      // automático do Pexels. Atravessa o workflow e é gravado na coluna
+      // photoCredit da matéria pelo passo set-cover-image.
+      libraryCoverCredit: result.libraryCover?.credit ?? null,
     }),
     { headers: { "content-type": "application/json" } },
   );

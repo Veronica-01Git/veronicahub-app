@@ -1148,3 +1148,54 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - **Continua valendo**: subir 5 a 10 imagens por editoria no Admin com o
   prefixo `wire-banco-<editoria>-` faz a matéria voltar a sair com fotografia.
   A arte é o piso, não o teto.
+
+## Banco de capas abastecido pelo Pexels (2026-09-15)
+
+- **Pedido**: voltar a ter fotografia de notícia, não arte gerada. Escolhido o
+  desenho (A): abastecer o banco curado da biblioteca do Admin, que o pipeline
+  **já prefere** como nível 1 — nada no caminho da publicação muda, e a arte
+  gerada do slug continua como piso para quando o banco não tiver imagem.
+- **Por que não a busca ao vivo por matéria (desenho B)**: era exatamente o que
+  saiu em 13/09, quando a enchente em Telangana ganhou foto de rua americana
+  com placa "ROAD CLOSED". A diferença aqui é que os termos são **curados à
+  mão, uma vez, e deliberadamente genéricos** (`wind turbines field`,
+  `data center server room`): uma foto de parque eólico na editoria de clima é
+  assumidamente ilustrativa, não finge registrar o fato da matéria.
+- **Divisão de trabalho, igual à do resto do pipeline**: quem tem a chave e a
+  rede é o runner do Actions (`scripts/fill-cover-bank.mjs`) — busca, filtra e
+  baixa; o Worker só valida e grava, pelo endpoint `/api/cron/cover-bank`
+  (GET inventário, POST cadastro), protegido pelo mesmo `CRON_SECRET`. A
+  `PEXELS_API_KEY` não vira secret do Cloudflare, e a `DATABASE_URL` não vira
+  secret do Actions.
+- **Este workflow NÃO commita e NÃO dispara deploy** — é a diferença para o
+  cron editorial, que commita capa no `main`. `permissions: contents: read`, e
+  um teste trava a ausência de `git push`: se ganhar um, cada rodada semanal
+  passa a republicar o site.
+- **Dedupe sem coluna nova**: o nome do arquivo carrega o id da foto
+  (`wire-banco-<editoria>-pexels-<id>.jpg`), então o dedupe por filename que a
+  biblioteca já tem impede cadastrar a mesma foto duas vezes. Um id só entra
+  numa editoria — a mesma foto em duas reabriria a repetição.
+- **Teto de 24 por editoria**, checado no servidor e não só no script: a
+  biblioteca é Postgres (Neon, 512 MB) e cada foto pesa 200–400 KB em base64.
+  O alvo padrão é 8 por editoria, que já gira bem no rodízio de
+  `pickLibraryCover` (ele evita as últimas 40 usadas).
+- **Crédito do fotógrafo**: mora no `altText` da imagem, porque a biblioteca
+  não tem coluna para ele — e o `altText` é justamente o campo que o Admin
+  mostra, então quem cura pelo navegador lê o crédito. `buildBankAltText` e
+  `parseBankCredit` são um par com teste de ida e volta. O crédito atravessa
+  quatro elos até a coluna `photoCredit` da matéria: resposta do cron →
+  workflow → `COVER_LIBRARY_CREDIT` → saída do `fetch-cover-photo.mjs`. Um
+  teste trava os quatro, porque se um sumir a foto continua sendo publicada e
+  só o crédito some, sem nada falhar.
+- **PENDENTE, decisão sua**: nenhuma página do site exibe `photoCredit` hoje —
+  a coluna é gravada e ninguém lê. O dado passou a ser capturado agora porque
+  não dá para recuperar depois; onde mostrar (rodapé da capa na matéria,
+  legenda do Instagram, os dois) continua em aberto.
+- **Rodar**: `workflow_dispatch` em "Abastece o banco de capas (Wire TV)", com
+  `dry_run` para conferir antes de gravar. Usa os secrets `PEXELS_API_KEY` e
+  `CRON_SECRET`, que já existem no repositório.
+- Verificação local: 22/22 testes, typecheck e build Cloudflare. **Não foi
+  possível rodar o script de verdade daqui**: o proxy deste ambiente devolve
+  403 no CONNECT para `api.pexels.com` e `images.pexels.com`, e a
+  `PEXELS_API_KEY` não existe na sessão. A primeira rodada de verdade é no
+  Actions, e é ela que vai dizer se os termos rendem foto boa.

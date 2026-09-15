@@ -212,8 +212,10 @@ test('a capa sai do banco curado da biblioteca, não de busca ao vivo', () => {
   // digita ao subir a imagem no Admin e o que a consulta procura. Se um lado
   // mudar sem o outro, o banco fica invisível: nada falha, e toda matéria
   // passa a sair com o fallback fixo da editoria.
-  const prefix = server.match(/LIBRARY_COVER_PREFIX = "([^"]+)"/);
-  assert.ok(prefix, 'articles-server precisa declarar LIBRARY_COVER_PREFIX');
+  const bank = readFileSync(new URL('../src/lib/cover-bank.ts', import.meta.url), 'utf8');
+  const prefix = bank.match(/LIBRARY_COVER_PREFIX = "([^"]+)"/);
+  assert.ok(prefix, 'cover-bank precisa declarar LIBRARY_COVER_PREFIX');
+  assert.match(server, /LIBRARY_COVER_PREFIX/, 'a consulta do rodízio precisa usar o prefixo');
   assert.ok(
     server.includes(`\${LIBRARY_COVER_PREFIX}\${beat}-%`),
     'a consulta precisa filtrar por prefixo + editoria',
@@ -353,4 +355,67 @@ test('sem banco curado a matéria recebe arte própria, não a foto fixa', () =>
     1,
     'o canvas deve ser instalado num passo só',
   );
+});
+
+test('o nome do arquivo do banco carrega a foto e trava a duplicata', async () => {
+  const { bankFilename, parseBankFilename, buildBankAltText, parseBankCredit, LIBRARY_COVER_PREFIX } =
+    await import('../src/lib/cover-bank.ts');
+
+  // O id da foto entra no nome justamente para o dedupe por filename, que a
+  // biblioteca já tem, servir de trava contra cadastrar a mesma foto do Pexels
+  // duas vezes. Se o nome parar de carregar o id, o banco volta a repetir.
+  const filename = bankFilename({ beat: 'clima', photoId: '13865772' });
+  assert.ok(filename.startsWith(`${LIBRARY_COVER_PREFIX}clima-`), filename);
+  assert.deepEqual(parseBankFilename(filename), {
+    beat: 'clima',
+    source: 'pexels',
+    photoId: '13865772',
+  });
+
+  // Nome fora da convenção (o que uma pessoa sobe à mão pelo Admin) continua
+  // valendo no banco e simplesmente não tem id para extrair.
+  assert.equal(parseBankFilename('wire-banco-clima-chuva-cidade.webp'), null);
+  assert.equal(parseBankFilename('wire-banco-inexistente-pexels-1.jpg'), null);
+
+  // Ida e volta do crédito: é o altText que o carrega, porque a biblioteca não
+  // tem coluna para fotógrafo. Se o formato mudar de um lado só, a matéria
+  // passa a ser publicada sem creditar quem fez a foto.
+  const altText = buildBankAltText({ photographer: 'Ana Silva', beat: 'clima', term: 'wind turbines' });
+  assert.equal(parseBankCredit(altText), 'Ana Silva/Pexels');
+  assert.equal(parseBankCredit('Capa Wire TV — enchente'), null);
+  assert.equal(parseBankCredit(null), null);
+});
+
+test('o abastecimento do banco não commita nem dispara deploy', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/fill-cover-bank.yml', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/fill-cover-bank.mjs', import.meta.url), 'utf8');
+  const server = readFileSync(new URL('../src/server.ts', import.meta.url), 'utf8');
+
+  // Todo push neste repositório vira deploy de produção pela integração
+  // Cloudflare-Git. Este workflow cadastra no banco pelo endpoint, e nada mais:
+  // se ganhar git push, cada rodada semanal passa a republicar o site.
+  assert.ok(!/git (push|commit)/.test(workflow), 'o abastecimento não pode commitar');
+  assert.match(workflow, /permissions:\s*\n\s*contents: read/);
+  assert.match(workflow, /CRON_SECRET: \$\{\{ secrets\.CRON_SECRET \}\}/);
+  assert.match(workflow, /PEXELS_API_KEY: \$\{\{ secrets\.PEXELS_API_KEY \}\}/);
+
+  // A chave do Pexels fica no runner; o Worker nunca chama o Pexels.
+  assert.ok(!/PEXELS_API_KEY/.test(server), 'a chave do Pexels não pode chegar ao Worker');
+  assert.match(script, /api\/cron\/cover-bank/);
+  assert.match(server, /"\/api\/cron\/cover-bank"/);
+});
+
+test('o crédito do fotógrafo atravessa do banco até a matéria', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+  const fetchScript = readFileSync(new URL('../scripts/fetch-cover-photo.mjs', import.meta.url), 'utf8');
+
+  // Quatro elos. Se um sumir, a foto continua sendo publicada e o crédito
+  // simplesmente some — sem nada falhar, que é como este tipo de defeito passa.
+  assert.match(cron, /libraryCoverCredit/, 'a resposta do cron precisa levar o crédito');
+  assert.match(workflow, /libraryCoverCredit/, 'o workflow precisa ler o crédito da resposta');
+  assert.match(workflow, /COVER_LIBRARY_CREDIT/, 'o crédito precisa chegar ao script da capa');
+  assert.match(fetchScript, /COVER_LIBRARY_CREDIT/);
+  assert.match(fetchScript, /photoCredit/, 'o script precisa devolver o crédito ao workflow');
+  assert.match(workflow, /PHOTO_CREDIT: \$\{\{ steps\.fetch_photo\.outputs\.photoCredit \}\}/);
 });

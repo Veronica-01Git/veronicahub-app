@@ -753,7 +753,11 @@ async function recentCoverPhotoIds(db: ReturnType<typeof getDb>): Promise<string
 // de arquivo em vez de coluna nova porque o upload do Admin grava o nome do
 // arquivo enviado, então dá para curar tudo pelo navegador — que é o único
 // caminho disponível para quem não tem terminal.
-export const LIBRARY_COVER_PREFIX = "wire-banco-";
+// A convenção do nome vive em ./cover-bank, que também é usada pelo cron de
+// abastecimento e pelos testes; reexportada aqui porque é daqui que a consulta
+// do rodízio a lê.
+import { LIBRARY_COVER_PREFIX, parseBankCredit } from "./cover-bank";
+export { LIBRARY_COVER_PREFIX };
 
 // Capa vinda do banco curado, em vez de busca ao vivo no Pexels/Pixabay.
 // Decisão editorial de 13/09: uma foto de banco de imagens escolhida por
@@ -768,9 +772,9 @@ async function pickLibraryCover(
   db: ReturnType<typeof getDb>,
   beat: Beat,
   recentPhotoIds: string[],
-): Promise<string | null> {
+): Promise<{ id: string; credit: string | null } | null> {
   const rows = await db
-    .select({ id: mediaImages.id })
+    .select({ id: mediaImages.id, altText: mediaImages.altText })
     .from(mediaImages)
     .where(
       recentPhotoIds.length > 0
@@ -782,7 +786,12 @@ async function pickLibraryCover(
     )
     .orderBy(asc(mediaImages.createdAt))
     .limit(1);
-  return rows[0]?.id ?? null;
+  // O crédito do fotógrafo sai do altText (a biblioteca não tem coluna para
+  // ele) e segue até a coluna photoCredit da matéria. Fotos que alguém subiu
+  // à mão pelo Admin não têm crédito nesse formato e devolvem null, o que é
+  // correto: não dá para creditar quem não se sabe quem é.
+  const row = rows[0];
+  return row ? { id: row.id, credit: parseBankCredit(row.altText) } : null;
 }
 
 // Últimas manchetes publicadas (todas as editorias — o mesmo fato pode vazar
@@ -1002,10 +1011,11 @@ export async function publishArticleFromCron(beat: Beat): Promise<
       article: ReturnType<typeof mapArticle>;
       fotoTermos: string[];
       recentPhotoIds: string[];
-      // Id da imagem escolhida no banco curado da biblioteca, ou null quando
-      // a editoria ainda não tem nenhuma cadastrada — aí o workflow cai no
-      // fallback fixo por editoria e, na falta dele, no card tipográfico.
-      libraryCoverId: string | null;
+      // Imagem escolhida no banco curado da biblioteca, com o crédito do
+      // fotógrafo quando ela veio do abastecimento automático do Pexels. Null
+      // quando a editoria ainda não tem nenhuma cadastrada — aí o workflow
+      // gera a arte própria da matéria (scripts/render-cover-art.mjs).
+      libraryCover: { id: string; credit: string | null } | null;
     }
   | { ok: false; error: string }
 > {
@@ -1049,7 +1059,7 @@ export async function publishArticleFromCron(beat: Beat): Promise<
     article: mapArticle(row),
     fotoTermos: result.content.fotoTermos,
     recentPhotoIds,
-    libraryCoverId: await pickLibraryCover(db, beat, recentPhotoIds),
+    libraryCover: await pickLibraryCover(db, beat, recentPhotoIds),
   };
 }
 
