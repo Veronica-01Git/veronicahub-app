@@ -1,0 +1,7 @@
+Accio‑Lab lança modelo de 35B parâmetros focado em agentes de trabalho colaborativo
+
+O Accio‑Lab divulgou o Occamy‑1.0, um modelo de 35 bilhões de parâmetros com arquitetura de especialistas, projetado para executar longas sequências de trabalho que envolvem pesquisa, uso de ferramentas e codificação.
+
+Leia a matéria completa: https://veronicahub.com/blog/accio-lab-lanca-modelo-de-35b-parametros-focado-em-agentes-de-trabalho-colaborat
+
+@wire__tv
