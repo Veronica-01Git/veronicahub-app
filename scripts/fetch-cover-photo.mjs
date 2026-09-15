@@ -1,8 +1,14 @@
-// Resolve a capa de uma matéria da Wire TV — banco curado na biblioteca do
-// Admin primeiro, foto genérica fixa por editoria como segundo nível. Roda no
-// GitHub Action (não no Worker — Cloudflare Workers não escrevem em disco/
-// `/public`), chamado ANTES do card tipográfico (scripts/render-cover.mjs),
-// que continua como último recurso quando nada aqui encontra nada.
+// Resolve a capa de uma matéria da Wire TV a partir do banco curado na
+// biblioteca do Admin. Roda no GitHub Action (não no Worker — Cloudflare
+// Workers não escrevem em disco/`/public`), chamado ANTES da arte gerada
+// (scripts/render-cover-art.mjs), que entra quando o banco não tem imagem
+// para a editoria.
+//
+// O segundo nível daqui — copiar a foto fixa `_fallback/<editoria>.jpg` —
+// saiu em 15/09: com o banco vazio, ele dava a mesma imagem a toda matéria da
+// editoria (22 das 40 capas eram cópias byte a byte de cinco fotos, e o card
+// do Instagram, que usa a capa como fundo, repetia junto). Quem não achar
+// imagem aqui agora recebe arte própria, gerada do hash do slug.
 //
 // A busca ao vivo em Pexels/Pixabay saiu daqui em 13/09 — ver o comentário no
 // nível 1, lá embaixo. As funções continuam em ./lib/photo-sources.mjs porque
@@ -16,20 +22,11 @@
 //     node scripts/fetch-cover-photo.mjs
 //
 // Imprime uma linha de JSON em stdout: {} se nada foi encontrado (o
-// chamador deve cair pro card tipográfico), ou {"path","photoId","source"}.
-import { mkdir, copyFile, access } from "node:fs/promises";
+// chamador deve cair pra arte gerada), ou {"path","photoId","source"}.
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { downloadTo } from "./lib/photo-sources.mjs";
-
-async function fileExists(p) {
-  try {
-    await access(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 async function main() {
   const slug = process.env.COVER_SLUG;
@@ -76,16 +73,8 @@ async function main() {
     }
   }
 
-  // Nível 2: foto genérica fixa por editoria, se já foi commitada (ver
-  // scripts/fetch-fallback-covers.mjs).
-  const fallbackPath = path.join(outDir, "_fallback", `${beat}.jpg`);
-  if (await fileExists(fallbackPath)) {
-    await copyFile(fallbackPath, outPath);
-    console.log(JSON.stringify({ path: outPath, source: "fallback-beat" }));
-    return;
-  }
-
-  // Nada encontrado — o chamador cai pro card tipográfico (render-cover.mjs).
+  // Banco vazio para a editoria (ou download falhou) — o chamador cai pra
+  // arte gerada do slug (render-cover-art.mjs), que nunca repete.
   console.log("{}");
 }
 

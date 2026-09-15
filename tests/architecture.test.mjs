@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { registerHooks } from 'node:module';
 import { PRODUCTS, CATEGORIES, INTENTS, INTENT_LINKS, PRIMARY_NAV, HOME_PRODUCTS } from '../src/lib/ecosystem.ts';
 import { sealRecords } from '../src/lib/seals.ts';
@@ -255,4 +256,101 @@ test('o card do Instagram é gerado e commitado no mesmo caminho', () => {
   // vira um deploy e cada deploy troca o que a produção serve.
   const commitStep = workflow.slice(workflow.indexOf('Commita a capa no repositório'));
   assert.equal((commitStep.match(/git commit -m/g) ?? []).length, 1, 'a capa e o card devem ir num commit só');
+});
+
+test('nenhuma capa publicada repete outra nem a foto fixa da editoria', () => {
+  // O defeito que estes três asserts travam: com o banco curado vazio, toda
+  // matéria de uma editoria recebia `_fallback/<editoria>.jpg`, e o card do
+  // Instagram, que usa a capa como fundo, repetia junto. Em 15/09 eram 19 das
+  // 39 capas. Se voltar, a Wire TV volta a publicar a mesma imagem em dezenas
+  // de matérias — e nada mais falharia para avisar.
+  const coverDir = new URL('../public/images/blog-covers/', import.meta.url);
+  const hash = file => createHash('sha256').update(readFileSync(file)).digest('hex');
+
+  const fallbacks = new Set(
+    readdirSync(new URL('_fallback/', coverDir))
+      .filter(name => name.endsWith('.jpg'))
+      .map(name => hash(new URL(`_fallback/${name}`, coverDir))),
+  );
+
+  const seen = new Map();
+  for (const name of readdirSync(coverDir).filter(item => item.endsWith('.jpg'))) {
+    const digest = hash(new URL(name, coverDir));
+    assert.ok(!fallbacks.has(digest), `${name} é cópia da foto fixa da editoria`);
+    assert.ok(!seen.has(digest), `${name} é cópia byte a byte de ${seen.get(digest)}`);
+    seen.set(digest, name);
+  }
+});
+
+test('a arte de capa é determinística e muda com o slug', async () => {
+  const { drawWireCoverArt, wireCoverMotif, wireCoverSeed, WIRE_COVER_MOTIFS } =
+    await import('../src/lib/wire-cover-art.ts');
+
+  // Determinismo: a mesma matéria regerada tem que sair idêntica, senão cada
+  // rodada do backfill troca capas que já estão publicadas e no ar.
+  assert.equal(wireCoverSeed('uma-materia'), wireCoverSeed('uma-materia'));
+  assert.notEqual(wireCoverSeed('uma-materia'), wireCoverSeed('outra-materia'));
+  assert.ok(WIRE_COVER_MOTIFS.includes(wireCoverMotif('uma-materia')));
+
+  // O traçado só pode usar o subconjunto do Canvas 2D que o @napi-rs/canvas
+  // também tem — quem gera é o runner do Actions, sem navegador. Este duplo
+  // registra cada chamada; se entrar uma API que só o navegador oferece, o
+  // acesso a uma propriedade inexistente estoura aqui.
+  const calls = [];
+  const noop = name => (...args) => { calls.push(name); return args; };
+  const gradient = { addColorStop: noop('addColorStop') };
+  const context = new Proxy({}, {
+    get(_target, property) {
+      if (property === 'createLinearGradient' || property === 'createRadialGradient') {
+        return () => { calls.push(String(property)); return gradient; };
+      }
+      if (property === 'measureText') return text => ({ width: text.length * 10 });
+      return noop(String(property));
+    },
+    set() { return true; },
+  });
+
+  const first = drawWireCoverArt(context, { slug: 'uma-materia', beat: 'ia' });
+  const desenhos = calls.length;
+  const again = drawWireCoverArt(context, { slug: 'uma-materia', beat: 'ia' });
+  assert.deepEqual(first, again, 'a mesma matéria tem que gerar a mesma arte');
+  assert.equal(calls.length, desenhos * 2, 'o traçado tem que ser o mesmo nas duas vezes');
+  assert.ok(desenhos > 50, 'a composição saiu vazia');
+});
+
+test('sem banco curado a matéria recebe arte própria, não a foto fixa', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+  // Só o código: os dois scripts explicam nos comentários o que saiu de lá.
+  const semComentarios = file =>
+    readFileSync(new URL(file, import.meta.url), 'utf8')
+      .split('\n')
+      .filter(line => !line.trimStart().startsWith('//'))
+      .join('\n');
+
+  // A cópia do `_fallback` era o nível que produzia a repetição. Ela continua
+  // existindo dentro de render-cover-art.mjs como rede de segurança para o
+  // caso de o canvas não subir, e em lugar nenhum antes disso.
+  assert.ok(
+    !/_fallback/.test(semComentarios('../scripts/fetch-cover-photo.mjs')),
+    'a foto fixa não pode voltar a ser a capa padrão',
+  );
+  assert.ok(
+    !/_fallback/.test(semComentarios('../scripts/render-instagram-card.mjs')),
+    'o card do Instagram não pode usar a foto fixa como fundo',
+  );
+
+  assert.match(workflow, /node scripts\/render-cover-art\.mjs/);
+  assert.match(
+    workflow,
+    /steps\.fetch_photo\.outputs\.found != 'true'/,
+    'a arte só entra quando o banco curado não deu imagem',
+  );
+  // O canvas serve a arte e o card; instalado uma vez, antes dos dois.
+  const install = workflow.indexOf('npm install --no-save --no-package-lock @napi-rs/canvas');
+  assert.ok(install !== -1 && install < workflow.indexOf('node scripts/render-cover-art.mjs'));
+  assert.equal(
+    (workflow.match(/@napi-rs\/canvas/g) ?? []).length,
+    1,
+    'o canvas deve ser instalado num passo só',
+  );
 });

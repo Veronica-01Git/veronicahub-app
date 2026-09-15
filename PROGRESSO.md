@@ -1092,3 +1092,59 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   profissional e o token oficial da Meta; nenhum segredo foi criado ou
   inventado no código.
 - Verificação local: 16/16 testes, typecheck e build Cloudflare completos.
+
+## Fim das imagens repetidas na Wire TV (2026-09-15)
+
+- **Medida antes de mexer**: 19 das 39 capas em `public/images/blog-covers`
+  eram cópias byte a byte umas das outras ou de `_fallback/<editoria>.jpg` —
+  cinco imagens ilustrando 19 matérias. Herança direta do aviso da seção
+  "Capa passa a sair de banco curado": o banco curado da biblioteca do Admin
+  continua vazio, e o nível 2 da cascata copiava a foto fixa da editoria. Como
+  o card do Instagram usa a capa como fundo, a repetição também estava nas
+  peças de divulgação.
+- **O que substituiu**: `src/lib/wire-cover-art.ts` desenha uma composição
+  abstrata 1200×630 a partir de um hash FNV-1a do slug. Cinco traçados
+  (`sinal`, `orbita`, `espectro`, `malha`, `estratos`), paleta da editoria e
+  toda variação — posição dos halos, amplitude, quantidade, ângulo — sorteada
+  por um mulberry32 com a semente do slug. Duas matérias não recebem a mesma
+  capa, e regerar a mesma matéria devolve a mesma imagem (determinismo é
+  requisito: sem ele, cada passagem do backfill trocaria capa já publicada).
+- **Por que arte e não foto**: a decisão de 13/09 continua valendo — foto de
+  banco escolhida por termo inventado finge documentar o fato. Arte geométrica
+  é assumidamente ilustrativa. Feed de fotos de verdade continua sendo o banco
+  curado, que segue como nível 1 e não foi tocado.
+- **Sem manchete na capa, de propósito**: o card do Instagram recorta a capa
+  pelo centro (504 px dos 1200) e escreve a manchete por cima. Manchete na
+  capa apareceria duas vezes. A marca "WIRE TV" fica no canto inferior
+  esquerdo, justamente na faixa que o recorte 4:5 descarta — identifica a
+  imagem como og:image sem duplicar o "WIRE TV" do card.
+- **Cascata nova** em `generate-article.yml`: banco curado → arte gerada
+  (`scripts/render-cover-art.mjs`) → foto fixa da editoria, e esta só se o
+  canvas não subir, dentro do próprio script. `scripts/fetch-cover-photo.mjs`
+  deixou de copiar o `_fallback`.
+- **Playwright saiu do pipeline do Wire**: `scripts/render-cover.mjs` (card
+  tipográfico, nível 4) foi removido, e com ele os dois passos que baixavam um
+  Chromium a cada rodada para desenhar sempre o mesmo layout. O `@napi-rs/canvas`
+  agora é instalado uma vez e serve a arte e o card do Instagram. O
+  `render-trending-covers.mjs` da Analytics continua com Playwright — outro
+  pipeline, não foi tocado.
+- **Backfill aplicado**: `scripts/refresh-repeated-covers.mjs` achou as 19
+  repetidas por hash, gerou arte para cada uma e redesenhou os 19 cards do
+  Instagram (18 existentes + 1 que faltava). As legendas `.txt` existentes
+  foram preservadas: elas trazem o resumo que o endpoint devolveu na
+  publicação, que o manifesto nem sempre tem. O script é dry-run por padrão e
+  precisa de `--manifest` com a lista de matérias publicadas — ele não adivinha
+  editoria; a consulta SQL está no cabeçalho.
+- **Peso**: as capas repetidas pesavam 85–417 KB (fotos); a arte sai com
+  ~60 KB. O passo de otimização com ImageMagick agora só roda em foto do banco
+  curado — o 4:2:0 borraria as linhas finas da composição, e a arte já sai no
+  tamanho e no peso certos.
+- **Teste que trava a regressão**: `nenhuma capa publicada repete outra nem a
+  foto fixa da editoria` compara o hash de todos os arquivos commitados. Se a
+  repetição voltar por qualquer caminho, `npm test` acusa — antes era um
+  defeito silencioso, com banco e repositório consistentes e nada falhando.
+- Verificação local: 19/19 testes, typecheck limpo, build Cloudflare completo.
+  As capas e os cards foram conferidos como imagem, não só como arquivo.
+- **Continua valendo**: subir 5 a 10 imagens por editoria no Admin com o
+  prefixo `wire-banco-<editoria>-` faz a matéria voltar a sair com fotografia.
+  A arte é o piso, não o teto.

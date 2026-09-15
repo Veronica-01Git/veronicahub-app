@@ -297,9 +297,10 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
 }
 
 // Segundo passo do mesmo pipeline: o workflow do cron (generate-article.yml)
-// chama handleGenerateArticleCron acima, depois renderiza a capa (HTML/CSS
-// via Playwright, scripts/render-cover.mjs) e commita o .jpg estático no
-// repo — só então dá pra saber a URL final e setar coverImageUrl aqui. Mesma
+// chama handleGenerateArticleCron acima, depois resolve a capa (foto do banco
+// curado ou arte gerada do slug, scripts/render-cover-art.mjs) e commita o
+// .jpg estático no repo — só então dá pra saber a URL final e setar
+// coverImageUrl aqui. Mesma
 // autenticação por CRON_SECRET; sem isso o artigo fica publicado sem capa
 // (degradação aceitável, não bloqueia a publicação).
 export async function handleSetCoverImageCron(request: Request): Promise<Response> {

@@ -1,8 +1,7 @@
 // Gera as capas 9:16 dos cards de "vídeos virais do momento" da Veronica
 // Analytics como .jpg estáticos, renderizando HTML/CSS com Chromium via
-// Playwright — mesma técnica do scripts/render-cover.mjs do Wire, sem
-// depender de API de geração de imagem paga nem de banco de fotos com
-// chave. Lê src/data/trending-videos.json e escreve uma capa por vídeo:
+// Playwright, sem depender de API de geração de imagem paga nem de banco de
+// fotos com chave. Lê src/data/trending-videos.json e escreve uma capa por vídeo:
 //
 //   node scripts/render-trending-covers.mjs
 //
