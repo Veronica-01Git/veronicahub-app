@@ -1,8 +1,11 @@
 /**
  * Express Operations — ÚNICA fonte de dados da demonstração.
  *
- * Tudo aqui é fictício e verossímil para a Grande Florianópolis. Quatro
- * pontos ficam propositalmente em "Aguardando cadastro": frota de veículos,
+ * Tudo aqui é fictício e verossímil para Itajaí e Balneário Camboriú, onde a
+ * Express Entulho atende — sede em Itajaí, operações nas duas cidades. Nomes e
+ * endereços são inventados: nenhum dado de cliente real entra nesta demo.
+ *
+ * Quatro pontos ficam propositalmente em "Aguardando cadastro": frota,
  * pagamentos aprovados, documentos de resíduos (CTR/MTR) e a caçamba de um
  * cliente novo. Isso é mensagem comercial — mostra o que o sistema exige que
  * seja cadastrado antes de exibir número.
@@ -23,7 +26,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "instalada",
     cliente: "Construtora Marisol",
-    endereco: "Rua Lauro Linhares, 1840 · Trindade",
+    endereco: "Av. Ministro Victor Konder, 1840 · Centro, Itajaí",
     prazo: { decorridoDias: 4, contratadoDias: 7 },
   },
   {
@@ -32,7 +35,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "instalada",
     cliente: "Patrícia Nunes",
-    endereco: "Servidão das Araucárias, 77 · Córrego Grande",
+    endereco: "Rua Samuel Heusi, 77 · São João, Itajaí",
     prazo: { decorridoDias: 9, contratadoDias: 7 },
   },
   {
@@ -41,7 +44,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 3,
     estado: "instalada",
     cliente: "Rodrigo Cardoso",
-    endereco: "Rua Delfino Conti, 210 · Trindade",
+    endereco: "Rua Blumenau, 210 · Centro, Itajaí",
     prazo: { decorridoDias: 2, contratadoDias: 5 },
   },
   {
@@ -50,7 +53,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "aguardando-retirada",
     cliente: "Marcelo Búrigo",
-    endereco: "Rua Aracy Vaz Callado, 415 · Itacorubi",
+    endereco: "Rua Hercílio Luz, 415 · Fazenda, Itajaí",
     prazo: { decorridoDias: 7, contratadoDias: 7 },
   },
   {
@@ -59,7 +62,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "aguardando-retirada",
     cliente: "Fernanda Küster",
-    endereco: "Rua João Câncio Jacques, 62 · Santa Mônica",
+    endereco: "Rua Vereador Abrahão João Francisco, 62 · Cordeiros, Itajaí",
     prazo: { decorridoDias: 6, contratadoDias: 5 },
   },
   {
@@ -68,7 +71,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 3,
     estado: "em-transito",
     cliente: "Anderson Koerich",
-    endereco: "Rod. Amaro Antônio Vieira, 2200 · Itacorubi",
+    endereco: "Av. Sete de Setembro, 2200 · Fazenda, Itajaí",
     prazo: null,
   },
   {
@@ -77,7 +80,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "em-transito",
     cliente: "Caroline Philippi",
-    endereco: "Rua Desembargador Vitor Lima, 260 · Pantanal",
+    endereco: "Rua Almirante Barroso, 260 · Vila Operária, Itajaí",
     prazo: null,
   },
   {
@@ -86,7 +89,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "reservada",
     cliente: "Juliana Bittencourt",
-    endereco: "Rua Vereador Batista Pereira, 88 · Coqueiros",
+    endereco: "Av. do Estado, 88 · Nações, Balneário Camboriú",
     prazo: null,
   },
   {
@@ -95,7 +98,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 3,
     estado: "reservada",
     cliente: "Eduardo Brandt",
-    endereco: "Rua Osmar Cunha, 183 · Centro",
+    endereco: "Rua 1500, 183 · Centro, Balneário Camboriú",
     prazo: null,
   },
   {
@@ -104,7 +107,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "descarregada",
     cliente: null,
-    endereco: "Pátio · Barreiros, São José",
+    endereco: "Pátio · São João, Itajaí",
     prazo: null,
   },
   {
@@ -113,7 +116,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "disponivel",
     cliente: null,
-    endereco: "Pátio · Barreiros, São José",
+    endereco: "Pátio · São João, Itajaí",
     prazo: null,
   },
   {
@@ -122,7 +125,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "disponivel",
     cliente: null,
-    endereco: "Pátio · Barreiros, São José",
+    endereco: "Pátio · São João, Itajaí",
     prazo: null,
   },
   {
@@ -131,7 +134,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 3,
     estado: "disponivel",
     cliente: null,
-    endereco: "Pátio · Barreiros, São José",
+    endereco: "Pátio · São João, Itajaí",
     prazo: null,
   },
   {
@@ -140,7 +143,7 @@ const cacambas: readonly Cacamba[] = [
     capacidadeM3: 5,
     estado: "disponivel",
     cliente: null,
-    endereco: "Pátio · Barreiros, São José",
+    endereco: "Pátio · São João, Itajaí",
     prazo: null,
   },
 ];
@@ -151,8 +154,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "07:20",
     tipo: "entrega",
     cliente: "Construtora Marisol",
-    endereco: "Rua Lauro Linhares, 1840",
-    bairro: "Trindade",
+    endereco: "Av. Ministro Victor Konder, 1840",
+    bairro: "Centro, Itajaí",
     motorista: "Anderson Koerich",
     veiculo: "Caminhão 03",
     placa: "MJQ2F41",
@@ -172,8 +175,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "08:05",
     tipo: "retirada",
     cliente: "Marcelo Búrigo",
-    endereco: "Rua Aracy Vaz Callado, 415",
-    bairro: "Itacorubi",
+    endereco: "Rua Hercílio Luz, 415",
+    bairro: "Fazenda, Itajaí",
     motorista: "Thiago Manoel",
     veiculo: "Caminhão 01",
     placa: "QGR4H18",
@@ -193,8 +196,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "09:30",
     tipo: "entrega",
     cliente: "Caroline Philippi",
-    endereco: "Rua Desembargador Vitor Lima, 260",
-    bairro: "Pantanal",
+    endereco: "Rua Almirante Barroso, 260",
+    bairro: "Vila Operária, Itajaí",
     motorista: "Anderson Koerich",
     veiculo: "Caminhão 03",
     placa: "MJQ2F41",
@@ -214,8 +217,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "10:15",
     tipo: "entrega",
     cliente: "Anderson Koerich",
-    endereco: "Rod. Amaro Antônio Vieira, 2200",
-    bairro: "Itacorubi",
+    endereco: "Av. Sete de Setembro, 2200",
+    bairro: "Fazenda, Itajaí",
     motorista: "Thiago Manoel",
     veiculo: "Caminhão 01",
     placa: "QGR4H18",
@@ -235,8 +238,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "11:00",
     tipo: "retirada",
     cliente: "Fernanda Küster",
-    endereco: "Rua João Câncio Jacques, 62",
-    bairro: "Santa Mônica",
+    endereco: "Rua Vereador Abrahão João Francisco, 62",
+    bairro: "Cordeiros, Itajaí",
     motorista: "Luciana Espíndola",
     veiculo: "Caminhão 02",
     placa: "LZT7B09",
@@ -256,8 +259,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "13:40",
     tipo: "entrega",
     cliente: "Juliana Bittencourt",
-    endereco: "Rua Vereador Batista Pereira, 88",
-    bairro: "Coqueiros",
+    endereco: "Av. do Estado, 88",
+    bairro: "Nações, BC",
     motorista: "Luciana Espíndola",
     veiculo: "Caminhão 02",
     placa: "LZT7B09",
@@ -277,8 +280,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "15:10",
     tipo: "entrega",
     cliente: "Eduardo Brandt",
-    endereco: "Rua Osmar Cunha, 183",
-    bairro: "Centro",
+    endereco: "Rua 1500, 183",
+    bairro: "Centro, BC",
     motorista: "Thiago Manoel",
     veiculo: "Caminhão 01",
     placa: "QGR4H18",
@@ -298,8 +301,8 @@ const operacoesHoje: readonly Operacao[] = [
     hora: "16:30",
     tipo: "retirada",
     cliente: "Patrícia Nunes",
-    endereco: "Servidão das Araucárias, 77",
-    bairro: "Córrego Grande",
+    endereco: "Rua Samuel Heusi, 77",
+    bairro: "São João, Itajaí",
     motorista: "Anderson Koerich",
     veiculo: "Caminhão 03",
     placa: "MJQ2F41",
@@ -436,7 +439,7 @@ export const expressOpsMock: ExpressOpsData = {
       motorista: "Luciana Espíndola",
       veiculo: "Caminhão 02",
       placa: "LZT7B09",
-      destino: "Coqueiros",
+      destino: "Nações, BC",
       tipo: "entrega",
     },
     {
@@ -444,7 +447,7 @@ export const expressOpsMock: ExpressOpsData = {
       motorista: "Thiago Manoel",
       veiculo: "Caminhão 01",
       placa: "QGR4H18",
-      destino: "Centro",
+      destino: "Centro, BC",
       tipo: "entrega",
     },
     {
@@ -452,7 +455,7 @@ export const expressOpsMock: ExpressOpsData = {
       motorista: "Anderson Koerich",
       veiculo: "Caminhão 03",
       placa: "MJQ2F41",
-      destino: "Córrego Grande",
+      destino: "São João, Itajaí",
       tipo: "retirada",
     },
   ],
@@ -466,7 +469,7 @@ export const expressOpsMock: ExpressOpsData = {
   },
   agendaAmanha: {
     operacoes: 9,
-    conflitos: ["Caminhão 02 com duas janelas às 09:00 (Campeche e Rio Tavares)"],
+    conflitos: ["Caminhão 02 com duas janelas às 09:00 (Praia Brava e Cabeçudas)"],
   },
   conversas: [
     {
@@ -510,7 +513,7 @@ export const expressOpsMock: ExpressOpsData = {
         },
       ],
       contexto: {
-        endereco: "Servidão das Araucárias, 77 · Córrego Grande",
+        endereco: "Rua Samuel Heusi, 77 · São João, Itajaí",
         historico: [
           { data: "05/09", resumo: "Entrega CB-021 · tambor 5m³ · R$ 450" },
           { data: "22/07", resumo: "Entrega + retirada · tambor 5m³ · R$ 430" },
@@ -564,7 +567,7 @@ export const expressOpsMock: ExpressOpsData = {
         },
       ],
       contexto: {
-        endereco: "Rua Lauro Linhares, 1840 · Trindade",
+        endereco: "Av. Ministro Victor Konder, 1840 · Centro, Itajaí",
         historico: [
           { data: "09/09", resumo: "Entrega CB-014 · tambor 5m³ · R$ 450" },
           { data: "28/08", resumo: "Pacote 3 caçambas · R$ 1.215" },
@@ -615,7 +618,7 @@ export const expressOpsMock: ExpressOpsData = {
         },
       ],
       contexto: {
-        endereco: "Rua Delfino Conti, 210 · Trindade",
+        endereco: "Rua Blumenau, 210 · Centro, Itajaí",
         historico: [{ data: "11/09", resumo: "Entrega CB-008 · caçamba menor 3m³ · R$ 390" }],
         cacambaInstalada: { id: "CB-008", decorridoDias: 2, contratadoDias: 5 },
         escalonamento: null,
@@ -632,7 +635,12 @@ export const expressOpsMock: ExpressOpsData = {
       janela24hAberta: true,
       naoLidas: 0,
       mensagens: [
-        { id: "m1", autor: "cliente", texto: "Vocês atendem em Coqueiros?", hora: "09:31" },
+        {
+          id: "m1",
+          autor: "cliente",
+          texto: "Vocês atendem em Balneário Camboriú?",
+          hora: "09:31",
+        },
         {
           id: "m2",
           autor: "ia",
@@ -650,7 +658,7 @@ export const expressOpsMock: ExpressOpsData = {
         { id: "m5", autor: "cliente", texto: "Perfeito, obrigada!", hora: "09:41" },
       ],
       contexto: {
-        endereco: "Rua Vereador Batista Pereira, 88 · Coqueiros",
+        endereco: "Av. do Estado, 88 · Nações, Balneário Camboriú",
         historico: [],
         cacambaInstalada: awaiting("Primeiro pedido — entrega prevista para hoje às 13:40."),
         escalonamento: null,
@@ -682,7 +690,7 @@ export const expressOpsMock: ExpressOpsData = {
         },
       ],
       contexto: {
-        endereco: "Rua Osmar Cunha, 183 · Centro",
+        endereco: "Rua 1500, 183 · Centro, Balneário Camboriú",
         historico: [],
         cacambaInstalada: awaiting("Primeiro pedido — entrega ainda não realizada."),
         escalonamento: {
