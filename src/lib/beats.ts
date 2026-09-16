@@ -17,7 +17,7 @@ export const BEAT_LABELS: Record<Beat, string> = {
   ia: "Inteligência Artificial",
   clima: "Clima Futuro · Energia Limpa",
   economia: "Economia · Yuan Digital",
-  geopolitica: "Geopolítica · China, EUA e Brasil",
+  geopolitica: "Geopolítica · Brasil e China",
   mercado: "Mercado Tecnológico Global",
 };
 

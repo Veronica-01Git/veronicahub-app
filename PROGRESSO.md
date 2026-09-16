@@ -1275,3 +1275,37 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   cascata nova. Arte de capa em 1 s, card do Instagram em 1 s, otimização com
   ImageMagick pulada (correto — só roda em foto do banco curado). O Worker de
   produção foi atualizado às 00:17:43Z, logo após o merge das 00:16:51Z.
+
+## Escopo editorial passa a ser Brasil e China (2026-09-16)
+
+- **Pedido do dono**: tirar notícia dos EUA, deixar só China e Brasil, com foco
+  no Brasil, incluindo os assuntos mais comentados do dia.
+- **O recorte vale em quatro elos, e precisa dos quatro** — mexer em um só
+  deixa os outros trabalhando contra:
+  1. `GDELT_SCOPE` no radar principal;
+  2. `RSS_FEEDS` reapontados (os antigos eram `hl=en-US&gl=US` mais TechCrunch,
+     Federal Reserve e BBC — um radar montado para enxergar os EUA, que era de
+     onde a pauta vinha);
+  3. `inEditorialScope`, aplicado a TODO sinal, nos dois caminhos de
+     descoberta;
+  4. a regra no prompt, que é o elo decisivo quando o radar vem vazio.
+- **Duas portas no filtro, e a ordem importa**: veículo brasileiro ou chinês
+  entra pelo domínio, sem precisar dizer "Brasil" na manchete — senão
+  "Governo anuncia leilão de baterias", da Agência Brasil, seria descartado
+  justamente por ser notícia brasileira demais para se anunciar como tal. De
+  qualquer outro veículo, a manchete precisa trazer o vínculo.
+- **"Mais comentados do dia"**: `BRASIL_EM_ALTA` é o feed de principais
+  notícias do Brasil, sem termo de busca, e entra nas cinco editorias. Quem
+  separa o que interessa a cada uma é o `SIGNAL_KEYWORDS`, agora com termos em
+  português (pix, selic, câmbio, enchente, desmatamento, BRICS, Mercosul).
+- Rótulos públicos sem EUA: `BEAT_LABELS.geopolitica` virou "Geopolítica ·
+  Brasil e China", o `BEAT_BRIEF` virou "relação Brasil–China", e a meta
+  description de `/blog` acompanhou.
+- **Efeito colateral esperado, e não escondido**: com o radar mais estreito, a
+  chance de rodada sem publicação aumenta. O piso editorial continua igual —
+  duas fontes independentes —, e agora há um motivo a mais para recusar. Vale
+  medir na próxima semana quantas rodadas publicam; se cair demais, o caminho
+  é ampliar os termos por editoria, não afrouxar o escopo.
+- Verificação: 25/25 testes (1 novo, travando os quatro elos), typecheck e
+  build Cloudflare. **A eficácia real só se mede publicando** — daqui não dá
+  para chamar o GDELT nem os feeds.
