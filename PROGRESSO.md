@@ -1377,9 +1377,27 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   aberta, mas foi encontrada a informação de que **APIs externas para os
   Agentes de IA passam por homologação prévia do time Umbler** — ponto a
   confirmar, porque separa "resolve tudo" de "resolve o atendimento".
-- **Custos encontrados (a confirmar):** planos de R$ 100 a R$ 300/mês, entrada
-  em R$ 69/mês para 2 atendentes no anual, mais conversas da Meta por volume
-  (citado ~R$ 0,39 por conversa ativa) e consumo de IA cobrado à parte.
+- **Custos — CORRIGIDO em 16/09 com a página oficial em mãos.** A estimativa
+  anterior, tirada de busca, estava errada e baixa: dizia "R$ 100 a R$ 300/mês"
+  e "entrada de R$ 69/mês". O preço real é **por atendente, com mínimo
+  obrigatório de contratação**:
+  - Essencial — R$ 99,90/atendente, mínimo 2 → **R$ 199,80/mês**
+  - Impulso — R$ 149,90/atendente, mínimo 3 → **R$ 449,70/mês**
+  - Escala — R$ 219,90/atendente, mínimo 3 → **R$ 659,70/mês**
+
+  A página tem seletor Trimestral/Anual −20% sem indicar qual valor está
+  exibido. As conversas cobradas pela Meta não aparecem na página e são à
+  parte. Não há limite de consumo de IA declarado, nem menção a teste grátis.
+- **Achado decisivo:** **API e Webhooks só existem a partir do Impulso**
+  (R$ 449,70/mês) e **"Integrações avançadas para Agentes IA" só no Escala**
+  (R$ 659,70/mês). Fazer o agente consultar frota e agenda — o caso de uso
+  que importa para a Express Entulho — custa de R$ 5.400 a R$ 7.900 por ano,
+  permanentemente. "Multiunidade e multimarca", que permitiria atender vários
+  clientes numa conta só, também é exclusivo do Escala.
+- **Confirmado pela página:** o Agente IA responde sozinho, com o humano
+  assumindo quando quiser; a configuração é Comportamento + Roteiro +
+  Conhecimento (site, documentos e FAQ), que é exatamente a tela "Regras do
+  agente" desenhada na demonstração.
 - **A decisão não é técnica, é de modelo de negócio.** Vender um serviço à
   Express Entulho favorece a plataforma: entrega em dias, sem servidor para
   manter, e permite cobrar implantação mais mensalidade de gestão, com a
@@ -1394,3 +1412,16 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - O webhook da Cloud API já implementado (`claude/agente-whatsapp`) segue
   válido como base caso o caminho de construir volte à mesa. Não é motivo para
   construir: são poucas horas de trabalho, não um investimento a proteger.
+
+## Decisão: construir o agente próprio (2026-09-16)
+
+- Avaliada a plataforma e **decidido construir**. O que pesou: a integração
+  com frota e agenda, que é o caso de uso real da Express Entulho, fica presa
+  aos planos de R$ 449,70 a R$ 659,70 por mês, de forma permanente.
+- Prazo dado pelo responsável: **19/09/2026**.
+- A verificação do negócio na Meta continua não iniciada e não depende do
+  desenvolvimento. Enquanto ela não sair, o agente funciona em número de teste
+  da Meta com destinatários cadastrados — suficiente para demonstrar de ponta
+  a ponta, insuficiente para atender cliente real.
+- Continua faltando o insumo que nenhum código substitui: tabela de preços,
+  área atendida, prazo padrão, política de prorrogação e a alçada da IA.
