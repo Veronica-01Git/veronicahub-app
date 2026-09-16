@@ -16,7 +16,10 @@ function triggerDownload(blob: Blob, filename: string): void {
 }
 
 export function downloadTxt(resume: AtsResume): void {
-  triggerDownload(new Blob([resume.text], { type: "text/plain;charset=utf-8" }), "curriculo-ats.txt");
+  triggerDownload(
+    new Blob([resume.text], { type: "text/plain;charset=utf-8" }),
+    "curriculo-ats.txt",
+  );
 }
 
 export async function downloadPdf(resume: AtsResume): Promise<void> {
@@ -57,7 +60,13 @@ export async function downloadPdf(resume: AtsResume): Promise<void> {
     return lines.length ? lines : [""];
   }
 
-  function drawParagraph(text: string, f: typeof font, size: number, gapAfter: number, color = rgb(0.11, 0.11, 0.11)) {
+  function drawParagraph(
+    text: string,
+    f: typeof font,
+    size: number,
+    gapAfter: number,
+    color = rgb(0.11, 0.11, 0.11),
+  ) {
     for (const line of wrapText(text, f, size)) {
       ensureSpace(size + 4);
       page.drawText(line, { x: margin, y, size, font: f, color });
@@ -78,7 +87,10 @@ export async function downloadPdf(resume: AtsResume): Promise<void> {
   }
 
   const bytes = await doc.save();
-  triggerDownload(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }), "curriculo-ats.pdf");
+  triggerDownload(
+    new Blob([new Uint8Array(bytes)], { type: "application/pdf" }),
+    "curriculo-ats.pdf",
+  );
 }
 
 export async function downloadDocx(resume: AtsResume): Promise<void> {
@@ -90,7 +102,13 @@ export async function downloadDocx(resume: AtsResume): Promise<void> {
   ];
 
   for (const section of resume.sections) {
-    children.push(new Paragraph({ text: section.title, heading: HeadingLevel.HEADING_2, spacing: { before: 240, after: 80 } }));
+    children.push(
+      new Paragraph({
+        text: section.title,
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 240, after: 80 },
+      }),
+    );
     const bodyLines = section.body.split("\n").filter(Boolean);
     for (const line of bodyLines) {
       const isBullet = line.startsWith("- ");

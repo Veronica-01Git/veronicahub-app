@@ -19,6 +19,7 @@ import {
   type ParadaRota,
   type ProgressoDia,
   type ResumoFinanceiro,
+  ROTULO_OPERACAO,
 } from "../data/types";
 import {
   BarraSegmentada,
@@ -250,7 +251,11 @@ export function CardRotas({ paradas }: { paradas: readonly ParadaRota[] }) {
               aria-hidden
               className={cn(
                 "absolute -left-5 top-1.5 h-[11px] w-[11px] rounded-full border-2 border-[var(--ops-card)]",
-                p.tipo === "entrega" ? "bg-[var(--ops-accent)]" : "bg-[var(--ops-warn)]",
+                p.tipo === "entrega"
+                  ? "bg-[var(--ops-accent)]"
+                  : p.tipo === "troca"
+                    ? "bg-[var(--ops-ok)]"
+                    : "bg-[var(--ops-warn)]",
               )}
             />
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
@@ -258,9 +263,7 @@ export function CardRotas({ paradas }: { paradas: readonly ParadaRota[] }) {
                 {p.hora}
               </span>
               <span className="text-[13.5px] text-[var(--ops-ink)]">{p.destino}</span>
-              <span className="ops-label text-[10px]">
-                {p.tipo === "entrega" ? "Entrega" : "Retirada"}
-              </span>
+              <span className="ops-label text-[10px]">{ROTULO_OPERACAO[p.tipo]}</span>
             </div>
             <p className="mt-0.5 text-[12.5px] text-[var(--ops-ink-muted)]">
               {p.motorista} · {p.veiculo} · <span className="ops-num">{p.placa}</span>

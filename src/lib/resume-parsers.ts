@@ -36,7 +36,8 @@ async function parsePdf(file: File): Promise<ParsedFile> {
   if (text.trim().length < 20) {
     return {
       text,
-      warning: "O PDF parece ser uma imagem escaneada (sem texto selecionável). Cole o texto manualmente.",
+      warning:
+        "O PDF parece ser uma imagem escaneada (sem texto selecionável). Cole o texto manualmente.",
     };
   }
   return { text };

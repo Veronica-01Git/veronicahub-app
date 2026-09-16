@@ -37,6 +37,9 @@ const ESCALONAMENTO =
   "Deixa eu confirmar isso com a equipe para não te passar informação errada. " +
   "Uma pessoa daqui te responde em seguida.";
 
+const RECEBIDO_VAI_PARA_HUMANO =
+  "Recebi aqui! Já estou passando para uma pessoa da equipe dar sequência.";
+
 const APRESENTACAO =
   "Oi! Aqui é o atendimento da Express Entulho. " +
   "Me conta o que você precisa que eu já encaminho.";
@@ -109,6 +112,19 @@ function montarSystemPrompt(regras: RegrasNegocio): string {
     "Fala português do Brasil, em tom direto e cordial, como quem atende obra.",
     "Responda em no máximo 3 frases curtas. Nada de listas ou markdown — é WhatsApp.",
     "",
+    "REGRA NÚMERO UM: quem pede preço sem dizer o material do descarte recebe",
+    "de você uma pergunta, não um valor. 'O que você vai descartar? Demolição,",
+    "gesso, outro material?' — sem o material não existe preço nesta empresa.",
+    "",
+    "OPERAÇÕES QUE A EMPRESA FAZ:",
+    "- Entrega: levar caçamba vazia até a obra.",
+    "- Retirada: buscar a caçamba ao fim do prazo.",
+    "- Troca: levar uma vazia e trazer a cheia na mesma visita. Cliente que diz",
+    "  'encheu', 'tá cheia' ou 'preciso de outra' está pedindo troca, não retirada.",
+    "",
+    "Texto entre colchetes descreve um anexo que o cliente mandou (foto,",
+    "localização), não é fala dele. Use como contexto e responda ao que importa.",
+    "",
     "REGRAS DO NEGÓCIO — é tudo o que você sabe:",
     regrasParaPrompt(regras),
     "",
@@ -138,8 +154,19 @@ export async function decidirResposta(params: {
   readonly historico?: readonly Turno[];
   readonly primeiraMensagem: boolean;
   readonly regras?: RegrasNegocio;
+  /** Anexo que o agente não interpreta — áudio, vídeo, comprovante. */
+  readonly forcarHumano?: boolean;
 }): Promise<Decisao> {
   const regras = params.regras ?? REGRAS_EXPRESS_ENTULHO;
+
+  // Áudio e comprovante: o agente não transcreve nem confere pagamento.
+  if (params.forcarHumano) {
+    return {
+      texto: RECEBIDO_VAI_PARA_HUMANO,
+      escalar: true,
+      motivo: "anexo que o agente não interpreta",
+    };
+  }
 
   // Alçada comercial não passa pelo modelo: é decisão de gente.
   if (precisaDeHumano(params.texto)) {
@@ -177,9 +204,27 @@ export async function decidirResposta(params: {
     return { texto: ESCALONAMENTO, escalar: true, motivo: "modelo citou valor fora da tabela" };
   }
 
-  return {
-    texto: bruto,
-    escalar: !podeCotar(regras),
-    motivo: podeCotar(regras) ? undefined : "regras do negócio ainda não cadastradas",
-  };
+  // Quando o próprio modelo diz que vai confirmar com a equipe, isso É um
+  // escalonamento — a conversa não pode ficar parada esperando ninguém.
+  if (prometeuConfirmar(bruto)) {
+    return { texto: bruto, escalar: true, motivo: "o agente não soube e encaminhou" };
+  }
+
+  return { texto: bruto, escalar: !podeCotar(regras) };
+}
+
+/**
+ * O modelo prometeu retorno humano? Então marque a conversa para um humano.
+ * Sem isso, a promessa de "já te confirmo" morre e o cliente fica esperando.
+ */
+const PROMESSAS = [
+  /confirmar com (a|o) (equipe|pessoal|respons)/i,
+  /vou (confirmar|verificar|checar)/i,
+  /consultar a equipe/i,
+  /te retorn/i,
+  /uma pessoa (da equipe|daqui)/i,
+];
+
+export function prometeuConfirmar(texto: string): boolean {
+  return PROMESSAS.some((r) => r.test(texto));
 }

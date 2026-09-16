@@ -1,4 +1,3 @@
-
 export type CourseStatus = "available" | "in-production" | "coming-soon";
 
 export type Course = {
@@ -22,17 +21,96 @@ export type Course = {
 // Fonte canônica do catálogo. As rotas futuras já têm endereço estável, mas só
 // devem ser criadas e linkadas quando existir conteúdo real para a formação.
 const catalog = [
-  { title: "Canais Dark", tag: "Conteúdo", level: "Intermediário", featured: true, description: "Planejamento e produção de canais de conteúdo com apoio de inteligência artificial.", outcome: "Estruturar um fluxo de conteúdo para um canal digital.", topics: ["Pesquisa de pauta", "Produção com IA", "Rotina de publicação"] },
-  { title: "VSL Cinematográfico", tag: "Vídeo", level: "Intermediário", description: "Construção de vídeos de venda com roteiro, direção visual e ferramentas de IA.", outcome: "Planejar uma VSL do roteiro à edição.", topics: ["Estrutura de roteiro", "Direção visual", "Edição com IA"] },
-  { title: "Avatar Digital IA", tag: "IA", level: "Iniciante", description: "Criação responsável de um avatar digital para comunicação e conteúdo.", outcome: "Montar o plano de produção de um avatar digital.", topics: ["Identidade do avatar", "Voz e apresentação", "Fluxo de produção"] },
-  { title: "Afiliado", tag: "Vendas", level: "Iniciante", description: "Fundamentos para avaliar, divulgar e acompanhar produtos como afiliado.", outcome: "Organizar uma primeira estratégia de divulgação.", topics: ["Seleção de produto", "Conteúdo e oferta", "Acompanhamento"] },
-  { title: "iFood", tag: "Delivery", level: "Iniciante", description: "Organização da presença digital e da operação comercial em delivery.", outcome: "Mapear uma operação de delivery e seus pontos de melhoria.", topics: ["Cardápio e posicionamento", "Operação digital", "Divulgação local"] },
-  { title: "Meta Ads", tag: "Tráfego", level: "Intermediário", description: "Fundamentos de planejamento, leitura e otimização de campanhas na Meta.", outcome: "Estruturar um plano de campanha e seus indicadores.", topics: ["Objetivos de campanha", "Criativos e públicos", "Leitura de métricas"] },
-  { title: "VFX com IA", tag: "IA", level: "Avançado", description: "Aplicação de ferramentas de IA em fluxos de efeitos visuais.", outcome: "Planejar um fluxo de VFX assistido por IA.", topics: ["Conceito visual", "Geração e composição", "Refino de cenas"] },
-  { title: "Copywriting", tag: "Escrita", level: "Iniciante", description: "Escrita clara e persuasiva aplicada a páginas, anúncios e conteúdo.", outcome: "Criar e revisar uma peça de comunicação orientada a objetivo.", topics: ["Mensagem e público", "Estrutura de texto", "Revisão com IA"] },
-  { title: "App no-code", tag: "Dev", level: "Intermediário", description: "Planejamento e prototipação de aplicações usando ferramentas sem código.", outcome: "Estruturar um protótipo funcional de aplicação.", topics: ["Escopo do produto", "Fluxos e dados", "Protótipo e validação"] },
-  { title: "Criar Site", tag: "Dev", level: "Iniciante", description: "Criação de um site com estrutura, conteúdo, publicação e fundamentos técnicos.", outcome: "Planejar e construir uma primeira versão de site.", topics: ["Arquitetura da página", "Implementação", "Publicação e revisão"] },
-  { title: "Hacking Ético", tag: "Segurança", level: "Avançado", description: "Princípios defensivos de segurança digital, análise responsável e prevenção.", outcome: "Reconhecer riscos comuns e organizar medidas de proteção.", topics: ["Fundamentos de segurança", "Análise autorizada", "Correção e prevenção"] },
+  {
+    title: "Canais Dark",
+    tag: "Conteúdo",
+    level: "Intermediário",
+    featured: true,
+    description:
+      "Planejamento e produção de canais de conteúdo com apoio de inteligência artificial.",
+    outcome: "Estruturar um fluxo de conteúdo para um canal digital.",
+    topics: ["Pesquisa de pauta", "Produção com IA", "Rotina de publicação"],
+  },
+  {
+    title: "VSL Cinematográfico",
+    tag: "Vídeo",
+    level: "Intermediário",
+    description: "Construção de vídeos de venda com roteiro, direção visual e ferramentas de IA.",
+    outcome: "Planejar uma VSL do roteiro à edição.",
+    topics: ["Estrutura de roteiro", "Direção visual", "Edição com IA"],
+  },
+  {
+    title: "Avatar Digital IA",
+    tag: "IA",
+    level: "Iniciante",
+    description: "Criação responsável de um avatar digital para comunicação e conteúdo.",
+    outcome: "Montar o plano de produção de um avatar digital.",
+    topics: ["Identidade do avatar", "Voz e apresentação", "Fluxo de produção"],
+  },
+  {
+    title: "Afiliado",
+    tag: "Vendas",
+    level: "Iniciante",
+    description: "Fundamentos para avaliar, divulgar e acompanhar produtos como afiliado.",
+    outcome: "Organizar uma primeira estratégia de divulgação.",
+    topics: ["Seleção de produto", "Conteúdo e oferta", "Acompanhamento"],
+  },
+  {
+    title: "iFood",
+    tag: "Delivery",
+    level: "Iniciante",
+    description: "Organização da presença digital e da operação comercial em delivery.",
+    outcome: "Mapear uma operação de delivery e seus pontos de melhoria.",
+    topics: ["Cardápio e posicionamento", "Operação digital", "Divulgação local"],
+  },
+  {
+    title: "Meta Ads",
+    tag: "Tráfego",
+    level: "Intermediário",
+    description: "Fundamentos de planejamento, leitura e otimização de campanhas na Meta.",
+    outcome: "Estruturar um plano de campanha e seus indicadores.",
+    topics: ["Objetivos de campanha", "Criativos e públicos", "Leitura de métricas"],
+  },
+  {
+    title: "VFX com IA",
+    tag: "IA",
+    level: "Avançado",
+    description: "Aplicação de ferramentas de IA em fluxos de efeitos visuais.",
+    outcome: "Planejar um fluxo de VFX assistido por IA.",
+    topics: ["Conceito visual", "Geração e composição", "Refino de cenas"],
+  },
+  {
+    title: "Copywriting",
+    tag: "Escrita",
+    level: "Iniciante",
+    description: "Escrita clara e persuasiva aplicada a páginas, anúncios e conteúdo.",
+    outcome: "Criar e revisar uma peça de comunicação orientada a objetivo.",
+    topics: ["Mensagem e público", "Estrutura de texto", "Revisão com IA"],
+  },
+  {
+    title: "App no-code",
+    tag: "Dev",
+    level: "Intermediário",
+    description: "Planejamento e prototipação de aplicações usando ferramentas sem código.",
+    outcome: "Estruturar um protótipo funcional de aplicação.",
+    topics: ["Escopo do produto", "Fluxos e dados", "Protótipo e validação"],
+  },
+  {
+    title: "Criar Site",
+    tag: "Dev",
+    level: "Iniciante",
+    description: "Criação de um site com estrutura, conteúdo, publicação e fundamentos técnicos.",
+    outcome: "Planejar e construir uma primeira versão de site.",
+    topics: ["Arquitetura da página", "Implementação", "Publicação e revisão"],
+  },
+  {
+    title: "Hacking Ético",
+    tag: "Segurança",
+    level: "Avançado",
+    description: "Princípios defensivos de segurança digital, análise responsável e prevenção.",
+    outcome: "Reconhecer riscos comuns e organizar medidas de proteção.",
+    topics: ["Fundamentos de segurança", "Análise autorizada", "Correção e prevenção"],
+  },
 ] as const;
 
 export const courses: Course[] = catalog.map((course) => {

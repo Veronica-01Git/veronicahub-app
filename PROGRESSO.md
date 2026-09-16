@@ -1476,3 +1476,50 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   a ponta, insuficiente para atender cliente real.
 - Continua faltando o insumo que nenhum código substitui: tabela de preços,
   área atendida, prazo padrão, política de prorrogação e a alçada da IA.
+
+## Preço da Express Entulho depende do material (2026-09-16)
+
+- O responsável do setor respondeu por áudio e desfez a premissa do projeto:
+  **"não existe nada fixo, o preço é referente ao material de descarte"**.
+  Demolição e gesso custam diferente no mesmo produto, na mesma cidade.
+- Consequência de engenharia: `whatsapp-rules.ts` deixou de ser tabela por
+  produto e virou matriz **produto × material × cidade**. E o agente ganhou
+  uma regra de ouro: quem pede preço sem dizer o material recebe uma
+  pergunta, não um valor.
+- **Três produtos**: caçamba menor (3 dias), tambor (3 dias) e caçamba grande
+  (7 dias). Tambor só existe em Itajaí; nas outras cidades são só menor e
+  grande. Prazos valem em todas as cidades.
+- **Preços confirmados** — demolição em Itajaí: menor R$ 220, tambor R$ 180,
+  grande R$ 450. Gesso em Itajaí: menor R$ 280.
+- **Não confirmados e por isso ausentes**: tambor e grande com gesso ("eu não
+  sei te passar o valor, não sou vendedor"), qualquer preço fora de Itajaí,
+  qualquer outro material, e a diária extra.
+- Uma conversa de 14/09 cotou a menor por **R$ 240**, valor que não bate com
+  demolição nem com gesso. Não entrou na matriz — é a prova de que estimar
+  por semelhança erraria. Há teste garantindo que a guarda barra esse valor.
+- **Cidades atendidas**: Itajaí, Balneário Camboriú, Camboriú, Itapema, Porto
+  Belo, Ilhota, Navegantes e Penha. **Horário**: comercial.
+- **O sistema de gestão que a empresa paga hoje é o MAIS Locações**, com app
+  próprio (abas Locação, Cliente, Home, Produto, Menu) e dashboard de
+  entregas e retiradas do dia. É com ele que a integração de disponibilidade
+  deveria conversar, em vez de construirmos controle de frota do zero.
+
+## MAIS Locações: API não confirmada (2026-09-16)
+
+- Investigada a existência de API pública no **MAIS Locações**
+  (maislocacoes.com), o sistema que a Express Entulho paga hoje.
+- **Não encontrei documentação de API, webhook ou área de desenvolvedor.**
+  Três buscas distintas e nenhuma menção. O site próprio está bloqueado pelo
+  proxy do ambiente de desenvolvimento, então a checagem não foi exaustiva —
+  isso é ausência de evidência, não evidência de ausência.
+- O que o material público confirma: gestão de contratos, prazos, logística e
+  geolocalização de ativos; ordem de serviço no celular do entregador; painel
+  logístico; controle de pagamentos e prazos de retirada. Android, iOS e web.
+  Empresa nascida de locador, sistema em desenvolvimento desde 2014.
+- **Encaminhamento**: perguntar direto ao suporte deles. Se houver API, a
+  integração de disponibilidade fica barata e o agente passa a responder
+  "tenho caçamba livre hoje" com dado real. Se não houver, o agente continua
+  encaminhando disponibilidade a um humano — que é o comportamento correto e
+  já implementado, só menos impressionante.
+- Raspagem de tela do sistema não é opção: é frágil e normalmente fere os
+  termos de uso do fornecedor.

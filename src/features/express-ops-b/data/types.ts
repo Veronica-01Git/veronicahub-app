@@ -51,7 +51,22 @@ export type Kpi = {
 
 /* ------------------------------------------------- Operações e logística */
 
-export type OperacaoTipo = "entrega" | "retirada";
+/**
+ * Troca é uma operação de verdade, não entrega + retirada: uma visita só,
+ * leva a vazia e traz a cheia. Aparece o tempo todo na operação real.
+ */
+export type OperacaoTipo = "entrega" | "retirada" | "troca";
+
+/**
+ * Rótulo por tipo. É `Record` e não ternário de propósito: acrescentar um
+ * quarto tipo passa a quebrar o build em vez de renderizar o rótulo errado —
+ * foi exatamente o que aconteceu quando "troca" entrou e virou "Retirada".
+ */
+export const ROTULO_OPERACAO: Record<OperacaoTipo, string> = {
+  entrega: "Entrega",
+  retirada: "Retirada",
+  troca: "Troca",
+};
 
 export type OperacaoEstado = "agendada" | "a-caminho" | "no-local" | "concluida" | "atrasada";
 

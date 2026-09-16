@@ -25,7 +25,7 @@ const chatValidator = (input: unknown) => {
     history?: unknown;
   };
 
-   if (
+  if (
     data?.skillId !== "studio-criativo" &&
     data?.skillId !== "curriculo-certo" &&
     data?.skillId !== "home"
