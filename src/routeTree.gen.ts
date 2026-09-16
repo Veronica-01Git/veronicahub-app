@@ -35,6 +35,7 @@ import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veroni
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as PreviewExpressOperationsBIndexRouteImport } from './routes/preview/express-operations-b/index'
+import { Route as PreviewExpressOperationsBRegrasDoAgenteRouteImport } from './routes/preview/express-operations-b/regras-do-agente'
 import { Route as PreviewExpressOperationsBOperacoesHojeRouteImport } from './routes/preview/express-operations-b/operacoes-hoje'
 import { Route as PreviewExpressOperationsBCacambasRouteImport } from './routes/preview/express-operations-b/cacambas'
 import { Route as PreviewExpressOperationsBAtendimentoRouteImport } from './routes/preview/express-operations-b/atendimento'
@@ -178,6 +179,12 @@ const PreviewExpressOperationsBIndexRoute =
     path: '/',
     getParentRoute: () => PreviewExpressOperationsBRoute,
   } as any)
+const PreviewExpressOperationsBRegrasDoAgenteRoute =
+  PreviewExpressOperationsBRegrasDoAgenteRouteImport.update({
+    id: '/regras-do-agente',
+    path: '/regras-do-agente',
+    getParentRoute: () => PreviewExpressOperationsBRoute,
+  } as any)
 const PreviewExpressOperationsBOperacoesHojeRoute =
   PreviewExpressOperationsBOperacoesHojeRouteImport.update({
     id: '/operacoes-hoje',
@@ -267,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
   '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
   '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
+  '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
   '/preview/express-operations-b/': typeof PreviewExpressOperationsBIndexRoute
 }
 export interface FileRoutesByTo {
@@ -303,6 +311,7 @@ export interface FileRoutesByTo {
   '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
   '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
   '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
+  '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBIndexRoute
 }
 export interface FileRoutesById {
@@ -341,6 +350,7 @@ export interface FileRoutesById {
   '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
   '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
   '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
+  '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
   '/preview/express-operations-b/': typeof PreviewExpressOperationsBIndexRoute
 }
 export interface FileRouteTypes {
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/preview/express-operations-b/atendimento'
     | '/preview/express-operations-b/cacambas'
     | '/preview/express-operations-b/operacoes-hoje'
+    | '/preview/express-operations-b/regras-do-agente'
     | '/preview/express-operations-b/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -416,6 +427,7 @@ export interface FileRouteTypes {
     | '/preview/express-operations-b/atendimento'
     | '/preview/express-operations-b/cacambas'
     | '/preview/express-operations-b/operacoes-hoje'
+    | '/preview/express-operations-b/regras-do-agente'
     | '/preview/express-operations-b'
   id:
     | '__root__'
@@ -453,6 +465,7 @@ export interface FileRouteTypes {
     | '/preview/express-operations-b/atendimento'
     | '/preview/express-operations-b/cacambas'
     | '/preview/express-operations-b/operacoes-hoje'
+    | '/preview/express-operations-b/regras-do-agente'
     | '/preview/express-operations-b/'
   fileRoutesById: FileRoutesById
 }
@@ -671,6 +684,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewExpressOperationsBIndexRouteImport
       parentRoute: typeof PreviewExpressOperationsBRoute
     }
+    '/preview/express-operations-b/regras-do-agente': {
+      id: '/preview/express-operations-b/regras-do-agente'
+      path: '/regras-do-agente'
+      fullPath: '/preview/express-operations-b/regras-do-agente'
+      preLoaderRoute: typeof PreviewExpressOperationsBRegrasDoAgenteRouteImport
+      parentRoute: typeof PreviewExpressOperationsBRoute
+    }
     '/preview/express-operations-b/operacoes-hoje': {
       id: '/preview/express-operations-b/operacoes-hoje'
       path: '/operacoes-hoje'
@@ -754,6 +774,7 @@ interface PreviewExpressOperationsBRouteChildren {
   PreviewExpressOperationsBAtendimentoRoute: typeof PreviewExpressOperationsBAtendimentoRoute
   PreviewExpressOperationsBCacambasRoute: typeof PreviewExpressOperationsBCacambasRoute
   PreviewExpressOperationsBOperacoesHojeRoute: typeof PreviewExpressOperationsBOperacoesHojeRoute
+  PreviewExpressOperationsBRegrasDoAgenteRoute: typeof PreviewExpressOperationsBRegrasDoAgenteRoute
   PreviewExpressOperationsBIndexRoute: typeof PreviewExpressOperationsBIndexRoute
 }
 
@@ -768,6 +789,8 @@ const PreviewExpressOperationsBRouteChildren: PreviewExpressOperationsBRouteChil
       PreviewExpressOperationsBCacambasRoute,
     PreviewExpressOperationsBOperacoesHojeRoute:
       PreviewExpressOperationsBOperacoesHojeRoute,
+    PreviewExpressOperationsBRegrasDoAgenteRoute:
+      PreviewExpressOperationsBRegrasDoAgenteRoute,
     PreviewExpressOperationsBIndexRoute: PreviewExpressOperationsBIndexRoute,
   }
 

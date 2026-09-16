@@ -141,7 +141,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "regras-do-agente",
     rotulo: "Regras do agente",
     icone: Bot,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Tabela de preços, prazos e área atendida",
       "Alçada: o que a IA decide sozinha e o que escala",

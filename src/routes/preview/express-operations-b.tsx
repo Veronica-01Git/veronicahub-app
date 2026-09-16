@@ -36,6 +36,7 @@ const APOIO: Record<string, string> = {
   aprovacoes: "Decisões que a IA escalou para um humano",
   "operacoes-hoje": "Entregas e retiradas do dia",
   cacambas: "Inventário e ciclo de vida",
+  "regras-do-agente": "Preços por material e conversa com o agente",
 };
 
 function ExpressOperationsLayout() {
