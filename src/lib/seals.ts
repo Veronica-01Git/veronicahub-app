@@ -1,5 +1,8 @@
 export type SealStatus = "development" | "active" | "support" | "archived" | "concept";
 
+// Para etapa com data, isto é só o fallback: quem manda é resolveTimelineState.
+export type SealTimelineState = "done" | "current" | "next";
+
 export type SealRecord = {
   serial: string;
   client: string;
@@ -12,7 +15,7 @@ export type SealRecord = {
   provider: string;
   summary: string;
   scope: readonly string[];
-  timeline: readonly { date: string; label: string; state: "done" | "current" | "next" }[];
+  timeline: readonly { date: string; label: string; state: SealTimelineState }[];
   support?: string;
   operations?: {
     product: string;
@@ -32,6 +35,53 @@ export const SEAL_STATUS_COPY: Record<SealStatus, string> = {
   archived: "Registro preservado; ciclo de atendimento encerrado.",
   concept: "Conceito visual demonstrativo. Não representa uma relação comercial real.",
 };
+
+// Estado de cada etapa derivado da data, não marcado à mão.
+//
+// Em 16/09 a linha do tempo do selo VH-AUT-WA-2026-000001 ainda mostrava
+// "Em andamento" na etapa de 13 SET — três dias vencida, numa página pública
+// de procedência que o cliente abre por QR Code. Marcador escrito à mão
+// envelhece sozinho e ninguém é avisado: a página continua no ar, correta em
+// tudo menos no que ela afirma estar acontecendo agora.
+//
+// Etapas sem data legível (as demonstrações usam "DEMO") mantêm o estado
+// declarado no registro — para elas não há o que derivar.
+const MESES_PT: Record<string, number> = {
+  JAN: 1, FEV: 2, MAR: 3, ABR: 4, MAI: 5, JUN: 6,
+  JUL: 7, AGO: 8, SET: 9, OUT: 10, NOV: 11, DEZ: 12,
+};
+
+// "13 SET 2026" -> "2026-09-13". Devolve null para qualquer coisa fora do
+// formato, que é como "DEMO" cai fora da derivação.
+export function parseSealDate(value: string): string | null {
+  const match = /^(\d{1,2})\s+([A-Za-z\u00c7\u00e7]{3})\s+(\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const month = MESES_PT[match[2].toUpperCase()];
+  if (!month) return null;
+  return `${match[3]}-${String(month).padStart(2, "0")}-${match[1].padStart(2, "0")}`;
+}
+
+// Dia corrente em São Paulo, não em UTC: às 21h de Brasília já é o dia
+// seguinte em UTC, e a etapa viraria "Concluído" antes de o dia acabar para
+// quem lê a página.
+export function currentSealDay(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+export function resolveTimelineState(
+  event: { date: string; state: SealTimelineState },
+  today: string = currentSealDay(),
+): SealTimelineState {
+  const day = parseSealDate(event.date);
+  if (!day) return event.state;
+  if (day === today) return "current";
+  return day < today ? "done" : "next";
+}
 
 export const sealRecords: readonly SealRecord[] = [
   {

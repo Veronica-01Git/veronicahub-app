@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { VeronicaSeal } from "@/components/VeronicaSeal";
 import { SealAtmosphere } from "@/components/seals/SealAtmosphere";
-import { findSeal, SEAL_STATUS_COPY } from "@/lib/seals";
+import { findSeal, resolveTimelineState, SEAL_STATUS_COPY } from "@/lib/seals";
 
 export const Route = createFileRoute("/selo/$serial")({
   component: SealVerification,
@@ -19,7 +19,11 @@ function SealVerification() {
 
   const verificationUrl = `https://veronicahub.com/selo/${record.serial}`;
   const isConcept = Boolean(record.isDemonstration);
-  const activeStepIndex = Math.max(0, record.timeline.findIndex((event) => event.state === "current"));
+  // O estado vem da data, não do que está escrito no registro — ver
+  // resolveTimelineState em @/lib/seals. Calculado uma vez e reaproveitado
+  // abaixo para o índice e os cartões não discordarem entre si.
+  const timeline = record.timeline.map((event) => ({ ...event, state: resolveTimelineState(event) }));
+  const activeStepIndex = Math.max(0, timeline.findIndex((event) => event.state === "current"));
   const progress = Math.round(((activeStepIndex + 1) / record.timeline.length) * 100);
   async function copyVerification() {
     await navigator.clipboard.writeText(verificationUrl);
@@ -71,7 +75,7 @@ function SealVerification() {
               <div className="font-mono-tech text-xs uppercase tracking-widest text-muted-foreground"><span className="text-neon-green">{progress}%</span> do ciclo sinalizado</div>
             </div>
             <div className="mt-7 h-2 overflow-hidden rounded-full bg-border/50" role="progressbar" aria-label="Progresso do projeto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className="h-full rounded-full bg-gradient-to-r from-neon-green to-neon-cyan shadow-glow-green transition-[width] duration-700" style={{ width: `${progress}%` }} /></div>
-            <div className="mt-7 grid gap-4 md:grid-cols-5">{record.timeline.map((event, index) => <article key={`${event.date}-${event.label}`} className={`relative min-h-44 overflow-hidden rounded-sm border p-5 ${event.state === "current" ? "border-neon-green/60 bg-neon-green/[.08] shadow-[0_22px_70px_oklch(0.58_0.17_155/.12)]" : event.state === "done" ? "border-neon-cyan/35 bg-neon-cyan/[.05]" : "border-border/60 bg-surface/40"}`}><span aria-hidden className="absolute right-3 top-2 font-display text-5xl text-neon-green/[.08]">0{index + 1}</span><div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">{event.date}</div><div className="mt-8 text-sm font-medium leading-relaxed">{event.label}</div><div className={`mt-5 inline-flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-widest ${event.state === "current" ? "text-neon-green" : "text-muted-foreground"}`}><span className={`h-1.5 w-1.5 rounded-full ${event.state === "current" ? "bg-neon-green animate-pulse" : event.state === "done" ? "bg-neon-cyan" : "bg-border"}`} />{event.state === "current" ? "Em andamento" : event.state === "done" ? "Concluído" : "Próxima etapa"}</div></article>)}</div>
+            <div className="mt-7 grid gap-4 md:grid-cols-5">{timeline.map((event, index) => <article key={`${event.date}-${event.label}`} className={`relative min-h-44 overflow-hidden rounded-sm border p-5 ${event.state === "current" ? "border-neon-green/60 bg-neon-green/[.08] shadow-[0_22px_70px_oklch(0.58_0.17_155/.12)]" : event.state === "done" ? "border-neon-cyan/35 bg-neon-cyan/[.05]" : "border-border/60 bg-surface/40"}`}><span aria-hidden className="absolute right-3 top-2 font-display text-5xl text-neon-green/[.08]">0{index + 1}</span><div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">{event.date}</div><div className="mt-8 text-sm font-medium leading-relaxed">{event.label}</div><div className={`mt-5 inline-flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-widest ${event.state === "current" ? "text-neon-green" : "text-muted-foreground"}`}><span className={`h-1.5 w-1.5 rounded-full ${event.state === "current" ? "bg-neon-green animate-pulse" : event.state === "done" ? "bg-neon-cyan" : "bg-border"}`} />{event.state === "current" ? "Em andamento" : event.state === "done" ? "Concluído" : "Próxima etapa"}</div></article>)}</div>
           </div>
 
           {record.operations && (
