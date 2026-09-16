@@ -141,11 +141,19 @@ function montarSystemPrompt(regras: RegrasNegocio): string {
 export function decidirRespostaOffline(params: {
   readonly texto: string;
   readonly primeiraMensagem: boolean;
+  /**
+   * Por que caiu no offline. Três falhas bem diferentes chegam aqui —
+   * chave ausente, chamada recusada e resposta vazia — e tratá-las com a
+   * mesma frase torna impossível diagnosticar em produção. Foi exatamente
+   * o que aconteceu: o segredo estava configurado e a mensagem dizia
+   * "indisponível", sem dizer que a chamada é que falhara.
+   */
+  readonly motivo?: string;
 }): Decisao {
   return {
     texto: params.primeiraMensagem ? APRESENTACAO : ESCALONAMENTO,
     escalar: true,
-    motivo: "núcleo conversacional indisponível",
+    motivo: params.motivo ?? "núcleo conversacional indisponível",
   };
 }
 
@@ -175,7 +183,7 @@ export async function decidirResposta(params: {
 
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return decidirRespostaOffline(params);
+    return decidirRespostaOffline({ ...params, motivo: "GROQ_API_KEY não configurada" });
   }
 
   let bruto: string;
@@ -192,11 +200,13 @@ export async function decidirResposta(params: {
     });
     bruto = (resposta.choices[0]?.message?.content ?? "").trim();
   } catch (error) {
-    console.error("Falha no núcleo conversacional:", error);
-    return decidirRespostaOffline(params);
+    console.error("Falha ao chamar a Groq:", error);
+    return decidirRespostaOffline({ ...params, motivo: resumirErro(error) });
   }
 
-  if (!bruto) return decidirRespostaOffline(params);
+  if (!bruto) {
+    return decidirRespostaOffline({ ...params, motivo: "o modelo devolveu resposta vazia" });
+  }
 
   // A conferência que o prompt sozinho não garante.
   if (!respostaSegura(bruto, regras)) {
@@ -227,4 +237,20 @@ const PROMESSAS = [
 
 export function prometeuConfirmar(texto: string): boolean {
   return PROMESSAS.some((r) => r.test(texto));
+}
+
+/**
+ * Motivo curto e legível no painel, sem vazar corpo de erro inteiro.
+ * Cota estourada é o caso mais provável aqui: o teto diário da Groq é
+ * compartilhado com o pipeline editorial.
+ */
+export function resumirErro(error: unknown): string {
+  const status = (error as { status?: number } | null)?.status;
+  if (status === 429)
+    return "cota da Groq esgotada (429) — o teto diário é compartilhado com o pipeline editorial";
+  if (status === 401 || status === 403) return `a Groq recusou a chave (${status})`;
+  if (status === 404) return "modelo não encontrado na Groq (404)";
+  if (typeof status === "number") return `a Groq respondeu ${status}`;
+  const msg = error instanceof Error ? error.message : String(error);
+  return `falha ao chamar a Groq: ${msg.slice(0, 120)}`;
 }
