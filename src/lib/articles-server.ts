@@ -796,7 +796,8 @@ async function recentCoverPhotoIds(db: ReturnType<typeof getDb>): Promise<string
 // A convenção do nome vive em ./cover-bank, que também é usada pelo cron de
 // abastecimento e pelos testes; reexportada aqui porque é daqui que a consulta
 // do rodízio a lê.
-import { LIBRARY_COVER_PREFIX, parseBankCredit } from "./cover-bank";
+import { LIBRARY_COVER_PREFIX, parseBankCredit, parseBankTerm } from "./cover-bank";
+import { scoreTerm } from "./cover-match";
 export { LIBRARY_COVER_PREFIX };
 
 // Capa vinda do banco curado, em vez de busca ao vivo no Pexels/Pixabay.
@@ -812,6 +813,10 @@ async function pickLibraryCover(
   db: ReturnType<typeof getDb>,
   beat: Beat,
   recentPhotoIds: string[],
+  // Manchete + resumo da matéria. É o que faz a foto ser escolhida pelo
+  // assunto e não pelo rodízio: sem isto, a matéria sobre temporal recebia um
+  // parque eólico só porque era a próxima da editoria.
+  text: string,
 ): Promise<{ id: string; credit: string | null } | null> {
   const rows = await db
     .select({ id: mediaImages.id, altText: mediaImages.altText })
@@ -824,14 +829,29 @@ async function pickLibraryCover(
           )
         : like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}${beat}-%`),
     )
-    .orderBy(asc(mediaImages.createdAt))
-    .limit(1);
+    .orderBy(asc(mediaImages.createdAt));
+
+  if (rows.length === 0) return null;
+
+  // Melhor casamento com o assunto; empate e ausência de casamento caem na
+  // mais antiga, que é o rodízio de antes. A ordenação por createdAt acima é o
+  // que torna esse desempate determinístico.
+  let best = rows[0];
+  let bestScore = 0;
+  for (const row of rows) {
+    const term = parseBankTerm(row.altText);
+    const score = term ? scoreTerm(text, term) : 0;
+    if (score > bestScore) {
+      best = row;
+      bestScore = score;
+    }
+  }
+
   // O crédito do fotógrafo sai do altText (a biblioteca não tem coluna para
   // ele) e segue até a coluna photoCredit da matéria. Fotos que alguém subiu
   // à mão pelo Admin não têm crédito nesse formato e devolvem null, o que é
   // correto: não dá para creditar quem não se sabe quem é.
-  const row = rows[0];
-  return row ? { id: row.id, credit: parseBankCredit(row.altText) } : null;
+  return { id: best.id, credit: parseBankCredit(best.altText) };
 }
 
 // Últimas manchetes publicadas (todas as editorias — o mesmo fato pode vazar
@@ -1099,7 +1119,12 @@ export async function publishArticleFromCron(beat: Beat): Promise<
     article: mapArticle(row),
     fotoTermos: result.content.fotoTermos,
     recentPhotoIds,
-    libraryCover: await pickLibraryCover(db, beat, recentPhotoIds),
+    libraryCover: await pickLibraryCover(
+      db,
+      beat,
+      recentPhotoIds,
+      `${result.content.headline} ${result.content.excerpt}`,
+    ),
   };
 }
 

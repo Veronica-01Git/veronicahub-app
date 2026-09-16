@@ -17,6 +17,10 @@ on:
         description: "Só listar o que seria trocado, sem escrever nem commitar"
         type: boolean
         default: true
+      rematch:
+        description: "Recasar TODO o acervo com o banco (e não só quem está sem foto)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -39,10 +43,12 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          modo=""
+          [ "${{ inputs.rematch }}" = "true" ] && modo="--rematch"
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            node scripts/swap-art-covers.mjs --dry-run | tee swap.log
+            node scripts/swap-art-covers.mjs --dry-run $modo | tee swap.log
           else
-            node scripts/swap-art-covers.mjs | tee swap.log
+            node scripts/swap-art-covers.mjs $modo | tee swap.log
           fi
 
       - name: Commita capas e cards
@@ -71,7 +77,10 @@ jobs:
         continue-on-error: true
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: node scripts/swap-art-covers.mjs --registrar | tee -a swap.log
+        run: |
+          modo=""
+          [ "${{ inputs.rematch }}" = "true" ] && modo="--rematch"
+          node scripts/swap-art-covers.mjs --registrar $modo | tee -a swap.log
 
       - name: Resumo da rodada
         if: always()

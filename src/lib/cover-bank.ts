@@ -69,6 +69,15 @@ export function buildBankAltText(input: {
 // página da matéria monta "Foto: <nome> / <fonte>" e a legenda do Instagram
 // faz o mesmo. Medido em 16/09: devolvendo "Nome/Pexels" daqui, o rodapé da
 // capa saía "Foto: Nome/Pexels / Pexels".
+// O termo de busca fica no fim do altText, depois da editoria. É por ele que
+// src/lib/cover-match.ts sabe que cena a foto mostra — sem coluna nova, pelo
+// mesmo motivo que o crédito mora ali.
+export function parseBankTerm(altText: string | null): string | null {
+  if (!altText) return null;
+  const match = /·\s*[a-z]+\s*·\s*(.+)$/.exec(altText);
+  return match ? match[1].trim() : null;
+}
+
 export function parseBankCredit(altText: string | null): string | null {
   if (!altText) return null;
   const match = /^Foto de (.+?) no Pexels —/.exec(altText);
@@ -97,3 +106,54 @@ export function interleaveByTerm<T>(lists: T[][]): T[] {
   }
   return result;
 }
+
+// Termos de busca do banco, por editoria. São curadoria editorial: mexer aqui
+// decide que cenas a Wire TV usa para ilustrar cada editoria. Deliberadamente
+// genéricos — foto de banco não documenta o fato, ilustra.
+//
+// Moram aqui, e não no script que abastece, porque src/lib/cover-match.ts
+// precisa da mesma lista para casar foto com assunto, e um teste trava que
+// todo termo tenha palavras-chave. Se a lista se dividisse em dois lugares,
+// um termo novo entraria no banco sem nunca casar com nada.
+export const BANK_TERMS: Record<Beat, readonly string[]> = {
+  ia: [
+    "data center server room",
+    "circuit board macro",
+    "industrial robotic arm",
+    "computer chip closeup",
+    "network cables rack",
+    "person coding multiple screens",
+  ],
+  clima: [
+    "wind turbines field",
+    "solar panel farm aerial",
+    "flooded street after rain",
+    "cracked dry earth drought",
+    "storm clouds over city",
+    "high voltage transmission lines",
+  ],
+  economia: [
+    "stock exchange trading screens",
+    "central bank building facade",
+    "banknotes currency closeup",
+    "financial district skyline",
+    "office desk financial documents",
+    "shipping port cargo economy",
+  ],
+  geopolitica: [
+    "international flags row",
+    "government building columns",
+    "container ship port crane",
+    "conference room negotiation table",
+    "parliament chamber interior",
+    "airport border control hall",
+  ],
+  mercado: [
+    "startup team office meeting",
+    "semiconductor wafer manufacturing",
+    "warehouse logistics automation",
+    "business district skyscrapers",
+    "conference keynote stage audience",
+    "electronics factory assembly line",
+  ],
+};
