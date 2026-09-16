@@ -35,6 +35,10 @@ const COVER_DIR = path.join(root, "public/images/blog-covers");
 const INSTAGRAM_DIR = path.join(root, "public/images/instagram");
 
 const dryRun = process.argv.includes("--dry-run");
+// --rematch recasa TODO o acervo com o banco (depois de ampliar fotos ou
+// termos) em vez de só atender quem está sem fotografia. A resposta tem a
+// mesma forma, então daqui para baixo não muda nada.
+const rematch = process.argv.includes("--rematch");
 // Segunda passagem, chamada pelo workflow depois do commit: só grava a
 // procedência (coverPhotoId e crédito) das matérias que já receberam foto.
 const registrarApenas = process.argv.includes("--registrar");
@@ -44,7 +48,8 @@ if (!cronSecret) throw new Error("CRON_SECRET é obrigatório.");
 const authorization = { authorization: `Bearer ${cronSecret}` };
 
 async function pendentes() {
-  const response = await fetch(`${siteUrl}/api/cron/art-covers`, { headers: authorization });
+  const rota = rematch ? "rematch-covers" : "art-covers";
+  const response = await fetch(`${siteUrl}/api/cron/${rota}`, { headers: authorization });
   if (!response.ok) {
     throw new Error(`Não deu para listar as capas (${response.status}): ${await response.text()}`);
   }
@@ -84,7 +89,9 @@ async function registrarCapa(artigo) {
 async function main() {
   const lista = await pendentes();
   console.log(
-    `matérias com arte: ${lista.total} — fotos repetidas por falta de banco: ${lista.repetidas}`,
+    rematch
+      ? `avaliadas: ${lista.avaliadas} — mudam de foto: ${lista.total} — sem casamento de tema: ${lista.semTema}`
+      : `matérias sem fotografia: ${lista.total} — sem casamento de tema: ${lista.semTema}`,
   );
   if (lista.semBanco?.length) {
     console.log(`sem banco na editoria: ${lista.semBanco.join(", ")}`);
@@ -119,7 +126,9 @@ async function main() {
       continue;
     }
     if (dryRun) {
-      console.log(`  ${artigo.slug} ← ${artigo.photoId} (${artigo.photoCredit ?? "sem crédito"})`);
+      console.log(
+        `  ${artigo.slug}\n      ← ${artigo.termo ?? "sem tema"} (score ${artigo.score}, ${artigo.photoCredit ?? "sem crédito"})`,
+      );
       trocadas += 1;
       continue;
     }
@@ -157,7 +166,9 @@ async function main() {
       );
 
       trocadas += 1;
-      console.log(`  ${artigo.slug} ← ${artigo.photoId} (${bytes.length} B)`);
+      console.log(
+        `  ${artigo.slug}\n      ← ${artigo.termo ?? "sem tema"} (score ${artigo.score}, ${bytes.length} B)`,
+      );
     } catch (error) {
       // Uma matéria que falha não derruba as outras: ela fica com a arte e a
       // próxima rodada tenta de novo.
