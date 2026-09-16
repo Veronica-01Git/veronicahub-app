@@ -19,6 +19,11 @@ import {
   WIRE_CARD_HEIGHT,
   WIRE_CARD_WIDTH,
 } from "../src/lib/wire-instagram-card.ts";
+import {
+  drawWireCoverArt,
+  WIRE_COVER_HEIGHT,
+  WIRE_COVER_WIDTH,
+} from "../src/lib/wire-cover-art.ts";
 import { BEAT_LABELS, isBeat } from "../src/lib/beats.ts";
 
 const SITE_URL = "https://veronicahub.com";
@@ -31,21 +36,22 @@ function required(name) {
 }
 
 // A capa publicada mora no próprio repositório (public/images/blog-covers).
-// Se a matéria ainda não tiver capa própria, cai na capa de reserva da
-// editoria — a mesma hierarquia que o site usa.
+// Se a matéria ainda não tiver capa commitada — card gerado à mão antes de a
+// rodada terminar, por exemplo —, o fundo é a mesma arte que a capa receberia
+// (src/lib/wire-cover-art.ts), desenhada na hora em memória.
+//
+// Antes aqui vinha `_fallback/<editoria>.jpg`, e o card saía com o mesmo
+// fundo de todas as outras matérias da editoria: a peça de divulgação
+// herdava a repetição da capa.
 async function resolveCover(slug, beat) {
-  const candidates = [
-    path.join(root, "public/images/blog-covers", `${slug}.jpg`),
-    path.join(root, "public/images/blog-covers/_fallback", `${beat}.jpg`),
-  ];
-  for (const candidate of candidates) {
-    try {
-      return { file: candidate, bytes: await readFile(candidate) };
-    } catch {
-      continue;
-    }
+  const file = path.join(root, "public/images/blog-covers", `${slug}.jpg`);
+  try {
+    return { label: path.relative(root, file), bytes: await readFile(file) };
+  } catch {
+    const canvas = createCanvas(WIRE_COVER_WIDTH, WIRE_COVER_HEIGHT);
+    const { motif } = drawWireCoverArt(canvas.getContext("2d"), { slug, beat });
+    return { label: `arte gerada (${motif})`, bytes: canvas.toBuffer("image/jpeg", 88) };
   }
-  return null;
 }
 
 async function main() {
@@ -66,7 +72,9 @@ async function main() {
     {
       headline,
       beatLabel: BEAT_LABELS[beat],
-      coverImageUrl: cover ? cover.file : null,
+      // O traçado só usa isto como sinal de "tem capa?"; quem entrega os
+      // bytes é o loader abaixo.
+      coverImageUrl: cover.label,
       canonicalUrl,
     },
     // O Image do @napi-rs só decodifica de verdade pelo loadImage; atribuir
@@ -89,7 +97,7 @@ async function main() {
 
   console.log(`card: ${imageFile}`);
   console.log(`legenda: ${captionFile}`);
-  console.log(`capa: ${withCover && cover ? path.relative(root, cover.file) : "sem capa"}`);
+  console.log(`capa: ${withCover ? cover.label : "sem capa"}`);
 }
 
 await main();

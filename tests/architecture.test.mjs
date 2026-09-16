@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { registerHooks } from 'node:module';
 import { PRODUCTS, CATEGORIES, INTENTS, INTENT_LINKS, PRIMARY_NAV, HOME_PRODUCTS } from '../src/lib/ecosystem.ts';
 import { sealRecords } from '../src/lib/seals.ts';
@@ -155,29 +156,20 @@ test('o Worker de cron dispara um workflow que existe de verdade', () => {
   for (const cron of crons) assert.equal(cron.trim().split(/\s+/).length, 5, cron);
 });
 
-test('o diagnóstico do radar não desclassifica um pulo editorial', () => {
-  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+test('o diagnóstico do radar não desclassifica um pulo editorial', async () => {
   const server = readFileSync(new URL('../src/lib/articles-server.ts', import.meta.url), 'utf8');
+  const { isEditorialSkip } = await import('../src/lib/editorial-skip.ts');
 
-  // isEditorialSkip decide, por PREFIXO, se a rodada foi um pulo editorial
-  // (HTTP 200, workflow verde) ou uma falha real (502, workflow vermelho).
-  const block = cron.match(/function isEditorialSkip[\s\S]*?\[([\s\S]*?)\]\.some/);
-  assert.ok(block, 'isEditorialSkip precisa listar os prefixos');
-  const prefixes = [...block[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(match => match[1]);
-  assert.ok(
-    prefixes.includes('sem fato verificável no momento'),
-    'a desistência do modelo precisa continuar na lista de pulos editoriais',
-  );
+  // isEditorialSkip decide se a rodada foi um pulo editorial (HTTP 200,
+  // workflow verde) ou uma falha real (502, workflow vermelho). articles-server
+  // carimba a contagem do radar na mesma mensagem, como diagnóstico — o carimbo
+  // não pode mudar a classificação, em nenhuma das duas pontas da string.
+  assert.ok(isEditorialSkip('sem fato verificável no momento (radar: 0 pautas)'));
+  assert.ok(isEditorialSkip('(radar: 2 pautas) sem fato verificável no momento'));
 
-  // articles-server carimba a contagem do radar nessa mesma mensagem. Se o
-  // carimbo for para a FRENTE, o prefixo deixa de casar e toda hora sem fato
-  // passa a pintar o workflow de vermelho.
   const message = server.match(/error: `([^`]*radar:[^`]*)`/);
   assert.ok(message, 'a mensagem editorial precisa carregar o diagnóstico do radar');
-  assert.ok(
-    message[1].startsWith('${parsed.error}'),
-    `o diagnóstico tem que vir depois da mensagem do modelo, e veio: ${message[1]}`,
-  );
+  assert.match(message[1], /radar: \$\{signals\.length\}/);
 });
 
 test('capa que a biblioteca já serve não passa por download', () => {
@@ -211,8 +203,10 @@ test('a capa sai do banco curado da biblioteca, não de busca ao vivo', () => {
   // digita ao subir a imagem no Admin e o que a consulta procura. Se um lado
   // mudar sem o outro, o banco fica invisível: nada falha, e toda matéria
   // passa a sair com o fallback fixo da editoria.
-  const prefix = server.match(/LIBRARY_COVER_PREFIX = "([^"]+)"/);
-  assert.ok(prefix, 'articles-server precisa declarar LIBRARY_COVER_PREFIX');
+  const bank = readFileSync(new URL('../src/lib/cover-bank.ts', import.meta.url), 'utf8');
+  const prefix = bank.match(/LIBRARY_COVER_PREFIX = "([^"]+)"/);
+  assert.ok(prefix, 'cover-bank precisa declarar LIBRARY_COVER_PREFIX');
+  assert.match(server, /LIBRARY_COVER_PREFIX/, 'a consulta do rodízio precisa usar o prefixo');
   assert.ok(
     server.includes(`\${LIBRARY_COVER_PREFIX}\${beat}-%`),
     'a consulta precisa filtrar por prefixo + editoria',
@@ -255,4 +249,194 @@ test('o card do Instagram é gerado e commitado no mesmo caminho', () => {
   // vira um deploy e cada deploy troca o que a produção serve.
   const commitStep = workflow.slice(workflow.indexOf('Commita a capa no repositório'));
   assert.equal((commitStep.match(/git commit -m/g) ?? []).length, 1, 'a capa e o card devem ir num commit só');
+});
+
+test('nenhuma capa publicada repete outra nem a foto fixa da editoria', () => {
+  // O defeito que estes três asserts travam: com o banco curado vazio, toda
+  // matéria de uma editoria recebia `_fallback/<editoria>.jpg`, e o card do
+  // Instagram, que usa a capa como fundo, repetia junto. Em 15/09 eram 19 das
+  // 39 capas. Se voltar, a Wire TV volta a publicar a mesma imagem em dezenas
+  // de matérias — e nada mais falharia para avisar.
+  const coverDir = new URL('../public/images/blog-covers/', import.meta.url);
+  const hash = file => createHash('sha256').update(readFileSync(file)).digest('hex');
+
+  const fallbacks = new Set(
+    readdirSync(new URL('_fallback/', coverDir))
+      .filter(name => name.endsWith('.jpg'))
+      .map(name => hash(new URL(`_fallback/${name}`, coverDir))),
+  );
+
+  const seen = new Map();
+  for (const name of readdirSync(coverDir).filter(item => item.endsWith('.jpg'))) {
+    const digest = hash(new URL(name, coverDir));
+    assert.ok(!fallbacks.has(digest), `${name} é cópia da foto fixa da editoria`);
+    assert.ok(!seen.has(digest), `${name} é cópia byte a byte de ${seen.get(digest)}`);
+    seen.set(digest, name);
+  }
+});
+
+test('a arte de capa é determinística e muda com o slug', async () => {
+  const { drawWireCoverArt, wireCoverMotif, wireCoverSeed, WIRE_COVER_MOTIFS } =
+    await import('../src/lib/wire-cover-art.ts');
+
+  // Determinismo: a mesma matéria regerada tem que sair idêntica, senão cada
+  // rodada do backfill troca capas que já estão publicadas e no ar.
+  assert.equal(wireCoverSeed('uma-materia'), wireCoverSeed('uma-materia'));
+  assert.notEqual(wireCoverSeed('uma-materia'), wireCoverSeed('outra-materia'));
+  assert.ok(WIRE_COVER_MOTIFS.includes(wireCoverMotif('uma-materia')));
+
+  // O traçado só pode usar o subconjunto do Canvas 2D que o @napi-rs/canvas
+  // também tem — quem gera é o runner do Actions, sem navegador. Este duplo
+  // registra cada chamada; se entrar uma API que só o navegador oferece, o
+  // acesso a uma propriedade inexistente estoura aqui.
+  const calls = [];
+  const noop = name => (...args) => { calls.push(name); return args; };
+  const gradient = { addColorStop: noop('addColorStop') };
+  const context = new Proxy({}, {
+    get(_target, property) {
+      if (property === 'createLinearGradient' || property === 'createRadialGradient') {
+        return () => { calls.push(String(property)); return gradient; };
+      }
+      if (property === 'measureText') return text => ({ width: text.length * 10 });
+      return noop(String(property));
+    },
+    set() { return true; },
+  });
+
+  const first = drawWireCoverArt(context, { slug: 'uma-materia', beat: 'ia' });
+  const desenhos = calls.length;
+  const again = drawWireCoverArt(context, { slug: 'uma-materia', beat: 'ia' });
+  assert.deepEqual(first, again, 'a mesma matéria tem que gerar a mesma arte');
+  assert.equal(calls.length, desenhos * 2, 'o traçado tem que ser o mesmo nas duas vezes');
+  assert.ok(desenhos > 50, 'a composição saiu vazia');
+});
+
+test('sem banco curado a matéria recebe arte própria, não a foto fixa', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+  // Só o código: os dois scripts explicam nos comentários o que saiu de lá.
+  const semComentarios = file =>
+    readFileSync(new URL(file, import.meta.url), 'utf8')
+      .split('\n')
+      .filter(line => !line.trimStart().startsWith('//'))
+      .join('\n');
+
+  // A cópia do `_fallback` era o nível que produzia a repetição. Ela continua
+  // existindo dentro de render-cover-art.mjs como rede de segurança para o
+  // caso de o canvas não subir, e em lugar nenhum antes disso.
+  assert.ok(
+    !/_fallback/.test(semComentarios('../scripts/fetch-cover-photo.mjs')),
+    'a foto fixa não pode voltar a ser a capa padrão',
+  );
+  assert.ok(
+    !/_fallback/.test(semComentarios('../scripts/render-instagram-card.mjs')),
+    'o card do Instagram não pode usar a foto fixa como fundo',
+  );
+
+  assert.match(workflow, /node scripts\/render-cover-art\.mjs/);
+  assert.match(
+    workflow,
+    /steps\.fetch_photo\.outputs\.found != 'true'/,
+    'a arte só entra quando o banco curado não deu imagem',
+  );
+  // O canvas serve a arte e o card; instalado uma vez, antes dos dois.
+  const install = workflow.indexOf('npm install --no-save --no-package-lock @napi-rs/canvas');
+  assert.ok(install !== -1 && install < workflow.indexOf('node scripts/render-cover-art.mjs'));
+  assert.equal(
+    (workflow.match(/@napi-rs\/canvas/g) ?? []).length,
+    1,
+    'o canvas deve ser instalado num passo só',
+  );
+});
+
+test('o nome do arquivo do banco carrega a foto e trava a duplicata', async () => {
+  const { bankFilename, parseBankFilename, buildBankAltText, parseBankCredit, LIBRARY_COVER_PREFIX } =
+    await import('../src/lib/cover-bank.ts');
+
+  // O id da foto entra no nome justamente para o dedupe por filename, que a
+  // biblioteca já tem, servir de trava contra cadastrar a mesma foto do Pexels
+  // duas vezes. Se o nome parar de carregar o id, o banco volta a repetir.
+  const filename = bankFilename({ beat: 'clima', photoId: '13865772' });
+  assert.ok(filename.startsWith(`${LIBRARY_COVER_PREFIX}clima-`), filename);
+  assert.deepEqual(parseBankFilename(filename), {
+    beat: 'clima',
+    source: 'pexels',
+    photoId: '13865772',
+  });
+
+  // Nome fora da convenção (o que uma pessoa sobe à mão pelo Admin) continua
+  // valendo no banco e simplesmente não tem id para extrair.
+  assert.equal(parseBankFilename('wire-banco-clima-chuva-cidade.webp'), null);
+  assert.equal(parseBankFilename('wire-banco-inexistente-pexels-1.jpg'), null);
+
+  // Ida e volta do crédito: é o altText que o carrega, porque a biblioteca não
+  // tem coluna para fotógrafo. Se o formato mudar de um lado só, a matéria
+  // passa a ser publicada sem creditar quem fez a foto.
+  const altText = buildBankAltText({ photographer: 'Ana Silva', beat: 'clima', term: 'wind turbines' });
+  assert.equal(parseBankCredit(altText), 'Ana Silva/Pexels');
+  assert.equal(parseBankCredit('Capa Wire TV — enchente'), null);
+  assert.equal(parseBankCredit(null), null);
+});
+
+test('o abastecimento do banco não commita nem dispara deploy', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/fill-cover-bank.yml', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/fill-cover-bank.mjs', import.meta.url), 'utf8');
+  const server = readFileSync(new URL('../src/server.ts', import.meta.url), 'utf8');
+
+  // Todo push neste repositório vira deploy de produção pela integração
+  // Cloudflare-Git. Este workflow cadastra no banco pelo endpoint, e nada mais:
+  // se ganhar git push, cada rodada semanal passa a republicar o site.
+  assert.ok(!/git (push|commit)/.test(workflow), 'o abastecimento não pode commitar');
+  assert.match(workflow, /permissions:\s*\n\s*contents: read/);
+  assert.match(workflow, /CRON_SECRET: \$\{\{ secrets\.CRON_SECRET \}\}/);
+  assert.match(workflow, /PEXELS_API_KEY: \$\{\{ secrets\.PEXELS_API_KEY \}\}/);
+
+  // A chave do Pexels fica no runner; o Worker nunca chama o Pexels.
+  assert.ok(!/PEXELS_API_KEY/.test(server), 'a chave do Pexels não pode chegar ao Worker');
+  assert.match(script, /api\/cron\/cover-bank/);
+  assert.match(server, /"\/api\/cron\/cover-bank"/);
+});
+
+test('o crédito do fotógrafo atravessa do banco até a matéria', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+  const fetchScript = readFileSync(new URL('../scripts/fetch-cover-photo.mjs', import.meta.url), 'utf8');
+
+  // Quatro elos. Se um sumir, a foto continua sendo publicada e o crédito
+  // simplesmente some — sem nada falhar, que é como este tipo de defeito passa.
+  assert.match(cron, /libraryCoverCredit/, 'a resposta do cron precisa levar o crédito');
+  assert.match(workflow, /libraryCoverCredit/, 'o workflow precisa ler o crédito da resposta');
+  assert.match(workflow, /COVER_LIBRARY_CREDIT/, 'o crédito precisa chegar ao script da capa');
+  assert.match(fetchScript, /COVER_LIBRARY_CREDIT/);
+  assert.match(fetchScript, /photoCredit/, 'o script precisa devolver o crédito ao workflow');
+  assert.match(workflow, /PHOTO_CREDIT: \$\{\{ steps\.fetch_photo\.outputs\.photoCredit \}\}/);
+});
+
+test('recusa editorial não vira rodada vermelha, mesmo quando o modelo troca a frase', async () => {
+  const { isEditorialSkip } = await import('../src/lib/editorial-skip.ts');
+
+  // As duas primeiras são as strings reais das rodadas de 15/09 que ficaram
+  // vermelhas sem nada estar quebrado: o modelo estava recusando publicar por
+  // falta de fato verificável, que é o piso editorial funcionando, mas o
+  // casamento por prefixo exato não alcançou nem o erro de digitação dele nem
+  // a resposta embrulhada no 400 do provedor.
+  assert.ok(isEditorialSkip('sem verifável no momento (radar: 1 pauta)'));
+  assert.ok(isEditorialSkip(
+    '400 {"error":{"message":"Tool call validation failed","code":"tool_use_failed",' +
+    '"failed_generation":"{\\"name\\": \\"JSON\\", \\"arguments\\": {\\"error\\":\\"sem fato verificável no momento\\"}}"}}',
+  ));
+  assert.ok(isEditorialSkip('sem fato verificável no momento'));
+  assert.ok(isEditorialSkip('sem fato verificavel no momento (radar: 3 pautas)'));
+
+  // Continuam classificadas como antes.
+  assert.ok(isEditorialSkip('A data do fato está fora da janela editorial de 72h.'));
+  assert.ok(isEditorialSkip('Já existe matéria publicada nessa janela'));
+  assert.ok(isEditorialSkip('429 rate limit'));
+
+  // Falha de infraestrutura tem que continuar vermelha: um tool_use_failed
+  // SEM a recusa dentro é problema de verdade, e virar "pulei" esconderia.
+  assert.ok(!isEditorialSkip(
+    '400 {"error":{"message":"Tool call validation failed","code":"tool_use_failed"}}',
+  ));
+  assert.ok(!isEditorialSkip('IA não retornou um rascunho válido. Tente de novo.'));
+  assert.ok(!isEditorialSkip('500 Internal Server Error'));
 });

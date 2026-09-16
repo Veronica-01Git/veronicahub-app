@@ -3,6 +3,7 @@ import { BEAT_VALUES, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
 import { WIRE_NAME } from "./ecosystem";
+import { isEditorialSkip } from "./editorial-skip";
 import { articles, mediaImages, users } from "./schema";
 
 const MAX_LIBRARY_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -225,21 +226,6 @@ function currentBeat(): Beat {
   return BEAT_VALUES[index];
 }
 
-function isEditorialSkip(error: string): boolean {
-  return [
-    "sem fato verificável no momento",
-    "429",
-    "Radar externo sem pauta recente verificável",
-    "A matéria não ficou ancorada a uma pauta",
-    "A data do fato está fora da janela editorial de 72h",
-    "Já existe matéria publicada nessa janela",
-    "Manchete parecida demais com uma publicação recente",
-    "Só ",
-    "Corpo com ",
-    "As fontes precisam vir de pelo menos",
-  ].some((prefix) => error.startsWith(prefix));
-}
-
 // Chamado direto do src/server.ts (interceptado antes do handler do
 // TanStack), mesmo padrão do webhook do Mercado Pago — precisa de URL fixa
 // pro GitHub Actions chamar num cron, o que a URL de RPC do createServerFn
@@ -290,16 +276,21 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
       desk: result.article.desk,
       fotoTermos: result.fotoTermos,
       recentPhotoIds: result.recentPhotoIds,
-      libraryCoverId: result.libraryCoverId,
+      libraryCoverId: result.libraryCover?.id ?? null,
+      // Crédito do fotógrafo, quando a imagem veio do abastecimento
+      // automático do Pexels. Atravessa o workflow e é gravado na coluna
+      // photoCredit da matéria pelo passo set-cover-image.
+      libraryCoverCredit: result.libraryCover?.credit ?? null,
     }),
     { headers: { "content-type": "application/json" } },
   );
 }
 
 // Segundo passo do mesmo pipeline: o workflow do cron (generate-article.yml)
-// chama handleGenerateArticleCron acima, depois renderiza a capa (HTML/CSS
-// via Playwright, scripts/render-cover.mjs) e commita o .jpg estático no
-// repo — só então dá pra saber a URL final e setar coverImageUrl aqui. Mesma
+// chama handleGenerateArticleCron acima, depois resolve a capa (foto do banco
+// curado ou arte gerada do slug, scripts/render-cover-art.mjs) e commita o
+// .jpg estático no repo — só então dá pra saber a URL final e setar
+// coverImageUrl aqui. Mesma
 // autenticação por CRON_SECRET; sem isso o artigo fica publicado sem capa
 // (degradação aceitável, não bloqueia a publicação).
 export async function handleSetCoverImageCron(request: Request): Promise<Response> {
