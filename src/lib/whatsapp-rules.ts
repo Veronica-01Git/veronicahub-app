@@ -37,17 +37,34 @@ export type RegrasNegocio = {
   readonly observacoes: readonly string[];
 };
 
+/*
+ * PROCEDÊNCIA DOS DADOS ABAIXO — leia antes de mexer.
+ *
+ * CONFIRMADO (Google Business e material da própria empresa, 16/09/2026):
+ *   sede em Itajaí/SC, telefone (47) 99157-6500, abre às 07:00, atende
+ *   Balneário Camboriú, e os produtos se chamam "Tambor" e "Caçamba menor".
+ *
+ * NÃO CONFIRMADO — por isso `precosDefinidos` segue false:
+ *   a página do Facebook anuncia "Caçamba Pequena a partir de R$ 190,00" e
+ *   "Caçamba Grande a partir de R$ 350,00". São valores "a partir de", de
+ *   página sem data visível, e não dizem quantos dias incluem. Colocar isso
+ *   como tabela faria o agente cotar por um preço que talvez não exista mais.
+ *   Só entra depois que o proprietário confirmar.
+ */
 export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
   empresa: "Express Entulho",
 
-  // PENDENTE: vira true quando a tabela real entrar.
+  // PENDENTE: confirmar com o proprietário. Ver nota de procedência acima.
   precosDefinidos: false,
   precos: [],
 
-  // PENDENTE: lista real de bairros e municípios atendidos.
+  // PENDENTE: lista completa. Itajaí é a sede e Balneário Camboriú aparece
+  // em locação real, mas o raio exato e a cobrança por distância não são
+  // conhecidos — o agente não deve afirmar que atende um bairro.
   bairrosAtendidos: [],
 
-  // PENDENTE: horário real.
+  // PENDENTE: só o horário de abertura é conhecido ("Abre às 07:00").
+  // Sem o fechamento e sem os dias da semana, não vira frase para cliente.
   horarioAtendimento: "",
 
   prazoPadraoDias: null,
@@ -57,7 +74,10 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
   prorrogacaoSemAprovacaoDias: 3,
   descontoMaximoPct: 0,
 
-  observacoes: [],
+  observacoes: [
+    "Sede: R. Benjamin Franklin Pereira, 365 — São João, Itajaí/SC, 88304-070.",
+    "Produtos pelo nome que a empresa usa: Tambor e Caçamba menor.",
+  ],
 };
 
 /** O agente só cota quando há preço real cadastrado. */
