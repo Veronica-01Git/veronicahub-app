@@ -17,7 +17,11 @@ import { handleSourceReferral } from "./lib/source-network-server";
 import { handleWireOfferRedirect } from "./lib/wire-commerce-server";
 import { handleAffiliateRedirect } from "./lib/affiliate-server";
 import { handlePublishInstagramCron } from "./lib/instagram-cron";
-import { handleCoverBankAddCron, handleCoverBankInventoryCron } from "./lib/cover-bank-cron";
+import {
+  handleArtCoversCron,
+  handleCoverBankAddCron,
+  handleCoverBankInventoryCron,
+} from "./lib/cover-bank-cron";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -192,6 +196,17 @@ const app = {
         return await handleCoverBankInventoryCron(request);
       } catch (error) {
         console.error("Erro ao ler o banco curado de capas:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    // Matérias que ainda saíram com arte gerada, e a foto do banco que cada
+    // uma deve receber. O runner do Actions baixa, commita e avisa de volta.
+    if (url.pathname === "/api/cron/art-covers" && request.method === "GET") {
+      try {
+        return await handleArtCoversCron(request);
+      } catch (error) {
+        console.error("Erro ao listar capas de arte pendentes:", error);
         return new Response("error", { status: 500 });
       }
     }
