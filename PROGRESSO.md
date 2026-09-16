@@ -1358,3 +1358,39 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   mudar sem o outro, capa manual volta a ser sobrescrita.
 - Contagem depois da troca: 41 matérias publicadas, 38 com fotografia do
   banco, 38 fotos distintas (nenhuma repetida), 3 com capa manual preservada.
+
+## Avaliação: plataforma pronta (Umbler Talk) vs. construir (2026-09-16)
+
+- Levantada a hipótese de usar o **Umbler Talk** — caixa de entrada de WhatsApp
+  com IA sobre a API oficial da Meta — em vez de construir o agente da Express
+  Entulho do zero.
+- **Ressalva de método:** a página do produto estava bloqueada pelo proxy do
+  ambiente de desenvolvimento. A avaliação abaixo veio de busca, incluindo
+  material de marketing da própria Umbler e de terceiros. Os números precisam
+  ser conferidos na fonte antes de qualquer contrato.
+- **O que a plataforma resolve pronto:** burocracia da Meta (verificação,
+  modelos de mensagem, token), interface de atendimento com vários atendentes
+  num número só, e agente com base de conhecimento — suficiente para preço,
+  área atendida e horário.
+- **Onde provavelmente não chega sozinha:** estado operacional. Responder
+  "tem caçamba livre hoje?" exige consultar sistema próprio. Há webhook e API
+  aberta, mas foi encontrada a informação de que **APIs externas para os
+  Agentes de IA passam por homologação prévia do time Umbler** — ponto a
+  confirmar, porque separa "resolve tudo" de "resolve o atendimento".
+- **Custos encontrados (a confirmar):** planos de R$ 100 a R$ 300/mês, entrada
+  em R$ 69/mês para 2 atendentes no anual, mais conversas da Meta por volume
+  (citado ~R$ 0,39 por conversa ativa) e consumo de IA cobrado à parte.
+- **A decisão não é técnica, é de modelo de negócio.** Vender um serviço à
+  Express Entulho favorece a plataforma: entrega em dias, sem servidor para
+  manter, e permite cobrar implantação mais mensalidade de gestão, com a
+  assinatura no nome do cliente — mais saudável que os R$ 1.500 únicos, que
+  ficam abaixo do custo de desenvolvimento sob medida. Construir só se
+  justifica se o alvo for o Veronica Operations como produto multiempresa,
+  e nesse caso R$ 1.500 não financia o produto.
+- **Encaminhamento:** começar pela plataforma, com número dedicado, e usar as
+  conversas reais para descobrir as regras do negócio — hoje elas seriam
+  adivinhadas. Se o gargalo virar a integração com frota e agenda, construir
+  depois, com a especificação vinda do uso.
+- O webhook da Cloud API já implementado (`claude/agente-whatsapp`) segue
+  válido como base caso o caminho de construir volte à mesa. Não é motivo para
+  construir: são poucas horas de trabalho, não um investimento a proteger.
