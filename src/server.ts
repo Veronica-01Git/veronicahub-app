@@ -21,6 +21,7 @@ import {
   handleArtCoversCron,
   handleCoverBankAddCron,
   handleCoverBankInventoryCron,
+  handleRematchCoversCron,
 } from "./lib/cover-bank-cron";
 
 type ServerEntry = {
@@ -207,6 +208,17 @@ const app = {
         return await handleArtCoversCron(request);
       } catch (error) {
         console.error("Erro ao listar capas de arte pendentes:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    // Recasa o acervo com o banco depois de ampliar fotos ou termos: devolve
+    // só as matérias cuja foto mudaria.
+    if (url.pathname === "/api/cron/rematch-covers" && request.method === "GET") {
+      try {
+        return await handleRematchCoversCron(request);
+      } catch (error) {
+        console.error("Erro ao recasar capas com o banco:", error);
         return new Response("error", { status: 500 });
       }
     }

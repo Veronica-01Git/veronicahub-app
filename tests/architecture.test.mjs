@@ -648,3 +648,66 @@ test('a etapa em andamento do selo sai da data, não de marcação à mão', asy
     }
   }
 });
+
+test('a foto é escolhida pelo assunto da matéria, não por rodízio', async () => {
+  const { scoreTerm, assignCoversByTheme, termsWithoutKeywords } =
+    await import('../src/lib/cover-match.ts');
+
+  // O caso real que motivou isto: em 16/09 a matéria sobre temporal recebeu um
+  // parque eólico, porque a atribuição era a próxima foto da editoria.
+  const temporal = 'Alerta de chuvas intensas e temporais atinge seis estados no Brasil';
+  assert.ok(scoreTerm(temporal, 'storm clouds over city') > scoreTerm(temporal, 'wind turbines field'));
+  assert.equal(scoreTerm(temporal, 'wind turbines field'), 0);
+
+  // Plural em português quebra radical ingênuo: "temporais" não contém
+  // "temporal", e foi assim que o primeiro casamento falhou.
+  assert.ok(scoreTerm('temporais no litoral', 'storm clouds over city') > 0);
+  assert.ok(scoreTerm('enchentes atingem a cidade', 'flooded street after rain') > 0);
+
+  // Casamento por início de palavra: sem isso "ipo" casa dentro de "tipo".
+  assert.equal(scoreTerm('um tipo de acordo qualquer', 'business district skyscrapers'), 0);
+  assert.ok(scoreTerm('mega IPO da empresa', 'business district skyscrapers') > 0);
+
+  // Distribuição sem repetir foto, e determinística: a mesma entrada tem que
+  // dar a mesma saída, senão cada rodada troca capa já publicada.
+  const alvos = [
+    { slug: 'a', beat: 'clima', text: 'enchentes e alagamentos na cidade' },
+    { slug: 'b', beat: 'clima', text: 'parque eólico amplia geração' },
+    { slug: 'c', beat: 'clima', text: 'assunto sem relação com as fotos' },
+  ];
+  const fotos = [
+    { id: 'f1', term: 'flooded street after rain' },
+    { id: 'f2', term: 'wind turbines field' },
+    { id: 'f3', term: 'solar panel farm aerial' },
+  ];
+  const escolha = assignCoversByTheme(alvos, fotos);
+  assert.equal(escolha.get('a').id, 'f1');
+  assert.equal(escolha.get('b').id, 'f2');
+  assert.equal(escolha.get('c').id, 'f3', 'quem não casa recebe o que sobrou');
+  assert.equal(new Set([...escolha.values()].map((item) => item.id)).size, 3, 'sem repetir foto');
+  assert.deepEqual(assignCoversByTheme(alvos, fotos), escolha, 'precisa ser determinística');
+
+  // Termo no banco sem palavras-chave nunca vence um casamento: a foto
+  // correspondente vira peso morto e ninguém percebe.
+  assert.deepEqual(termsWithoutKeywords(), []);
+});
+
+test('o recasamento não sobrescreve capa manual nem repete o que já está certo', () => {
+  const bank = readFileSync(new URL('../src/lib/cover-bank-cron.ts', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/swap-art-covers.mjs', import.meta.url), 'utf8');
+  const server = readFileSync(new URL('../src/server.ts', import.meta.url), 'utf8');
+
+  // Devolve só quem MUDA de foto: sem isso o script rebaixaria e commitaria o
+  // acervo inteiro a cada rodada, e cada commit no main é um deploy.
+  assert.match(bank, /atual\.get\(item\.slug\) !== item\.photoId/);
+
+  // A mesma proteção de capa manual do outro endpoint.
+  assert.equal(
+    (bank.match(/not\(like\(articles\.coverImageUrl, "%\/api\/media-images\/%"\)\)/g) ?? []).length,
+    2,
+    'os dois endpoints precisam excluir capa manual',
+  );
+
+  assert.match(server, /"\/api\/cron\/rematch-covers"/);
+  assert.match(script, /--rematch/);
+});

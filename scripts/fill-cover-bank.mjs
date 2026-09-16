@@ -25,54 +25,19 @@
 // Variáveis opcionais: SITE_URL (padrão https://veronicahub.com) e
 // BANK_TARGET_PER_BEAT (padrão 8).
 import { BEAT_VALUES } from "../src/lib/beats.ts";
-import { interleaveByTerm, MAX_BANK_PER_BEAT, parseBankFilename } from "../src/lib/cover-bank.ts";
+import {
+  BANK_TERMS,
+  interleaveByTerm,
+  MAX_BANK_PER_BEAT,
+  parseBankFilename,
+} from "../src/lib/cover-bank.ts";
 import { searchPexelsMany } from "./lib/photo-sources.mjs";
 
-// Termos por editoria: substantivos concretos e fotografáveis, como o próprio
-// prompt do pipeline já exigia — nada de conceito abstrato, nome de empresa,
-// logotipo ou pessoa pública. Mexer aqui é decisão editorial, não técnica.
-const TERMS = {
-  ia: [
-    "data center server room",
-    "circuit board macro",
-    "industrial robotic arm",
-    "computer chip closeup",
-    "network cables rack",
-    "person coding multiple screens",
-  ],
-  clima: [
-    "wind turbines field",
-    "solar panel farm aerial",
-    "flooded street after rain",
-    "cracked dry earth drought",
-    "storm clouds over city",
-    "high voltage transmission lines",
-  ],
-  economia: [
-    "stock exchange trading screens",
-    "central bank building facade",
-    "banknotes currency closeup",
-    "financial district skyline",
-    "office desk financial documents",
-    "shipping port cargo economy",
-  ],
-  geopolitica: [
-    "international flags row",
-    "government building columns",
-    "container ship port crane",
-    "conference room negotiation table",
-    "parliament chamber interior",
-    "airport border control hall",
-  ],
-  mercado: [
-    "startup team office meeting",
-    "semiconductor wafer manufacturing",
-    "warehouse logistics automation",
-    "business district skyscrapers",
-    "conference keynote stage audience",
-    "electronics factory assembly line",
-  ],
-};
+// Os termos moram em src/lib/cover-bank.ts (BANK_TERMS), ao lado do resto da
+// convenção do banco, porque src/lib/cover-match.ts precisa da mesma lista
+// para casar foto com assunto. Divididos em dois lugares, um termo novo
+// entraria no banco sem nunca casar com nada.
+const TERMS = BANK_TERMS;
 
 const dryRun = process.argv.includes("--dry-run");
 const siteUrl = (process.env.SITE_URL ?? "https://veronicahub.com").replace(/\/$/, "");

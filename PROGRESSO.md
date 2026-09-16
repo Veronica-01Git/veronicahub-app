@@ -1413,3 +1413,37 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - **NÃO automatizado, de propósito**: o `status` do selo ("Em desenvolvimento"
   → "Ativo"/"Em suporte") continua manual. Entrega acontecer é decisão de
   negócio, não consequência de o calendário virar.
+
+## Foto escolhida pelo assunto da matéria (2026-09-16)
+
+- **Sintoma**: a matéria "Alerta de chuvas intensas e temporais atinge seis
+  estados" recebeu um **parque eólico**. Não é foto errada de editoria — é foto
+  que não ilustra o fato. A atribuição era rodízio: a próxima foto da editoria,
+  qualquer que fosse o tema.
+- **Como funciona agora** (`src/lib/cover-match.ts`): cada termo de busca do
+  banco tem uma lista de palavras em português que, aparecendo na manchete ou
+  no resumo, indicam aquele tema. Quem casa mais palavras vence; sem casamento,
+  cai no rodízio — foto genérica da editoria é melhor que foto que contradiz a
+  matéria. Contagem simples e auditável de propósito: dá para explicar a um
+  humano por que uma foto foi escolhida.
+- **Dois defeitos encontrados ao testar, ambos corrigidos**:
+  1. **Plural em português quebra radical ingênuo.** `"temporais"` não contém
+     `"temporal"` (regra -al → -ais), e o primeiro casamento falhou justamente
+     na matéria que motivou o trabalho. Mesma classe em -ão/-ões: `armazém` /
+     `armazéns`, `leilão` / `leilões`, `bilhão` / `bilhões`.
+  2. **Substring solta casa dentro de outra palavra.** `"ipo"` casava em
+     `"tipo"` e `"app"` em `"apple"`. O casamento passou a exigir **início de
+     palavra**, deixando o fim livre — é o que faz `"enchent"` cobrir enchente
+     e enchentes sem casar onde não deve.
+- **Vale nos três pontos**: matéria nova (`pickLibraryCover`), acervo sem foto
+  (`/api/cron/art-covers`) e acervo inteiro (`/api/cron/rematch-covers`, novo).
+- O recasamento devolve **só quem muda de foto**. Sem isso o script rebaixaria
+  e commitaria o acervo inteiro a cada rodada, e cada commit no `main` é um
+  deploy. Capa manual continua fora, como no outro endpoint.
+- `semTema` na resposta conta quantas caíram no rodízio. **Número alto é o
+  sinal de que faltam termos** para os assuntos que a Wire TV está cobrindo —
+  o conserto é ampliar `TERM_KEYWORDS` ou `BANK_TERMS`, não afrouxar nada.
+- **Os termos passaram a morar em `BANK_TERMS`**, em `cover-bank.ts`, e o
+  script de abastecimento os importa. Divididos em dois lugares, um termo novo
+  entraria no banco sem nunca casar com nada. Um teste trava que todo termo
+  tenha palavras-chave.

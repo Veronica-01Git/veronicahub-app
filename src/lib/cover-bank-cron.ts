@@ -13,14 +13,16 @@
 import { and, asc, eq, isNull, like, not, or, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { articles, mediaImages, users } from "./schema";
-import { BEAT_VALUES, isBeat } from "./beats";
+import { BEAT_VALUES, isBeat, type Beat } from "./beats";
 import {
   bankFilename,
   buildBankAltText,
   LIBRARY_COVER_PREFIX,
   MAX_BANK_PER_BEAT,
   parseBankCredit,
+  parseBankTerm,
 } from "./cover-bank";
+import { assignCoversByTheme } from "./cover-match";
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg"]);
 const MAX_BANK_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -231,36 +233,137 @@ export async function handleArtCoversCron(request: Request): Promise<Response> {
     );
   }
 
-  const usados = new Map<string, number>();
+  return Response.json(atribuirPorTema(pendentes, porEditoria));
+}
+
+// Distribui as fotos pelo ASSUNTO de cada matéria, editoria por editoria.
+// Antes era rodízio — a próxima foto da editoria, qualquer que fosse o tema —,
+// e em 16/09 a matéria sobre temporal recebeu um parque eólico.
+function atribuirPorTema(
+  artigos: readonly { slug: string; beat: Beat; headline: string; excerpt: string }[],
+  porEditoria: Map<string, readonly { id: string; filename: string; altText: string | null }[]>,
+) {
   const faltando: string[] = [];
-  const atribuicoes = [];
-  for (const artigo of pendentes) {
-    const disponiveis = porEditoria.get(artigo.beat) ?? [];
+  const atribuicoes: {
+    slug: string;
+    beat: Beat;
+    headline: string;
+    excerpt: string;
+    photoId: string;
+    photoCredit: string | null;
+    termo: string | null;
+    score: number;
+  }[] = [];
+
+  for (const beat of BEAT_VALUES) {
+    const daEditoria = artigos.filter((artigo) => artigo.beat === beat);
+    if (daEditoria.length === 0) continue;
+
+    const disponiveis = porEditoria.get(beat) ?? [];
     if (disponiveis.length === 0) {
-      faltando.push(artigo.slug);
+      for (const artigo of daEditoria) faltando.push(artigo.slug);
       continue;
     }
-    // Rodízio dentro da editoria: distintas enquanto houver banco, e só então
-    // repete — melhor repetir foto do que devolver matéria sem foto nenhuma.
-    const indice = usados.get(artigo.beat) ?? 0;
-    usados.set(artigo.beat, indice + 1);
-    const escolhida = disponiveis[indice % disponiveis.length];
-    atribuicoes.push({
-      slug: artigo.slug,
-      beat: artigo.beat,
-      headline: artigo.headline,
-      excerpt: artigo.excerpt,
-      photoId: escolhida.id,
-      photoCredit: parseBankCredit(escolhida.altText),
-      repetida: indice >= disponiveis.length,
-    });
+
+    const escolhas = assignCoversByTheme(
+      daEditoria.map((artigo) => ({
+        slug: artigo.slug,
+        beat,
+        text: `${artigo.headline} ${artigo.excerpt}`,
+      })),
+      disponiveis
+        .map((foto) => ({ id: foto.id, term: parseBankTerm(foto.altText) ?? "" }))
+        .filter((foto) => foto.term),
+    );
+
+    for (const artigo of daEditoria) {
+      const escolha = escolhas.get(artigo.slug);
+      if (!escolha) {
+        faltando.push(artigo.slug);
+        continue;
+      }
+      const foto = disponiveis.find((item) => item.id === escolha.id);
+      atribuicoes.push({
+        slug: artigo.slug,
+        beat,
+        headline: artigo.headline,
+        excerpt: artigo.excerpt,
+        photoId: escolha.id,
+        photoCredit: parseBankCredit(foto?.altText ?? null),
+        termo: parseBankTerm(foto?.altText ?? null),
+        score: escolha.score,
+      });
+    }
   }
 
-  return Response.json({
-    ok: true,
+  return {
+    ok: true as const,
     total: atribuicoes.length,
-    repetidas: atribuicoes.filter((item) => item.repetida).length,
+    // Quantas ficaram sem casamento de tema e caíram no rodízio. Se este
+    // número for alto, faltam termos no banco para os assuntos que a Wire TV
+    // está cobrindo — é o sinal para ampliar TERM_KEYWORDS ou BANK_TERMS.
+    semTema: atribuicoes.filter((item) => item.score === 0).length,
     semBanco: faltando,
     artigos: atribuicoes,
+  };
+}
+
+// Recasa TODAS as matérias elegíveis com o banco e devolve só as que mudariam
+// de foto. Serve para depois de ampliar o banco ou os termos: sem isto, a
+// curadoria nova só valeria para matéria futura, e o acervo ficaria com as
+// fotos que o rodízio antigo sorteou.
+//
+// Mesma forma de resposta do /api/cron/art-covers, de propósito: o script que
+// baixa e commita é o mesmo, só muda o endereço que ele consulta.
+export async function handleRematchCoversCron(request: Request): Promise<Response> {
+  const denied = unauthorized(request);
+  if (denied) return denied;
+
+  const db = getDb();
+  const elegiveis = await db
+    .select({
+      slug: articles.slug,
+      beat: articles.beat,
+      headline: articles.headline,
+      excerpt: articles.excerpt,
+      coverPhotoId: articles.coverPhotoId,
+    })
+    .from(articles)
+    .where(
+      and(
+        eq(articles.status, "published"),
+        // Capa escolhida à mão continua fora, pelo mesmo motivo de sempre: a
+        // escolha de uma pessoa não é sobrescrita por casamento automático.
+        or(
+          isNull(articles.coverImageUrl),
+          not(like(articles.coverImageUrl, "%/api/media-images/%")),
+        ),
+      ),
+    )
+    .orderBy(asc(articles.publishedAt));
+
+  const banco = await db
+    .select({ id: mediaImages.id, filename: mediaImages.filename, altText: mediaImages.altText })
+    .from(mediaImages)
+    .where(like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}%`))
+    .orderBy(asc(mediaImages.createdAt));
+
+  const porEditoria = new Map<string, typeof banco>();
+  for (const beat of BEAT_VALUES) {
+    porEditoria.set(
+      beat,
+      banco.filter((row) => row.filename.startsWith(`${LIBRARY_COVER_PREFIX}${beat}-`)),
+    );
+  }
+
+  const resultado = atribuirPorTema(elegiveis, porEditoria);
+  const atual = new Map(elegiveis.map((artigo) => [artigo.slug, artigo.coverPhotoId]));
+  const mudam = resultado.artigos.filter((item) => atual.get(item.slug) !== item.photoId);
+
+  return Response.json({
+    ...resultado,
+    avaliadas: resultado.artigos.length,
+    total: mudam.length,
+    artigos: mudam,
   });
 }
