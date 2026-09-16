@@ -148,7 +148,12 @@ async function main() {
       );
       await writeFile(
         path.join(INSTAGRAM_DIR, `wire-tv-${artigo.slug}.txt`),
-        `${buildWireCaption({ headline: artigo.headline, excerpt: artigo.excerpt, canonicalUrl })}\n`,
+        `${buildWireCaption({
+          headline: artigo.headline,
+          excerpt: artigo.excerpt,
+          canonicalUrl,
+          photoCredit: artigo.photoCredit,
+        })}\n`,
       );
 
       trocadas += 1;
