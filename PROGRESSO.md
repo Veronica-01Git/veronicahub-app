@@ -1503,3 +1503,23 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   próprio (abas Locação, Cliente, Home, Produto, Menu) e dashboard de
   entregas e retiradas do dia. É com ele que a integração de disponibilidade
   deveria conversar, em vez de construirmos controle de frota do zero.
+
+## MAIS Locações: API não confirmada (2026-09-16)
+
+- Investigada a existência de API pública no **MAIS Locações**
+  (maislocacoes.com), o sistema que a Express Entulho paga hoje.
+- **Não encontrei documentação de API, webhook ou área de desenvolvedor.**
+  Três buscas distintas e nenhuma menção. O site próprio está bloqueado pelo
+  proxy do ambiente de desenvolvimento, então a checagem não foi exaustiva —
+  isso é ausência de evidência, não evidência de ausência.
+- O que o material público confirma: gestão de contratos, prazos, logística e
+  geolocalização de ativos; ordem de serviço no celular do entregador; painel
+  logístico; controle de pagamentos e prazos de retirada. Android, iOS e web.
+  Empresa nascida de locador, sistema em desenvolvimento desde 2014.
+- **Encaminhamento**: perguntar direto ao suporte deles. Se houver API, a
+  integração de disponibilidade fica barata e o agente passa a responder
+  "tenho caçamba livre hoje" com dado real. Se não houver, o agente continua
+  encaminhando disponibilidade a um humano — que é o comportamento correto e
+  já implementado, só menos impressionante.
+- Raspagem de tela do sistema não é opção: é frágil e normalmente fere os
+  termos de uso do fornecedor.
