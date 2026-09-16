@@ -1,4 +1,13 @@
-import { pgTable, text, integer, boolean, timestamp, pgEnum, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  pgEnum,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -262,5 +271,87 @@ export const affiliateLinkClicks = pgTable(
     index("AffiliateLinkClick_clickedAt_idx").on(table.clickedAt),
     index("AffiliateLinkClick_productId_clickedAt_idx").on(table.productId, table.clickedAt),
     index("AffiliateLinkClick_handle_clickedAt_idx").on(table.affiliateHandle, table.clickedAt),
+  ],
+);
+
+/* ------------------------------------------------------------------ *
+ * Agente de WhatsApp — Express Entulho (VH-AUT-WA-2026-000001)
+ *
+ * IMPORTANTE: o agente opera em número DEDICADO. O número atual da
+ * empresa não é migrado nem tocado — ver AGENTS.md.
+ * ------------------------------------------------------------------ */
+
+export const waConversationStatus = pgEnum("WaConversationStatus", [
+  "ia",
+  "aguardando_humano",
+  "resolvida",
+]);
+
+export const waDirection = pgEnum("WaDirection", ["entrada", "saida"]);
+
+export const waAuthor = pgEnum("WaAuthor", ["cliente", "ia", "humano", "sistema"]);
+
+/**
+ * Uma conversa por (tenant, número do cliente).
+ *
+ * `tenant` já existe aqui porque o Veronica Operations é multiempresa por
+ * projeto: adicionar a segunda empresa não deve exigir migração de tabela.
+ */
+export const waConversations = pgTable(
+  "WaConversation",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    tenant: text("tenant").notNull().default("express-entulho"),
+    /** Número do cliente no formato que a Meta devolve (E.164 sem "+"). */
+    waId: text("waId").notNull(),
+    profileName: text("profileName"),
+    status: waConversationStatus("status").notNull().default("ia"),
+    /**
+     * Última mensagem RECEBIDA. É o que abre a janela de 24 h da Meta —
+     * fora dela só se escreve por modelo aprovado. Não confundir com
+     * lastMessageAt, que também anda quando nós respondemos.
+     */
+    lastInboundAt: timestamp("lastInboundAt"),
+    lastMessageAt: timestamp("lastMessageAt"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("WaConversation_tenant_waId_key").on(table.tenant, table.waId),
+    index("WaConversation_status_idx").on(table.status, table.lastInboundAt),
+  ],
+);
+
+/**
+ * Toda mensagem, de entrada e de saída.
+ *
+ * `providerId` é o wamid da Meta e é ÚNICO: a Meta reentrega webhook quando
+ * não recebe 200 a tempo, e essa restrição é o que torna o reenvio inofensivo.
+ */
+export const waMessages = pgTable(
+  "WaMessage",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    conversationId: text("conversationId")
+      .notNull()
+      .references(() => waConversations.id, { onDelete: "cascade" }),
+    providerId: text("providerId").notNull(),
+    direction: waDirection("direction").notNull(),
+    author: waAuthor("author").notNull(),
+    /** text, image, audio, location… conforme a Meta classifica. */
+    kind: text("kind").notNull().default("text"),
+    body: text("body"),
+    /** Payload cru do webhook, para depurar sem depender de log volátil. */
+    raw: text("raw"),
+    occurredAt: timestamp("occurredAt").notNull(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("WaMessage_providerId_key").on(table.providerId),
+    index("WaMessage_conversation_idx").on(table.conversationId, table.occurredAt),
   ],
 );

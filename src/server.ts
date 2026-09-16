@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
+import { handleWhatsAppVerify, handleWhatsAppWebhook } from "./lib/whatsapp-webhook";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleNewsSitemap, handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import {
@@ -80,6 +81,17 @@ function withSecurityHeaders(response: Response): Response {
   });
 }
 
+/**
+ * `ctx.waitUntil` quando o runtime oferece (Cloudflare Workers). Deixa o
+ * webhook confirmar 200 na hora e terminar o trabalho depois.
+ */
+function extrairWaitUntil(ctx: unknown): ((p: Promise<unknown>) => void) | undefined {
+  if (typeof ctx !== "object" || ctx === null) return undefined;
+  const candidato = (ctx as { waitUntil?: unknown }).waitUntil;
+  if (typeof candidato !== "function") return undefined;
+  return (p: Promise<unknown>) => (candidato as (p: Promise<unknown>) => void).call(ctx, p);
+}
+
 const app = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
@@ -91,6 +103,26 @@ const app = {
         return new Response("error", { status: 500 });
       }
     }
+    // Webhook do agente de WhatsApp (Cloud API da Meta). GET verifica o
+    // endpoint no painel; POST recebe mensagem. O número é DEDICADO — o
+    // número atual da Express Entulho não passa por aqui (ver AGENTS.md).
+    if (url.pathname === "/api/whatsapp/webhook") {
+      if (request.method === "GET") {
+        return handleWhatsAppVerify(request);
+      }
+      if (request.method === "POST") {
+        try {
+          return await handleWhatsAppWebhook(request, extrairWaitUntil(ctx));
+        } catch (error) {
+          console.error("Erro no webhook do WhatsApp:", error);
+          // 200 de propósito: a Meta reentrega o que não recebe 200, e o
+          // retry de um payload que já falhou só repete o erro.
+          return new Response("ok", { status: 200 });
+        }
+      }
+      return new Response("method not allowed", { status: 405 });
+    }
+
     if (url.pathname === "/api/img") {
       try {
         return await handleImageTransform(request);

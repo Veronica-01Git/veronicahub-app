@@ -1387,6 +1387,95 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - Verificação: 28/28 testes (1 novo, mais o de ida e volta do crédito
   ajustado), typecheck e build Cloudflare.
 
+## Agente da Express Entulho usa número dedicado (2026-09-16)
+
+- Decisão registrada a pedido do responsável: **o número de WhatsApp atual da
+  Express Entulho não será migrado, alterado nem terá mensagens apagadas.** O
+  agente de IA vai operar em número novo e dedicado.
+- Motivo: migrar um número para a Cloud API desativa a conta daquele número no
+  aplicativo e não leva o histórico junto. O número atual é o canal que fatura
+  hoje; o risco não se justifica.
+- Ganhos além da segurança: o agente pode ser testado sem que nenhum cliente
+  real veja os erros; desistir do projeto não exige migração de volta; e a
+  virada de chave pode ser gradual, divulgando o número novo aos poucos.
+- A restrição foi gravada em `AGENTS.md` para valer também para qualquer outro
+  agente ou pessoa que pegue o projeto depois.
+- Estado do agente nesta data: nenhuma linha implementada. Não há integração
+  com a Cloud API no repositório, nem webhook, nem persistência de conversas —
+  o único uso de `graph.facebook.com` é o publicador do Instagram, sem relação.
+  As demonstrações em `/preview/express-operations-b` e
+  `/clientes/express-entulho/operacoes-demo` são do painel operacional, não do
+  agente.
+- Verificação do negócio na Meta e aprovação de modelos de mensagem ainda não
+  foram iniciadas. Como o prazo delas não depende do desenvolvimento, são o
+  caminho crítico para qualquer data de entrega.
+
+## Avaliação: plataforma pronta (Umbler Talk) vs. construir (2026-09-16)
+
+- Levantada a hipótese de usar o **Umbler Talk** — caixa de entrada de WhatsApp
+  com IA sobre a API oficial da Meta — em vez de construir o agente da Express
+  Entulho do zero.
+- **Ressalva de método:** a página do produto estava bloqueada pelo proxy do
+  ambiente de desenvolvimento. A avaliação abaixo veio de busca, incluindo
+  material de marketing da própria Umbler e de terceiros. Os números precisam
+  ser conferidos na fonte antes de qualquer contrato.
+- **O que a plataforma resolve pronto:** burocracia da Meta (verificação,
+  modelos de mensagem, token), interface de atendimento com vários atendentes
+  num número só, e agente com base de conhecimento — suficiente para preço,
+  área atendida e horário.
+- **Onde provavelmente não chega sozinha:** estado operacional. Responder
+  "tem caçamba livre hoje?" exige consultar sistema próprio. Há webhook e API
+  aberta, mas foi encontrada a informação de que **APIs externas para os
+  Agentes de IA passam por homologação prévia do time Umbler** — ponto a
+  confirmar, porque separa "resolve tudo" de "resolve o atendimento".
+- **Custos — CORRIGIDO em 16/09 com a página oficial em mãos.** A estimativa
+  anterior, tirada de busca, estava errada e baixa: dizia "R$ 100 a R$ 300/mês"
+  e "entrada de R$ 69/mês". O preço real é **por atendente, com mínimo
+  obrigatório de contratação**:
+  - Essencial — R$ 99,90/atendente, mínimo 2 → **R$ 199,80/mês**
+  - Impulso — R$ 149,90/atendente, mínimo 3 → **R$ 449,70/mês**
+  - Escala — R$ 219,90/atendente, mínimo 3 → **R$ 659,70/mês**
+
+  A página tem seletor Trimestral/Anual −20% sem indicar qual valor está
+  exibido. As conversas cobradas pela Meta não aparecem na página e são à
+  parte. Não há limite de consumo de IA declarado, nem menção a teste grátis.
+- **Achado decisivo:** **API e Webhooks só existem a partir do Impulso**
+  (R$ 449,70/mês) e **"Integrações avançadas para Agentes IA" só no Escala**
+  (R$ 659,70/mês). Fazer o agente consultar frota e agenda — o caso de uso
+  que importa para a Express Entulho — custa de R$ 5.400 a R$ 7.900 por ano,
+  permanentemente. "Multiunidade e multimarca", que permitiria atender vários
+  clientes numa conta só, também é exclusivo do Escala.
+- **Confirmado pela página:** o Agente IA responde sozinho, com o humano
+  assumindo quando quiser; a configuração é Comportamento + Roteiro +
+  Conhecimento (site, documentos e FAQ), que é exatamente a tela "Regras do
+  agente" desenhada na demonstração.
+- **A decisão não é técnica, é de modelo de negócio.** Vender um serviço à
+  Express Entulho favorece a plataforma: entrega em dias, sem servidor para
+  manter, e permite cobrar implantação mais mensalidade de gestão, com a
+  assinatura no nome do cliente — mais saudável que os R$ 1.500 únicos, que
+  ficam abaixo do custo de desenvolvimento sob medida. Construir só se
+  justifica se o alvo for o Veronica Operations como produto multiempresa,
+  e nesse caso R$ 1.500 não financia o produto.
+- **Encaminhamento:** começar pela plataforma, com número dedicado, e usar as
+  conversas reais para descobrir as regras do negócio — hoje elas seriam
+  adivinhadas. Se o gargalo virar a integração com frota e agenda, construir
+  depois, com a especificação vinda do uso.
+- O webhook da Cloud API já implementado (`claude/agente-whatsapp`) segue
+  válido como base caso o caminho de construir volte à mesa. Não é motivo para
+  construir: são poucas horas de trabalho, não um investimento a proteger.
+
+## Decisão: construir o agente próprio (2026-09-16)
+
+- Avaliada a plataforma e **decidido construir**. O que pesou: a integração
+  com frota e agenda, que é o caso de uso real da Express Entulho, fica presa
+  aos planos de R$ 449,70 a R$ 659,70 por mês, de forma permanente.
+- Prazo dado pelo responsável: **19/09/2026**.
+- A verificação do negócio na Meta continua não iniciada e não depende do
+  desenvolvimento. Enquanto ela não sair, o agente funciona em número de teste
+  da Meta com destinatários cadastrados — suficiente para demonstrar de ponta
+  a ponta, insuficiente para atender cliente real.
+- Continua faltando o insumo que nenhum código substitui: tabela de preços,
+  área atendida, prazo padrão, política de prorrogação e a alçada da IA.
 ## Linha do tempo do selo deixa de envelhecer sozinha (2026-09-16)
 
 - **Sintoma**: o selo `VH-AUT-WA-2026-000001` (Express Entulho) mostrava

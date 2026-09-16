@@ -71,6 +71,13 @@
       "when": 1789331036659,
       "tag": "0009_lean_the_professor",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789521314666,
+      "tag": "0010_agente_whatsapp",
+      "breakpoints": true
     }
   ]
 }
