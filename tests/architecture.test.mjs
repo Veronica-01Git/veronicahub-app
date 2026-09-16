@@ -440,3 +440,30 @@ test('recusa editorial não vira rodada vermelha, mesmo quando o modelo troca a 
   assert.ok(!isEditorialSkip('IA não retornou um rascunho válido. Tente de novo.'));
   assert.ok(!isEditorialSkip('500 Internal Server Error'));
 });
+
+test('o banco não enche uma editoria com a mesma cena', async () => {
+  const { interleaveByTerm } = await import('../src/lib/cover-bank.ts');
+
+  // O primeiro dry run do abastecimento (16/09) cadastraria 8 fotos de clima
+  // todas de "wind turbines field": o script esvaziava o primeiro termo antes
+  // de passar ao segundo. Nenhuma trava de duplicata acusaria — são fotos
+  // diferentes —, mas é a mesma cena oito vezes, que na home lê como
+  // repetição. Daí a intercalação.
+  const seisTermos = [
+    ['eolica-1', 'eolica-2', 'eolica-3'],
+    ['solar-1', 'solar-2'],
+    ['enchente-1', 'enchente-2', 'enchente-3'],
+  ];
+  const ordem = interleaveByTerm(seisTermos);
+
+  assert.equal(ordem.length, 8, 'nenhum candidato pode se perder na intercalação');
+  assert.deepEqual(ordem.slice(0, 3), ['eolica-1', 'solar-1', 'enchente-1']);
+
+  // O que importa de verdade: nas primeiras escolhas, uma de cada cena.
+  const primeiraCena = ordem.slice(0, 3).map(item => item.split('-')[0]);
+  assert.equal(new Set(primeiraCena).size, 3, `saiu concentrado: ${ordem.slice(0, 3)}`);
+
+  // Listas de tamanhos diferentes não podem deixar buraco nem duplicar.
+  assert.deepEqual(interleaveByTerm([['a'], [], ['b', 'c']]), ['a', 'b', 'c']);
+  assert.deepEqual(interleaveByTerm([]), []);
+});

@@ -70,3 +70,26 @@ export function parseBankCredit(altText: string | null): string | null {
   const match = /^Foto de (.+?) no Pexels —/.exec(altText);
   return match ? `${match[1]}/Pexels` : null;
 }
+
+// Intercala as listas de candidatos de cada termo, em vez de esvaziar a
+// primeira antes de passar para a segunda.
+//
+// Medido no primeiro dry run do abastecimento (16/09): as 8 fotos de cada
+// editoria saíram todas da mesma busca — clima inteiro veio de "wind turbines
+// field", geopolítica inteira de "international flags row". Não é a mesma
+// imagem repetida, e por isso nenhuma trava de duplicata acusaria; mas é a
+// mesma cena oito vezes, e na home lê como repetição do mesmo jeito. O banco
+// existe justamente para acabar com isso.
+//
+// Intercalando, uma editoria com seis termos e alvo de oito recebe pelo menos
+// uma foto de cada cena antes de repetir qualquer termo.
+export function interleaveByTerm<T>(lists: T[][]): T[] {
+  const result: T[] = [];
+  const deepest = lists.reduce((max, list) => Math.max(max, list.length), 0);
+  for (let index = 0; index < deepest; index += 1) {
+    for (const list of lists) {
+      if (index < list.length) result.push(list[index]);
+    }
+  }
+  return result;
+}
