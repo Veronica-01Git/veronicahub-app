@@ -13,20 +13,13 @@ import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { waConversations, waMessages } from "./schema";
 import { decidirResposta } from "./whatsapp-agent";
+import { extrairConteudo, type MensagemMeta } from "./whatsapp-mensagem";
 import { markAsRead, sendText, verifyWebhookSignature } from "./whatsapp-cloud";
 
 const TENANT = "express-entulho";
 
-type MetaTextMessage = {
-  id?: string;
-  from?: string;
-  timestamp?: string;
-  type?: string;
-  text?: { body?: string };
-};
-
 type MetaValue = {
-  messages?: MetaTextMessage[];
+  messages?: MensagemMeta[];
   contacts?: { profile?: { name?: string }; wa_id?: string }[];
 };
 
@@ -132,7 +125,7 @@ async function processarPayload(rawBody: string): Promise<void> {
 }
 
 async function processarMensagem(
-  mensagem: MetaTextMessage,
+  mensagem: MensagemMeta,
   profileName: string | null,
 ): Promise<void> {
   const providerId = mensagem.id;
@@ -140,7 +133,7 @@ async function processarMensagem(
   if (!providerId || !waId) return;
 
   const ocorridoEm = mensagem.timestamp ? new Date(Number(mensagem.timestamp) * 1000) : new Date();
-  const texto = mensagem.text?.body ?? "";
+  const conteudo = extrairConteudo(mensagem);
   const db = getDb();
 
   const [conversa] = await db
@@ -173,8 +166,8 @@ async function processarMensagem(
       providerId,
       direction: "entrada",
       author: "cliente",
-      kind: mensagem.type ?? "text",
-      body: texto || null,
+      kind: conteudo.kind,
+      body: conteudo.texto || null,
       raw: JSON.stringify(mensagem),
       occurredAt: ocorridoEm,
     })
@@ -185,12 +178,19 @@ async function processarMensagem(
 
   await markAsRead(providerId);
 
+  // Figurinha e reação ficam registradas, mas não merecem resposta.
+  if (conteudo.ignorar) return;
+
   const anteriores = await db.$count(
     waMessages,
     and(eq(waMessages.conversationId, conversa.id), eq(waMessages.direction, "entrada")),
   );
 
-  const decisao = await decidirResposta({ texto, primeiraMensagem: anteriores <= 1 });
+  const decisao = await decidirResposta({
+    texto: conteudo.paraOAgente,
+    primeiraMensagem: anteriores <= 1,
+    forcarHumano: conteudo.humanoObrigatorio,
+  });
   const envio = await sendText(waId, decisao.texto);
 
   if (envio.ok) {

@@ -27,10 +27,14 @@ import {
   SegmentedControl,
   type Tom,
 } from "@/features/express-ops-b/components/primitives";
-import type { Operacao, OperacaoEstado } from "@/features/express-ops-b/data/types";
+import {
+  ROTULO_OPERACAO,
+  type Operacao,
+  type OperacaoEstado,
+} from "@/features/express-ops-b/data/types";
 
-type Filtro = "todas" | "entregas" | "retiradas" | "atrasadas";
-const FILTROS: readonly Filtro[] = ["todas", "entregas", "retiradas", "atrasadas"];
+type Filtro = "todas" | "entregas" | "retiradas" | "trocas" | "atrasadas";
+const FILTROS: readonly Filtro[] = ["todas", "entregas", "retiradas", "trocas", "atrasadas"];
 
 export const Route = createFileRoute("/preview/express-operations-b/operacoes-hoje")({
   component: OperacoesHoje,
@@ -52,6 +56,7 @@ const ESTADO_COPY: Record<OperacaoEstado, { rotulo: string; tom: Tom }> = {
 function aplicaFiltro(ops: readonly Operacao[], filtro: Filtro): readonly Operacao[] {
   if (filtro === "entregas") return ops.filter((o) => o.tipo === "entrega");
   if (filtro === "retiradas") return ops.filter((o) => o.tipo === "retirada");
+  if (filtro === "trocas") return ops.filter((o) => o.tipo === "troca");
   if (filtro === "atrasadas") return ops.filter((o) => o.estado === "atrasada");
   return ops;
 }
@@ -78,6 +83,11 @@ function OperacoesHoje() {
       id: "retiradas" as const,
       rotulo: "Retiradas",
       contagem: todas.filter((o) => o.tipo === "retirada").length,
+    },
+    {
+      id: "trocas" as const,
+      rotulo: "Trocas",
+      contagem: todas.filter((o) => o.tipo === "troca").length,
     },
     {
       id: "atrasadas" as const,
@@ -147,7 +157,7 @@ function OperacoesHoje() {
                       {o.hora}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-[13px] text-[var(--ops-ink-soft)]">
-                      {o.tipo === "entrega" ? "Entrega" : "Retirada"}
+                      {ROTULO_OPERACAO[o.tipo]}
                     </TableCell>
                     <TableCell className="text-[13px] font-medium text-[var(--ops-ink)]">
                       {o.cliente}
@@ -204,7 +214,7 @@ function OperacoesHoje() {
                 </div>
                 <p className="mt-2 text-[14px] font-medium text-[var(--ops-ink)]">{o.cliente}</p>
                 <p className="mt-0.5 text-[12.5px] text-[var(--ops-ink-muted)]">
-                  {o.tipo === "entrega" ? "Entrega" : "Retirada"} · {o.endereco} · {o.bairro}
+                  {ROTULO_OPERACAO[o.tipo]} · {o.endereco} · {o.bairro}
                 </p>
                 <p className="mt-2 text-[12.5px] text-[var(--ops-ink-muted)]">
                   {o.motorista} · {o.veiculo} <span className="ops-num">{o.placa}</span> ·{" "}
@@ -249,9 +259,8 @@ function PainelOperacao({
                 {operacao.cliente}
               </SheetTitle>
               <SheetDescription className="text-[13px] text-[var(--ops-ink-muted)]">
-                {operacao.tipo === "entrega" ? "Entrega" : "Retirada"} ·{" "}
-                <span className="ops-num">{operacao.id}</span> · {operacao.endereco},{" "}
-                {operacao.bairro}
+                {ROTULO_OPERACAO[operacao.tipo]} · <span className="ops-num">{operacao.id}</span> ·{" "}
+                {operacao.endereco}, {operacao.bairro}
               </SheetDescription>
             </SheetHeader>
 
