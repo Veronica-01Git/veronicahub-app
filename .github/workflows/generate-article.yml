@@ -206,6 +206,7 @@ jobs:
           WIRE_HEADLINE: ${{ steps.generate.outputs.headline }}
           WIRE_EXCERPT: ${{ steps.generate.outputs.excerpt }}
           WIRE_BEAT: ${{ steps.generate.outputs.beat }}
+          WIRE_PHOTO_CREDIT: ${{ steps.fetch_photo.outputs.photoCredit }}
           WIRE_OUT_DIR: public/images/instagram
         run: node scripts/render-instagram-card.mjs
 

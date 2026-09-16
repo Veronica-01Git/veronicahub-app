@@ -5,7 +5,7 @@
 // O contexto 2D vem do @napi-rs/canvas, que já era dependência do projeto.
 //
 //   WIRE_SLUG=minha-materia WIRE_HEADLINE="..." WIRE_EXCERPT="..." \
-//     WIRE_BEAT=ia node scripts/render-instagram-card.mjs
+//     WIRE_BEAT=ia WIRE_PHOTO_CREDIT="Fulana" node scripts/render-instagram-card.mjs
 //
 // Escreve o .jpg e o .txt da legenda em out/instagram/ (fora do build, é
 // material de publicação, não asset do site) e imprime os dois caminhos.
@@ -60,6 +60,9 @@ async function main() {
   // Sem resumo a legenda sai só com manchete, link e @ — nada é inventado.
   const excerpt = (process.env.WIRE_EXCERPT ?? "").trim();
   const beat = required("WIRE_BEAT");
+  // Opcional: só existe quando a capa veio do banco curado. Sem ele a legenda
+  // sai sem a linha de crédito, em vez de creditar quem não se sabe quem é.
+  const photoCredit = (process.env.WIRE_PHOTO_CREDIT ?? "").trim();
   if (!isBeat(beat)) throw new Error(`WIRE_BEAT inválido: ${beat}`);
 
   const cover = await resolveCover(slug, beat);
@@ -93,7 +96,10 @@ async function main() {
   const imageFile = path.join(outDir, `wire-tv-${slug}.jpg`);
   const captionFile = path.join(outDir, `wire-tv-${slug}.txt`);
   await writeFile(imageFile, canvas.toBuffer("image/jpeg", 92));
-  await writeFile(captionFile, `${buildWireCaption({ headline, excerpt, canonicalUrl })}\n`);
+  await writeFile(
+    captionFile,
+    `${buildWireCaption({ headline, excerpt, canonicalUrl, photoCredit })}\n`,
+  );
 
   console.log(`card: ${imageFile}`);
   console.log(`legenda: ${captionFile}`);
