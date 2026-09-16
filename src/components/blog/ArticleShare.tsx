@@ -13,13 +13,7 @@ import {
 const SITE_URL = "https://veronicahub.com";
 
 type ShareStatus =
-  | "idle"
-  | "preparing"
-  | "shared"
-  | "downloaded"
-  | "copiedLink"
-  | "copiedCaption"
-  | "error";
+  "idle" | "preparing" | "shared" | "downloaded" | "copiedLink" | "copiedCaption" | "error";
 
 function loadImage(src: string): Promise<WireCardImage> {
   return new Promise((resolve, reject) => {
@@ -81,16 +75,20 @@ export function ArticleShare({
   slug,
   beatLabel,
   coverImageUrl,
+  photoCredit,
 }: {
   headline: string;
   excerpt: string;
   slug: string;
   beatLabel: string;
   coverImageUrl: string | null;
+  // O crédito do fotógrafo acompanha a foto onde quer que ela vá: no feed do
+  // Instagram não há como linkar, então entra escrito na legenda.
+  photoCredit?: string | null;
 }) {
   const [status, setStatus] = useState<ShareStatus>("idle");
   const canonicalUrl = `${SITE_URL}/blog/${slug}`;
-  const caption = buildWireCaption({ headline, excerpt, canonicalUrl });
+  const caption = buildWireCaption({ headline, excerpt, canonicalUrl, photoCredit });
 
   async function copy(value: string) {
     await navigator.clipboard.writeText(value);

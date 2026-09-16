@@ -65,10 +65,14 @@ export function buildBankAltText(input: {
   );
 }
 
+// Devolve SÓ o nome do fotógrafo. Quem escreve "/ Pexels" é quem exibe — a
+// página da matéria monta "Foto: <nome> / <fonte>" e a legenda do Instagram
+// faz o mesmo. Medido em 16/09: devolvendo "Nome/Pexels" daqui, o rodapé da
+// capa saía "Foto: Nome/Pexels / Pexels".
 export function parseBankCredit(altText: string | null): string | null {
   if (!altText) return null;
   const match = /^Foto de (.+?) no Pexels —/.exec(altText);
-  return match ? `${match[1]}/Pexels` : null;
+  return match ? match[1] : null;
 }
 
 // Intercala as listas de candidatos de cada termo, em vez de esvaziar a

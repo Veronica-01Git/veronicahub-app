@@ -372,7 +372,9 @@ test('o nome do arquivo do banco carrega a foto e trava a duplicata', async () =
   // tem coluna para fotógrafo. Se o formato mudar de um lado só, a matéria
   // passa a ser publicada sem creditar quem fez a foto.
   const altText = buildBankAltText({ photographer: 'Ana Silva', beat: 'clima', term: 'wind turbines' });
-  assert.equal(parseBankCredit(altText), 'Ana Silva/Pexels');
+  // Só o nome: quem escreve "/ Pexels" é quem exibe. Devolvendo a fonte aqui,
+  // o rodapé da capa saía "Foto: Ana Silva/Pexels / Pexels".
+  assert.equal(parseBankCredit(altText), 'Ana Silva');
   assert.equal(parseBankCredit('Capa Wire TV — enchente'), null);
   assert.equal(parseBankCredit(null), null);
 });
@@ -566,4 +568,41 @@ test('capa escolhida à mão no Admin não entra na troca automática', () => {
   // O caminho é o mesmo que article-cron reconhece; se um mudar sem o outro,
   // capa manual volta a ser sobrescrita.
   assert.match(cron, /url\.pathname\.startsWith\("\/api\/media-images\/"\)/);
+});
+
+test('o crédito do fotógrafo aparece no rodapé da capa e na legenda', async () => {
+  const { buildWireCaption } = await import('../src/lib/wire-instagram-card.ts');
+  const page = readFileSync(new URL('../src/routes/blog/$slug.tsx', import.meta.url), 'utf8');
+  const share = readFileSync(new URL('../src/components/blog/ArticleShare.tsx', import.meta.url), 'utf8');
+  const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
+  const card = readFileSync(new URL('../scripts/render-instagram-card.mjs', import.meta.url), 'utf8');
+
+  // A fonte entra uma vez só, na exibição. O nome chega sem ela.
+  const comCredito = buildWireCaption({
+    headline: 'Manchete',
+    excerpt: 'Resumo',
+    canonicalUrl: 'https://veronicahub.com/blog/x',
+    photoCredit: 'Ana Silva',
+  });
+  assert.match(comCredito, /^Foto: Ana Silva \/ Pexels$/m);
+  assert.ok(!/Pexels \/ Pexels/.test(comCredito), 'a fonte não pode sair duplicada');
+
+  // Sem crédito não se inventa linha: creditar quem não se sabe quem é seria
+  // pior que não creditar.
+  const semCredito = buildWireCaption({
+    headline: 'Manchete',
+    canonicalUrl: 'https://veronicahub.com/blog/x',
+  });
+  assert.ok(!/Foto:/.test(semCredito));
+
+  // O crédito viaja do banco até os dois destinos.
+  assert.match(page, /coverPhotoCredit/);
+  assert.match(page, /photoCredit=\{state\.article\.coverPhotoCredit\}/);
+  assert.match(share, /photoCredit/);
+  assert.match(workflow, /WIRE_PHOTO_CREDIT/);
+  assert.match(card, /WIRE_PHOTO_CREDIT/);
+
+  // Foto do banco não tem URL de origem: o crédito vira texto em vez de um
+  // link para "#", que não leva a lugar nenhum e ainda abre uma aba.
+  assert.match(page, /coverPhotoUrl \? \(/);
 });

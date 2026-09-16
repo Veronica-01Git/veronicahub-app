@@ -216,17 +216,26 @@ function ArticlePage() {
               coverImageUrl={state.article.coverImageUrl}
               className="mt-6 aspect-[16/10] w-full"
             />
-            {state.article.coverPhotoCredit && (
-              <a
-                href={state.article.coverPhotoUrl ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1.5 block text-right text-[11px] text-muted-foreground/70 transition hover:text-muted-foreground"
-              >
-                Foto: {state.article.coverPhotoCredit} /{" "}
-                {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
-              </a>
-            )}
+            {/* Foto do banco curado não tem URL de origem gravada: o crédito
+                vira texto em vez de um link para "#", que não leva a lugar
+                nenhum e ainda abre uma aba. */}
+            {state.article.coverPhotoCredit &&
+              (state.article.coverPhotoUrl ? (
+                <a
+                  href={state.article.coverPhotoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1.5 block text-right text-[11px] text-muted-foreground/70 transition hover:text-muted-foreground"
+                >
+                  Foto: {state.article.coverPhotoCredit} /{" "}
+                  {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
+                </a>
+              ) : (
+                <p className="mt-1.5 text-right text-[11px] text-muted-foreground/70">
+                  Foto: {state.article.coverPhotoCredit} /{" "}
+                  {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
+                </p>
+              ))}
 
             <ArticleShare
               headline={state.article.headline}
@@ -234,6 +243,7 @@ function ArticlePage() {
               slug={state.article.slug}
               beatLabel={BEAT_LABELS[state.article.beat]}
               coverImageUrl={state.article.coverImageUrl}
+              photoCredit={state.article.coverPhotoCredit}
             />
 
             <div
@@ -289,8 +299,8 @@ function ArticlePage() {
                 <Network className="mt-0.5 h-4 w-4 shrink-0 text-neon-green" />
                 <div>
                   <p className="text-[15px] leading-relaxed text-foreground/90">
-                    Esta cobertura integra o ecossistema Wire TV, que conecta informação
-                    verificada, educação e aplicação prática.
+                    Esta cobertura integra o ecossistema Wire TV, que conecta informação verificada,
+                    educação e aplicação prática.
                   </p>
                   <Link
                     to="/blog/rede-de-fontes"

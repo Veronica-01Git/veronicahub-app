@@ -1358,3 +1358,31 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   mudar sem o outro, capa manual volta a ser sobrescrita.
 - Contagem depois da troca: 41 matérias publicadas, 38 com fotografia do
   banco, 38 fotos distintas (nenhuma repetida), 3 com capa manual preservada.
+
+## Crédito do fotógrafo no rodapé da capa e na legenda (2026-09-16)
+
+- **Correção de registro**: eu havia dito, nas seções anteriores, que "nenhuma
+  página exibe `photoCredit`". Errado — `/blog/$slug` já renderizava o crédito
+  no rodapé da capa desde antes, com link para a origem. O que faltava era o
+  dado, e depois da troca de capas 39 das 42 matérias passaram a ter.
+- **Defeito que isso revelou**: `parseBankCredit` devolvia `"Nome/Pexels"`, e a
+  página monta `Foto: {crédito} / {fonte}`. O rodapé saía
+  **"Foto: Helena Jankovičová Kováčová/Pexels / Pexels"**. Agora
+  `parseBankCredit` devolve só o nome; quem escreve a fonte é quem exibe.
+- **24 linhas já gravadas foram corrigidas no banco** com
+  `UPDATE "Article" SET "coverPhotoCredit" = left(..., length(...) - 7) WHERE
+  "coverPhotoCredit" LIKE '%/Pexels'`. As 15 anteriores, da época da busca ao
+  vivo, já vinham só com o nome e não foram tocadas.
+- **Legenda do Instagram passa a creditar**: `buildWireCaption` ganhou
+  `photoCredit` opcional e escreve `Foto: <nome> / Pexels` entre o link e o
+  `@wire__tv`. No feed não há como linkar, então vai escrito. Sem crédito, a
+  linha não aparece — creditar quem não se sabe quem é seria pior que não
+  creditar.
+- O crédito viaja por todos os caminhos que geram legenda: o botão de
+  compartilhar em `/blog/$slug`, o `render-instagram-card.mjs` do cron (via
+  `WIRE_PHOTO_CREDIT`, repassado pelo workflow) e o `swap-art-covers.mjs`.
+- **Link morto removido**: foto do banco não tem URL de origem gravada, e o
+  rodapé virava um `<a href="#">` que não leva a lugar nenhum e ainda abre
+  aba. Sem URL, o crédito agora é texto; com URL, continua link.
+- Verificação: 28/28 testes (1 novo, mais o de ida e volta do crédito
+  ajustado), typecheck e build Cloudflare.
