@@ -1386,3 +1386,26 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   aba. Sem URL, o crédito agora é texto; com URL, continua link.
 - Verificação: 28/28 testes (1 novo, mais o de ida e volta do crédito
   ajustado), typecheck e build Cloudflare.
+
+## Agente da Express Entulho usa número dedicado (2026-09-16)
+
+- Decisão registrada a pedido do responsável: **o número de WhatsApp atual da
+  Express Entulho não será migrado, alterado nem terá mensagens apagadas.** O
+  agente de IA vai operar em número novo e dedicado.
+- Motivo: migrar um número para a Cloud API desativa a conta daquele número no
+  aplicativo e não leva o histórico junto. O número atual é o canal que fatura
+  hoje; o risco não se justifica.
+- Ganhos além da segurança: o agente pode ser testado sem que nenhum cliente
+  real veja os erros; desistir do projeto não exige migração de volta; e a
+  virada de chave pode ser gradual, divulgando o número novo aos poucos.
+- A restrição foi gravada em `AGENTS.md` para valer também para qualquer outro
+  agente ou pessoa que pegue o projeto depois.
+- Estado do agente nesta data: nenhuma linha implementada. Não há integração
+  com a Cloud API no repositório, nem webhook, nem persistência de conversas —
+  o único uso de `graph.facebook.com` é o publicador do Instagram, sem relação.
+  As demonstrações em `/preview/express-operations-b` e
+  `/clientes/express-entulho/operacoes-demo` são do painel operacional, não do
+  agente.
+- Verificação do negócio na Meta e aprovação de modelos de mensagem ainda não
+  foram iniciadas. Como o prazo delas não depende do desenvolvimento, são o
+  caminho crítico para qualquer data de entrega.
