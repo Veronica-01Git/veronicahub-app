@@ -25,6 +25,7 @@ const {
   respostaSegura,
   valoresCitados,
   prometeuConfirmar,
+  resumirErro,
 } = await import("../src/lib/whatsapp-agent.ts");
 const { podeCotar, buscarPreco, produtosDaCidade, produtoPorId, REGRAS_EXPRESS_ENTULHO } =
   await import("../src/lib/whatsapp-rules.ts");
@@ -201,4 +202,23 @@ test("promessa de retorno humano marca a conversa para um humano", () => {
     prometeuConfirmar("Para demolição em Itajaí a menor sai por R$ 220, com 3 dias."),
     false,
   );
+});
+
+test("cada falha do núcleo tem motivo próprio — três causas, três mensagens", () => {
+  // Em produção o segredo estava configurado e a tela dizia apenas
+  // "indisponível", o que mandou procurar o problema no lugar errado.
+  assert.equal(resumirErro({ status: 429 }).includes("cota"), true);
+  assert.equal(resumirErro({ status: 401 }).includes("recusou a chave"), true);
+  assert.equal(resumirErro({ status: 404 }).includes("modelo não encontrado"), true);
+  assert.equal(resumirErro({ status: 503 }).includes("503"), true);
+  assert.equal(resumirErro(new Error("socket hang up")).includes("socket hang up"), true);
+
+  const semMotivo = decidirRespostaOffline({ texto: "oi", primeiraMensagem: true });
+  assert.equal(semMotivo.escalar, true);
+  const comMotivo = decidirRespostaOffline({
+    texto: "oi",
+    primeiraMensagem: false,
+    motivo: "GROQ_API_KEY não configurada",
+  });
+  assert.equal(comMotivo.motivo, "GROQ_API_KEY não configurada");
 });
