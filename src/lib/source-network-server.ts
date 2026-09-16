@@ -55,7 +55,12 @@ export async function handleSourceReferral(request: Request): Promise<Response> 
 
   const db = getDb();
   const [article] = await db
-    .select({ id: articles.id, beat: articles.beat, slug: articles.slug, sourceUrls: articles.sourceUrls })
+    .select({
+      id: articles.id,
+      beat: articles.beat,
+      slug: articles.slug,
+      sourceUrls: articles.sourceUrls,
+    })
     .from(articles)
     .where(and(eq(articles.slug, articleSlug), eq(articles.status, "published")))
     .limit(1);
@@ -70,7 +75,9 @@ export async function handleSourceReferral(request: Request): Promise<Response> 
   }
 
   const userAgent = request.headers.get("user-agent") ?? "";
-  const isAutomatedPreview = /bot|crawler|spider|preview|facebookexternalhit|whatsapp/i.test(userAgent);
+  const isAutomatedPreview = /bot|crawler|spider|preview|facebookexternalhit|whatsapp/i.test(
+    userAgent,
+  );
   if (!isAutomatedPreview) {
     try {
       await ensureSourceReferralStorage();
@@ -172,7 +179,10 @@ export const getPublicSourceReport = createServerFn({ method: "GET" })
         })
         .from(sourceReferrals)
         .where(
-          and(gte(sourceReferrals.clickedAt, window.start), lt(sourceReferrals.clickedAt, window.end)),
+          and(
+            gte(sourceReferrals.clickedAt, window.start),
+            lt(sourceReferrals.clickedAt, window.end),
+          ),
         )
         .groupBy(sourceReferrals.sourceDomain, sourceReferrals.beat)
         .orderBy(desc(count()));

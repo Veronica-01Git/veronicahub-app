@@ -19,9 +19,15 @@ registerHooks({
 // Import dinâmico de propósito: `import` estático é resolvido antes do corpo
 // do módulo rodar, então o hook acima ainda não valeria.
 const { verifyWebhookSignature, janela24hAberta } = await import("../src/lib/whatsapp-cloud.ts");
-const { precisaDeHumano, decidirRespostaOffline, respostaSegura, valoresCitados } =
-  await import("../src/lib/whatsapp-agent.ts");
-const { podeCotar, REGRAS_EXPRESS_ENTULHO } = await import("../src/lib/whatsapp-rules.ts");
+const {
+  precisaDeHumano,
+  decidirRespostaOffline,
+  respostaSegura,
+  valoresCitados,
+  prometeuConfirmar,
+} = await import("../src/lib/whatsapp-agent.ts");
+const { podeCotar, buscarPreco, produtosDaCidade, produtoPorId, REGRAS_EXPRESS_ENTULHO } =
+  await import("../src/lib/whatsapp-rules.ts");
 
 const SEGREDO = "segredo-de-teste-do-app-meta";
 
@@ -109,10 +115,37 @@ test("sem núcleo conversacional o agente escala e não cita preço", () => {
   }
 });
 
-test("a tabela de preços ainda não foi cadastrada", () => {
-  // Quando este teste falhar, as regras entraram — é o sinal de que o agente
-  // passou a poder cotar. Atualize os testes de guarda junto.
-  assert.equal(podeCotar(REGRAS_EXPRESS_ENTULHO), false);
+test("os preços confirmados pelo responsável estão cadastrados", () => {
+  assert.equal(podeCotar(REGRAS_EXPRESS_ENTULHO), true);
+  // Demolição em Itajaí — os três que ele soube informar.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itajai"), 220);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "itajai"), 180);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "demolicao", "itajai"), 450);
+  // Gesso: só a menor foi informada.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itajai"), 280);
+});
+
+test("combinação que o responsável não soube informar devolve null, não uma estimativa", () => {
+  // "o tambor eu não sei te passar o valor e a caçamba grande eu também não sei"
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), null);
+  // Nenhum preço fora de Itajaí foi informado.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), null);
+  // Material que ninguém mencionou.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "madeira", "itajai"), null);
+});
+
+test("tambor só existe em Itajaí; prazos valem em todas as cidades", () => {
+  const itajai = produtosDaCidade(REGRAS_EXPRESS_ENTULHO, "itajai").map((p) => p.id);
+  assert.deepEqual([...itajai].sort(), ["cacamba-grande", "cacamba-menor", "tambor"]);
+
+  const itapema = produtosDaCidade(REGRAS_EXPRESS_ENTULHO, "itapema").map((p) => p.id);
+  assert.deepEqual([...itapema].sort(), ["cacamba-grande", "cacamba-menor"]);
+  assert.ok(!itapema.includes("tambor"), "tambor não é oferecido fora de Itajaí");
+
+  assert.equal(produtoPorId(REGRAS_EXPRESS_ENTULHO, "cacamba-menor").diasIncluidos, 3);
+  assert.equal(produtoPorId(REGRAS_EXPRESS_ENTULHO, "tambor").diasIncluidos, 3);
+  assert.equal(produtoPorId(REGRAS_EXPRESS_ENTULHO, "cacamba-grande").diasIncluidos, 7);
 });
 
 test("valores em reais são extraídos nos formatos que o modelo usa", () => {
@@ -124,10 +157,18 @@ test("valores em reais são extraídos nos formatos que o modelo usa", () => {
   assert.deepEqual(valoresCitados("a caçamba de 5 m³"), [], "volume não é dinheiro");
 });
 
-test("sem tabela cadastrada, QUALQUER valor reprova a resposta do modelo", () => {
+test("a guarda aceita só os valores da matriz — inclusive contra o R$ 240 real", () => {
   assert.equal(respostaSegura("Vou confirmar com a equipe e te retorno."), true);
-  assert.equal(respostaSegura("A caçamba sai por R$ 450."), false);
-  assert.equal(respostaSegura("Fica em 380 reais."), false);
+  assert.equal(respostaSegura("Para demolição em Itajaí, a menor sai por R$ 220."), true);
+  assert.equal(respostaSegura("O tambor fica R$ 180."), true);
+  assert.equal(respostaSegura("A grande é R$ 450."), true);
+  assert.equal(respostaSegura("Com gesso, a menor vai para R$ 280."), true);
+
+  // Uma conversa real de 14/09 cotou a menor por R$ 240 — valor que não bate
+  // com demolição nem com gesso. A guarda barra: o agente não repete preço
+  // que não está na matriz, mesmo que alguém já tenha praticado.
+  assert.equal(respostaSegura("A caçamba menor sai por R$ 240."), false);
+  assert.equal(respostaSegura("Consigo fazer por R$ 200 para você."), false);
 });
 
 test("com tabela cadastrada, só passam os valores que estão nela", () => {
@@ -144,4 +185,20 @@ test("com tabela cadastrada, só passam os valores que estão nela", () => {
   // O erro que a guarda existe para impedir: desconto inventado sob pressão.
   assert.equal(respostaSegura("Consigo fazer por R$ 380 para você.", regras), false);
   assert.equal(respostaSegura("Sai por R$ 449,99.", regras), false);
+});
+
+test("promessa de retorno humano marca a conversa para um humano", () => {
+  // Sem isso, o "já te confirmo" morre e o cliente fica esperando ninguém.
+  for (const t of [
+    "Deixa eu confirmar com a equipe e já te falo.",
+    "Vou verificar o valor do gesso para a grande.",
+    "Te retorno em seguida com o preço.",
+    "Uma pessoa da equipe assume daqui.",
+  ]) {
+    assert.equal(prometeuConfirmar(t), true, `não marcou: ${t}`);
+  }
+  assert.equal(
+    prometeuConfirmar("Para demolição em Itajaí a menor sai por R$ 220, com 3 dias."),
+    false,
+  );
 });

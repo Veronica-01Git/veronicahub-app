@@ -112,6 +112,10 @@ function montarSystemPrompt(regras: RegrasNegocio): string {
     "Fala português do Brasil, em tom direto e cordial, como quem atende obra.",
     "Responda em no máximo 3 frases curtas. Nada de listas ou markdown — é WhatsApp.",
     "",
+    "REGRA NÚMERO UM: quem pede preço sem dizer o material do descarte recebe",
+    "de você uma pergunta, não um valor. 'O que você vai descartar? Demolição,",
+    "gesso, outro material?' — sem o material não existe preço nesta empresa.",
+    "",
     "OPERAÇÕES QUE A EMPRESA FAZ:",
     "- Entrega: levar caçamba vazia até a obra.",
     "- Retirada: buscar a caçamba ao fim do prazo.",
@@ -200,9 +204,27 @@ export async function decidirResposta(params: {
     return { texto: ESCALONAMENTO, escalar: true, motivo: "modelo citou valor fora da tabela" };
   }
 
-  return {
-    texto: bruto,
-    escalar: !podeCotar(regras),
-    motivo: podeCotar(regras) ? undefined : "regras do negócio ainda não cadastradas",
-  };
+  // Quando o próprio modelo diz que vai confirmar com a equipe, isso É um
+  // escalonamento — a conversa não pode ficar parada esperando ninguém.
+  if (prometeuConfirmar(bruto)) {
+    return { texto: bruto, escalar: true, motivo: "o agente não soube e encaminhou" };
+  }
+
+  return { texto: bruto, escalar: !podeCotar(regras) };
+}
+
+/**
+ * O modelo prometeu retorno humano? Então marque a conversa para um humano.
+ * Sem isso, a promessa de "já te confirmo" morre e o cliente fica esperando.
+ */
+const PROMESSAS = [
+  /confirmar com (a|o) (equipe|pessoal|respons)/i,
+  /vou (confirmar|verificar|checar)/i,
+  /consultar a equipe/i,
+  /te retorn/i,
+  /uma pessoa (da equipe|daqui)/i,
+];
+
+export function prometeuConfirmar(texto: string): boolean {
+  return PROMESSAS.some((r) => r.test(texto));
 }

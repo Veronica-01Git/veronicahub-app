@@ -4,19 +4,71 @@
 // ---------------------------------------------------------------------------
 
 const ACTION_VERBS = [
-  "liderei", "desenvolvi", "criei", "implementei", "aumentei", "reduzi", "gerenciei",
-  "coordenei", "otimizei", "automatizei", "negociei", "conduzi", "executei", "planejei",
-  "estruturei", "elaborei", "construí", "lancei", "entreguei", "superei", "ampliei",
-  "melhorei", "resolvi", "analisei", "identifiquei", "treinei", "capacitei",
-  "supervisionei", "organizei", "revisei", "padronizei", "implantei", "migrei",
-  "integrei", "projetei", "escalei", "conquistei", "alcancei", "atingi", "formei",
-  "mentorei", "apresentei", "publiquei", "captei", "orcei", "diagnostiquei",
+  "liderei",
+  "desenvolvi",
+  "criei",
+  "implementei",
+  "aumentei",
+  "reduzi",
+  "gerenciei",
+  "coordenei",
+  "otimizei",
+  "automatizei",
+  "negociei",
+  "conduzi",
+  "executei",
+  "planejei",
+  "estruturei",
+  "elaborei",
+  "construí",
+  "lancei",
+  "entreguei",
+  "superei",
+  "ampliei",
+  "melhorei",
+  "resolvi",
+  "analisei",
+  "identifiquei",
+  "treinei",
+  "capacitei",
+  "supervisionei",
+  "organizei",
+  "revisei",
+  "padronizei",
+  "implantei",
+  "migrei",
+  "integrei",
+  "projetei",
+  "escalei",
+  "conquistei",
+  "alcancei",
+  "atingi",
+  "formei",
+  "mentorei",
+  "apresentei",
+  "publiquei",
+  "captei",
+  "orcei",
+  "diagnostiquei",
 ];
 
 const BUZZWORDS = [
-  "proativo", "proativa", "dinâmico", "dinâmica", "team player", "trabalho em equipe",
-  "excelente comunicação", "facilidade de aprendizado", "comprometido", "comprometida",
-  "motivado", "motivada", "responsável", "organizado", "organizada", "sinergia",
+  "proativo",
+  "proativa",
+  "dinâmico",
+  "dinâmica",
+  "team player",
+  "trabalho em equipe",
+  "excelente comunicação",
+  "facilidade de aprendizado",
+  "comprometido",
+  "comprometida",
+  "motivado",
+  "motivada",
+  "responsável",
+  "organizado",
+  "organizada",
+  "sinergia",
   "fora da caixa",
 ];
 
@@ -58,22 +110,32 @@ function stripBullet(line: string): string {
 
 export function evaluateResume(rawText: string): EvalResult {
   const text = rawText.trim();
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   const wordCount = text.split(/\s+/).filter(Boolean).length;
 
   const bulletLines = lines.filter((l) => /^([-•*▪●]|\d+[.)])\s+/.test(l));
-  const candidateLines = bulletLines.length >= 3
-    ? bulletLines
-    : lines.filter((l) => l.length >= 20 && l.length <= 220 && !/^[A-ZÀ-Ú\s]+$/.test(l));
+  const candidateLines =
+    bulletLines.length >= 3
+      ? bulletLines
+      : lines.filter((l) => l.length >= 20 && l.length <= 220 && !/^[A-ZÀ-Ú\s]+$/.test(l));
 
   const verbMatches = candidateLines.filter((l) => {
-    const first = stripBullet(l).trim().split(/\s+/)[0]?.toLowerCase().replace(/[.,;:]+$/, "") ?? "";
+    const first =
+      stripBullet(l)
+        .trim()
+        .split(/\s+/)[0]
+        ?.toLowerCase()
+        .replace(/[.,;:]+$/, "") ?? "";
     return ACTION_VERBS.includes(first);
   }).length;
   const verbRatio = candidateLines.length > 0 ? verbMatches / candidateLines.length : 0;
   const verbPoints = candidateLines.length >= 3 ? Math.round(16 * Math.min(verbRatio, 1)) : 0;
 
-  const quantRegex = /%|R\$|\b\d+\s?(mil|milh(ão|ões)?|k|x|vezes|clientes|usuários|pessoas|equipe)\b/i;
+  const quantRegex =
+    /%|R\$|\b\d+\s?(mil|milh(ão|ões)?|k|x|vezes|clientes|usuários|pessoas|equipe)\b/i;
   const quantCount = candidateLines.filter((l) => quantRegex.test(l)).length;
   const quantPoints = Math.min(16, Math.round((quantCount / 3) * 16));
 
@@ -87,10 +149,15 @@ export function evaluateResume(rawText: string): EvalResult {
 
   const sizeOk = wordCount >= 200 && wordCount <= 900;
 
-  const aboutMatch = text.match(/(sobre mim|objetivo|perfil profissional|resumo profissional)[:\s]*/i);
+  const aboutMatch = text.match(
+    /(sobre mim|objetivo|perfil profissional|resumo profissional)[:\s]*/i,
+  );
   let aboutOk = true;
   if (aboutMatch && aboutMatch.index !== undefined) {
-    const slice = text.slice(aboutMatch.index + aboutMatch[0].length, aboutMatch.index + aboutMatch[0].length + 500);
+    const slice = text.slice(
+      aboutMatch.index + aboutMatch[0].length,
+      aboutMatch.index + aboutMatch[0].length + 500,
+    );
     const words = slice.trim().split(/\s+/).filter(Boolean).length;
     aboutOk = words <= 70;
   }
@@ -109,9 +176,10 @@ export function evaluateResume(rawText: string): EvalResult {
       label: "E-mail e telefone visíveis",
       weight: 8,
       points: hasEmail && hasPhone ? 8 : 0,
-      detail: hasEmail && hasPhone
-        ? "E-mail e telefone identificados no texto."
-        : "Não identificamos e-mail e telefone juntos. Inclua os dois no topo do currículo.",
+      detail:
+        hasEmail && hasPhone
+          ? "E-mail e telefone identificados no texto."
+          : "Não identificamos e-mail e telefone juntos. Inclua os dois no topo do currículo.",
     },
     {
       key: "linkedin",
@@ -127,39 +195,47 @@ export function evaluateResume(rawText: string): EvalResult {
       label: "Seção “Experiência”",
       weight: 6,
       points: expSection ? 6 : 0,
-      detail: expSection ? "Seção de experiência identificada." : "Inclua uma seção com o título “Experiência Profissional”.",
+      detail: expSection
+        ? "Seção de experiência identificada."
+        : "Inclua uma seção com o título “Experiência Profissional”.",
     },
     {
       key: "sec-edu",
       label: "Seção “Formação”",
       weight: 6,
       points: eduSection ? 6 : 0,
-      detail: eduSection ? "Seção de formação identificada." : "Inclua uma seção com o título “Formação”.",
+      detail: eduSection
+        ? "Seção de formação identificada."
+        : "Inclua uma seção com o título “Formação”.",
     },
     {
       key: "sec-skills",
       label: "Seção “Habilidades”",
       weight: 6,
       points: skillsSection ? 6 : 0,
-      detail: skillsSection ? "Seção de habilidades identificada." : "Inclua uma seção com o título “Habilidades” ou “Competências”.",
+      detail: skillsSection
+        ? "Seção de habilidades identificada."
+        : "Inclua uma seção com o título “Habilidades” ou “Competências”.",
     },
     {
       key: "verbos",
       label: "Verbos de ação nos destaques",
       weight: 16,
       points: verbPoints,
-      detail: verbPoints >= 14
-        ? "A maioria das linhas começa com verbo de ação forte."
-        : `Comece cada linha de experiência com um verbo de ação (Liderei, Criei, Reduzi...). Hoje ${Math.round(verbRatio * 100)}% seguem esse padrão.`,
+      detail:
+        verbPoints >= 14
+          ? "A maioria das linhas começa com verbo de ação forte."
+          : `Comece cada linha de experiência com um verbo de ação (Liderei, Criei, Reduzi...). Hoje ${Math.round(verbRatio * 100)}% seguem esse padrão.`,
     },
     {
       key: "quant",
       label: "Resultados quantificados",
       weight: 16,
       points: quantPoints,
-      detail: quantPoints >= 14
-        ? "Bom volume de resultados com número, % ou R$."
-        : `Adicione números, % ou R$ nos resultados. Encontramos ${quantCount} linha(s) quantificada(s) — a meta é 3 ou mais.`,
+      detail:
+        quantPoints >= 14
+          ? "Bom volume de resultados com número, % ou R$."
+          : `Adicione números, % ou R$ nos resultados. Encontramos ${quantCount} linha(s) quantificada(s) — a meta é 3 ou mais.`,
     },
     {
       key: "tamanho",
@@ -195,9 +271,10 @@ export function evaluateResume(rawText: string): EvalResult {
       label: "Sem clichês em excesso",
       weight: 8,
       points: buzzPoints,
-      detail: buzzPoints >= 8
-        ? "Baixa densidade de termos genéricos."
-        : `Reduza termos genéricos (“proativo”, “dinâmico”...). Encontramos ${buzzCount} ocorrência(s) — troque por resultados concretos.`,
+      detail:
+        buzzPoints >= 8
+          ? "Baixa densidade de termos genéricos."
+          : `Reduza termos genéricos (“proativo”, “dinâmico”...). Encontramos ${buzzCount} ocorrência(s) — troque por resultados concretos.`,
     },
   ];
 
@@ -255,19 +332,22 @@ function canonicalTitle(title: string): string {
 
 function normalizeBody(title: string, body: string[]): string {
   const isExperience = /EXPERI[ÊE]NCIA/.test(title);
-  return body
-    .map((l) => (isExperience ? `- ${stripBullet(l)}` : l))
-    .join("\n");
+  return body.map((l) => (isExperience ? `- ${stripBullet(l)}` : l)).join("\n");
 }
 
 export function generateAtsResume(rawText: string): AtsResume {
   const clean = rawText.replace(ICON_GLYPH_REPLACE, "").trim();
-  const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = clean
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 
   // A resume's first line is conventionally the candidate's name — never
   // treat it (or the contact block right under it) as a section header,
   // even if it happens to look like title case ("João Silva").
-  const contactIdx = lines.findIndex((l, i) => i < 6 && (EMAIL_RE.test(l) || PHONE_RE.test(l) || LINKEDIN_RE.test(l)));
+  const contactIdx = lines.findIndex(
+    (l, i) => i < 6 && (EMAIL_RE.test(l) || PHONE_RE.test(l) || LINKEDIN_RE.test(l)),
+  );
   const scanStart = contactIdx >= 0 ? contactIdx + 1 : 1;
   const headerIdx: number[] = [];
   for (let i = scanStart; i < lines.length; i++) if (isHeaderLine(lines[i])) headerIdx.push(i);
@@ -298,12 +378,9 @@ export function generateAtsResume(rawText: string): AtsResume {
       .map((s) => ({ title: s.title, body: normalizeBody(s.title, s.body) })),
   ];
 
-  const text = [
-    name,
-    contactLine,
-    "",
-    ...sections.flatMap((s) => [s.title, s.body, ""]),
-  ].join("\n").trim();
+  const text = [name, contactLine, "", ...sections.flatMap((s) => [s.title, s.body, ""])]
+    .join("\n")
+    .trim();
 
   return { name, contactLine, sections, text };
 }
@@ -339,17 +416,26 @@ export function matchAgainstJob(resumeText: string, job: JobRequirements): Candi
   const missingKeywords = keywords.filter((k) => !matchedKeywords.includes(k));
 
   const missingRequirements: string[] = [];
-  if (job.requireExperience && !EXP_HEADER_RE.test(resumeText)) missingRequirements.push("Seção Experiência");
-  if (job.requireEducation && !EDU_HEADER_RE.test(resumeText)) missingRequirements.push("Seção Formação");
-  if (job.requireSkills && !SKILLS_HEADER_RE.test(resumeText)) missingRequirements.push("Seção Habilidades");
+  if (job.requireExperience && !EXP_HEADER_RE.test(resumeText))
+    missingRequirements.push("Seção Experiência");
+  if (job.requireEducation && !EDU_HEADER_RE.test(resumeText))
+    missingRequirements.push("Seção Formação");
+  if (job.requireSkills && !SKILLS_HEADER_RE.test(resumeText))
+    missingRequirements.push("Seção Habilidades");
 
-  const requirementCount = [job.requireExperience, job.requireEducation, job.requireSkills].filter(Boolean).length;
+  const requirementCount = [job.requireExperience, job.requireEducation, job.requireSkills].filter(
+    Boolean,
+  ).length;
   const requirementsMet = requirementCount - missingRequirements.length;
   const keywordPct = keywords.length > 0 ? matchedKeywords.length / keywords.length : 1;
   const requirementPct = requirementCount > 0 ? requirementsMet / requirementCount : 1;
   const matchPercent = Math.round(keywordPct * 70 + requirementPct * 30);
 
-  const lines = resumeText.trim().split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = resumeText
+    .trim()
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   const name = lines[0] || "Candidato";
 
   return {
