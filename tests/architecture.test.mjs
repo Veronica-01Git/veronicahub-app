@@ -606,3 +606,45 @@ test('o crédito do fotógrafo aparece no rodapé da capa e na legenda', async (
   // link para "#", que não leva a lugar nenhum e ainda abre uma aba.
   assert.match(page, /coverPhotoUrl \? \(/);
 });
+
+test('a etapa em andamento do selo sai da data, não de marcação à mão', async () => {
+  const { resolveTimelineState, parseSealDate, sealRecords } = await import('../src/lib/seals.ts');
+  const page = readFileSync(new URL('../src/routes/selo/$serial.tsx', import.meta.url), 'utf8');
+
+  // Em 16/09 o selo VH-AUT-WA-2026-000001 ainda mostrava "Em andamento" na
+  // etapa de 13 SET — três dias vencida, numa página pública que o cliente
+  // abre por QR Code. Marcador escrito à mão envelhece sozinho e ninguém é
+  // avisado: a página segue no ar, correta em tudo menos no que afirma estar
+  // acontecendo agora.
+  const hoje = '2026-09-16';
+  const passado = { date: '13 SET 2026', state: 'current' };
+  const agora = { date: '16 SET 2026', state: 'next' };
+  const futuro = { date: '17 SET 2026', state: 'current' };
+  assert.equal(resolveTimelineState(passado, hoje), 'done');
+  assert.equal(resolveTimelineState(agora, hoje), 'current');
+  assert.equal(resolveTimelineState(futuro, hoje), 'next');
+
+  // A data manda mesmo quando o registro diz o contrário — é o ponto todo.
+  assert.notEqual(resolveTimelineState(passado, hoje), passado.state);
+
+  // Etapa sem data legível (as demonstrações usam "DEMO") mantém o declarado.
+  assert.equal(resolveTimelineState({ date: 'DEMO', state: 'current' }, hoje), 'current');
+  assert.equal(parseSealDate('DEMO'), null);
+  assert.equal(parseSealDate('13 SET 2026'), '2026-09-13');
+
+  // A página precisa usar a derivação; se voltar a ler event.state direto, o
+  // marcador volta a envelhecer sem ninguém perceber.
+  assert.match(page, /resolveTimelineState\(event\)/);
+  // Os cartões têm que percorrer a lista derivada. Se voltarem a percorrer
+  // record.timeline, leem o estado escrito à mão e o marcador envelhece.
+  assert.match(page, /\{timeline\.map\(\(event, index\)/);
+  assert.match(page, /activeStepIndex = Math\.max\(\s*0,\s*timeline\.findIndex/);
+
+  // Todo selo real tem data legível em todas as etapas; sem isso a derivação
+  // silenciosamente não se aplica e o marcador volta a ser manual.
+  for (const seal of sealRecords.filter((item) => !item.isDemonstration)) {
+    for (const event of seal.timeline) {
+      assert.ok(parseSealDate(event.date), `${seal.serial}: data ilegível "${event.date}"`);
+    }
+  }
+});
