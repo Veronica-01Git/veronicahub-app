@@ -10,7 +10,7 @@
 // é secret do Actions hoje, e transformá-la nisso daria ao workflow acesso de
 // escrita ao banco inteiro para cadastrar imagem. Este endpoint faz uma coisa
 // só, com teto por editoria e validação de tipo.
-import { and, asc, eq, isNull, like, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, like, not, or, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { articles, mediaImages, users } from "./schema";
 import { BEAT_VALUES, isBeat } from "./beats";
@@ -188,6 +188,15 @@ export async function handleArtCoversCron(request: Request): Promise<Response> {
   if (denied) return denied;
 
   const db = getDb();
+  // `coverPhotoId` nulo marca capa sem fotografia de banco — mas também fica
+  // nulo quando alguém escolheu a capa à mão pelo Admin, e essas apontam para
+  // /api/media-images/. Medido em 16/09: três matérias entraram na troca por
+  // isso, receberam arquivo que ninguém usa e tiveram o registro recusado
+  // pelo set-cover-image ("capa é manual") — a proteção funcionou, mas só
+  // depois de o arquivo já ter sido commitado.
+  //
+  // O caminho aqui espelha mediaLibraryImageId, em article-cron.ts: se um dos
+  // dois mudar, capa manual volta a ser sobrescrita.
   const pendentes = await db
     .select({
       slug: articles.slug,
@@ -196,7 +205,16 @@ export async function handleArtCoversCron(request: Request): Promise<Response> {
       excerpt: articles.excerpt,
     })
     .from(articles)
-    .where(and(eq(articles.status, "published"), isNull(articles.coverPhotoId)))
+    .where(
+      and(
+        eq(articles.status, "published"),
+        isNull(articles.coverPhotoId),
+        or(
+          isNull(articles.coverImageUrl),
+          not(like(articles.coverImageUrl, "%/api/media-images/%")),
+        ),
+      ),
+    )
     .orderBy(asc(articles.publishedAt));
 
   const banco = await db

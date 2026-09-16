@@ -545,3 +545,25 @@ test('o escopo editorial é Brasil e China, nos quatro elos', () => {
   // Nenhum rótulo público pode continuar anunciando cobertura dos EUA.
   assert.ok(!/EUA/.test(beats), 'os rótulos das editorias não podem citar os EUA');
 });
+
+test('capa escolhida à mão no Admin não entra na troca automática', () => {
+  const bank = readFileSync(new URL('../src/lib/cover-bank-cron.ts', import.meta.url), 'utf8');
+  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+
+  // coverPhotoId nulo marca capa sem fotografia de banco — mas também fica
+  // nulo quando alguém escolheu a capa pelo Admin, e essas apontam para
+  // /api/media-images/. Em 16/09 três matérias entraram na troca por isso:
+  // receberam arquivo que ninguém usa, e o registro foi recusado só depois de
+  // o arquivo já estar commitado.
+  assert.match(bank, /isNull\(articles\.coverPhotoId\)/);
+  assert.match(
+    bank,
+    /not\(like\(articles\.coverImageUrl, "%\/api\/media-images\/%"\)\)/,
+    'a consulta precisa excluir capa manual',
+  );
+  assert.match(bank, /isNull\(articles\.coverImageUrl\)/, 'matéria sem capa nenhuma continua entrando');
+
+  // O caminho é o mesmo que article-cron reconhece; se um mudar sem o outro,
+  // capa manual volta a ser sobrescrita.
+  assert.match(cron, /url\.pathname\.startsWith\("\/api\/media-images\/"\)/);
+});

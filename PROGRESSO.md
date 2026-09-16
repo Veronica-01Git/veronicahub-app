@@ -1335,3 +1335,26 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - Verificação: 25/25 testes (1 novo, travando os quatro elos), typecheck e
   build Cloudflare. **A eficácia real só se mede publicando** — daqui não dá
   para chamar o GDELT nem os feeds.
+
+## Capa manual não entra mais na troca automática (2026-09-16)
+
+- **O que aconteceu**: a troca das capas de arte usou `coverPhotoId IS NULL`
+  como sinal de "sem fotografia". Esse campo também fica nulo quando alguém
+  escolheu a capa à mão pelo Admin — e essas apontam para
+  `/api/media-images/`, não para arquivo estático.
+- **Três matérias entraram por engano** (Piauí/Unesco, EUA/painéis bifaciais,
+  Itajaí/chuva). O `set-cover-image` recusou o registro com "capa é manual" —
+  a proteção existia e funcionou —, mas só depois de o arquivo já ter sido
+  baixado e commitado. Sobraram três capas órfãs que nenhuma matéria usa e
+  três cards do Instagram com fundo diferente da capa que a matéria mostra.
+- **Nada quebrou e nada aparecia para o leitor**, que é justamente o que
+  torna esse tipo de sujeira difícil de notar: banco e repositório continuam
+  consistentes, e o site serve a capa manual correta.
+- **Consertado nos dois lados**: a consulta de `/api/cron/art-covers` passa a
+  excluir capa que aponte para `/api/media-images/`, e os seis arquivos
+  órfãos foram removidos. Matéria sem capa nenhuma continua entrando.
+- O caminho `/api/media-images/` aparece em dois lugares — aqui e em
+  `mediaLibraryImageId`, de `article-cron.ts`. Um teste trava os dois: se um
+  mudar sem o outro, capa manual volta a ser sobrescrita.
+- Contagem depois da troca: 41 matérias publicadas, 38 com fotografia do
+  banco, 38 fotos distintas (nenhuma repetida), 3 com capa manual preservada.
