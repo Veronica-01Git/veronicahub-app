@@ -1,8 +1,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { verifyWebhookSignature, janela24hAberta } from "../src/lib/whatsapp-cloud.ts";
-import { precisaDeHumano, decidirResposta } from "../src/lib/whatsapp-agent.ts";
+import { registerHooks } from "node:module";
+import { existsSync } from "node:fs";
+
+// src/lib importa sem extensão ("./whatsapp-rules"), que é a convenção do
+// repo e o que o bundler resolve. O executor de testes do Node é estrito,
+// então completa o ".ts" aqui — mesmo recurso que o architecture.test.mjs usa.
+registerHooks({
+  resolve(specifier, context, next) {
+    if (specifier.startsWith("./") && !/\.[a-z]+$/.test(specifier) && context.parentURL) {
+      const alvo = new URL(specifier + ".ts", context.parentURL);
+      if (existsSync(alvo)) return { url: alvo.href, shortCircuit: true };
+    }
+    return next(specifier, context);
+  },
+});
+// Import dinâmico de propósito: `import` estático é resolvido antes do corpo
+// do módulo rodar, então o hook acima ainda não valeria.
+const { verifyWebhookSignature, janela24hAberta } = await import("../src/lib/whatsapp-cloud.ts");
+const { precisaDeHumano, decidirRespostaOffline, respostaSegura, valoresCitados } =
+  await import("../src/lib/whatsapp-agent.ts");
+const { podeCotar, REGRAS_EXPRESS_ENTULHO } = await import("../src/lib/whatsapp-rules.ts");
 
 const SEGREDO = "segredo-de-teste-do-app-meta";
 
@@ -82,10 +101,47 @@ test("assuntos de alçada comercial são marcados para humano", () => {
   assert.equal(precisaDeHumano("vocês atendem no Centro?"), false);
 });
 
-test("sem regras cadastradas o agente não decide sozinho e não cita preço", () => {
+test("sem núcleo conversacional o agente escala e não cita preço", () => {
   for (const primeiraMensagem of [true, false]) {
-    const d = decidirResposta({ texto: "quanto custa a caçamba?", primeiraMensagem });
+    const d = decidirRespostaOffline({ texto: "quanto custa a caçamba?", primeiraMensagem });
     assert.equal(d.escalar, true);
     assert.ok(!/R\$|\d+\s*reais/i.test(d.texto), "a resposta não pode conter valor");
   }
+});
+
+test("a tabela de preços ainda não foi cadastrada", () => {
+  // Quando este teste falhar, as regras entraram — é o sinal de que o agente
+  // passou a poder cotar. Atualize os testes de guarda junto.
+  assert.equal(podeCotar(REGRAS_EXPRESS_ENTULHO), false);
+});
+
+test("valores em reais são extraídos nos formatos que o modelo usa", () => {
+  assert.deepEqual(valoresCitados("sai por R$ 450"), [450]);
+  assert.deepEqual(valoresCitados("R$ 1.250,00 no pacote"), [1250]);
+  assert.deepEqual(valoresCitados("custa 380 reais"), [380]);
+  assert.deepEqual(valoresCitados("fica em R$450,50"), [450.5]);
+  assert.deepEqual(valoresCitados("são 7 dias de prazo"), [], "prazo não é dinheiro");
+  assert.deepEqual(valoresCitados("a caçamba de 5 m³"), [], "volume não é dinheiro");
+});
+
+test("sem tabela cadastrada, QUALQUER valor reprova a resposta do modelo", () => {
+  assert.equal(respostaSegura("Vou confirmar com a equipe e te retorno."), true);
+  assert.equal(respostaSegura("A caçamba sai por R$ 450."), false);
+  assert.equal(respostaSegura("Fica em 380 reais."), false);
+});
+
+test("com tabela cadastrada, só passam os valores que estão nela", () => {
+  const regras = {
+    ...REGRAS_EXPRESS_ENTULHO,
+    precosDefinidos: true,
+    precos: [
+      { id: "tambor", rotulo: "Tambor", capacidadeM3: 5, diasIncluidos: 7, valorReais: 450 },
+    ],
+    diariaExtraReais: 45,
+  };
+  assert.equal(respostaSegura("O tambor de 5 m³ sai por R$ 450 com 7 dias.", regras), true);
+  assert.equal(respostaSegura("A diária extra é R$ 45.", regras), true);
+  // O erro que a guarda existe para impedir: desconto inventado sob pressão.
+  assert.equal(respostaSegura("Consigo fazer por R$ 380 para você.", regras), false);
+  assert.equal(respostaSegura("Sai por R$ 449,99.", regras), false);
 });

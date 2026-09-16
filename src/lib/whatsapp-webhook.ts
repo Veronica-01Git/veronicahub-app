@@ -190,7 +190,7 @@ async function processarMensagem(
     and(eq(waMessages.conversationId, conversa.id), eq(waMessages.direction, "entrada")),
   );
 
-  const decisao = decidirResposta({ texto, primeiraMensagem: anteriores <= 1 });
+  const decisao = await decidirResposta({ texto, primeiraMensagem: anteriores <= 1 });
   const envio = await sendText(waId, decisao.texto);
 
   if (envio.ok) {
