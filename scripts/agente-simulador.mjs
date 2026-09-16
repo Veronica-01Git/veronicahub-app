@@ -7,13 +7,25 @@
 //   node scripts/agente-simulador.mjs            conversa livre
 //   node scripts/agente-simulador.mjs --roteiro  roteiro pronto, sem digitar
 //
-// Precisa de GROQ_API_KEY no ambiente. Sem ela, o agente cai no caminho
-// offline — que também é um comportamento real e vale ver.
+// Precisa de GROQ_API_KEY. O jeito mais simples é pôr a linha
+//
+//   GROQ_API_KEY=sua-chave
+//
+// num arquivo `.env.local` na raiz do projeto — o script lê sozinho, em
+// qualquer sistema. Sem a chave, o agente cai no caminho offline, que também
+// é um comportamento real e vale ver.
 
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { registerHooks } from "node:module";
 import { existsSync } from "node:fs";
+import { config as carregarEnv } from "dotenv";
+
+// Lê .env.local antes de tudo. Evita a pegadinha de sintaxe de shell —
+// `export` no Linux, `$env:` no PowerShell, `set` no cmd — que faz a chave
+// parecer ausente quando na verdade só foi definida do jeito errado.
+carregarEnv({ path: ".env.local", quiet: true });
+carregarEnv({ path: ".env", quiet: true });
 
 registerHooks({
   resolve(specifier, context, next) {
@@ -74,7 +86,7 @@ const temChave = Boolean(process.env.GROQ_API_KEY);
 console.log(`${C.fraco}┌─ Express Entulho · simulador do agente`);
 console.log(`│  Nenhum WhatsApp é acessado. Nada é enviado a lugar nenhum.`);
 console.log(
-  `│  GROQ_API_KEY: ${temChave ? "presente" : "AUSENTE — o agente vai cair no caminho offline"}`,
+  `│  GROQ_API_KEY: ${temChave ? "presente" : "AUSENTE — ponha GROQ_API_KEY=... no .env.local; por ora, caminho offline"}`,
 );
 console.log(
   `└─ ${REGRAS_EXPRESS_ENTULHO.precos.length} preços cadastrados, ${REGRAS_EXPRESS_ENTULHO.cidades.length} cidades${C.off}\n`,

@@ -12,12 +12,25 @@ Como ver o agente funcionando, do jeito mais seguro para o mais real.
 
 O jeito mais rápido de ver o agente cotando. Não acessa WhatsApp nenhum.
 
-```bash
-export GROQ_API_KEY=...            # a mesma chave que o resto do projeto usa
-node scripts/agente-simulador.mjs             # conversa livre
-node scripts/agente-simulador.mjs --roteiro   # roteiro pronto
-node scripts/agente-simulador.mjs --regras    # o que o modelo recebe
+Crie um arquivo **`.env.local`** na raiz do projeto com uma linha:
+
 ```
+GROQ_API_KEY=sua-chave-aqui
+```
+
+O script lê sozinho, em Windows, Mac ou Linux. `.env.local` já está no
+`.gitignore` — a chave não vai para o repositório.
+
+```
+node scripts/agente-simulador.mjs             conversa livre
+node scripts/agente-simulador.mjs --roteiro   roteiro pronto
+node scripts/agente-simulador.mjs --regras    o que o modelo recebe
+```
+
+> [!TIP]
+> Não use `export GROQ_API_KEY=...` — isso é sintaxe de Linux. No PowerShell
+> seria `$env:GROQ_API_KEY="..."` e no cmd `set GROQ_API_KEY=...`, e cada um
+> vale só naquela janela. O `.env.local` evita a confusão inteira.
 
 Cada resposta mostra se a conversa foi **escalada para humano** e por quê.
 Sem `GROQ_API_KEY` o agente cai no caminho offline — que também é real, e
