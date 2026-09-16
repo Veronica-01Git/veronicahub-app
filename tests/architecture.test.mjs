@@ -156,29 +156,20 @@ test('o Worker de cron dispara um workflow que existe de verdade', () => {
   for (const cron of crons) assert.equal(cron.trim().split(/\s+/).length, 5, cron);
 });
 
-test('o diagnóstico do radar não desclassifica um pulo editorial', () => {
-  const cron = readFileSync(new URL('../src/lib/article-cron.ts', import.meta.url), 'utf8');
+test('o diagnóstico do radar não desclassifica um pulo editorial', async () => {
   const server = readFileSync(new URL('../src/lib/articles-server.ts', import.meta.url), 'utf8');
+  const { isEditorialSkip } = await import('../src/lib/editorial-skip.ts');
 
-  // isEditorialSkip decide, por PREFIXO, se a rodada foi um pulo editorial
-  // (HTTP 200, workflow verde) ou uma falha real (502, workflow vermelho).
-  const block = cron.match(/function isEditorialSkip[\s\S]*?\[([\s\S]*?)\]\.some/);
-  assert.ok(block, 'isEditorialSkip precisa listar os prefixos');
-  const prefixes = [...block[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(match => match[1]);
-  assert.ok(
-    prefixes.includes('sem fato verificável no momento'),
-    'a desistência do modelo precisa continuar na lista de pulos editoriais',
-  );
+  // isEditorialSkip decide se a rodada foi um pulo editorial (HTTP 200,
+  // workflow verde) ou uma falha real (502, workflow vermelho). articles-server
+  // carimba a contagem do radar na mesma mensagem, como diagnóstico — o carimbo
+  // não pode mudar a classificação, em nenhuma das duas pontas da string.
+  assert.ok(isEditorialSkip('sem fato verificável no momento (radar: 0 pautas)'));
+  assert.ok(isEditorialSkip('(radar: 2 pautas) sem fato verificável no momento'));
 
-  // articles-server carimba a contagem do radar nessa mesma mensagem. Se o
-  // carimbo for para a FRENTE, o prefixo deixa de casar e toda hora sem fato
-  // passa a pintar o workflow de vermelho.
   const message = server.match(/error: `([^`]*radar:[^`]*)`/);
   assert.ok(message, 'a mensagem editorial precisa carregar o diagnóstico do radar');
-  assert.ok(
-    message[1].startsWith('${parsed.error}'),
-    `o diagnóstico tem que vir depois da mensagem do modelo, e veio: ${message[1]}`,
-  );
+  assert.match(message[1], /radar: \$\{signals\.length\}/);
 });
 
 test('capa que a biblioteca já serve não passa por download', () => {
@@ -418,4 +409,34 @@ test('o crédito do fotógrafo atravessa do banco até a matéria', () => {
   assert.match(fetchScript, /COVER_LIBRARY_CREDIT/);
   assert.match(fetchScript, /photoCredit/, 'o script precisa devolver o crédito ao workflow');
   assert.match(workflow, /PHOTO_CREDIT: \$\{\{ steps\.fetch_photo\.outputs\.photoCredit \}\}/);
+});
+
+test('recusa editorial não vira rodada vermelha, mesmo quando o modelo troca a frase', async () => {
+  const { isEditorialSkip } = await import('../src/lib/editorial-skip.ts');
+
+  // As duas primeiras são as strings reais das rodadas de 15/09 que ficaram
+  // vermelhas sem nada estar quebrado: o modelo estava recusando publicar por
+  // falta de fato verificável, que é o piso editorial funcionando, mas o
+  // casamento por prefixo exato não alcançou nem o erro de digitação dele nem
+  // a resposta embrulhada no 400 do provedor.
+  assert.ok(isEditorialSkip('sem verifável no momento (radar: 1 pauta)'));
+  assert.ok(isEditorialSkip(
+    '400 {"error":{"message":"Tool call validation failed","code":"tool_use_failed",' +
+    '"failed_generation":"{\\"name\\": \\"JSON\\", \\"arguments\\": {\\"error\\":\\"sem fato verificável no momento\\"}}"}}',
+  ));
+  assert.ok(isEditorialSkip('sem fato verificável no momento'));
+  assert.ok(isEditorialSkip('sem fato verificavel no momento (radar: 3 pautas)'));
+
+  // Continuam classificadas como antes.
+  assert.ok(isEditorialSkip('A data do fato está fora da janela editorial de 72h.'));
+  assert.ok(isEditorialSkip('Já existe matéria publicada nessa janela'));
+  assert.ok(isEditorialSkip('429 rate limit'));
+
+  // Falha de infraestrutura tem que continuar vermelha: um tool_use_failed
+  // SEM a recusa dentro é problema de verdade, e virar "pulei" esconderia.
+  assert.ok(!isEditorialSkip(
+    '400 {"error":{"message":"Tool call validation failed","code":"tool_use_failed"}}',
+  ));
+  assert.ok(!isEditorialSkip('IA não retornou um rascunho válido. Tente de novo.'));
+  assert.ok(!isEditorialSkip('500 Internal Server Error'));
 });

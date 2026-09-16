@@ -3,6 +3,7 @@ import { BEAT_VALUES, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
 import { WIRE_NAME } from "./ecosystem";
+import { isEditorialSkip } from "./editorial-skip";
 import { articles, mediaImages, users } from "./schema";
 
 const MAX_LIBRARY_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -223,21 +224,6 @@ function currentBeat(): Beat {
   const hour = new Date().getUTCHours();
   const index = Math.floor(hour / CYCLE_HOURS) % BEAT_VALUES.length;
   return BEAT_VALUES[index];
-}
-
-function isEditorialSkip(error: string): boolean {
-  return [
-    "sem fato verificável no momento",
-    "429",
-    "Radar externo sem pauta recente verificável",
-    "A matéria não ficou ancorada a uma pauta",
-    "A data do fato está fora da janela editorial de 72h",
-    "Já existe matéria publicada nessa janela",
-    "Manchete parecida demais com uma publicação recente",
-    "Só ",
-    "Corpo com ",
-    "As fontes precisam vir de pelo menos",
-  ].some((prefix) => error.startsWith(prefix));
 }
 
 // Chamado direto do src/server.ts (interceptado antes do handler do

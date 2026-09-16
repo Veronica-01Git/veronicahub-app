@@ -1199,3 +1199,55 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   403 no CONNECT para `api.pexels.com` e `images.pexels.com`, e a
   `PEXELS_API_KEY` não existe na sessão. A primeira rodada de verdade é no
   Actions, e é ela que vai dizer se os termos rendem foto boa.
+
+## Recusa editorial deixava a rodada vermelha (2026-09-16)
+
+- **Achado ao investigar "o main não publica desde ontem"**: o cron NÃO parou.
+  Está disparando de hora em hora, cinco segundos depois da hora cheia — o
+  token do Worker está válido e o Cron Trigger do Cloudflare funciona. Foram
+  quatro rodadas seguidas sem publicar, por quatro motivos diferentes:
+  21:00 verde sem publicação; 22:00 (economia) 400 do provedor de IA; 23:00
+  (geopolítica) recusa do modelo; 00:00 (IA) data do fato fora da janela de
+  72h. Duas são o piso editorial funcionando.
+- **Defeito real, este sim**: a recusa do modelo é a única mensagem da lista de
+  `isEditorialSkip` que o próprio modelo escreve, e era casada por prefixo
+  exato. Nas duas rodadas vermelhas ele estava dizendo exatamente o que o
+  prompt manda dizer quando não há fato, mas de formas que o prefixo não
+  alcançou:
+  - `"sem verifável no momento (radar: 1 pauta)"` — erro de digitação dele.
+  - `400 ... tool_use_failed`, com `failed_generation` contendo a frase certa
+    embrulhada numa chamada de ferramenta inválida.
+  Recusa editorial legítima virando 502 e rodada vermelha é o que polui o
+  histórico e esconde falha de verdade no meio.
+- **Corrigido**: a comparação da recusa do modelo ficou tolerante — acento e
+  caixa normalizados, miolo da palavra frouxo (`verif\w*vel`) e busca em
+  qualquer posição, que é o que alcança a frase dentro do corpo de erro do
+  provedor. As outras mensagens são escritas pelo servidor, com texto
+  determinístico, e continuam casando por prefixo exato. Um `tool_use_failed`
+  SEM a frase dentro continua vermelho, que é o correto: aí é infraestrutura,
+  não editorial.
+- `isEditorialSkip` saiu de `article-cron.ts` para `src/lib/editorial-skip.ts`,
+  módulo puro, para poder ser testado com as strings reais das duas rodadas —
+  `article-cron` importa banco e não sobe num teste de Node. O teste antigo
+  conferia o formato da lista de prefixos; passou a conferir comportamento.
+- **NÃO foi mexido no piso editorial.** Recusar publicar o que não se
+  confirmou em duas fontes continua igual. O que mudou é só como essa recusa
+  aparece no histórico do Actions.
+
+## Medição que contraria o aviso do deploy a cada push (2026-09-16)
+
+- **Dois pushes no branch `claude/wire-tv-instagram-images-whtsv7` NÃO geraram
+  deploy.** O Worker de produção `veronicahub-app` tem
+  `modified_on = 2026-09-15T20:03:28Z`, que é o deploy do commit `30cbbb1`
+  (capa automática das 20:02 no `main`). Os pushes foram 23:50 e 00:03 e não
+  tocaram o Worker.
+- Ou seja: hoje a produção segue o `main`, e não "qualquer branch". Não dá para
+  saber daqui se a configuração do Cloudflare mudou desde o susto documentado
+  na seção "Onde estamos" — o que se sabe é a medição acima.
+- **Consequência prática**: nada do trabalho do branch está no ar até mesclar.
+  As 18 capas repetidas continuam sendo servidas, o endpoint do banco não
+  existe em produção, e o workflow de abastecimento nem aparece no Actions
+  (o GitHub só lista `workflow_dispatch` de workflow que está no branch padrão).
+- **Regra que continua valendo por precaução**: `git fetch origin main &&
+  git merge origin/main` imediatamente antes de qualquer push. Uma medição não
+  derruba o risco de uma configuração voltar a mudar.
