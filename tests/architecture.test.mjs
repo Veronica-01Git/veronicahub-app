@@ -467,3 +467,35 @@ test('o banco não enche uma editoria com a mesma cena', async () => {
   assert.deepEqual(interleaveByTerm([['a'], [], ['b', 'c']]), ['a', 'b', 'c']);
   assert.deepEqual(interleaveByTerm([]), []);
 });
+
+test('a troca de capas commita antes de registrar a procedência', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/swap-art-covers.yml', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../scripts/swap-art-covers.mjs', import.meta.url), 'utf8');
+  const server = readFileSync(new URL('../src/server.ts', import.meta.url), 'utf8');
+
+  // A ordem é o que importa: gravar coverPhotoId antes de a capa nova estar
+  // publicada apontaria a procedência para uma imagem que ainda é arte — e
+  // nada falharia, porque as duas coisas existem.
+  const commit = workflow.indexOf('Commita capas e cards');
+  const registro = workflow.indexOf('Registra a procedência');
+  assert.ok(commit !== -1 && registro !== -1, 'os dois passos precisam existir');
+  assert.ok(commit < registro, 'o registro tem que vir depois do commit');
+  assert.match(workflow, /Espera o deploy publicar as capas/);
+
+  // Ao contrário do abastecimento, este workflow commita — logo, dispara
+  // deploy. Um commit só, porque cada commit no main troca o que a produção
+  // serve.
+  assert.match(workflow, /permissions:\s*\n\s*contents: write/);
+  assert.equal((workflow.match(/git commit -m/g) ?? []).length, 1, 'um commit só para tudo');
+
+  // O dry run é o padrão: trocar 26 capas no ar não pode ser o clique fácil.
+  assert.match(workflow, /dry_run:[\s\S]*?default: true/);
+
+  assert.match(script, /--registrar/);
+  assert.match(server, /"\/api\/cron\/art-covers"/);
+
+  // O card do Instagram usa a capa como fundo: trocar uma sem a outra deixa a
+  // peça de divulgação com a arte antiga.
+  assert.match(script, /drawWireInstagramCard/);
+  assert.match(workflow, /public\/images\/instagram\//);
+});
