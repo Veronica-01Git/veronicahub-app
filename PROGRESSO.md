@@ -1476,3 +1476,30 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   a ponta, insuficiente para atender cliente real.
 - Continua faltando o insumo que nenhum código substitui: tabela de preços,
   área atendida, prazo padrão, política de prorrogação e a alçada da IA.
+
+## Linha do tempo do selo deixa de envelhecer sozinha (2026-09-16)
+
+- **Sintoma**: o selo `VH-AUT-WA-2026-000001` (Express Entulho) mostrava
+  "Em andamento" na etapa de **13 SET** — três dias vencida. Página pública de
+  procedência, que o cliente abre por QR Code.
+- **Por que é pior que um dado errado qualquer**: a página continua no ar,
+  correta em cliente, escopo, versão e suporte — errada só no que afirma estar
+  acontecendo agora. Marcador escrito à mão envelhece sozinho e ninguém é
+  avisado.
+- **Consertado na causa**: o estado de cada etapa passa a ser derivado da data
+  (`resolveTimelineState`), não marcado no registro. Data no passado →
+  "Concluído"; hoje → "Em andamento"; futuro → "Próxima etapa".
+- **Fuso de São Paulo, não UTC**: às 21h de Brasília já é o dia seguinte em
+  UTC, e a etapa do dia viraria "Concluído" antes de o dia acabar para quem lê.
+- Etapa sem data legível mantém o estado declarado — as quatro demonstrações
+  usam `date: "DEMO"` e não têm o que derivar.
+- A proposta em `/clientes/express-entulho/proposta` repete o cronograma, mas
+  **sem marcador de estado**: é lista estática e não envelhece. Não foi tocada.
+- Um teste trava a derivação, o fallback das demonstrações, e que a página
+  percorra a lista derivada — se voltar a percorrer `record.timeline`, lê o
+  estado escrito à mão e o marcador envelhece de novo.
+- Também travado: **todo selo real precisa ter data legível em todas as
+  etapas**. Sem isso a derivação silenciosamente não se aplica.
+- **NÃO automatizado, de propósito**: o `status` do selo ("Em desenvolvimento"
+  → "Ativo"/"Em suporte") continua manual. Entrega acontecer é decisão de
+  negócio, não consequência de o calendário virar.
