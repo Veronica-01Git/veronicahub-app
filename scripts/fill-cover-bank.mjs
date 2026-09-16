@@ -25,7 +25,7 @@
 // Variáveis opcionais: SITE_URL (padrão https://veronicahub.com) e
 // BANK_TARGET_PER_BEAT (padrão 8).
 import { BEAT_VALUES } from "../src/lib/beats.ts";
-import { MAX_BANK_PER_BEAT, parseBankFilename } from "../src/lib/cover-bank.ts";
+import { interleaveByTerm, MAX_BANK_PER_BEAT, parseBankFilename } from "../src/lib/cover-bank.ts";
 import { searchPexelsMany } from "./lib/photo-sources.mjs";
 
 // Termos por editoria: substantivos concretos e fotografáveis, como o próprio
@@ -146,44 +146,56 @@ async function main() {
       continue;
     }
 
+    // Busca todos os termos ANTES de consumir, para poder intercalar. Sem
+    // isso o primeiro termo enche a cota sozinho e a editoria inteira sai da
+    // mesma cena — foi o que o primeiro dry run mostrou.
+    const porTermo = [];
     for (const term of TERMS[beat]) {
-      if (missing <= 0) break;
       const photos = await searchPexelsMany(term, pexelsKey, usedIds, 30);
-      for (const photo of photos) {
-        if (missing <= 0) break;
-        if (!photo.photoCredit) continue; // sem fotógrafo não há como creditar
-        usedIds.add(photo.photoId);
+      porTermo.push(
+        // Sem fotógrafo não há como creditar, e o endpoint recusaria.
+        photos.filter((photo) => photo.photoCredit).map((photo) => ({ ...photo, term })),
+      );
+    }
 
-        if (dryRun) {
-          console.log(`  ${beat} ← ${photo.photoId} (${photo.photoCredit}) · ${term}`);
+    for (const photo of interleaveByTerm(porTermo)) {
+      if (missing <= 0) break;
+      // Dois termos podem devolver a mesma foto: a exclusão de searchPexelsMany
+      // foi aplicada antes de qualquer uma ser consumida nesta rodada.
+      if (usedIds.has(photo.photoId)) continue;
+      usedIds.add(photo.photoId);
+
+      if (dryRun) {
+        console.log(`  ${beat} ← ${photo.photoId} (${photo.photoCredit}) · ${photo.term}`);
+        missing -= 1;
+        added += 1;
+        continue;
+      }
+
+      try {
+        const bytes = await downloadJpeg(photo.imageUrl);
+        const result = await addToBank({
+          beat,
+          photoId: photo.photoId,
+          photographer: photo.photoCredit,
+          term: photo.term,
+          mimeType: "image/jpeg",
+          dataBase64: bytes.toString("base64"),
+        });
+        if (result.saved) {
+          console.log(
+            `  ${beat} ← ${result.saved} (${photo.photoCredit}, ${photo.term}, ${bytes.length} B)`,
+          );
           missing -= 1;
           added += 1;
-          continue;
+        } else {
+          console.log(`  ${beat} · ${photo.photoId} pulada: ${result.skipped}`);
+          if (String(result.skipped).startsWith("editoria cheia")) missing = 0;
         }
-
-        try {
-          const bytes = await downloadJpeg(photo.imageUrl);
-          const result = await addToBank({
-            beat,
-            photoId: photo.photoId,
-            photographer: photo.photoCredit,
-            term,
-            mimeType: "image/jpeg",
-            dataBase64: bytes.toString("base64"),
-          });
-          if (result.saved) {
-            console.log(`  ${beat} ← ${result.saved} (${photo.photoCredit}, ${bytes.length} B)`);
-            missing -= 1;
-            added += 1;
-          } else {
-            console.log(`  ${beat} · ${photo.photoId} pulada: ${result.skipped}`);
-            if (String(result.skipped).startsWith("editoria cheia")) missing = 0;
-          }
-        } catch (error) {
-          // Uma foto que falha não derruba a rodada: o banco fica com menos do
-          // que o alvo e a próxima rodada completa.
-          console.error(`  ${beat} · ${photo.photoId} falhou: ${error.message}`);
-        }
+      } catch (error) {
+        // Uma foto que falha não derruba a rodada: o banco fica com menos do
+        // que o alvo e a próxima rodada completa.
+        console.error(`  ${beat} · ${photo.photoId} falhou: ${error.message}`);
       }
     }
 

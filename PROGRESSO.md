@@ -1251,3 +1251,27 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - **Regra que continua valendo por precaução**: `git fetch origin main &&
   git merge origin/main` imediatamente antes de qualquer push. Uma medição não
   derruba o risco de uma configuração voltar a mudar.
+
+## Distribuição dos termos no banco de capas (2026-09-16)
+
+- **Medido no primeiro dry run**, que é para o que ele serve: o abastecimento
+  cadastraria 40 fotos, 8 por editoria, com fotógrafo em todas — mas **as 8 de
+  cada editoria vindo de um único termo**. Clima inteiro de `wind turbines
+  field`, geopolítica inteira de `international flags row`.
+- **Por que passaria despercebido**: são fotos diferentes, então nem o dedupe
+  por id nem o teste de hash das capas acusariam nada. É a mesma *cena* oito
+  vezes, que na home lê como repetição — exatamente o que o banco existe para
+  resolver.
+- **Causa**: o laço percorria os termos em ordem e só passava ao próximo quando
+  o anterior não rendia mais. O primeiro termo enchia a cota sozinho.
+- **Corrigido**: busca todos os termos antes de consumir e intercala
+  (`interleaveByTerm`, em `src/lib/cover-bank.ts`). Uma editoria com seis
+  termos e alvo de oito recebe pelo menos uma foto de cada cena antes de
+  repetir qualquer termo. Como agora todos os termos são buscados antes de
+  qualquer consumo, dois podem devolver a mesma foto — o laço de consumo
+  checa `usedIds` de novo por isso.
+- Também verificado nesta rodada: o merge do PR #100 disparou a rodada de
+  validação do pipeline editorial e publicou a matéria da Califórnia com a
+  cascata nova. Arte de capa em 1 s, card do Instagram em 1 s, otimização com
+  ImageMagick pulada (correto — só roda em foto do banco curado). O Worker de
+  produção foi atualizado às 00:17:43Z, logo após o merge das 00:16:51Z.
