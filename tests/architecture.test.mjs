@@ -499,3 +499,49 @@ test('a troca de capas commita antes de registrar a procedência', () => {
   assert.match(script, /drawWireInstagramCard/);
   assert.match(workflow, /public\/images\/instagram\//);
 });
+
+test('o escopo editorial é Brasil e China, nos quatro elos', () => {
+  const server = readFileSync(new URL('../src/lib/articles-server.ts', import.meta.url), 'utf8');
+  const beats = readFileSync(new URL('../src/lib/beats.ts', import.meta.url), 'utf8');
+
+  // Decisão de 16/09: notícia dos EUA sai da pauta. O recorte precisa valer
+  // nos quatro lugares — se ficar só no prompt, o radar continua entregando
+  // pauta americana e o modelo gasta chamada para recusá-la; se ficar só no
+  // radar, o modelo publica o que achar sozinho pela busca.
+  assert.match(server, /GDELT_SCOPE\s*=\s*"\(Brazil OR Brasil OR China OR Chinese\)"/);
+  // Só o código: o comentário ao lado dos feeds registra de onde eles vieram.
+  const serverCode = server.split('\n').filter(line => !line.trimStart().startsWith('//')).join('\n');
+  assert.ok(
+    !/hl=en-US|gl=US|ceid=US/.test(serverCode),
+    'os feeds não podem voltar a apontar para a localidade dos EUA',
+  );
+  assert.match(server, /ceid=BR%3Apt/, 'os feeds precisam ser brasileiros');
+  assert.match(server, /ESCOPO OBRIGATÓRIO: só publique fato do Brasil ou da China/);
+
+  // O gate é aplicado nos DOIS caminhos de descoberta — GDELT e RSS.
+  assert.equal(
+    (server.match(/if \(!inEditorialScope\(/g) ?? []).length,
+    2,
+    'o filtro de escopo tem que valer no GDELT e no RSS',
+  );
+
+  // Veículo brasileiro entra pelo domínio, sem precisar dizer "Brasil" na
+  // manchete — senão a notícia mais brasileira de todas seria a descartada.
+  const domains = server.match(/const SCOPE_DOMAINS =\s*([\s\S]*?);/);
+  assert.ok(domains, 'SCOPE_DOMAINS precisa existir');
+  assert.match(domains[1], /agenciabrasil/);
+  assert.match(domains[1], /\\\.br\$/);
+
+  // "Mais comentados do dia": as principais notícias do Brasil entram em
+  // todas as editorias, e o filtro por editoria é que separa.
+  const feeds = server.match(/const RSS_FEEDS[\s\S]*?\n};/);
+  assert.ok(feeds, 'RSS_FEEDS precisa existir');
+  assert.equal(
+    (feeds[0].match(/BRASIL_EM_ALTA/g) ?? []).length,
+    5,
+    'o feed de destaques do Brasil precisa estar nas cinco editorias',
+  );
+
+  // Nenhum rótulo público pode continuar anunciando cobertura dos EUA.
+  assert.ok(!/EUA/.test(beats), 'os rótulos das editorias não podem citar os EUA');
+});

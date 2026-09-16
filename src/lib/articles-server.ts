@@ -27,56 +27,93 @@ const DRAFT_MAX_TOKENS = 1100;
 // GDELT funciona como radar gratuito de pauta. Ele não é tratado como fonte
 // editorial: apenas entrega candidatos recentes; o modelo ainda precisa abrir,
 // conferir e cruzar a notícia em pelo menos dois domínios independentes.
+// Recorte geográfico, decisão editorial de 16/09: a Wire TV cobre Brasil e
+// China, com foco no Brasil. Notícia dos EUA sai da pauta — entra só quando o
+// fato é brasileiro ou chinês. O recorte aparece em quatro lugares, e
+// precisa dos quatro: aqui (o que o GDELT devolve), nos feeds RSS (de onde
+// vêm os candidatos), no filtro de escopo (o que passa) e no prompt (o que o
+// modelo aceita escrever). Mexer em um só deixa os outros trabalhando contra.
+const GDELT_SCOPE = "(Brazil OR Brasil OR China OR Chinese)";
+
 const GDELT_QUERY: Record<Beat, string> = {
-  ia: '("artificial intelligence" OR "generative AI" OR "AI model")',
-  clima: '("clean energy" OR batteries OR solar OR wind OR climate)',
-  economia: '("digital yuan" OR CBDC OR "digital currency")',
-  geopolitica: "((China AND USA) OR (China AND Brazil) OR chips OR semiconductors)",
-  mercado: '(technology OR "artificial intelligence") (investment OR earnings OR infrastructure)',
+  ia: `${GDELT_SCOPE} ("artificial intelligence" OR "generative AI" OR "AI model")`,
+  clima: `${GDELT_SCOPE} ("clean energy" OR batteries OR solar OR wind OR climate)`,
+  economia: `${GDELT_SCOPE} ("digital yuan" OR CBDC OR "digital currency" OR economy)`,
+  geopolitica: `${GDELT_SCOPE} (trade OR diplomacy OR chips OR semiconductors OR tariffs)`,
+  mercado: `${GDELT_SCOPE} (technology OR startup) (investment OR earnings OR infrastructure)`,
 };
 
 // Redundância gratuita para o radar: quando o GDELT demora ou fica fora do
 // ar, usamos RSS de veículos e instituições reconhecidas. Esses itens também
 // são apenas sinais de pauta; a publicação continua exigindo duas fontes
 // independentes abertas e verificadas pelo modelo.
+// Feeds em português e com localidade brasileira. Os antigos eram
+// `hl=en-US&gl=US` mais TechCrunch, Federal Reserve e BBC: um radar montado
+// para enxergar os EUA, que era de onde a pauta vinha.
+function googleNewsBrasil(query: string): string {
+  const params = new URLSearchParams({ q: `${query} when:1d`, hl: "pt-BR", gl: "BR" });
+  return `https://news.google.com/rss/search?${params.toString()}&ceid=BR%3Apt`;
+}
+
+// "Assuntos mais comentados do dia", pedido do dono em 16/09: as principais
+// notícias do Brasil no momento, sem termo de busca. O filtro por editoria
+// (SIGNAL_KEYWORDS) é o que separa o que interessa a cada uma — então esta
+// entra em todas.
+const BRASIL_EM_ALTA = "https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR%3Apt";
+const AGENCIA_BRASIL = "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml";
+const G1 = "https://g1.globo.com/rss/g1/";
+
 const RSS_FEEDS: Record<Beat, string[]> = {
-  ia: [
-    "https://news.google.com/rss/search?q=artificial+intelligence+OR+AI+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
-    "https://techcrunch.com/feed/",
-    "https://www.technologyreview.com/feed/",
-  ],
-  clima: [
-    "https://news.google.com/rss/search?q=clean+energy+OR+climate+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
-    "https://news.un.org/feed/subscribe/en/news/topic/climate-change/feed/rss.xml",
-    "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
-  ],
+  ia: [googleNewsBrasil("inteligência artificial"), AGENCIA_BRASIL, G1, BRASIL_EM_ALTA],
+  clima: [googleNewsBrasil("energia limpa OR clima"), AGENCIA_BRASIL, G1, BRASIL_EM_ALTA],
   economia: [
-    "https://news.google.com/rss/search?q=central+bank+OR+digital+currency+OR+inflation+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
-    "https://www.federalreserve.gov/feeds/press_all.xml",
-    "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+    googleNewsBrasil("economia OR banco central OR yuan digital"),
+    AGENCIA_BRASIL,
+    G1,
+    BRASIL_EM_ALTA,
   ],
   geopolitica: [
-    "https://news.google.com/rss/search?q=China+US+Brazil+technology+trade+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
-    "https://feeds.bbci.co.uk/news/world/rss.xml",
-    "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+    googleNewsBrasil("Brasil China comércio OR diplomacia"),
+    AGENCIA_BRASIL,
+    G1,
+    BRASIL_EM_ALTA,
   ],
   mercado: [
-    "https://news.google.com/rss/search?q=technology+investment+OR+earnings+OR+chips+when%3A1d&hl=en-US&gl=US&ceid=US%3Aen",
-    "https://techcrunch.com/feed/",
-    "https://www.technologyreview.com/feed/",
+    googleNewsBrasil("tecnologia investimento OR startup"),
+    AGENCIA_BRASIL,
+    G1,
+    BRASIL_EM_ALTA,
   ],
 };
 
 const SIGNAL_KEYWORDS: Record<Beat, RegExp> = {
-  ia: /\b(ai|artificial intelligence|inteligência artificial|model|chip|robot|software)\b/i,
-  clima: /\b(climate|clima|energy|energia|solar|wind|eólica|battery|bateria|emission)\b/i,
+  ia: /\b(ai|artificial intelligence|intelig[êe]ncia artificial|modelo|model|chip|rob[ôo]|software|algoritmo)\b/i,
+  clima:
+    /\b(climate|clima|energy|energia|solar|wind|e[óo]lica|battery|bateria|emiss[õo]|desmatamento|enchente|seca)\b/i,
   economia:
-    /\b(econom|economia|central bank|banco central|currency|moeda|inflation|inflação|cbdc|yuan|drex|interest|juros)\b/i,
+    /\b(econom|central bank|banco central|currency|moeda|inflation|infla[çc][ãa]o|cbdc|yuan|drex|pix|juros|selic|c[âa]mbio|d[óo]lar|pib)\b/i,
   geopolitica:
-    /\b(china|chinese|brasil|brazil|united states|eua|trade|comércio|tariff|tarifa|chip|semiconductor|geopolit)\b/i,
+    /\b(china|chin[êe]s|chinese|brasil|brazil|trade|com[ée]rcio|tariff|tarifa|chip|semiconductor|semicondutor|geopolit|diplomac|acordo|brics|mercosul)\b/i,
   mercado:
-    /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip)\b/i,
+    /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip|rodada|aquisi[çc][ãa]o)\b/i,
 };
+
+// Recorte geográfico aplicado a TODO sinal, venha do GDELT ou do RSS.
+//
+// Duas portas, e a ordem importa: um veículo brasileiro ou chinês está no
+// escopo pelo que ele é, sem precisar dizer "Brasil" na manchete — senão
+// "Governo anuncia leilão de baterias", da Agência Brasil, seria descartado
+// justamente por ser notícia brasileira demais para se anunciar como tal.
+// De qualquer outro veículo, a manchete precisa trazer o vínculo.
+const SCOPE_DOMAINS =
+  /(\.br$|agenciabrasil|ebc\.com\.br|globo\.com|folha\.uol|estadao|valor\.globo|infomoney|poder360|scmp\.com|xinhua|chinadaily|globaltimes)/i;
+
+const SCOPE_TERMS =
+  /(brasil|brazil|brasileir|brazilian|bras[íi]lia|china|chin[êe]s|chinesa|chinese|pequim|beijing|xangai|shanghai|hong kong|yuan|renminbi|e-cny|mercosul|brics|petrobras|embraer|itamaraty|planalto|copom|selic|drex|bndes)/i;
+
+function inEditorialScope(title: string, domain: string): boolean {
+  return SCOPE_DOMAINS.test(domain) || SCOPE_TERMS.test(title);
+}
 
 type StorySignal = { title: string; url: string; domain: string; seenAt: string };
 
@@ -131,6 +168,7 @@ async function discoverRssSignals(beat: Beat): Promise<StorySignal[]> {
         continue;
       }
       if (seenDomains.has(domain)) continue;
+      if (!inEditorialScope(item.title, domain)) continue;
       seenDomains.add(domain);
       signals.push({ ...item, title: item.title.slice(0, 220), domain });
       if (signals.length === 2) return signals;
@@ -176,6 +214,7 @@ async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
         continue;
       }
       if (seenDomains.has(domain)) continue;
+      if (!inEditorialScope(item.title, domain)) continue;
       seenDomains.add(domain);
       signals.push({
         title: item.title.slice(0, 220),
@@ -231,7 +270,7 @@ const BEAT_BRIEF: Record<Beat, string> = {
   economia:
     "yuan digital, moedas digitais de bancos centrais (CBDCs) e política monetária ligada a tecnologia",
   geopolitica:
-    "geopolítica entre China, EUA e Brasil — comércio, chips, cadeias produtivas e tecnologia",
+    "relação Brasil–China — comércio, chips, cadeias produtivas, diplomacia e tecnologia",
   mercado: "mercado de tecnologia global — investimentos, big techs e infraestrutura de IA",
 };
 
@@ -445,6 +484,7 @@ async function attemptDraft(
     ? "Escolha uma pauta do radar e informe o número dela em selectedRadarIndex."
     : "Como o radar está vazio, descubra a pauta diretamente pela busca e use selectedRadarIndex 0.";
   const systemPrompt = `Você é repórter do ${WIRE_NAME}, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}), canal editorial "${targetChannel.label}" (${targetChannel.description}).
+ESCOPO OBRIGATÓRIO: só publique fato do Brasil ou da China, com prioridade para o Brasil. Se a única pauta disponível for dos Estados Unidos ou de outro país, sem efeito direto e concreto sobre Brasil ou China, responda o erro de "sem fato verificável" em vez de publicar. Fato de terceiro país só entra quando o efeito brasileiro ou chinês for o assunto da matéria, e a manchete precisa deixá-lo claro.
 Pesquise UM fato real recente, preferencialmente das últimas 24h e no máximo das últimas 72h. ${selectionInstruction} Confirme-o em outra apuração independente. Priorize uma fonte primária e uma fonte jornalística. Republicações do mesmo texto de agência não contam como duas fontes. Não invente.
 Responda apenas com JSON válido neste formato:
 {"selectedRadarIndex":${signals.length ? 1 : 0},"eventDate":"AAAA-MM-DDTHH:mm:ssZ","headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3-4 parágrafos, 750-1000 caracteres; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","desk":"${targetChannel.label}","sourceUrls":["https://fonte-independente-1","https://fonte-independente-2"],"fotoTermos":["english photo term 1","english photo term 2"]}

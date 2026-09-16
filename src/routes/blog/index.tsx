@@ -34,7 +34,7 @@ export const Route = createFileRoute("/blog/")({
       { title: `${WIRE_NAME} — Cobertura contínua e global | Veronica Hub` },
       {
         name: "description",
-        content: `${WIRE_NAME}: IA, energia limpa, yuan digital, geopolítica China, EUA e Brasil, e o realinhamento do mercado tecnológico global — cobertura contínua.`,
+        content: `${WIRE_NAME}: IA, energia limpa, yuan digital, geopolítica Brasil e China, e o realinhamento do mercado tecnológico — cobertura contínua.`,
       },
       { property: "og:title", content: `${WIRE_NAME} — Cobertura contínua e global` },
       {
