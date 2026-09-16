@@ -18,7 +18,7 @@
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { registerHooks } from "node:module";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { config as carregarEnv } from "dotenv";
 
 // Lê .env.local antes de tudo. Evita a pegadinha de sintaxe de shell —
@@ -82,7 +82,50 @@ async function responder(texto, historico) {
   return decisao;
 }
 
-const temChave = Boolean(process.env.GROQ_API_KEY);
+/**
+ * Sem chave, pergunta e guarda. É o único atrito real do simulador, e não
+ * faz sentido empurrar para o usuário criar arquivo na mão.
+ */
+async function garantirChave() {
+  if (process.env.GROQ_API_KEY) return true;
+
+  // Sem terminal de verdade (pipe, CI) não dá para perguntar — segue offline.
+  if (!stdin.isTTY) {
+    console.log(
+      `${C.fraco}Sem GROQ_API_KEY e sem terminal para perguntar — seguindo offline.${C.off}\n`,
+    );
+    return false;
+  }
+
+  console.log(`${C.alerta}Falta a chave da Groq para o agente pensar.${C.off}`);
+  console.log(`${C.fraco}Pegue a sua, de graça, em https://console.groq.com/keys${C.off}\n`);
+
+  const pergunta = createInterface({ input: stdin, output: stdout });
+  const chave = (
+    await pergunta.question("Cole a chave aqui (ou Enter para seguir sem ela): ")
+  ).trim();
+  pergunta.close();
+
+  if (!chave) {
+    console.log(
+      `${C.fraco}Seguindo sem chave — o agente vai encaminhar tudo em vez de cotar.${C.off}\n`,
+    );
+    return false;
+  }
+
+  process.env.GROQ_API_KEY = chave;
+  const env = new URL("../.env.local", import.meta.url);
+  const atual = existsSync(env) ? readFileSync(env, "utf8").replace(/\n?$/, "\n") : "";
+  if (!/^GROQ_API_KEY=/m.test(atual)) {
+    writeFileSync(env, atual + `GROQ_API_KEY=${chave}\n`);
+    console.log(
+      `${C.fraco}Guardei em .env.local — na próxima vez não pergunto. (O arquivo é ignorado pelo git.)${C.off}\n`,
+    );
+  }
+  return true;
+}
+
+const temChave = await garantirChave();
 console.log(`${C.fraco}┌─ Express Entulho · simulador do agente`);
 console.log(`│  Nenhum WhatsApp é acessado. Nada é enviado a lugar nenhum.`);
 console.log(
