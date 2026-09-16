@@ -47,24 +47,14 @@ export const SEAL_STATUS_COPY: Record<SealStatus, string> = {
 // Etapas sem data legível (as demonstrações usam "DEMO") mantêm o estado
 // declarado no registro — para elas não há o que derivar.
 const MESES_PT: Record<string, number> = {
-  JAN: 1,
-  FEV: 2,
-  MAR: 3,
-  ABR: 4,
-  MAI: 5,
-  JUN: 6,
-  JUL: 7,
-  AGO: 8,
-  SET: 9,
-  OUT: 10,
-  NOV: 11,
-  DEZ: 12,
+  JAN: 1, FEV: 2, MAR: 3, ABR: 4, MAI: 5, JUN: 6,
+  JUL: 7, AGO: 8, SET: 9, OUT: 10, NOV: 11, DEZ: 12,
 };
 
 // "13 SET 2026" -> "2026-09-13". Devolve null para qualquer coisa fora do
 // formato, que é como "DEMO" cai fora da derivação.
 export function parseSealDate(value: string): string | null {
-  const match = /^(\d{1,2})\s+([A-Za-zÇç]{3})\s+(\d{4})$/.exec(value.trim());
+  const match = /^(\d{1,2})\s+([A-Za-z\u00c7\u00e7]{3})\s+(\d{4})$/.exec(value.trim());
   if (!match) return null;
   const month = MESES_PT[match[2].toUpperCase()];
   if (!month) return null;
@@ -104,8 +94,7 @@ export const sealRecords: readonly SealRecord[] = [
     statusLabel: "Em desenvolvimento",
     version: "0.1 · Implantação",
     provider: "YO LAB & CO. · Laboratório da Veronica Hub",
-    summary:
-      "Registro de procedência do agente operacional de WhatsApp e da implantação inaugural do Veronica Operations para a Express Entulho.",
+    summary: "Registro de procedência do agente operacional de WhatsApp e da implantação inaugural do Veronica Operations para a Express Entulho.",
     scope: [
       "Agente de IA para atendimento no WhatsApp",
       "Organização e encaminhamento de leads",
@@ -113,50 +102,19 @@ export const sealRecords: readonly SealRecord[] = [
       "Suporte por 30 dias após a entrega",
     ],
     timeline: [
-      {
-        date: "13 SET 2026",
-        label: "Arquitetura definitiva, personalidade e núcleo conversacional",
-        state: "current",
-      },
-      {
-        date: "14 SET 2026",
-        label: "Demonstração com o proprietário e coleta das regras",
-        state: "next",
-      },
+      { date: "13 SET 2026", label: "Arquitetura definitiva, personalidade e núcleo conversacional", state: "current" },
+      { date: "14 SET 2026", label: "Demonstração com o proprietário e coleta das regras", state: "next" },
       { date: "15 SET 2026", label: "Base de conhecimento e conector possível", state: "next" },
       { date: "16 SET 2026", label: "Testes, correções e homologação", state: "next" },
-      {
-        date: "17 SET 2026",
-        label: "Entrega do MVP funcional e início da assistência",
-        state: "next",
-      },
+      { date: "17 SET 2026", label: "Entrega do MVP funcional e início da assistência", state: "next" },
     ],
     support: "30 dias após a implantação",
     operations: {
       product: "Veronica Operations — Agentes para negócios locais",
       model: "Arquitetura multiempresa (multi-tenant)",
-      summary:
-        "Um único núcleo operacional atende diferentes empresas mantendo WhatsApp, identidade, preços, frota, agenda, regras, usuários, métricas, integrações e históricos completamente separados.",
-      environments: [
-        "WhatsApp",
-        "Identidade e linguagem",
-        "Preços e área atendida",
-        "Frota e disponibilidade",
-        "Agenda e regras",
-        "Usuários e métricas",
-        "Integrações",
-        "Consumo de IA e histórico",
-      ],
-      endpoints: [
-        "Leads",
-        "Disponibilidade",
-        "Agendamentos",
-        "Clientes",
-        "Conversas",
-        "Transferência humana",
-        "Webhooks do WhatsApp",
-        "Conectores operacionais",
-      ],
+      summary: "Um único núcleo operacional atende diferentes empresas mantendo WhatsApp, identidade, preços, frota, agenda, regras, usuários, métricas, integrações e históricos completamente separados.",
+      environments: ["WhatsApp", "Identidade e linguagem", "Preços e área atendida", "Frota e disponibilidade", "Agenda e regras", "Usuários e métricas", "Integrações", "Consumo de IA e histórico"],
+      endpoints: ["Leads", "Disponibilidade", "Agendamentos", "Clientes", "Conversas", "Transferência humana", "Webhooks do WhatsApp", "Conectores operacionais"],
       channels: ["WhatsApp", "Site", "Instagram", "Facebook", "Chat interno", "Voz", "Aplicativo"],
     },
   },
@@ -170,8 +128,7 @@ export const sealRecords: readonly SealRecord[] = [
     statusLabel: "Conceito demonstrativo",
     version: "Concept 1.0",
     provider: "Veronica Hub · Laboratório de conceitos",
-    summary:
-      "Exemplo fictício de como o registro pode documentar uma solução para a indústria têxtil.",
+    summary: "Exemplo fictício de como o registro pode documentar uma solução para a indústria têxtil.",
     scope: ["Consulta de catálogo", "Triagem de representantes", "Encaminhamento comercial"],
     timeline: [{ date: "DEMO", label: "Cenário visual — sem implantação real", state: "current" }],
     isDemonstration: true,
@@ -186,8 +143,7 @@ export const sealRecords: readonly SealRecord[] = [
     statusLabel: "Conceito demonstrativo",
     version: "Concept 1.0",
     provider: "Veronica Hub · Laboratório de conceitos",
-    summary:
-      "Marca integralmente fictícia criada para demonstrar um possível caso de automação industrial.",
+    summary: "Marca integralmente fictícia criada para demonstrar um possível caso de automação industrial.",
     scope: ["Recepção de pedidos", "Atualização de status", "Pós-venda automatizado"],
     timeline: [{ date: "DEMO", label: "Cenário visual — sem implantação real", state: "current" }],
     isDemonstration: true,
@@ -202,8 +158,7 @@ export const sealRecords: readonly SealRecord[] = [
     statusLabel: "Conceito demonstrativo",
     version: "Concept 1.0",
     provider: "Veronica Hub · Laboratório de conceitos",
-    summary:
-      "Exemplo fictício de atendimento para rotina escolar, sem vínculo com instituição existente.",
+    summary: "Exemplo fictício de atendimento para rotina escolar, sem vínculo com instituição existente.",
     scope: ["Dúvidas de responsáveis", "Agenda escolar", "Encaminhamento à secretaria"],
     timeline: [{ date: "DEMO", label: "Cenário visual — sem implantação real", state: "current" }],
     isDemonstration: true,
@@ -218,8 +173,7 @@ export const sealRecords: readonly SealRecord[] = [
     statusLabel: "Conceito demonstrativo",
     version: "Concept 1.0",
     provider: "Veronica Hub · Laboratório de conceitos",
-    summary:
-      "Marca fictícia usada somente para mostrar o sistema de procedência em um contexto educacional.",
+    summary: "Marca fictícia usada somente para mostrar o sistema de procedência em um contexto educacional.",
     scope: ["Comunicados recorrentes", "Triagem de solicitações", "Orientação inicial"],
     timeline: [{ date: "DEMO", label: "Cenário visual — sem implantação real", state: "current" }],
     isDemonstration: true,
