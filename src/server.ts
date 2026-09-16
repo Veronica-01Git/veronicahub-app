@@ -65,13 +65,55 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+/**
+ * Content-Security-Policy.
+ *
+ * `script-src` inclui 'unsafe-inline' porque a hidratação da TanStack Start
+ * emite script inline no HTML do SSR; sem nonce por requisição não dá pra
+ * tirar. Isso enfraquece a defesa contra XSS refletido, mas o que a política
+ * ainda entrega é o que mais importa aqui: nenhum script de origem externa
+ * carrega, `object-src 'none'` mata plugin, `base-uri 'self'` impede
+ * sequestrar caminhos relativos via <base>, e `form-action 'self'` impede
+ * POST de formulário injetado para fora.
+ *
+ * `img-src` é largo de propósito: capa de matéria vem de CDN de terceiro
+ * (Pexels, CloudFront). Imagem não executa, e `nosniff` já está setado.
+ */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self'",
+  "connect-src 'self'",
+  "form-action 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-src 'none'",
+  "frame-ancestors 'none'",
+  "upgrade-insecure-requests",
+].join("; ");
+
 function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set("x-content-type-options", "nosniff");
   headers.set("referrer-policy", "strict-origin-when-cross-origin");
   headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
-  headers.set("x-frame-options", "SAMEORIGIN");
+  // frame-ancestors do CSP é o controle moderno; X-Frame-Options fica para
+  // navegador antigo que não lê CSP. DENY em vez de SAMEORIGIN porque o site
+  // não embute a si mesmo em lugar nenhum (não há <iframe> no código).
+  headers.set("x-frame-options", "DENY");
   headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
+  // Isola a janela de quem abriu o site. Não põe Cross-Origin-Resource-Policy
+  // junto: as capas em /api/cover-image/ existem para ser consumidas de fora
+  // (og:image, compartilhamento), e CORP as bloquearia.
+  headers.set("cross-origin-opener-policy", "same-origin");
+  // CSP só em produção: `connect-src 'self'` derruba o websocket de HMR do
+  // Vite, e vale mais ter a política certa no ar do que uma frouxa nos dois.
+  if (process.env.NODE_ENV === "production") {
+    headers.set("content-security-policy", CSP);
+  }
 
   return new Response(response.body, {
     status: response.status,

@@ -21,17 +21,13 @@ import {
   MAX_BANK_PER_BEAT,
   parseBankCredit,
 } from "./cover-bank";
+import { requireCronSecret } from "./security";
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg"]);
 const MAX_BANK_IMAGE_BYTES = 5 * 1024 * 1024;
 
 function unauthorized(request: Request): Response | null {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return new Response("CRON_SECRET não configurada", { status: 500 });
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return new Response("unauthorized", { status: 401 });
-  }
-  return null;
+  return requireCronSecret(request);
 }
 
 async function inventory(db: ReturnType<typeof getDb>) {

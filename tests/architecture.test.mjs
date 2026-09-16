@@ -109,9 +109,16 @@ test('a automação do Instagram exige segredo e só roda depois da capa', () =>
   const cron = readFileSync(new URL('../src/lib/instagram-cron.ts', import.meta.url), 'utf8');
   const workflow = readFileSync(new URL('../.github/workflows/generate-article.yml', import.meta.url), 'utf8');
 
+  // A conferência do segredo saiu daqui e virou requireCronSecret (comparação
+  // em tempo constante, um lugar só para todos os /api/cron/*). O que este
+  // teste garante continua sendo o mesmo: este endpoint não roda sem segredo.
+  const security = readFileSync(new URL('../src/lib/security.ts', import.meta.url), 'utf8');
+
   assert.match(server, /\/api\/cron\/publish-instagram/);
-  assert.match(cron, /Authorization|authorization/);
-  assert.match(cron, /CRON_SECRET/);
+  assert.match(cron, /requireCronSecret\(request\)/);
+  assert.match(security, /export function requireCronSecret/);
+  assert.match(security, /authorization/);
+  assert.match(security, /CRON_SECRET/);
   assert.match(workflow, /id: set_cover/);
   assert.match(workflow, /if: steps\.set_cover\.outcome == 'success' && steps\.instagram_card\.outcome == 'success'/);
   assert.match(workflow, /images\/instagram\/wire-tv-/);

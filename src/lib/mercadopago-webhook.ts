@@ -6,6 +6,7 @@ import {
   WebhookSignatureValidator,
   InvalidWebhookSignatureError,
 } from "./mercadopago";
+import { checkMemoryRateLimit, clientIp } from "./security";
 
 type MpWebhookBody = {
   type?: string;
@@ -64,12 +65,34 @@ export async function handleMercadoPagoWebhook(request: Request): Promise<Respon
       console.error("Erro inesperado validando assinatura do webhook:", err);
       return Response.json({ error: "Assinatura inválida" }, { status: 401 });
     }
+  } else if (process.env.MERCADOPAGO_REQUIRE_SIGNATURE === "true") {
+    // Modo estrito: sem assinatura, não passa.
+    console.error("Webhook MP sem x-signature recusado (modo estrito) — data.id:", dataId);
+    return Response.json({ error: "Assinatura ausente" }, { status: 401 });
   } else {
-    // Sem x-signature (formato legado/IPN) — confiamos só porque
-    // re-buscamos o pagamento de verdade na API do MP logo abaixo; um
-    // payload forjado não teria como fazer isso retornar um pagamento
-    // aprovado de verdade.
+    // Sem x-signature (formato legado/IPN). O que segura este caminho não é
+    // confiança no payload: é que o valor creditado sai da NOSSA linha em
+    // walletTopUps e a aprovação sai da API do MP logo abaixo — forjar o
+    // corpo não inventa um pagamento aprovado nem muda o valor.
+    //
+    // O que sobra é uso como amplificador: qualquer pessoa na internet podia
+    // fazer o Worker chamar a API do MP em loop. Daí o limite por IP.
+    //
+    // Recusar de cara seria mais limpo, mas se alguma notificação legítima
+    // ainda chegar sem assinatura o efeito é pagamento recebido e crédito não
+    // lançado — pior que o risco acima. Por isso é opt-in:
+    // MERCADOPAGO_REQUIRE_SIGNATURE=true liga o modo estrito depois que o log
+    // confirmar que 100% das notificações da conta chegam assinadas.
     console.warn("Webhook MP sem x-signature (formato legado/IPN) — data.id:", dataId);
+
+    const limite = checkMemoryRateLimit(
+      `mp-webhook-sem-assinatura:${clientIp(request)}`,
+      20,
+      60_000,
+    );
+    if (!limite.ok) {
+      return Response.json({ error: "Muitas notificações" }, { status: 429 });
+    }
   }
 
   const payment = await getPaymentClient().get({ id: dataId });
