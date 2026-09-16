@@ -1,0 +1,85 @@
+name: Troca capas de arte por foto (Wire TV)
+
+# Dá fotografia do banco curado às matérias que saíram com arte gerada.
+# Decisão do dono em 16/09: a arte é o piso para quando o banco está vazio, e
+# não deve ficar no ar agora que há foto.
+#
+# Manual, e de uso pontual — não é rotina. A cada publicação, o cron já pega a
+# foto do banco sozinho; isto é só para o acervo que ficou para trás.
+#
+# ATENÇÃO: este workflow COMMITA no main, então dispara deploy. É o contrário
+# do fill-cover-bank.yml, que só escreve no banco. Um commit só para todas as
+# capas e cards, porque cada commit no main é um deploy.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Só listar o que seria trocado, sem escrever nem commitar"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wire-swap-art-covers
+  cancel-in-progress: false
+
+jobs:
+  swap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Instala o canvas (sem tocar no package.json)
+        run: npm install --no-save --no-package-lock @napi-rs/canvas
+
+      - name: Baixa as fotos e redesenha os cards
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/swap-art-covers.mjs --dry-run | tee swap.log
+          else
+            node scripts/swap-art-covers.mjs | tee swap.log
+          fi
+
+      - name: Commita capas e cards
+        id: commit
+        if: inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/images/blog-covers/ public/images/instagram/
+          git diff --cached --quiet && echo "Nada mudou." && exit 0
+          git commit -m "chore(wire): troca capas de arte por fotografia do banco"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
+
+      # Só depois do deploy servir a nova capa: gravar a procedência antes
+      # apontaria coverPhotoId para uma capa que ainda é arte.
+      - name: Espera o deploy publicar as capas
+        if: steps.commit.outcome == 'success' && inputs.dry_run != true
+        run: sleep 90
+
+      - name: Registra a procedência das fotos
+        if: steps.commit.outcome == 'success' && inputs.dry_run != true
+        continue-on-error: true
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: node scripts/swap-art-covers.mjs --registrar | tee -a swap.log
+
+      - name: Resumo da rodada
+        if: always()
+        run: |
+          {
+            echo "### Troca de capas da Wire TV"
+            echo
+            echo '```'
+            cat swap.log 2>/dev/null || echo "sem saída"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

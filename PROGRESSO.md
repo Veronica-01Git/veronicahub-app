@@ -1275,3 +1275,30 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   cascata nova. Arte de capa em 1 s, card do Instagram em 1 s, otimização com
   ImageMagick pulada (correto — só roda em foto do banco curado). O Worker de
   produção foi atualizado às 00:17:43Z, logo após o merge das 00:16:51Z.
+
+## Capas de arte trocadas por fotografia (2026-09-16)
+
+- **Decisão do dono**: a arte gerada não deve ficar no ar. Ela foi feita como
+  piso para quando o banco estava vazio; com o banco abastecido (16 fotos por
+  editoria), as 26 matérias publicadas com `coverPhotoId` nulo passam a
+  receber foto.
+- `coverPhotoId IS NULL` é o que identifica capa sem fotografia — pega arte
+  gerada, card tipográfico antigo e foto fixa da editoria de uma vez, sem
+  precisar comparar imagem.
+- **Quem escolhe é o servidor** (`/api/cron/art-covers`): a distribuição
+  precisa do banco inteiro à vista para não dar a mesma foto a duas matérias,
+  e quem tem essa visão é o servidor, não o runner. Ele devolve, por matéria,
+  a foto atribuída e o crédito, e sinaliza `repetidas` quando o banco de uma
+  editoria não dá para todas.
+- **Quem baixa e commita é o runner** (`scripts/swap-art-covers.mjs`), pelo
+  mesmo motivo de sempre: Workers não escrevem em disco.
+- **Ordem que importa**: arquivos → commit → espera do deploy → registro da
+  procedência. Gravar `coverPhotoId` antes de a capa nova estar publicada
+  apontaria a procedência para uma imagem que ainda é arte, e nada falharia,
+  porque as duas coisas existem. Um teste trava essa ordem.
+- **Este workflow COMMITA**, ao contrário do `fill-cover-bank.yml`, então
+  dispara deploy. Um commit só para as 26 capas e os 26 cards do Instagram —
+  card junto porque ele usa a capa como fundo, e trocar uma sem a outra
+  deixaria a peça de divulgação com a arte antiga.
+- `dry_run` é o padrão `true`: trocar 26 capas no ar não pode ser o clique
+  fácil.

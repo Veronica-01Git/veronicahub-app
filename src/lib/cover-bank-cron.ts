@@ -10,15 +10,16 @@
 // é secret do Actions hoje, e transformá-la nisso daria ao workflow acesso de
 // escrita ao banco inteiro para cadastrar imagem. Este endpoint faz uma coisa
 // só, com teto por editoria e validação de tipo.
-import { eq, like, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, like, sql } from "drizzle-orm";
 import { getDb } from "./db";
-import { mediaImages, users } from "./schema";
+import { articles, mediaImages, users } from "./schema";
 import { BEAT_VALUES, isBeat } from "./beats";
 import {
   bankFilename,
   buildBankAltText,
   LIBRARY_COVER_PREFIX,
   MAX_BANK_PER_BEAT,
+  parseBankCredit,
 } from "./cover-bank";
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg"]);
@@ -171,4 +172,77 @@ export async function handleCoverBankAddCron(request: Request): Promise<Response
   });
 
   return Response.json({ ok: true, saved: filename });
+}
+
+// Matérias publicadas que ainda não têm fotografia — `coverPhotoId` nulo é o
+// que marca capa de arte gerada (e, antes dela, card tipográfico ou foto fixa
+// da editoria). Devolve, para cada uma, a imagem do banco que ela deve
+// receber, já escolhida aqui: a distribuição precisa do banco inteiro à vista
+// para não dar a mesma foto a duas matérias, e quem tem essa visão é o
+// servidor, não o runner.
+//
+// Quem baixa e commita é o runner do Actions (scripts/swap-art-covers.mjs),
+// pelo mesmo motivo de sempre: Cloudflare Workers não escrevem em disco.
+export async function handleArtCoversCron(request: Request): Promise<Response> {
+  const denied = unauthorized(request);
+  if (denied) return denied;
+
+  const db = getDb();
+  const pendentes = await db
+    .select({
+      slug: articles.slug,
+      beat: articles.beat,
+      headline: articles.headline,
+      excerpt: articles.excerpt,
+    })
+    .from(articles)
+    .where(and(eq(articles.status, "published"), isNull(articles.coverPhotoId)))
+    .orderBy(asc(articles.publishedAt));
+
+  const banco = await db
+    .select({ id: mediaImages.id, filename: mediaImages.filename, altText: mediaImages.altText })
+    .from(mediaImages)
+    .where(like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}%`))
+    .orderBy(asc(mediaImages.createdAt));
+
+  const porEditoria = new Map<string, typeof banco>();
+  for (const beat of BEAT_VALUES) {
+    porEditoria.set(
+      beat,
+      banco.filter((row) => row.filename.startsWith(`${LIBRARY_COVER_PREFIX}${beat}-`)),
+    );
+  }
+
+  const usados = new Map<string, number>();
+  const faltando: string[] = [];
+  const atribuicoes = [];
+  for (const artigo of pendentes) {
+    const disponiveis = porEditoria.get(artigo.beat) ?? [];
+    if (disponiveis.length === 0) {
+      faltando.push(artigo.slug);
+      continue;
+    }
+    // Rodízio dentro da editoria: distintas enquanto houver banco, e só então
+    // repete — melhor repetir foto do que devolver matéria sem foto nenhuma.
+    const indice = usados.get(artigo.beat) ?? 0;
+    usados.set(artigo.beat, indice + 1);
+    const escolhida = disponiveis[indice % disponiveis.length];
+    atribuicoes.push({
+      slug: artigo.slug,
+      beat: artigo.beat,
+      headline: artigo.headline,
+      excerpt: artigo.excerpt,
+      photoId: escolhida.id,
+      photoCredit: parseBankCredit(escolhida.altText),
+      repetida: indice >= disponiveis.length,
+    });
+  }
+
+  return Response.json({
+    ok: true,
+    total: atribuicoes.length,
+    repetidas: atribuicoes.filter((item) => item.repetida).length,
+    semBanco: faltando,
+    artigos: atribuicoes,
+  });
 }
