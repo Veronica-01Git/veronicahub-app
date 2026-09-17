@@ -1699,3 +1699,20 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - Tabela de validade das credenciais registrada em `AGENTE-WHATSAPP.md`,
   seção 6, com bloco CAUTION sobre o token de 24h.
 - 67 testes passando (eram 64), typecheck, lint e build limpos.
+
+## Cache de borda ganha a versão do build na chave (2026-09-17)
+
+- Falha encontrada antes de ir ao ar, e ela apareceria na pior hora: o HTML
+  guardado no cache referencia arquivos de JS com hash no nome, e o deploy
+  seguinte apaga esses arquivos. O visitante receberia HTML velho pedindo
+  script que não existe mais — **página branca por até cinco minutos depois
+  de cada publicação**. E aqui publica-se a cada push, mais o cron editorial
+  de hora em hora: seria recorrente, não raro.
+- Correção: a chave do cache passou a carregar um carimbo do build, injetado
+  pelo Vite via `define` (`__VERONICA_BUILD_ID__`, usando `CF_VERSION_ID` ou
+  `GITHUB_SHA` quando existem, e o horário do build como reserva). Deploy novo
+  não encontra nada no cache e renderiza; o que ficou para trás expira
+  sozinho. Conferido no bundle gerado: a função sai com o valor literal.
+- `vite.config.ts` foi tocado só pelo ponto de extensão que já era usado
+  (`vite: { ... }`), sem mexer nos plugins do preset da Lovable.
+- 67 testes, typecheck, lint e build limpos.

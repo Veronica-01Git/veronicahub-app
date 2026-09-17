@@ -13,6 +13,16 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    // Carimbo do build, usado como parte da chave do cache de borda
+    // (src/lib/edge-cache.ts). Sem ele, o HTML guardado antes de um deploy
+    // continuaria sendo servido depois, apontando para arquivos de JS que o
+    // deploy novo já apagou — página branca por até cinco minutos, a cada
+    // publicação. Com ele, todo deploy começa com o cache vazio.
+    define: {
+      __VERONICA_BUILD_ID__: JSON.stringify(
+        process.env.CF_VERSION_ID ?? process.env.GITHUB_SHA ?? String(Date.now()),
+      ),
+    },
     server: {
       // Túnel público (cloudflared) usado só em dev pra testar o webhook do
       // Mercado Pago, que precisa de uma URL alcançável de fora. Sem isso o

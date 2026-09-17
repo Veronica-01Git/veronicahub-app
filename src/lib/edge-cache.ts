@@ -82,6 +82,36 @@ const NUNCA_CACHEAR: readonly RegExp[] = [
  */
 const TTL_SEGUNDOS = 300;
 
+/**
+ * Injetado pelo Vite (ver `define` em vite.config.ts). Em `vite dev` e nos
+ * testes ele não existe — `typeof` sobre identificador não declarado é seguro
+ * em JavaScript, então a checagem abaixo nunca lança.
+ */
+declare const __VERONICA_BUILD_ID__: string | undefined;
+
+function versaoDoBuild(): string {
+  return typeof __VERONICA_BUILD_ID__ === "string" ? __VERONICA_BUILD_ID__ : "dev";
+}
+
+/**
+ * A chave do cache carrega a versão do build.
+ *
+ * Sem isso havia uma falha que aparecia justamente na hora errada: o HTML
+ * guardado antes de um deploy referencia arquivos de JS com hash no nome, e o
+ * deploy novo apaga esses arquivos. O visitante receberia HTML velho pedindo
+ * script que não existe mais — página branca, por até cinco minutos, depois
+ * de CADA publicação. E aqui publica-se a cada push, além do cron editorial
+ * de hora em hora.
+ *
+ * Com a versão na chave, um deploy novo simplesmente não encontra nada no
+ * cache e renderiza. O que ficou para trás expira sozinho.
+ */
+function chaveDeCache(request: Request): Request {
+  const url = new URL(request.url);
+  url.searchParams.set("__v", versaoDoBuild());
+  return new Request(url.toString(), { method: "GET" });
+}
+
 type CacheDeBorda = {
   match(request: Request): Promise<Response | undefined>;
   put(request: Request, response: Response): Promise<void>;
@@ -121,7 +151,7 @@ export async function lerDoCacheDeBorda(request: Request): Promise<Response | un
   const cache = cacheDeBorda();
   if (!cache) return undefined;
   try {
-    const guardada = await cache.match(request);
+    const guardada = await cache.match(chaveDeCache(request));
     if (!guardada) return undefined;
 
     // Marca o acerto para dar como conferir sem adivinhar: um
@@ -172,7 +202,7 @@ export function guardarNoCacheDeBorda(
   const paraCliente = paraGuardar.clone();
 
   const gravacao = cache
-    .put(request, paraGuardar)
+    .put(chaveDeCache(request), paraGuardar)
     .catch((error) => console.error("Falha ao gravar no cache de borda:", error));
   if (waitUntil) waitUntil(gravacao);
 
