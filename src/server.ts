@@ -18,6 +18,12 @@ import { handleCoverImage } from "./lib/cover-image-server";
 import { handleMediaImage } from "./lib/media-images-server";
 import { handleSourceReferral } from "./lib/source-network-server";
 import { handleWireOfferRedirect } from "./lib/wire-commerce-server";
+import {
+  handleWireFeed,
+  handleWireFeedMethodNotAllowed,
+  handleWireFeedPreflight,
+  handleWireMateria,
+} from "./lib/wire-feed-server";
 import { handleAffiliateRedirect } from "./lib/affiliate-server";
 import { handlePublishInstagramCron } from "./lib/instagram-cron";
 import {
@@ -140,6 +146,26 @@ const app = {
         return await handleImageTransform(request);
       } catch (error) {
         console.error("Erro na transformação de imagem:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    // Feed público do Veronica Wire: somente leitura, CORS liberado e cache
+    // de cinco minutos. Interceptado aqui (e não por rota do TanStack) pelo
+    // mesmo motivo do sitemap: a URL é contrato com quem consome de fora e
+    // precisa ser fixa, o que a URL de RPC do createServerFn não permite.
+    const materiaPrefixo = "/api/wire/materia/";
+    if (url.pathname === "/api/wire/feed.json" || url.pathname.startsWith(materiaPrefixo)) {
+      if (request.method === "OPTIONS") return handleWireFeedPreflight();
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return handleWireFeedMethodNotAllowed();
+      }
+      try {
+        return url.pathname === "/api/wire/feed.json"
+          ? await handleWireFeed()
+          : await handleWireMateria(url.pathname.slice(materiaPrefixo.length));
+      } catch (error) {
+        console.error("Erro no feed público do Wire:", error);
         return new Response("error", { status: 500 });
       }
     }

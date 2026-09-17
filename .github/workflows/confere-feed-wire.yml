@@ -1,0 +1,84 @@
+name: Confere o feed do Wire no ar
+
+# Pergunta ao site publicado se as rotas públicas do feed respondem, e se o
+# que volta obedece ao contrato. Roda sob demanda (depois de um deploy) e uma
+# vez por dia, porque um feed que alguém consome de fora quebra em silêncio:
+# quem percebe primeiro é o leitor, não nós.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "17 9 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pede o feed
+        run: |
+          set -euo pipefail
+          status=$(curl --silent --show-error --max-time 30 \
+            -o feed.json -D cabecalhos.txt -w "%{http_code}" \
+            "https://veronicahub.com/api/wire/feed.json")
+          echo "HTTP $status"
+          grep -iE '^(content-type|access-control-allow-origin|cache-control):' cabecalhos.txt
+          if [ "$status" != "200" ]; then
+            echo "::error::O feed não respondeu 200."
+            head -c 600 feed.json
+            exit 1
+          fi
+
+      - name: Confere o contrato do feed
+        run: |
+          set -euo pipefail
+          grep -qi '^access-control-allow-origin: \*' cabecalhos.txt || {
+            echo "::error::Sem CORS liberado — o leitor de fora não consegue ler."
+            exit 1
+          }
+          node --input-type=module <<'JS'
+          import { readFileSync } from "node:fs";
+          const feed = JSON.parse(readFileSync("feed.json", "utf8"));
+
+          const CAMPOS = ["id", "slug", "titulo", "resumo", "corpoHtml", "editoria",
+            "capaUrl", "capaCredito", "fontes", "publicadoEm", "urlOriginal"];
+
+          if (!feed.atualizadoEm) throw new Error("atualizadoEm ausente");
+          if (!("briefing" in feed)) throw new Error("briefing ausente");
+          if (!Array.isArray(feed.materias)) throw new Error("materias não é uma lista");
+          if (feed.materias.length === 0) throw new Error("o feed veio sem nenhuma matéria");
+
+          for (const materia of feed.materias) {
+            const faltando = CAMPOS.filter((campo) => !(campo in materia));
+            if (faltando.length) throw new Error(`${materia.slug}: falta ${faltando.join(", ")}`);
+            const sobrando = Object.keys(materia).filter((campo) => !CAMPOS.includes(campo));
+            if (sobrando.length) throw new Error(`${materia.slug}: campo interno vazou — ${sobrando.join(", ")}`);
+          }
+
+          console.log(`materias: ${feed.materias.length}`);
+          console.log(`atualizadoEm: ${feed.atualizadoEm}`);
+          console.log(`briefing: ${JSON.stringify(feed.briefing)}`);
+          console.log("primeira matéria:");
+          console.log(JSON.stringify(feed.materias[0], null, 2).slice(0, 900));
+          JS
+
+      - name: Pede uma matéria pelo slug
+        run: |
+          set -euo pipefail
+          slug=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("feed.json","utf8")).materias[0].slug)')
+          status=$(curl --silent --show-error --max-time 30 \
+            -o materia.json -w "%{http_code}" \
+            "https://veronicahub.com/api/wire/materia/${slug}.json")
+          echo "HTTP $status — /api/wire/materia/${slug}.json"
+          if [ "$status" != "200" ]; then
+            echo "::error::A rota da matéria não respondeu 200."
+            head -c 600 materia.json
+            exit 1
+          fi
+          node -e '
+            const m = JSON.parse(require("fs").readFileSync("materia.json","utf8"));
+            if (!m.slug || !m.titulo) throw new Error("matéria sem slug ou título");
+            console.log(`${m.editoria} — ${m.titulo}`);
+          '

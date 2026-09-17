@@ -1,0 +1,50 @@
+name: Verificação (typecheck, testes, build)
+
+# Em todo branch, não só no main: o deploy sai do branch conectado à Lovable,
+# então um build quebrado só aparece quando já está em produção. Esta é a
+# checagem que roda ANTES do merge — era a lacuna que fazia o `vite build`
+# só ter um lugar para acontecer de verdade.
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  # Push novo no mesmo branch cancela a verificação anterior: o que importa
+  # é o estado do topo, não o histórico de tentativas.
+  group: verificacao-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Instala o Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Instala as dependências
+        run: bun install --frozen-lockfile
+
+      - name: Confere os tipos
+        run: bun run typecheck
+
+      - name: Roda os testes
+        run: bun run test
+
+      # Último de propósito: é o passo caro, e não vale pagá-lo quando os
+      # tipos ou os testes já reprovaram.
+      - name: Roda o build
+        run: bun run build
+
+# `bun run lint` fica de fora por enquanto, e não por descuido: hoje ele
+# acusa ~470 problemas de formatação preexistentes, quase todos do Prettier,
+# espalhados por arquivos que nada têm a ver com uma mudança nova. Ligado
+# assim, reprovaria todo commit e ensinaria a ignorar o vermelho. Entra
+# quando o `bun run format` passar uma vez no repositório inteiro.
