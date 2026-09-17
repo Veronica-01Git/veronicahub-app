@@ -84,31 +84,36 @@ No painel, em *Configuração > Webhook*:
 
 A verificação é um `GET` que o código já responde. Se falhar, o token não bate.
 
-## 5. Por que a agente caiu no caminho offline
+## 5. Por que a agente parou — um comando responde
 
-Quando a agente responde encaminhando em vez de cotar, a causa tem nome. Em vez
-de abrir a demonstração e gastar uma conversa inteira do modelo para descobrir
-qual é:
+Quando a agente encaminha em vez de cotar, ou recebe mensagem e não responde,
+a causa tem nome. Em vez de abrir a demonstração e gastar uma conversa:
 
 ```
 curl -H "Authorization: Bearer $CRON_SECRET" \
   https://veronicahub.com/api/whatsapp/diagnostico
 ```
 
-Devolve JSON:
-
 ```json
 {
-  "chaveVisivel": true,
-  "modelo": "qwen/qwen3.6-27b",
-  "nucleoRespondeu": false,
-  "status": 429,
-  "motivo": "cota da Groq esgotada (429) no modelo qwen/qwen3.6-27b — na Groq o teto é por modelo",
+  "groq": {
+    "chaveVisivel": true,
+    "modelo": "qwen/qwen3.6-27b",
+    "respondeu": false,
+    "status": 429,
+    "motivo": "cota da Groq esgotada (429) no modelo qwen/qwen3.6-27b — na Groq o teto é por modelo"
+  },
+  "whatsapp": {
+    "configurado": true,
+    "respondeu": false,
+    "status": 401,
+    "motivo": "a Meta recusou o token (401) — provavelmente expirou; o token da tela Configuração da API vale 24h"
+  },
   "verificadoEm": "2026-09-17T00:00:00.000Z"
 }
 ```
 
-Como ler:
+Como ler o bloco `groq`:
 
 - `chaveVisivel: false` — o Worker não enxerga a `GROQ_API_KEY`. Segredo
   configurado no painel e segredo chegando em `process.env` dentro do runtime
@@ -116,17 +121,49 @@ Como ler:
 - `status: 429` — cota. **Na Groq o teto diário é por modelo.** O pipeline de
   matérias roda em `openai/gpt-oss-20b`, que tem cota própria; esgotar a dele
   não esgota a da agente.
-- `status: 401` ou `403` — a chave existe mas foi recusada.
+- `status: 401` ou `403` — a chave existe mas foi recusada. Chave da Groq não
+  expira sozinha: se recusou, foi revogada ou trocada.
 - `status: 404` — o modelo não existe mais com esse nome na Groq.
-- `nucleoRespondeu: true` — a Groq está de pé. Se mesmo assim a agente
-  encaminha, o motivo é outro: alçada comercial, anexo não interpretado, ou a
-  guarda de preço barrando um valor fora da tabela. A tela do chat diz qual.
+- `respondeu: true` — a Groq está de pé. Se mesmo assim a agente encaminha, o
+  motivo é outro: alçada comercial, anexo não interpretado, ou a guarda de
+  preço barrando valor fora da tabela. A tela do chat diz qual.
 
-A chave nunca sai na resposta, nem em pedaço. A sonda gasta **um token** — é a
-menor chamada que a Groq aceita. Mesmo assim o endpoint exige `CRON_SECRET`,
-porque cota é justamente o recurso sob suspeita.
+Como ler o bloco `whatsapp`: a sonda lê o próprio número na Graph API — não
+envia mensagem e não toca em conversa de ninguém. `status: 401` é o caso que
+mais morde, e tem seção própria logo abaixo.
 
-## 6. Banco
+Nenhuma chave e nenhum token saem na resposta, nem em pedaço. A sonda da Groq
+gasta **um token**, a da Meta não gasta nada. Ainda assim o endpoint exige
+`CRON_SECRET`, porque cota é um dos suspeitos.
+
+## 6. As credenciais que expiram (leia antes de marcar demonstração)
+
+Nem toda chave vence, mas as que vencem, vencem calado.
+
+> [!CAUTION]
+> **O token da tela *Configuração da API* da Meta é temporário: vale 24
+> horas.** Gerado na véspera de uma reunião, ele já está morto na hora. O
+> sintoma é cruel — a agente recebe a mensagem, o webhook processa, e a
+> resposta não sai. Para demonstração com data marcada, gere o token **no
+> mesmo dia**, ou crie um **token de Usuário do Sistema** na Meta Business
+> Suite, que é o único que pode ser permanente.
+
+| Credencial | Expira? | Onde renovar |
+|---|---|---|
+| `WHATSAPP_ACCESS_TOKEN` | **Sim — 24h** se vier de *Configuração da API*. Token de Usuário do Sistema pode ser permanente | Meta for Developers / Business Suite |
+| `META_INSTAGRAM_ACCESS_TOKEN` | **Sim** — token longo de usuário dura ~60 dias | Meta for Developers |
+| `GITHUB_TOKEN` (Worker `wire-tv-cron`) | **Sim** — PAT fine-grained sempre tem prazo, e o padrão do formulário é 30 dias | github.com → Settings → Developer settings |
+| `GROQ_API_KEY` | Não expira sozinha; só se revogada | console.groq.com/keys |
+| `MERCADOPAGO_ACCESS_TOKEN` | Não, em produção | Painel do Mercado Pago |
+| `DATABASE_URL`, `PEXELS_API_KEY`, `RESEND_API_KEY` | Não | — |
+| `CRON_SECRET`, `SESSION_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | Não — são gerados por você | — |
+
+O `GITHUB_TOKEN` do `wire-tv-cron` merece atenção porque a falha dele é
+silenciosa: quando vencer, o cron continua disparando, o GitHub recusa, e as
+matérias simplesmente param de sair. Não há tela que avise. Anote a data de
+validade que você escolheu no momento de criar o token.
+
+## 7. Banco
 
 As tabelas `WaConversation` e `WaMessage` vêm da migração `0010`. Aplique com
 o `drizzle-kit` apontando para o `DATABASE_URL` do ambiente. A migração só

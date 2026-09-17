@@ -1,39 +1,53 @@
 /**
- * Por que a agente cai no caminho offline — respondido em um comando.
+ * Por que a agente parou — respondido em um comando, sem abrir a demonstração.
  *
  * O PR #113 já mostra o motivo na tela do chat. O problema é o custo de
- * perguntar: para ler o motivo é preciso abrir a demonstração e mandar uma
- * mensagem, o que gasta uma conversa inteira do modelo. E a demonstração é a
- * página que o cliente abre — não serve como instrumento de medição.
+ * perguntar: para ler o motivo é preciso abrir a demonstração, que é a página
+ * que o cliente abre, e gastar uma conversa inteira do modelo. Este endpoint
+ * troca isso por sondas mínimas, e responde as duas perguntas que derrubam
+ * uma agente de WhatsApp na prática:
  *
- * Este endpoint troca isso por uma sonda de UM token: a menor chamada que a
- * Groq aceita, só para colher o status que ela devolve. Responde três
- * perguntas que a tela não separa:
+ *   1. A Groq aceita a nossa chave? (cota, chave recusada, modelo inexistente)
+ *   2. O token da Meta ainda vale?
  *
- *   1. O Worker enxerga a GROQ_API_KEY? (segredo configurado é uma coisa;
- *      chegar em `process.env` dentro do runtime é outra)
- *   2. Qual modelo a agente pede — porque na Groq a cota diária é POR MODELO,
- *      e o pipeline de matérias usa outro (ver whatsapp-agent.ts).
- *   3. O que a Groq respondeu de fato: 429 de cota, 401 de chave, 404 de
- *      modelo inexistente, ou nada de errado.
+ * A SEGUNDA EXISTE POR UM MOTIVO ESPECÍFICO. O token que a tela
+ * "Configuração da API" da Meta entrega é TEMPORÁRIO — vale 24 horas. Um
+ * token gerado na véspera de uma demonstração já está morto na hora da
+ * reunião, e o sintoma é a agente recebendo a mensagem e não conseguindo
+ * responder, que é o pior momento possível para descobrir. Só token de
+ * Usuário do Sistema pode ser permanente.
  *
- * A chave nunca sai daqui, nem inteira nem em pedaço. O que sai é um booleano.
+ * Nenhuma chave e nenhum token saem na resposta, nem em pedaço. O que sai é
+ * um booleano, um status HTTP e uma frase em português.
  */
 
 import Groq from "groq-sdk";
 import { MODELO_AGENTE, resumirErro } from "./whatsapp-agent";
+import { getWhatsAppConfig } from "./whatsapp-cloud";
 
-export type Diagnostico = {
+export type SondaGroq = {
   /** O runtime enxerga o segredo? Não diz nada sobre o valor dele. */
   readonly chaveVisivel: boolean;
   readonly modelo: string;
-  /** A Groq aceitou a chamada? Quando `false`, `motivo` diz por quê. */
-  readonly nucleoRespondeu: boolean;
-  /** Status HTTP devolvido pela Groq, quando houve um. */
+  readonly respondeu: boolean;
   readonly status: number | null;
   readonly motivo: string | null;
+};
+
+export type SondaWhatsApp = {
+  readonly configurado: boolean;
+  readonly respondeu: boolean;
+  readonly status: number | null;
+  readonly motivo: string | null;
+};
+
+export type Diagnostico = {
+  readonly groq: SondaGroq;
+  readonly whatsapp: SondaWhatsApp;
   readonly verificadoEm: string;
 };
+
+/* ------------------------------------------------------------------- groq */
 
 /** Menor chamada possível: um token de saída, uma palavra de entrada. */
 async function sondarGroq(apiKey: string): Promise<void> {
@@ -45,55 +59,112 @@ async function sondarGroq(apiKey: string): Promise<void> {
   });
 }
 
-/**
- * A sonda é injetável para que o teste não dependa de rede nem de chave —
- * o que importa verificar é a leitura do resultado, não a Groq.
- */
-export async function diagnosticar(
+export async function diagnosticarGroq(
   sonda: (apiKey: string) => Promise<void> = sondarGroq,
   chave: string | undefined = process.env.GROQ_API_KEY,
-): Promise<Diagnostico> {
-  const verificadoEm = new Date().toISOString();
-
+): Promise<SondaGroq> {
+  const base = { modelo: MODELO_AGENTE };
   if (!chave) {
     return {
+      ...base,
       chaveVisivel: false,
-      modelo: MODELO_AGENTE,
-      nucleoRespondeu: false,
+      respondeu: false,
       status: null,
       motivo: "GROQ_API_KEY não configurada",
-      verificadoEm,
     };
   }
-
   try {
     await sonda(chave);
-    return {
-      chaveVisivel: true,
-      modelo: MODELO_AGENTE,
-      nucleoRespondeu: true,
-      status: 200,
-      motivo: null,
-      verificadoEm,
-    };
+    return { ...base, chaveVisivel: true, respondeu: true, status: 200, motivo: null };
   } catch (error) {
     const status = (error as { status?: number } | null)?.status;
     return {
+      ...base,
       chaveVisivel: true,
-      modelo: MODELO_AGENTE,
-      nucleoRespondeu: false,
+      respondeu: false,
       status: typeof status === "number" ? status : null,
       motivo: resumirErro(error),
-      verificadoEm,
     };
   }
 }
 
+/* --------------------------------------------------------------- whatsapp */
+
 /**
- * `GET /api/whatsapp/diagnostico`, com o mesmo `CRON_SECRET` que os demais
+ * Lê o próprio número na Graph API. É a chamada mais barata que prova que o
+ * token vale: não envia mensagem, não toca em conversa de ninguém, e devolve
+ * 401 quando o token expirou.
+ */
+async function sondarWhatsApp(config: {
+  phoneNumberId: string;
+  accessToken: string;
+  graphVersion: string;
+}): Promise<number> {
+  const resposta = await fetch(
+    `https://graph.facebook.com/${config.graphVersion}/${config.phoneNumberId}?fields=id`,
+    { headers: { authorization: `Bearer ${config.accessToken}` } },
+  );
+  return resposta.status;
+}
+
+/** Traduz o status da Graph sem nunca ecoar o corpo — erro de auth vaza token. */
+function motivoDaGraph(status: number): string | null {
+  if (status === 200) return null;
+  if (status === 401)
+    return "a Meta recusou o token (401) — provavelmente expirou; o token da tela Configuração da API vale 24h";
+  if (status === 403) return "a Meta recusou o token (403) — permissão faltando ou app sem revisão";
+  if (status === 190) return "token inválido ou expirado (190)";
+  if (status === 404) return "WHATSAPP_PHONE_NUMBER_ID não encontrado na Meta (404)";
+  return `a Meta respondeu ${status}`;
+}
+
+export async function diagnosticarWhatsApp(
+  sonda: (config: {
+    phoneNumberId: string;
+    accessToken: string;
+    graphVersion: string;
+  }) => Promise<number> = sondarWhatsApp,
+  config = getWhatsAppConfig(),
+): Promise<SondaWhatsApp> {
+  if (!config) {
+    return {
+      configurado: false,
+      respondeu: false,
+      status: null,
+      motivo: "WHATSAPP_PHONE_NUMBER_ID ou WHATSAPP_ACCESS_TOKEN não configurados",
+    };
+  }
+  try {
+    const status = await sonda(config);
+    return {
+      configurado: true,
+      respondeu: status === 200,
+      status,
+      motivo: motivoDaGraph(status),
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return {
+      configurado: true,
+      respondeu: false,
+      status: null,
+      motivo: `falha ao falar com a Meta: ${msg.slice(0, 120)}`,
+    };
+  }
+}
+
+/* ----------------------------------------------------------------- junção */
+
+export async function diagnosticar(): Promise<Diagnostico> {
+  // Em paralelo: são independentes e o endpoint é chamado por gente esperando.
+  const [groq, whatsapp] = await Promise.all([diagnosticarGroq(), diagnosticarWhatsApp()]);
+  return { groq, whatsapp, verificadoEm: new Date().toISOString() };
+}
+
+/**
+ * `GET /api/whatsapp/diagnostico`, com o mesmo `CRON_SECRET` dos demais
  * endpoints de operação. Protegido não porque vaze segredo — não vaza — mas
- * porque cada chamada consome cota da Groq, e cota é justamente o recurso
- * sob suspeita.
+ * porque cada chamada consome cota da Groq, e cota é um dos suspeitos.
  */
 export async function handleWhatsAppDiagnostico(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET;

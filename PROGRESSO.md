@@ -1668,3 +1668,34 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   API da Cloudflare.
 - 62 testes passando (eram 57), typecheck, lint e build Cloudflare/Nitro
   limpos. Nenhuma rota, componente ou tabela foi removida.
+
+## Auditoria de credenciais: o que vence, e o token de 24h que morderia no dia 19 (2026-09-17)
+
+- Pergunta do responsável: "não é alguma chave que venceu? geralmente deixo
+  30 dias". **Para o 1102, não** — 1102 é teto de CPU do Worker, dispara antes
+  de qualquer chamada de API e independe de chave. Chave vencida daria 401 da
+  API em questão e uma página normal, não tela de erro da Cloudflare.
+- **Mas a pergunta achou outra coisa, e essa é séria.** O token que a tela
+  *Configuração da API* da Meta entrega é **temporário: vale 24 horas**.
+  Gerado na véspera da demonstração de 19/09, estaria morto na hora. O sintoma
+  é o pior possível: a agente recebe a mensagem, o webhook processa, e a
+  resposta não sai. Só token de **Usuário do Sistema** pode ser permanente.
+- Levantadas as 37 variáveis de ambiente do projeto e separadas por validade.
+  Vencem: `WHATSAPP_ACCESS_TOKEN` (24h, ou permanente se for Usuário do
+  Sistema), `META_INSTAGRAM_ACCESS_TOKEN` (~60 dias) e o `GITHUB_TOKEN` do
+  Worker `wire-tv-cron` (PAT fine-grained sempre tem prazo; o padrão do
+  formulário é 30 dias, e o Worker foi criado em 13/09). Não vencem:
+  `GROQ_API_KEY` (só se revogada), Mercado Pago, Neon, Pexels, Resend, e os
+  segredos gerados por nós.
+- O `GITHUB_TOKEN` do cron merece atenção porque **falha calado**: quando
+  vencer, o Cron Trigger continua disparando, o GitHub recusa, e as matérias
+  param de sair sem nenhuma tela avisando.
+- **Virou verificável em vez de virar recado**: o endpoint de diagnóstico
+  agora sonda as duas pontas. O bloco `groq` continua como estava; o bloco
+  `whatsapp` lê o próprio número na Graph API — não envia mensagem, não toca
+  em conversa de ninguém — e um 401 responde "provavelmente expirou; o token
+  da tela Configuração da API vale 24h". Nenhum token sai na resposta, e há
+  teste garantindo isso.
+- Tabela de validade das credenciais registrada em `AGENTE-WHATSAPP.md`,
+  seção 6, com bloco CAUTION sobre o token de 24h.
+- 67 testes passando (eram 64), typecheck, lint e build limpos.

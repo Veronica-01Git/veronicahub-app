@@ -29,7 +29,8 @@ const {
 } = await import("../src/lib/whatsapp-agent.ts");
 const { podeCotar, buscarPreco, produtosDaCidade, produtoPorId, REGRAS_EXPRESS_ENTULHO } =
   await import("../src/lib/whatsapp-rules.ts");
-const { diagnosticar } = await import("../src/lib/whatsapp-diagnostico.ts");
+const { diagnosticarGroq, diagnosticarWhatsApp } =
+  await import("../src/lib/whatsapp-diagnostico.ts");
 const { MODELO_AGENTE } = await import("../src/lib/whatsapp-agent.ts");
 
 const SEGREDO = "segredo-de-teste-do-app-meta";
@@ -228,22 +229,22 @@ test("cada falha do núcleo tem motivo próprio — três causas, três mensagen
 /* ------------------------------------------------------------ diagnóstico */
 
 test("diagnóstico sem chave acusa a chave, não a Groq", async () => {
-  const d = await diagnosticar(async () => {
+  const d = await diagnosticarGroq(async () => {
     throw new Error("a sonda não devia ter sido chamada sem chave");
   }, undefined);
 
   assert.equal(d.chaveVisivel, false);
-  assert.equal(d.nucleoRespondeu, false);
+  assert.equal(d.respondeu, false);
   assert.equal(d.status, null);
   assert.equal(d.motivo, "GROQ_API_KEY não configurada");
   assert.equal(d.modelo, MODELO_AGENTE);
 });
 
 test("diagnóstico com a Groq respondendo devolve o caminho limpo", async () => {
-  const d = await diagnosticar(async () => {}, "chave-de-teste");
+  const d = await diagnosticarGroq(async () => {}, "chave-de-teste");
 
   assert.equal(d.chaveVisivel, true);
-  assert.equal(d.nucleoRespondeu, true);
+  assert.equal(d.respondeu, true);
   assert.equal(d.status, 200);
   assert.equal(d.motivo, null);
 });
@@ -254,15 +255,55 @@ test("diagnóstico distingue cota, chave recusada e modelo inexistente", async (
     [401, "recusou a chave"],
     [404, "modelo não encontrado"],
   ]) {
-    const d = await diagnosticar(async () => {
+    const d = await diagnosticarGroq(async () => {
       throw Object.assign(new Error("groq"), { status });
     }, "chave-de-teste");
 
     assert.equal(d.chaveVisivel, true, `status ${status} não deve acusar a chave como ausente`);
-    assert.equal(d.nucleoRespondeu, false);
+    assert.equal(d.respondeu, false);
     assert.equal(d.status, status);
     assert.equal(d.motivo.includes(trecho), true, `motivo de ${status}: ${d.motivo}`);
   }
+});
+
+const CONFIG_META = {
+  phoneNumberId: "123",
+  accessToken: "token-de-teste",
+  graphVersion: "v21.0",
+};
+
+test("token da Meta expirado é dito com todas as letras", async () => {
+  // O token da tela "Configuração da API" vale 24 horas. Gerado na véspera de
+  // uma reunião, ele já está morto na hora — e o sintoma é a agente receber a
+  // mensagem e não conseguir responder. Este teste existe para que o painel
+  // diga "expirou" em vez de "falhou".
+  const d = await diagnosticarWhatsApp(async () => 401, CONFIG_META);
+
+  assert.equal(d.configurado, true);
+  assert.equal(d.respondeu, false);
+  assert.equal(d.status, 401);
+  assert.match(d.motivo, /expirou/);
+  assert.match(d.motivo, /24h/);
+});
+
+test("token da Meta válido passa, e nenhum segredo sai na resposta", async () => {
+  const ok = await diagnosticarWhatsApp(async () => 200, CONFIG_META);
+  assert.equal(ok.respondeu, true);
+  assert.equal(ok.status, 200);
+  assert.equal(ok.motivo, null);
+
+  const serializado = JSON.stringify(ok);
+  assert.equal(serializado.includes("token-de-teste"), false, "token não pode vazar");
+  assert.equal(serializado.includes("123"), false, "phone number id não precisa sair");
+});
+
+test("sem configuração de WhatsApp, o diagnóstico diz o que falta", async () => {
+  const d = await diagnosticarWhatsApp(async () => {
+    throw new Error("não devia sondar sem configuração");
+  }, null);
+
+  assert.equal(d.configurado, false);
+  assert.match(d.motivo, /WHATSAPP_PHONE_NUMBER_ID/);
 });
 
 test("a agente e o pipeline de matérias não dividem o mesmo modelo", async () => {
