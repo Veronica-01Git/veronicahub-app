@@ -1606,3 +1606,65 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - **MAIS Locações:** mensagem pronta para o suporte, para o cliente copiar e
   enviar — ele é quem tem contrato. Duas coisas a observar na resposta: se a API
   é só de leitura ou também de escrita, e se há custo adicional.
+
+## Erro 1102 no celular: o que é, o que não é, e o que dá para blindar (2026-09-17)
+
+- **Sintoma**: `Error 1102 — Worker exceeded resource limits` ao abrir o site
+  pelo celular às 21:39 de Brasília (00:39 UTC), enquanto o mesmo site
+  navegava normalmente no computador.
+- **Não foi push de branch.** O Worker `veronicahub-app` estava publicado
+  desde 16/09 23:03:57 UTC; o push do branch saiu às ~00:30 e, às 00:47, o
+  Worker seguia marcado na mesma versão. O `main` também não tinha andado,
+  então a armadilha da capa (13/09) não estava em jogo. O erro caiu sobre um
+  build de 1h36 antes.
+- **1102 não é crédito, cota nem fatura.** Cota diária de requisição estourada
+  é o código **1027**. 1102 é uma requisição específica passando do teto de
+  **CPU ou memória** no data center. Mas o teto de CPU é do plano: **10 ms por
+  requisição no Workers gratuito, 30 s no pago** — então "é o plano?" é
+  pergunta legítima, e é a primeira coisa a conferir.
+- **Por que num aparelho sim e no outro não**, em ordem: (a) o celular entra
+  na rede por um ponto de presença diferente do da internet de casa, com
+  isolate próprio, frio; (b) no computador a navegação é client-side pelo
+  TanStack Router, sem passar pelo Worker; (c) memória do isolate acumula
+  conforme ele serve rotas. Nada disso tem a ver com o aparelho.
+- **Uma hipótese minha foi descartada por medição, e vale registrar para não
+  voltar.** Eu suspeitei que `/veronica-curriculo-certo` parseasse ~4 MB de
+  `three.js`, `docx`, `pdf-lib` e `pdfjs-dist` no SSR. **Está errado**: essas
+  bibliotecas não estão no grafo estático de nenhuma rota — `three` já é
+  `await import("three")` dentro do componente, e o bundler separou o resto.
+  Medido: o boot do Worker carrega 0,12 MB em 3 módulos, e cada rota parseia
+  1,6–2,0 MB quando o isolate a serve pela primeira vez.
+- **O que a medição mostrou de verdade**: o peso é igual em todas as rotas e
+  vem de `_ssr/ssr.mjs`, que arrasta `@tanstack/react-router` (641 KB),
+  `neondatabase/serverless` (178 KB), `drizzle-orm` (174 KB) e `mercadopago`
+  (170 KB) para qualquer página — inclusive a demonstração da Express, que
+  não toca em pagamento nem em banco. É como o TanStack Start empacota as
+  server functions, não é defeito de uma rota.
+- **Consequência**: num isolate frio, a renderização paga o parse desse bundle
+  dentro da requisição do cliente. Com teto de 10 ms isso estoura; com 30 s,
+  não. É o que faz o plano ser a suspeita principal.
+- **O que foi blindado**: cache de borda para `/preview/express-operations-b`,
+  em `src/lib/edge-cache.ts`. As telas de demonstração não têm loader, não
+  consultam banco e não dependem de quem olha — o conteúdo vem de
+  `whatsapp-rules.ts`, que é código. A primeira visita em cada data center
+  paga a renderização; as seguintes saem do cache, sem React e sem pico. O
+  cliente abrindo a demonstração no celular dele em 19/09 cai no caminho
+  barato.
+- **O que o cache nunca faz**, porque o risco de cache compartilhado de HTML é
+  entregar a página de uma pessoa para outra: lista de rotas fechada e
+  explícita; requisição com `cookie` ou `Authorization` não é servida do
+  cache; resposta com `Set-Cookie` não é guardada; só HTML com status 200
+  entra — guardar um erro transformaria uma falha momentânea em cinco minutos
+  de falha para todo mundo naquele data center. TTL de 5 minutos porque o
+  deploy não limpa este cache.
+- **Isto não corrige a causa.** Se o teto for o do plano gratuito, o resto do
+  site continua exposto. A verificação é um clique no painel da Cloudflare em
+  *Workers & Pages > Plans*, e os Workers Logs do Worker `veronicahub-app`
+  dizem se a exceção foi de CPU ou de memória — o Ray ID do caso é
+  `a3c40d768d97cab3`, 00:39 UTC de 17/09.
+- **Limite desta sessão**: produção é inalcançável daqui. O proxy de rede do
+  ambiente recusa `veronicahub.com` por política, tanto no `curl` quanto no
+  WebFetch. Nada foi medido em produção; tudo acima veio do build local e da
+  API da Cloudflare.
+- 62 testes passando (eram 57), typecheck, lint e build Cloudflare/Nitro
+  limpos. Nenhuma rota, componente ou tabela foi removida.

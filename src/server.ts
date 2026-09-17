@@ -5,6 +5,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleWhatsAppVerify, handleWhatsAppWebhook } from "./lib/whatsapp-webhook";
 import { handleWhatsAppDiagnostico } from "./lib/whatsapp-diagnostico";
+import { guardarNoCacheDeBorda, lerDoCacheDeBorda, podeCachear } from "./lib/edge-cache";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleNewsSitemap, handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import {
@@ -293,10 +294,23 @@ const app = {
       }
     }
 
+    // Telas de demonstração: servidas do cache do Cloudflare quando já foram
+    // renderizadas naquele data center. Evita pagar a renderização — e o pico
+    // de CPU que derrubou o Worker com 1102 — na visita do cliente.
+    const cacheavel = podeCachear(request);
+    if (cacheavel) {
+      const guardada = await lerDoCacheDeBorda(request);
+      if (guardada) return guardada;
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalizada = await normalizeCatastrophicSsrResponse(response);
+      if (cacheavel) {
+        return guardarNoCacheDeBorda(request, normalizada, extrairWaitUntil(ctx));
+      }
+      return normalizada;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
