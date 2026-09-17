@@ -40,20 +40,43 @@ function cacheFalso() {
   return guardado;
 }
 
-test("só as rotas de demonstração entram no cache compartilhado", () => {
-  assert.equal(podeCachear(new Request(DEMO)), true);
-  assert.equal(
-    podeCachear(new Request("https://veronicahub.com/preview/express-operations-b")),
-    true,
-  );
-
-  // Nada fora da lista fechada — nem a home, nem o painel, nem a outra demo.
-  for (const fora of [
-    "https://veronicahub.com/",
-    "https://veronicahub.com/admin/wire",
+test("as páginas públicas e estáticas entram no cache compartilhado", () => {
+  for (const dentro of [
+    DEMO,
+    "https://veronicahub.com/preview/express-operations-b",
+    "https://veronicahub.com/clientes/express-entulho/proposta",
     "https://veronicahub.com/clientes/express-entulho/operacoes-demo",
+    "https://veronicahub.com/",
+    "https://veronicahub.com/comandos",
+    "https://veronicahub.com/selos",
+  ]) {
+    assert.equal(podeCachear(new Request(dentro)), true, dentro);
+  }
+});
+
+test("nada ligado a login ou carteira entra no cache, nunca", () => {
+  // O risco aqui não é lentidão, é vazamento: HTML de pessoa em cache
+  // compartilhado seria entregue a outra pessoa.
+  for (const fora of [
+    "https://veronicahub.com/admin/wire",
+    "https://veronicahub.com/admin",
+    "https://veronicahub.com/conta",
+    "https://veronicahub.com/video-ia",
     "https://veronicahub.com/veronica-curriculo-certo",
+    "https://veronicahub.com/veronica-curriculo-certo-rh",
+    "https://veronicahub.com/api/whatsapp/diagnostico",
+  ]) {
+    assert.equal(podeCachear(new Request(fora)), false, fora);
+  }
+});
+
+test("o casamento de rota é exato — prefixo parecido não entra", () => {
+  for (const fora of [
     "https://veronicahub.com/preview/express-operations-bXY",
+    "https://veronicahub.com/comandos-extra",
+    "https://veronicahub.com/blog",
+    "https://veronicahub.com/blog/alguma-materia",
+    "https://veronicahub.com/clientes/outra-empresa",
   ]) {
     assert.equal(podeCachear(new Request(fora)), false, fora);
   }
@@ -81,6 +104,12 @@ test("guarda o HTML e serve a visita seguinte sem renderizar de novo", async () 
   assert.ok(guardada, "a segunda visita sai do cache");
   assert.equal(await guardada.text(), "<html>matriz</html>");
   assert.match(guardada.headers.get("cache-control") ?? "", /s-maxage=300/);
+  assert.equal(
+    guardada.headers.get("x-veronica-edge-cache"),
+    "hit",
+    "o acerto tem de ser visível num curl -I",
+  );
+  assert.equal(resposta.headers.get("x-veronica-edge-cache"), "store");
 });
 
 test("erro nunca é guardado — falha momentânea não vira cinco minutos de falha", async () => {

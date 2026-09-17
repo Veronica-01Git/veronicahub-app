@@ -33,10 +33,47 @@
  */
 
 /**
- * Lista fechada. Só demonstração pública, sem sessão, sem banco, `noindex`.
- * Acrescentar rota aqui exige conferir as três coisas antes.
+ * Lista fechada, e o critério para entrar nela é objetivo: a rota não pode ter
+ * `loader`, `beforeLoad` nem server function — foi assim que cada uma abaixo
+ * foi conferida. O conteúdo vem de código, então renderizar de novo a cada
+ * visita produz sempre o mesmo HTML.
+ *
+ * O que NUNCA entra, mesmo passando nesse teste: qualquer rota ligada a
+ * login ou carteira (`/admin/*`, `/video-ia`, `/veronica-curriculo-certo*`,
+ * `/conta`). Elas renderizam conteúdo de pessoa, e HTML de pessoa em cache
+ * compartilhado é vazamento de dado, não otimização.
+ *
+ * Fora dali, o Wire e o blog também ficam de fora de propósito: saem do banco
+ * e o pipeline editorial publica de hora em hora, então cache atrasaria
+ * matéria nova sem resolver nada que importe para 19/09.
  */
-const ROTAS_CACHEAVEIS: readonly RegExp[] = [/^\/preview\/express-operations-b(\/|$)/];
+const ROTAS_CACHEAVEIS: readonly RegExp[] = [
+  // Demonstrações e propostas — é o que o cliente abre no celular dele.
+  /^\/preview\/express-operations-b(\/|$)/,
+  /^\/clientes\/express-entulho(\/|$)/,
+  // Institucional e vitrine, todas estáticas a partir do catálogo em código.
+  /^\/$/,
+  /^\/comandos$/,
+  /^\/aula-zero$/,
+  /^\/prompt-packs$/,
+  /^\/selos$/,
+  /^\/veronica-rede$/,
+  /^\/veronica-analytics$/,
+  /^\/veronica-nautica$/,
+  /^\/veronica-security$/,
+];
+
+/**
+ * Cinto e suspensório. Mesmo que uma rota dessas acabe casando com o padrão
+ * acima por descuido futuro, nada ligado a sessão passa daqui.
+ */
+const NUNCA_CACHEAR: readonly RegExp[] = [
+  /^\/admin(\/|$)/,
+  /^\/conta(\/|$)/,
+  /^\/video-ia(\/|$)/,
+  /^\/veronica-curriculo-certo/,
+  /^\/api(\/|$)/,
+];
 
 /**
  * Cinco minutos. Curto de propósito: o deploy não limpa este cache, então o
@@ -74,6 +111,8 @@ export function podeCachear(request: Request): boolean {
   // ganho — as telas de demonstração não leem nada da query.
   if (url.search) return false;
 
+  if (NUNCA_CACHEAR.some((r) => r.test(url.pathname))) return false;
+
   return ROTAS_CACHEAVEIS.some((r) => r.test(url.pathname));
 }
 
@@ -82,7 +121,19 @@ export async function lerDoCacheDeBorda(request: Request): Promise<Response | un
   const cache = cacheDeBorda();
   if (!cache) return undefined;
   try {
-    return (await cache.match(request)) ?? undefined;
+    const guardada = await cache.match(request);
+    if (!guardada) return undefined;
+
+    // Marca o acerto para dar como conferir sem adivinhar: um
+    // `curl -I` na rota mostra `x-veronica-edge-cache: hit` quando a página
+    // saiu do cache, e `store` quando acabou de ser renderizada e guardada.
+    const headers = new Headers(guardada.headers);
+    headers.set("x-veronica-edge-cache", "hit");
+    return new Response(guardada.body, {
+      status: guardada.status,
+      statusText: guardada.statusText,
+      headers,
+    });
   } catch (error) {
     console.error("Falha ao ler o cache de borda:", error);
     return undefined;
