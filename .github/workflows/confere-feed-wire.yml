@@ -109,3 +109,44 @@ jobs:
             console.log(`items: ${f.items.length}`);
             console.log(`primeiro: [${i.tags.join(", ")}] ${i.title}`);
           '
+
+      # O curl acima é um servidor pedindo. Um navegador pede diferente: manda
+      # Origin, e antes disso pode mandar um pré-voo OPTIONS. É esse caminho
+      # que decide se um leitor hospedado em outro domínio consegue ler.
+      - name: Confere o CORS como um navegador faria
+        run: |
+          set -euo pipefail
+          origem="https://leitor-externo.example"
+          alvo="https://veronicahub.com/api/wire/jsonfeed.json"
+
+          echo "--- pré-voo OPTIONS"
+          curl --silent --show-error --max-time 30 -o /dev/null -D preflight.txt \
+            -X OPTIONS -H "Origin: $origem" -H "Access-Control-Request-Method: GET" "$alvo"
+          head -1 preflight.txt
+          grep -iE '^access-control-allow-(origin|methods|headers):' preflight.txt
+
+          echo "--- GET com Origin, como o app faz"
+          status=$(curl --silent --show-error --max-time 30 \
+            -o navegador.json -D navegador.txt -w "%{http_code}" \
+            -H "Origin: $origem" -H "Accept: application/json" "$alvo")
+          echo "HTTP $status"
+          grep -iE '^(content-type|access-control-allow-origin|server|cf-cache-status|www-authenticate|set-cookie):' navegador.txt || true
+
+          grep -qi '^access-control-allow-origin: \*' navegador.txt || {
+            echo "::error::Sem CORS na resposta com Origin — aí sim seria o nosso lado."
+            exit 1
+          }
+          if grep -qi '^www-authenticate:' navegador.txt; then
+            echo "::error::A rota está pedindo autenticação."
+            exit 1
+          fi
+
+          node -e '
+            const f = JSON.parse(require("fs").readFileSync("navegador.json","utf8"));
+            console.log(`version: ${f.version}`);
+            console.log(`title:   ${f.title}`);
+            console.log(`items:   ${f.items.length}`);
+            const quebrados = f.items.filter((i) => !i.id || !i.title || !i.content_html);
+            if (quebrados.length) throw new Error(`${quebrados.length} itens sem id/title/content_html`);
+            console.log("todos os itens têm id, title e content_html");
+          '
