@@ -240,7 +240,11 @@ export function mapearItemJsonFeed(materia: WireFeedMateria): Record<string, unk
   };
   if (materia.publicadoEm) item.date_published = materia.publicadoEm;
   if (materia.capaUrl) item.image = materia.capaUrl;
-  if (materia.capaCredito) item.attribution = materia.capaCredito;
+  // Underscore obrigatório: o JSON Feed reserva os nomes sem prefixo para os
+  // campos da própria especificação, e manda toda extensão começar com "_".
+  // Sem ele, um leitor que valida o padrão descarta o item como inválido —
+  // foi o que derrubou a primeira tentativa de ligar o leitor do Wire.
+  if (materia.capaCredito) item._attribution = materia.capaCredito;
   return item;
 }
 

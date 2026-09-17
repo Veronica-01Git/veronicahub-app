@@ -145,4 +145,29 @@ test("o mesmo acervo sai também nos nomes do padrão JSON Feed", () => {
   assert.equal(item.image, "https://veronicahub.com/images/blog-covers/a.jpg");
   // Editoria vira tag: é como o padrão representa categoria.
   assert.deepEqual(item.tags, ["tech"]);
+
+  // Todo campo fora da especificação precisa de underscore. Sem isso, um
+  // leitor que valida o padrão descarta o item.
+  const PADRAO = [
+    "id",
+    "url",
+    "external_url",
+    "title",
+    "content_html",
+    "content_text",
+    "summary",
+    "image",
+    "banner_image",
+    "date_published",
+    "date_modified",
+    "authors",
+    "author",
+    "tags",
+    "language",
+    "attachments",
+  ];
+  const forasteiros = Object.keys(item).filter(
+    (campo) => !PADRAO.includes(campo) && !campo.startsWith("_"),
+  );
+  assert.deepEqual(forasteiros, [], `fora do padrão sem underscore: ${forasteiros}`);
 });
