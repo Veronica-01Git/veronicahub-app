@@ -1523,3 +1523,86 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
   já implementado, só menos impressionante.
 - Raspagem de tela do sistema não é opção: é frágil e normalmente fere os
   termos de uso do fornecedor.
+
+## Diagnóstico da agente vira um comando, e a hipótese da cota não se sustenta (2026-09-17)
+
+- A agente em produção cai no caminho offline. O PR #113 já mostrava o motivo
+  na tela do chat, mas ler o motivo custava caro: abrir a demonstração — que é
+  a página que o cliente abre — e gastar uma conversa inteira do modelo, sendo
+  que a cota é justamente o recurso sob suspeita.
+- Criado `GET /api/whatsapp/diagnostico`, protegido por `CRON_SECRET`. Faz uma
+  sonda de **um token** na Groq e devolve JSON com quatro respostas separadas:
+  se o Worker enxerga a `GROQ_API_KEY`, qual modelo a agente pede, o status HTTP
+  que a Groq devolveu e o motivo em português. A chave não sai na resposta.
+  Um `curl` responde a pendência, de qualquer terminal, sem abrir navegador.
+- **A suspeita principal não se sustenta com a evidência do próprio
+  repositório.** A hipótese era "cota diária da Groq estourada pelo pipeline
+  horário de matérias". Mas na Groq **o teto diário é por modelo**, e os dois
+  caminhos usam modelos diferentes: a agente pede `qwen/qwen3.6-27b`, o
+  pipeline pede `openai/gpt-oss-20b`. O próprio `articles-server.ts` já
+  dependia disso antes desta sessão — ele trata o 429 do 20b caindo para o
+  120b, com o comentário "os modelos GPT-OSS têm cotas gratuitas separadas".
+  Se a cota fosse compartilhada, esse fallback nunca teria funcionado.
+- Mais: o pipeline de matérias **não roda no Worker**. Quem chama a Groq lá é
+  o runner do GitHub Actions (`generate-article.yml`); o Worker de cron só
+  dispara o workflow. São processos, chaves de ambiente e modelos distintos.
+- Corrigido o comentário e a mensagem de 429 em `whatsapp-agent.ts`, que
+  afirmavam o teto compartilhado. Uma explicação errada dentro do código é pior
+  que nenhuma: ela manda a próxima pessoa procurar no lugar errado.
+- Novo teste de regressão trava a premissa: se algum dia a agente e o pipeline
+  apontarem para o mesmo modelo, o teste quebra e avisa que o raciocínio das
+  cotas separadas deixou de valer.
+- **O que ainda não foi confirmado, e por quê.** Não consegui medir produção
+  desta sessão: o proxy do ambiente recusa `veronicahub.com` com 403 no CONNECT.
+  A confirmação é uma chamada ao endpoint novo depois do deploy. As três
+  hipóteses que restam, em ordem de suspeita: `chaveVisivel: false` (segredo
+  configurado no painel não é o mesmo que segredo chegando em `process.env`
+  dentro do runtime do Worker — e esse caminho nunca foi provado em produção,
+  porque o único outro consumidor da Groq roda no Actions); `404` (o modelo
+  `qwen/qwen3.6-27b` pode não existir mais com esse nome); e `429` de verdade.
+- **Ressalva à conclusão prática que estava anotada.** "Se for 429, a correção
+  é chave separada ou plano maior, não código" — não necessariamente. O
+  pipeline de matérias resolve o 429 dele em código, caindo para um segundo
+  modelo com cota própria. A agente não tem fallback nenhum. Se o diagnóstico
+  der 429, esse é o caminho mais barato. Não foi implementado nesta sessão de
+  propósito: antes de escolher o remédio, é preciso saber a doença.
+- 57 testes passando (eram 53), typecheck limpo, lint limpo nos arquivos
+  alterados. Sem tocar nas demonstrações existentes.
+
+## Os cinco bloqueios que são do cliente, num documento só (2026-09-17)
+
+- Criado `PENDENCIAS-CLIENTE.md`: o que só o dono da Express Entulho pode
+  responder, escrito para ser lido junto com ele, com o efeito de cada lacuna
+  sobre o que a agente faz — e a garantia, em todos os casos, de que ela
+  encaminha em vez de inventar.
+- **A matriz de preços medida, e o número é duro:** 8 cidades × produtos
+  disponíveis × 2 materiais dá **34 combinações; 4 estão preenchidas; 30 estão
+  vazias**. Duas em Itajaí (tambor com gesso, caçamba grande com gesso) e 28
+  fora de Itajaí. E isso supondo que só existam dois materiais — cada material
+  novo multiplica a matriz (com três, ela vai a 51).
+- Em vez de pedir trinta números, o documento faz três perguntas. A que mais
+  vale é **"fora de Itajaí, o preço muda como?"**: se for o valor de Itajaí
+  mais um deslocamento por cidade, são sete números e a tabela se propaga
+  sozinha; se cada cidade tiver tabela própria, são vinte e oito, e todo preço
+  novo no futuro vira mais sete. A resposta muda a forma da estrutura de dados,
+  então tem de vir antes do preenchimento.
+- **Sobre o tambor a R$ 180 sair mais barato que a caçamba menor a R$ 220:**
+  provavelmente não há erro nenhum. Se o tambor for menor em volume, custar
+  menos é o esperado — a estranheza vinha de supormos que "tambor" fosse o
+  equipamento maior, suposição nossa e não informação da empresa. A pergunta
+  que resolve é a capacidade em m³ dos três, e ela rende duas vezes: confirma a
+  ordem de preço e dá à agente o que ela mais precisa para vender, porque hoje,
+  perguntada "qual eu escolho?", ela não sabe o tamanho de nada.
+- **Meta e endereço, na ordem certa:** decidir qual bairro consta no Cartão CNPJ
+  (a NFS-e diz Vila Operária, o Google Meu Negócio diz São João), **corrigir o
+  que estiver errado, e só então submeter**. Submeter com os dois divergentes é
+  gastar uma rodada de análise para receber "não" — e o relógio da Meta não
+  acelera com esforço nosso. Com a verificação parada, o software pode estar
+  pronto em 19/09 e mesmo assim a agente não atender ninguém: só o número de
+  teste da Meta, com destinatários cadastrados à mão.
+- Registrado também o que não estava na lista mas depende do cliente: **o chip
+  novo**. Não é necessário para a demonstração de 19/09, é para atender cliente
+  real, e leva dias entre comprar, ativar e cadastrar.
+- **MAIS Locações:** mensagem pronta para o suporte, para o cliente copiar e
+  enviar — ele é quem tem contrato. Duas coisas a observar na resposta: se a API
+  é só de leitura ou também de escrita, e se há custo adicional.
