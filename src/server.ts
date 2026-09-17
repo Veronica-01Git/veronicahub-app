@@ -4,6 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleWhatsAppVerify, handleWhatsAppWebhook } from "./lib/whatsapp-webhook";
+import { handleWhatsAppDiagnostico } from "./lib/whatsapp-diagnostico";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleNewsSitemap, handleSitemap, handleRssFeed } from "./lib/seo-feed";
 import {
@@ -120,6 +121,17 @@ const app = {
         }
       }
       return new Response("method not allowed", { status: 405 });
+    }
+
+    // Por que a agente cai no offline, sem abrir a demonstração e sem gastar
+    // uma conversa: uma sonda de um token e o status que a Groq devolveu.
+    if (url.pathname === "/api/whatsapp/diagnostico" && request.method === "GET") {
+      try {
+        return await handleWhatsAppDiagnostico(request);
+      } catch (error) {
+        console.error("Erro no diagnóstico do agente de WhatsApp:", error);
+        return new Response("error", { status: 500 });
+      }
     }
 
     if (url.pathname === "/api/img") {

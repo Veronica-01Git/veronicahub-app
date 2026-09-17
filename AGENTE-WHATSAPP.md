@@ -84,7 +84,49 @@ No painel, em *Configuração > Webhook*:
 
 A verificação é um `GET` que o código já responde. Se falhar, o token não bate.
 
-## 5. Banco
+## 5. Por que a agente caiu no caminho offline
+
+Quando a agente responde encaminhando em vez de cotar, a causa tem nome. Em vez
+de abrir a demonstração e gastar uma conversa inteira do modelo para descobrir
+qual é:
+
+```
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  https://veronicahub.com/api/whatsapp/diagnostico
+```
+
+Devolve JSON:
+
+```json
+{
+  "chaveVisivel": true,
+  "modelo": "qwen/qwen3.6-27b",
+  "nucleoRespondeu": false,
+  "status": 429,
+  "motivo": "cota da Groq esgotada (429) no modelo qwen/qwen3.6-27b — na Groq o teto é por modelo",
+  "verificadoEm": "2026-09-17T00:00:00.000Z"
+}
+```
+
+Como ler:
+
+- `chaveVisivel: false` — o Worker não enxerga a `GROQ_API_KEY`. Segredo
+  configurado no painel e segredo chegando em `process.env` dentro do runtime
+  são coisas diferentes; este campo separa as duas.
+- `status: 429` — cota. **Na Groq o teto diário é por modelo.** O pipeline de
+  matérias roda em `openai/gpt-oss-20b`, que tem cota própria; esgotar a dele
+  não esgota a da agente.
+- `status: 401` ou `403` — a chave existe mas foi recusada.
+- `status: 404` — o modelo não existe mais com esse nome na Groq.
+- `nucleoRespondeu: true` — a Groq está de pé. Se mesmo assim a agente
+  encaminha, o motivo é outro: alçada comercial, anexo não interpretado, ou a
+  guarda de preço barrando um valor fora da tabela. A tela do chat diz qual.
+
+A chave nunca sai na resposta, nem em pedaço. A sonda gasta **um token** — é a
+menor chamada que a Groq aceita. Mesmo assim o endpoint exige `CRON_SECRET`,
+porque cota é justamente o recurso sob suspeita.
+
+## 6. Banco
 
 As tabelas `WaConversation` e `WaMessage` vêm da migração `0010`. Aplique com
 o `drizzle-kit` apontando para o `DATABASE_URL` do ambiente. A migração só

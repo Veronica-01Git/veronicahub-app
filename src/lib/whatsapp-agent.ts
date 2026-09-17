@@ -20,7 +20,14 @@ import {
   type RegrasNegocio,
 } from "./whatsapp-rules";
 
-const MODEL = "qwen/qwen3.6-27b";
+/**
+ * Modelo da agente. Exportado porque o diagnóstico precisa sondar EXATAMENTE
+ * este, e não outro: na Groq a cota diária é por modelo. O pipeline de
+ * matérias roda em `openai/gpt-oss-20b` (ver articles-server.ts, que já trata
+ * o 429 dele caindo para o 120b justamente porque "os modelos GPT-OSS têm
+ * cotas gratuitas separadas"). Esgotar a cota de lá não esgota a daqui.
+ */
+export const MODELO_AGENTE = "qwen/qwen3.6-27b";
 const MAX_TOKENS = 320;
 
 export type Turno = { readonly role: "user" | "assistant"; readonly content: string };
@@ -190,7 +197,7 @@ export async function decidirResposta(params: {
   try {
     const groq = new Groq({ apiKey });
     const resposta = await groq.chat.completions.create({
-      model: MODEL,
+      model: MODELO_AGENTE,
       max_completion_tokens: MAX_TOKENS,
       messages: [
         { role: "system", content: montarSystemPrompt(regras) },
@@ -241,13 +248,17 @@ export function prometeuConfirmar(texto: string): boolean {
 
 /**
  * Motivo curto e legível no painel, sem vazar corpo de erro inteiro.
- * Cota estourada é o caso mais provável aqui: o teto diário da Groq é
- * compartilhado com o pipeline editorial.
+ *
+ * Cuidado com um atalho de raciocínio que já custou tempo: "deve ser a cota
+ * que o pipeline de matérias gastou". Na Groq o teto diário é POR MODELO, e
+ * os dois caminhos usam modelos diferentes — a agente pede `MODELO_AGENTE`,
+ * o pipeline pede `openai/gpt-oss-20b`. Por isso cada status ganha uma frase
+ * própria: quem lê o painel precisa saber qual das causas é, não qual parece.
  */
 export function resumirErro(error: unknown): string {
   const status = (error as { status?: number } | null)?.status;
   if (status === 429)
-    return "cota da Groq esgotada (429) — o teto diário é compartilhado com o pipeline editorial";
+    return `cota da Groq esgotada (429) no modelo ${MODELO_AGENTE} — na Groq o teto é por modelo`;
   if (status === 401 || status === 403) return `a Groq recusou a chave (${status})`;
   if (status === 404) return "modelo não encontrado na Groq (404)";
   if (typeof status === "number") return `a Groq respondeu ${status}`;

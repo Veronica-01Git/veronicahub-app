@@ -29,6 +29,8 @@ const {
 } = await import("../src/lib/whatsapp-agent.ts");
 const { podeCotar, buscarPreco, produtosDaCidade, produtoPorId, REGRAS_EXPRESS_ENTULHO } =
   await import("../src/lib/whatsapp-rules.ts");
+const { diagnosticar } = await import("../src/lib/whatsapp-diagnostico.ts");
+const { MODELO_AGENTE } = await import("../src/lib/whatsapp-agent.ts");
 
 const SEGREDO = "segredo-de-teste-do-app-meta";
 
@@ -221,4 +223,65 @@ test("cada falha do núcleo tem motivo próprio — três causas, três mensagen
     motivo: "GROQ_API_KEY não configurada",
   });
   assert.equal(comMotivo.motivo, "GROQ_API_KEY não configurada");
+});
+
+/* ------------------------------------------------------------ diagnóstico */
+
+test("diagnóstico sem chave acusa a chave, não a Groq", async () => {
+  const d = await diagnosticar(async () => {
+    throw new Error("a sonda não devia ter sido chamada sem chave");
+  }, undefined);
+
+  assert.equal(d.chaveVisivel, false);
+  assert.equal(d.nucleoRespondeu, false);
+  assert.equal(d.status, null);
+  assert.equal(d.motivo, "GROQ_API_KEY não configurada");
+  assert.equal(d.modelo, MODELO_AGENTE);
+});
+
+test("diagnóstico com a Groq respondendo devolve o caminho limpo", async () => {
+  const d = await diagnosticar(async () => {}, "chave-de-teste");
+
+  assert.equal(d.chaveVisivel, true);
+  assert.equal(d.nucleoRespondeu, true);
+  assert.equal(d.status, 200);
+  assert.equal(d.motivo, null);
+});
+
+test("diagnóstico distingue cota, chave recusada e modelo inexistente", async () => {
+  for (const [status, trecho] of [
+    [429, "cota"],
+    [401, "recusou a chave"],
+    [404, "modelo não encontrado"],
+  ]) {
+    const d = await diagnosticar(async () => {
+      throw Object.assign(new Error("groq"), { status });
+    }, "chave-de-teste");
+
+    assert.equal(d.chaveVisivel, true, `status ${status} não deve acusar a chave como ausente`);
+    assert.equal(d.nucleoRespondeu, false);
+    assert.equal(d.status, status);
+    assert.equal(d.motivo.includes(trecho), true, `motivo de ${status}: ${d.motivo}`);
+  }
+});
+
+test("a agente e o pipeline de matérias não dividem o mesmo modelo", async () => {
+  // Esta asserção existe por causa de uma hipótese que atrasou o diagnóstico:
+  // "a cota diária da Groq está estourada por causa do pipeline horário".
+  // Na Groq o teto é POR MODELO. Enquanto os dois pedirem modelos distintos,
+  // gastar a cota de um não derruba o outro — e essa explicação fica de pé.
+  // Se alguém apontar os dois para o mesmo modelo, o raciocínio muda e este
+  // teste avisa antes que ele seja repetido como verdade.
+  const { readFileSync } = await import("node:fs");
+  const fonte = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
+  const modelosDoPipeline = [
+    ...fonte.matchAll(/^const DRAFT_(?:FALLBACK_)?MODEL = "([^"]+)";/gm),
+  ].map((m) => m[1]);
+
+  assert.ok(modelosDoPipeline.length >= 1, "não achei o modelo do pipeline editorial");
+  assert.equal(
+    modelosDoPipeline.includes(MODELO_AGENTE),
+    false,
+    `a agente usa ${MODELO_AGENTE}, que também é do pipeline: ${modelosDoPipeline.join(", ")}`,
+  );
 });
