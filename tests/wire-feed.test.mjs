@@ -19,7 +19,8 @@ registerHooks({
 import { BEAT_VALUES } from "../src/lib/beats.ts";
 
 // Dinâmico de propósito: import estático é resolvido antes de registerHooks.
-const { EDITORIA_PUBLICA, mapearMateria } = await import("../src/lib/wire-feed-server.ts");
+const { EDITORIA_PUBLICA, mapearMateria, montarJsonFeed } =
+  await import("../src/lib/wire-feed-server.ts");
 
 // O contrato de /api/wire/feed.json. Quem consome de fora não tem como
 // descobrir um campo que sumiu antes de quebrar, então a lista fica aqui.
@@ -124,4 +125,24 @@ test("cada fonte carrega domínio e URL, e a matéria aponta pro original", () =
   ]);
   assert.equal(materia.urlOriginal, "https://veronicahub.com/blog/leilao-de-baterias");
   assert.equal(materia.publicadoEm, "2026-09-17T12:00:00.000Z");
+});
+
+test("o mesmo acervo sai também nos nomes do padrão JSON Feed", () => {
+  const feed = montarJsonFeed([
+    mapearMateria(linha({ beat: "mercado", coverImageUrl: "/images/blog-covers/a.jpg" })),
+  ]);
+
+  assert.equal(feed.version, "https://jsonfeed.org/version/1.1");
+  assert.ok(Array.isArray(feed.items));
+
+  const [item] = feed.items;
+  // Os nomes que um leitor genérico procura, e que o feed próprio não usa.
+  assert.equal(item.title, "Governo anuncia leilão de baterias");
+  assert.equal(item.content_html, "<p>Primeiro parágrafo.</p>\n<p>Segundo parágrafo.</p>");
+  assert.equal(item.url, "https://veronicahub.com/blog/leilao-de-baterias");
+  assert.equal(item.id, item.url);
+  assert.equal(item.date_published, "2026-09-17T12:00:00.000Z");
+  assert.equal(item.image, "https://veronicahub.com/images/blog-covers/a.jpg");
+  // Editoria vira tag: é como o padrão representa categoria.
+  assert.deepEqual(item.tags, ["tech"]);
 });

@@ -82,3 +82,30 @@ jobs:
             if (!m.slug || !m.titulo) throw new Error("matéria sem slug ou título");
             console.log(`${m.editoria} — ${m.titulo}`);
           '
+
+      - name: Pede o feed no padrão JSON Feed
+        run: |
+          set -euo pipefail
+          status=$(curl --silent --show-error --max-time 30 \
+            -o jsonfeed.json -D cabecalhos-jsonfeed.txt -w "%{http_code}" \
+            "https://veronicahub.com/api/wire/jsonfeed.json")
+          echo "HTTP $status"
+          grep -iE '^(content-type|access-control-allow-origin):' cabecalhos-jsonfeed.txt
+          if [ "$status" != "200" ]; then
+            echo "::error::O JSON Feed não respondeu 200."
+            head -c 600 jsonfeed.json
+            exit 1
+          fi
+          node -e '
+            const f = JSON.parse(require("fs").readFileSync("jsonfeed.json","utf8"));
+            if (!String(f.version).startsWith("https://jsonfeed.org/version/1")) {
+              throw new Error("version fora do padrão");
+            }
+            if (!Array.isArray(f.items) || f.items.length === 0) throw new Error("items vazio");
+            const i = f.items[0];
+            for (const campo of ["id", "url", "title", "content_html", "tags"]) {
+              if (!(campo in i)) throw new Error(`item sem ${campo}`);
+            }
+            console.log(`items: ${f.items.length}`);
+            console.log(`primeiro: [${i.tags.join(", ")}] ${i.title}`);
+          '
