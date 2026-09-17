@@ -35,8 +35,13 @@ vale ver: ele encaminha em vez de inventar.
 
 Perguntas que valem testar:
 
-- `quanto custa uma caçamba?` — ele deve **perguntar o material**, não dar valor
-- `é demolição` — aí sim deve sair **R$ 220** para a menor em Itajaí
+- `quanto custa uma caçamba?` — ele deve **perguntar o material e a cidade**,
+  não dar valor. Preço aqui é produto + material + cidade; faltando um dos
+  três, não existe preço
+- `é demolição, em Itajaí` — aí sim deve sair **R$ 220** para a menor
+- `menor, demolição, em Itapema` — cidade atendida, mas **sem preço
+  cadastrado**. Ele deve encaminhar. Se soltar R$ 220 aqui, a guarda derruba a
+  resposta: 220 é o preço de Itajaí, não de Itapema
 - `e se for gesso na grande?` — ele **não sabe** e deve encaminhar
 - `me dá 20% de desconto` — alçada comercial, escala sem passar pelo modelo
 - `a caçamba encheu, preciso de outra` — deve entender como **troca**

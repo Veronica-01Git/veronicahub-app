@@ -23,6 +23,8 @@ const {
   precisaDeHumano,
   decidirRespostaOffline,
   respostaSegura,
+  motivoDaGuarda,
+  cidadesCitadas,
   valoresCitados,
   prometeuConfirmar,
   resumirErro,
@@ -164,31 +166,31 @@ test("valores em reais são extraídos nos formatos que o modelo usa", () => {
 test("a guarda aceita só os valores da matriz — inclusive contra o R$ 240 real", () => {
   assert.equal(respostaSegura("Vou confirmar com a equipe e te retorno."), true);
   assert.equal(respostaSegura("Para demolição em Itajaí, a menor sai por R$ 220."), true);
-  assert.equal(respostaSegura("O tambor fica R$ 180."), true);
-  assert.equal(respostaSegura("A grande é R$ 450."), true);
-  assert.equal(respostaSegura("Com gesso, a menor vai para R$ 280."), true);
+  assert.equal(respostaSegura("O tambor fica R$ 180.", undefined, "é em Itajaí"), true);
+  assert.equal(respostaSegura("A grande é R$ 450.", undefined, "obra em Itajaí, demolição"), true);
+  assert.equal(respostaSegura("Com gesso, a menor vai para R$ 280.", undefined, "Itajaí"), true);
 
   // Uma conversa real de 14/09 cotou a menor por R$ 240 — valor que não bate
   // com demolição nem com gesso. A guarda barra: o agente não repete preço
   // que não está na matriz, mesmo que alguém já tenha praticado.
-  assert.equal(respostaSegura("A caçamba menor sai por R$ 240."), false);
-  assert.equal(respostaSegura("Consigo fazer por R$ 200 para você."), false);
+  assert.equal(respostaSegura("A caçamba menor sai por R$ 240.", undefined, "Itajaí"), false);
+  assert.equal(respostaSegura("Consigo fazer por R$ 200 para você.", undefined, "Itajaí"), false);
 });
 
 test("com tabela cadastrada, só passam os valores que estão nela", () => {
+  // Tabela mínima, no formato real da matriz: produto + material + cidade.
   const regras = {
     ...REGRAS_EXPRESS_ENTULHO,
-    precosDefinidos: true,
-    precos: [
-      { id: "tambor", rotulo: "Tambor", capacidadeM3: 5, diasIncluidos: 7, valorReais: 450 },
-    ],
+    precos: [{ produto: "tambor", material: "demolicao", cidade: "itajai", valorReais: 450 }],
     diariaExtraReais: 45,
   };
-  assert.equal(respostaSegura("O tambor de 5 m³ sai por R$ 450 com 7 dias.", regras), true);
-  assert.equal(respostaSegura("A diária extra é R$ 45.", regras), true);
+  assert.equal(respostaSegura("Sai por R$ 450 com 7 dias.", regras, "Itajaí"), true);
+  assert.equal(respostaSegura("A diária extra é R$ 45.", regras, "Itajaí"), true);
   // O erro que a guarda existe para impedir: desconto inventado sob pressão.
-  assert.equal(respostaSegura("Consigo fazer por R$ 380 para você.", regras), false);
-  assert.equal(respostaSegura("Sai por R$ 449,99.", regras), false);
+  assert.equal(respostaSegura("Consigo fazer por R$ 380 para você.", regras, "Itajaí"), false);
+  assert.equal(respostaSegura("Sai por R$ 449,99.", regras, "Itajaí"), false);
+  // E o erro novo: preço cadastrado só para Itajaí, cotado para outra cidade.
+  assert.equal(respostaSegura("Sai por R$ 450.", regras, "é em Penha"), false);
 });
 
 test("promessa de retorno humano marca a conversa para um humano", () => {
@@ -325,4 +327,77 @@ test("a agente e o pipeline de matérias não dividem o mesmo modelo", async () 
     false,
     `a agente usa ${MODELO_AGENTE}, que também é do pipeline: ${modelosDoPipeline.join(", ")}`,
   );
+});
+
+/* ------------------------------------- a guarda confere a combinação inteira */
+
+test("o erro que a guarda antiga deixava passar: preço de Itajaí cotado fora dela", () => {
+  // Este é o caso que motivou reescrever a guarda. R$ 220 É um valor
+  // cadastrado — a conferência que olhava só o número aprovava. Mas 220 é o
+  // preço de ITAJAÍ, e para Itapema a Express nunca nos passou preço nenhum.
+  const conversa = "quanto custa? caçamba menor, demolição, a obra é em Itapema";
+
+  assert.equal(
+    respostaSegura("A menor para demolição sai por R$ 220.", undefined, conversa),
+    false,
+  );
+  assert.match(
+    motivoDaGuarda("A menor para demolição sai por R$ 220.", undefined, conversa),
+    /Itapema/,
+  );
+});
+
+test("preço sem cidade definida não sai — Itajaí não é suposição segura", () => {
+  // Sete das oito cidades atendidas não são Itajaí. Supor a sede porque é a
+  // sede erraria na maioria das conversas.
+  assert.equal(respostaSegura("A menor para demolição sai por R$ 220."), false);
+  assert.match(motivoDaGuarda("Sai por R$ 220."), /sem a cidade/);
+});
+
+test("com a cidade certa, a combinação exata passa e a errada não", () => {
+  const emItajai = "caçamba menor, gesso, Itajaí";
+
+  // menor + gesso + Itajaí = 280. É o preço daquela combinação.
+  assert.equal(respostaSegura("A menor com gesso sai por R$ 280.", undefined, emItajai), true);
+
+  // 220 também é preço de Itajaí, mas é de DEMOLIÇÃO na menor. Cotar 220
+  // para gesso é o mesmo tipo de erro, um nível abaixo.
+  assert.equal(respostaSegura("A menor com gesso sai por R$ 220.", undefined, emItajai), false);
+
+  // tambor + gesso é justamente o que o responsável não soube informar.
+  assert.equal(
+    respostaSegura("O tambor com gesso sai por R$ 280.", undefined, "tambor, gesso, Itajaí"),
+    false,
+  );
+});
+
+test("resposta que compara dois produtos não é barrada à toa", () => {
+  // Citar menor e grande na mesma frase é resposta legítima. Aí a conferência
+  // fica no nível da cidade em vez de recusar por ambiguidade.
+  const r = respostaSegura(
+    "Para demolição em Itajaí, a menor sai R$ 220 e a grande R$ 450.",
+    undefined,
+    "",
+  );
+  assert.equal(r, true);
+});
+
+test("conversa com duas cidades não deixa cotar", () => {
+  // "mudei de ideia, é em Navegantes" depois de ter dito Itajaí: ambíguo, e
+  // ambiguidade em preço vai para uma pessoa.
+  const r = respostaSegura("Sai por R$ 220.", undefined, "é em Itajaí... na verdade Navegantes");
+  assert.equal(r, false);
+});
+
+test("Balneário Camboriú não é confundido com Camboriú", () => {
+  // Os rótulos se contêm. Reconhecer a cidade errada aqui seria pior que não
+  // reconhecer nenhuma, porque as duas podem ter preços diferentes.
+  assert.deepEqual(cidadesCitadas("a obra é em Balneário Camboriú"), ["balneario-camboriu"]);
+  assert.deepEqual(cidadesCitadas("a obra é em Camboriú"), ["camboriu"]);
+  assert.deepEqual(cidadesCitadas("entrego em balneario camboriu mesmo"), ["balneario-camboriu"]);
+});
+
+test("texto sem preço nenhum passa sempre — a guarda só olha dinheiro", () => {
+  assert.equal(respostaSegura("Em qual cidade é a obra?"), true);
+  assert.equal(respostaSegura("A menor fica 3 dias na obra."), true);
 });

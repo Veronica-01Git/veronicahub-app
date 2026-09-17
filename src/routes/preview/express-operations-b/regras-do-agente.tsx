@@ -29,8 +29,10 @@ type Fala = {
 const SUGESTOES = [
   "quanto custa uma caçamba?",
   "é demolição, em Itajaí",
+  // Cidade atendida, mas sem preço cadastrado. A agente tem de encaminhar em
+  // vez de repetir o valor de Itajaí — é a recusa que mais vale demonstrar.
+  "menor, demolição, em Itapema",
   "e se for gesso na grande?",
-  "vocês atendem em Itapema?",
   "me dá 20% de desconto",
   "a caçamba encheu, preciso de outra",
 ];

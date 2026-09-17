@@ -15,8 +15,10 @@ import Groq from "groq-sdk";
 import {
   podeCotar,
   regrasParaPrompt,
-  valoresPermitidos,
   REGRAS_EXPRESS_ENTULHO,
+  type CidadeId,
+  type MaterialId,
+  type ProdutoId,
   type RegrasNegocio,
 } from "./whatsapp-rules";
 
@@ -28,7 +30,33 @@ import {
  * cotas gratuitas separadas"). Esgotar a cota de lá não esgota a daqui.
  */
 export const MODELO_AGENTE = "qwen/qwen3.6-27b";
+
+/**
+ * Modelo de reserva, tentado quando o primeiro não atende.
+ *
+ * Existe por um risco com data marcada: se a Groq devolver 429 no meio de uma
+ * demonstração, a agente cai para o caminho offline na frente do cliente e
+ * passa a encaminhar tudo. Na Groq **a cota é por modelo** — um modelo de
+ * família diferente tem cota própria, então a reserva ainda responde quando a
+ * do primeiro acabou. É a mesma saída que `articles-server.ts` já usa no
+ * pipeline editorial, caindo do gpt-oss-20b para o 120b.
+ *
+ * Reserva não é permissão para inventar: a resposta dela passa pela mesma
+ * guarda de preço. O que muda é conversar em vez de encaminhar.
+ */
+export const MODELO_RESERVA = "openai/gpt-oss-20b";
 const MAX_TOKENS = 320;
+
+/**
+ * Vale tentar a reserva? Só quando o problema é do modelo, não da conta.
+ * Chave recusada (401/403) seria recusada igual no segundo modelo — insistir
+ * só gastaria tempo do cliente esperando.
+ */
+function vaiParaReserva(error: unknown): boolean {
+  const status = (error as { status?: number } | null)?.status;
+  if (status === 429 || status === 404) return true;
+  return typeof status === "number" && status >= 500;
+}
 
 export type Turno = { readonly role: "user" | "assistant"; readonly content: string };
 
@@ -92,23 +120,145 @@ export function valoresCitados(texto: string): readonly number[] {
   return out;
 }
 
+/* ------------------------------------------- o que a conversa já estabeleceu */
+
+/** Sem acento e sem caixa, para comparar o que o cliente digita de verdade. */
+function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 /**
- * A resposta pode sair?
+ * Cidades citadas no texto. O vocabulário sai das próprias regras, para não
+ * existirem duas listas de cidades que possam divergir.
  *
- * Sem tabela cadastrada, qualquer valor reprova. Com tabela, só passam os
- * valores que estão nela — inventar "R$ 380" quando a tabela diz 450 é
- * exatamente o erro que esta função existe para impedir.
+ * Os rótulos mais longos são testados primeiro: "Balneário Camboriú" contém
+ * "Camboriú", e reconhecer a cidade errada aqui seria pior que não reconhecer.
  */
+export function cidadesCitadas(
+  texto: string,
+  regras: RegrasNegocio = REGRAS_EXPRESS_ENTULHO,
+): readonly CidadeId[] {
+  const alvo = normalizar(texto);
+  const porTamanho = [...regras.cidades].sort((a, b) => b.rotulo.length - a.rotulo.length);
+
+  const achadas: CidadeId[] = [];
+  let restante = alvo;
+  for (const c of porTamanho) {
+    const rotulo = normalizar(c.rotulo);
+    if (restante.includes(rotulo)) {
+      achadas.push(c.id);
+      // Consome o trecho para que "Balneário Camboriú" não conte também
+      // como "Camboriú".
+      restante = restante.split(rotulo).join(" ");
+    }
+  }
+  return achadas;
+}
+
+/** Como o cliente de obra chama cada produto. */
+const APELIDOS_PRODUTO: Record<ProdutoId, RegExp> = {
+  tambor: /tambor/,
+  "cacamba-grande": /grande/,
+  "cacamba-menor": /menor|pequena|pequeno/,
+};
+
+export function produtosCitados(
+  texto: string,
+  regras: RegrasNegocio = REGRAS_EXPRESS_ENTULHO,
+): readonly ProdutoId[] {
+  const alvo = normalizar(texto);
+  return regras.produtos.filter((p) => APELIDOS_PRODUTO[p.id]?.test(alvo)).map((p) => p.id);
+}
+
+export function materiaisCitados(
+  texto: string,
+  regras: RegrasNegocio = REGRAS_EXPRESS_ENTULHO,
+): readonly MaterialId[] {
+  const alvo = normalizar(texto);
+  return regras.materiais.filter((m) => alvo.includes(normalizar(m.rotulo))).map((m) => m.id);
+}
+
+/* ----------------------------------------------------- a guarda de valores */
+
+/**
+ * Por que a resposta não pode sair — ou `null` quando pode.
+ *
+ * ESTA FUNÇÃO É O "O CÓDIGO DECIDE" DO ARQUIVO. Até 17/09 ela conferia só o
+ * número, e isso deixava passar o erro mais caro que existe neste negócio:
+ *
+ *   Cliente: "caçamba menor, demolição, em Itapema"
+ *   Modelo:  "Sai por R$ 220."
+ *
+ * R$ 220 está na lista de valores permitidos, então a conferência antiga
+ * aprovava. Só que 220 é o preço de ITAJAÍ. Para Itapema não existe preço
+ * cadastrado — a empresa nunca nos disse. A agente cotaria um valor que a
+ * Express não pratica, e quem descobre isso é o cliente, depois, na fatura.
+ *
+ * Preço aqui é produto × material × cidade. A conferência agora é da
+ * combinação inteira:
+ *
+ * 1. Valor sem cidade na conversa não sai. Não dá para supor Itajaí só
+ *    porque é a sede — a maioria das cidades atendidas não é Itajaí.
+ * 2. Com a cidade definida, só passam preços DAQUELA cidade.
+ * 3. Quando a resposta identifica um único produto e um único material, a
+ *    conferência vira exata: é o preço daquela combinação ou não é nada.
+ *
+ * O custo de errar para mais é uma escalação — alguns minutos de uma pessoa.
+ * O custo de errar para menos é uma cotação falsa em nome da empresa.
+ */
+export function motivoDaGuarda(
+  texto: string,
+  regras: RegrasNegocio = REGRAS_EXPRESS_ENTULHO,
+  conversa = "",
+): string | null {
+  const citados = valoresCitados(texto);
+  if (citados.length === 0) return null;
+  if (!podeCotar(regras)) return "não há preço cadastrado e o modelo citou valor";
+
+  // A cidade pode ter sido dita a qualquer momento — pelo cliente antes, ou
+  // pela própria resposta ("em Itajaí a menor sai por...").
+  const cidades = cidadesCitadas(`${conversa}\n${texto}`, regras);
+  if (cidades.length === 0) return "o modelo cotou sem a cidade estar definida";
+  if (cidades.length > 1) return "a conversa cita mais de uma cidade e o modelo cotou mesmo assim";
+
+  const cidade = cidades[0];
+  const daCidade = regras.precos.filter((p) => p.cidade === cidade);
+  if (daCidade.length === 0) {
+    const rotulo = regras.cidades.find((c) => c.id === cidade)?.rotulo ?? cidade;
+    return `não há preço cadastrado para ${rotulo} e o modelo cotou`;
+  }
+
+  // Estreita só quando não há ambiguidade: uma resposta que compara a menor
+  // com a grande cita dois produtos, e aí a conferência fica no nível da
+  // cidade em vez de recusar uma resposta legítima.
+  const produtos = produtosCitados(texto, regras);
+  const materiais = materiaisCitados(texto, regras);
+  const candidatos = daCidade.filter(
+    (p) =>
+      (produtos.length === 1 ? p.produto === produtos[0] : true) &&
+      (materiais.length === 1 ? p.material === materiais[0] : true),
+  );
+
+  const permitidos = candidatos.map((p) => p.valorReais);
+  if (regras.diariaExtraReais != null) permitidos.push(regras.diariaExtraReais);
+
+  const proibido = citados.find((v) => !permitidos.some((p) => Math.abs(p - v) < 0.005));
+  if (proibido == null) return null;
+
+  const rotulo = regras.cidades.find((c) => c.id === cidade)?.rotulo ?? cidade;
+  return `R$ ${proibido} não é preço cadastrado para essa combinação em ${rotulo}`;
+}
+
+/** A resposta pode sair? Ver `motivoDaGuarda` para o porquê de cada recusa. */
 export function respostaSegura(
   texto: string,
   regras: RegrasNegocio = REGRAS_EXPRESS_ENTULHO,
+  conversa = "",
 ): boolean {
-  const citados = valoresCitados(texto);
-  if (citados.length === 0) return true;
-  if (!podeCotar(regras)) return false;
-
-  const permitidos = valoresPermitidos(regras);
-  return citados.every((v) => permitidos.some((p) => Math.abs(p - v) < 0.005));
+  return motivoDaGuarda(texto, regras, conversa) === null;
 }
 
 /* ------------------------------------------------------------ system prompt */
@@ -119,9 +269,13 @@ function montarSystemPrompt(regras: RegrasNegocio): string {
     "Fala português do Brasil, em tom direto e cordial, como quem atende obra.",
     "Responda em no máximo 3 frases curtas. Nada de listas ou markdown — é WhatsApp.",
     "",
-    "REGRA NÚMERO UM: quem pede preço sem dizer o material do descarte recebe",
-    "de você uma pergunta, não um valor. 'O que você vai descartar? Demolição,",
-    "gesso, outro material?' — sem o material não existe preço nesta empresa.",
+    "REGRA NÚMERO UM: preço aqui é produto + MATERIAL + CIDADE. Faltando",
+    "qualquer um dos três, você faz uma pergunta em vez de dar um valor.",
+    "- Sem o material: 'O que você vai descartar? Demolição, gesso, outro?'",
+    "- Sem a cidade: 'Em qual cidade é a obra?' — o preço muda de cidade para",
+    "  cidade, e a maioria das cidades atendidas não é Itajaí. Nunca suponha",
+    "  Itajaí porque é a sede.",
+    "Pode perguntar as duas coisas de uma vez; é uma frase só.",
     "",
     "OPERAÇÕES QUE A EMPRESA FAZ:",
     "- Entrega: levar caçamba vazia até a obra.",
@@ -193,32 +347,57 @@ export async function decidirResposta(params: {
     return decidirRespostaOffline({ ...params, motivo: "GROQ_API_KEY não configurada" });
   }
 
-  let bruto: string;
-  try {
+  const mensagens = [
+    { role: "system" as const, content: montarSystemPrompt(regras) },
+    ...(params.historico ?? []).map((t) => ({ role: t.role, content: t.content })),
+    { role: "user" as const, content: params.texto },
+  ];
+
+  async function pedir(modelo: string): Promise<string> {
     const groq = new Groq({ apiKey });
     const resposta = await groq.chat.completions.create({
-      model: MODELO_AGENTE,
+      model: modelo,
       max_completion_tokens: MAX_TOKENS,
-      messages: [
-        { role: "system", content: montarSystemPrompt(regras) },
-        ...(params.historico ?? []).map((t) => ({ role: t.role, content: t.content })),
-        { role: "user" as const, content: params.texto },
-      ],
+      messages: mensagens,
     });
-    bruto = (resposta.choices[0]?.message?.content ?? "").trim();
+    return (resposta.choices[0]?.message?.content ?? "").trim();
+  }
+
+  let bruto: string;
+  try {
+    bruto = await pedir(MODELO_AGENTE);
   } catch (error) {
-    console.error("Falha ao chamar a Groq:", error);
-    return decidirRespostaOffline({ ...params, motivo: resumirErro(error) });
+    console.error(`Falha ao chamar a Groq em ${MODELO_AGENTE}:`, error);
+    if (!vaiParaReserva(error)) {
+      return decidirRespostaOffline({ ...params, motivo: resumirErro(error) });
+    }
+    // Cota, modelo sumido ou instabilidade da Groq: a reserva tem cota
+    // própria e pode salvar a conversa em vez de encaminhá-la.
+    try {
+      bruto = await pedir(MODELO_RESERVA);
+      console.warn(
+        `Groq respondeu pela reserva ${MODELO_RESERVA} — primário: ${resumirErro(error)}`,
+      );
+    } catch (erroReserva) {
+      console.error(`Falha também na reserva ${MODELO_RESERVA}:`, erroReserva);
+      return decidirRespostaOffline({
+        ...params,
+        motivo: `${resumirErro(error)}; reserva também falhou (${resumirErro(erroReserva)})`,
+      });
+    }
   }
 
   if (!bruto) {
     return decidirRespostaOffline({ ...params, motivo: "o modelo devolveu resposta vazia" });
   }
 
-  // A conferência que o prompt sozinho não garante.
-  if (!respostaSegura(bruto, regras)) {
-    console.warn("Resposta do modelo citou valor não autorizado — substituída e escalada");
-    return { texto: ESCALONAMENTO, escalar: true, motivo: "modelo citou valor fora da tabela" };
+  // A conferência que o prompt sozinho não garante. Recebe a conversa inteira
+  // porque a cidade costuma ter sido dita várias mensagens antes do preço.
+  const conversa = [...(params.historico ?? []).map((t) => t.content), params.texto].join("\n");
+  const barrado = motivoDaGuarda(bruto, regras, conversa);
+  if (barrado) {
+    console.warn(`Resposta do modelo barrada pela guarda de preço: ${barrado}`);
+    return { texto: ESCALONAMENTO, escalar: true, motivo: `guarda de preço: ${barrado}` };
   }
 
   // Quando o próprio modelo diz que vai confirmar com a equipe, isso É um
