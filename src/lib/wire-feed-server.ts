@@ -3,6 +3,7 @@ import { getDb } from "./db";
 import { articles } from "./schema";
 import type { Beat } from "./beats";
 import { sourceDomain } from "./editorial-network";
+import { WIRE_NAME } from "./ecosystem";
 
 // Feed público, somente leitura, do Veronica Wire. Chamado direto do
 // src/server.ts (interceptado antes do handler do TanStack), mesmo padrão do
@@ -187,7 +188,7 @@ export function handleWireFeedMethodNotAllowed(): Response {
   return respostaJson({ erro: "Método não permitido." }, 405);
 }
 
-export async function handleWireFeed(): Promise<Response> {
+async function lerMateriasPublicadas(): Promise<WireFeedMateria[]> {
   const db = getDb();
   const linhas = (await db
     .select(COLUNAS_PUBLICAS)
@@ -195,16 +196,67 @@ export async function handleWireFeed(): Promise<Response> {
     .where(eq(articles.status, "published"))
     .orderBy(desc(articles.publishedAt))
     .limit(FEED_LIMIT)) as LinhaPublica[];
+  return linhas.map(mapearMateria);
+}
 
+export async function handleWireFeed(): Promise<Response> {
   const feed: WireFeed = {
     atualizadoEm: new Date().toISOString(),
     // Ainda não existe briefing em áudio no Wire. O campo já faz parte do
     // contrato pra que quem consome não precise mudar quando ele existir.
     briefing: null,
-    materias: linhas.map(mapearMateria),
+    materias: await lerMateriasPublicadas(),
   };
 
   return respostaJson(feed);
+}
+
+/* ------------------------------------------------------------------ *
+ * JSON Feed 1.1 — o mesmo acervo, nos nomes que um leitor genérico procura.
+ *
+ * O feed acima usa os nomes combinados com quem encomendou (`materias`,
+ * `titulo`, `corpoHtml`). Um leitor de feeds que não foi escrito para nós
+ * não adivinha esses nomes: ele procura `items`, `title` e `content_html`,
+ * do padrão jsonfeed.org, ou XML de RSS/Atom. Servir os dois evita a
+ * escolha entre quebrar o contrato de quem já consome e deixar de fora
+ * quem lê pelo padrão. A fonte é uma só — este mapa traduz o resultado de
+ * mapearMateria, não refaz a consulta nem repete a regra.
+ * ------------------------------------------------------------------ */
+
+const JSON_FEED_VERSION = "https://jsonfeed.org/version/1.1";
+
+export function mapearItemJsonFeed(materia: WireFeedMateria): Record<string, unknown> {
+  const item: Record<string, unknown> = {
+    // A URL canônica como id: o padrão pede identificador único e estável, e
+    // o cuid da linha não diz nada a quem está de fora.
+    id: materia.urlOriginal,
+    url: materia.urlOriginal,
+    title: materia.titulo,
+    summary: materia.resumo,
+    content_html: materia.corpoHtml,
+    // A editoria vira tag: é como o padrão representa categoria, e é por
+    // ela que o leitor monta as seções.
+    tags: [materia.editoria],
+  };
+  if (materia.publicadoEm) item.date_published = materia.publicadoEm;
+  if (materia.capaUrl) item.image = materia.capaUrl;
+  if (materia.capaCredito) item.attribution = materia.capaCredito;
+  return item;
+}
+
+export function montarJsonFeed(materias: WireFeedMateria[]): Record<string, unknown> {
+  return {
+    version: JSON_FEED_VERSION,
+    title: WIRE_NAME,
+    home_page_url: `${SITE_URL}/blog`,
+    feed_url: `${SITE_URL}/api/wire/jsonfeed.json`,
+    language: "pt-BR",
+    items: materias.map(mapearItemJsonFeed),
+  };
+}
+
+export async function handleWireJsonFeed(): Promise<Response> {
+  return respostaJson(montarJsonFeed(await lerMateriasPublicadas()));
 }
 
 function extrairSlug(arquivo: string): string | null {
