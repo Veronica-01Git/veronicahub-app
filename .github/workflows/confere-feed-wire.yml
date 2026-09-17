@@ -146,7 +146,20 @@ jobs:
             console.log(`version: ${f.version}`);
             console.log(`title:   ${f.title}`);
             console.log(`items:   ${f.items.length}`);
-            const quebrados = f.items.filter((i) => !i.id || !i.title || !i.content_html);
-            if (quebrados.length) throw new Error(`${quebrados.length} itens sem id/title/content_html`);
-            console.log("todos os itens têm id, title e content_html");
+            const quebrados = f.items.filter(
+              (i) => !i.id || !i.title || !i.content_html || !i.content_text
+            );
+            if (quebrados.length) throw new Error(`${quebrados.length} itens incompletos`);
+            const forasteiros = new Set();
+            const PADRAO = ["id","url","external_url","title","content_html","content_text",
+              "summary","image","banner_image","date_published","date_modified",
+              "authors","author","tags","language","attachments"];
+            for (const i of f.items) {
+              for (const campo of Object.keys(i)) {
+                if (!PADRAO.includes(campo) && !campo.startsWith("_")) forasteiros.add(campo);
+              }
+            }
+            if (forasteiros.size) throw new Error(`fora do padrão sem underscore: ${[...forasteiros]}`);
+            console.log("todos os itens têm id, title, content_html e content_text");
+            console.log("nenhum campo fora do padrão sem underscore");
           '

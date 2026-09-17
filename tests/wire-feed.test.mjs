@@ -129,7 +129,7 @@ test("cada fonte carrega domínio e URL, e a matéria aponta pro original", () =
 
 test("o mesmo acervo sai também nos nomes do padrão JSON Feed", () => {
   const feed = montarJsonFeed([
-    mapearMateria(linha({ beat: "mercado", coverImageUrl: "/images/blog-covers/a.jpg" })),
+    linha({ beat: "mercado", coverImageUrl: "/images/blog-covers/a.jpg" }),
   ]);
 
   assert.equal(feed.version, "https://jsonfeed.org/version/1.1");
@@ -139,6 +139,8 @@ test("o mesmo acervo sai também nos nomes do padrão JSON Feed", () => {
   // Os nomes que um leitor genérico procura, e que o feed próprio não usa.
   assert.equal(item.title, "Governo anuncia leilão de baterias");
   assert.equal(item.content_html, "<p>Primeiro parágrafo.</p>\n<p>Segundo parágrafo.</p>");
+  // Os dois: qual deles o leitor procura é escolha dele.
+  assert.equal(item.content_text, "Primeiro parágrafo.\n\nSegundo parágrafo.");
   assert.equal(item.url, "https://veronicahub.com/blog/leilao-de-baterias");
   assert.equal(item.id, item.url);
   assert.equal(item.date_published, "2026-09-17T12:00:00.000Z");

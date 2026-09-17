@@ -188,7 +188,7 @@ export function handleWireFeedMethodNotAllowed(): Response {
   return respostaJson({ erro: "Método não permitido." }, 405);
 }
 
-async function lerMateriasPublicadas(): Promise<WireFeedMateria[]> {
+async function lerLinhasPublicadas(): Promise<LinhaPublica[]> {
   const db = getDb();
   const linhas = (await db
     .select(COLUNAS_PUBLICAS)
@@ -196,7 +196,7 @@ async function lerMateriasPublicadas(): Promise<WireFeedMateria[]> {
     .where(eq(articles.status, "published"))
     .orderBy(desc(articles.publishedAt))
     .limit(FEED_LIMIT)) as LinhaPublica[];
-  return linhas.map(mapearMateria);
+  return linhas;
 }
 
 export async function handleWireFeed(): Promise<Response> {
@@ -205,7 +205,7 @@ export async function handleWireFeed(): Promise<Response> {
     // Ainda não existe briefing em áudio no Wire. O campo já faz parte do
     // contrato pra que quem consome não precise mudar quando ele existir.
     briefing: null,
-    materias: await lerMateriasPublicadas(),
+    materias: (await lerLinhasPublicadas()).map(mapearMateria),
   };
 
   return respostaJson(feed);
@@ -225,7 +225,10 @@ export async function handleWireFeed(): Promise<Response> {
 
 const JSON_FEED_VERSION = "https://jsonfeed.org/version/1.1";
 
-export function mapearItemJsonFeed(materia: WireFeedMateria): Record<string, unknown> {
+export function mapearItemJsonFeed(
+  materia: WireFeedMateria,
+  corpoTexto: string,
+): Record<string, unknown> {
   const item: Record<string, unknown> = {
     // A URL canônica como id: o padrão pede identificador único e estável, e
     // o cuid da linha não diz nada a quem está de fora.
@@ -234,6 +237,11 @@ export function mapearItemJsonFeed(materia: WireFeedMateria): Record<string, unk
     title: materia.titulo,
     summary: materia.resumo,
     content_html: materia.corpoHtml,
+    // Os dois, e não um. A especificação pede pelo menos um dos dois e
+    // permite ambos; qual deles o leitor procura é escolha dele, e não dá
+    // para adivinhar. Emitir só content_html fez o leitor do Wire achar os
+    // itens e considerar cada um sem conteúdo.
+    content_text: corpoTexto,
     // A editoria vira tag: é como o padrão representa categoria, e é por
     // ela que o leitor monta as seções.
     tags: [materia.editoria],
@@ -248,19 +256,32 @@ export function mapearItemJsonFeed(materia: WireFeedMateria): Record<string, unk
   return item;
 }
 
-export function montarJsonFeed(materias: WireFeedMateria[]): Record<string, unknown> {
+// O corpo já está em texto puro na coluna — isto só normaliza os espaços em
+// branco entre parágrafos. Derivar o texto de volta a partir do HTML seria
+// desfazer um trabalho que não precisava ter sido feito.
+export function corpoParaTexto(body: string): string {
+  return body
+    .split(/\n{2,}/)
+    .map((paragrafo) => paragrafo.trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+export function montarJsonFeed(linhas: LinhaPublica[]): Record<string, unknown> {
   return {
     version: JSON_FEED_VERSION,
     title: WIRE_NAME,
     home_page_url: `${SITE_URL}/blog`,
     feed_url: `${SITE_URL}/api/wire/jsonfeed.json`,
     language: "pt-BR",
-    items: materias.map(mapearItemJsonFeed),
+    items: linhas.map((linha) =>
+      mapearItemJsonFeed(mapearMateria(linha), corpoParaTexto(linha.body)),
+    ),
   };
 }
 
 export async function handleWireJsonFeed(): Promise<Response> {
-  return respostaJson(montarJsonFeed(await lerMateriasPublicadas()));
+  return respostaJson(montarJsonFeed(await lerLinhasPublicadas()));
 }
 
 function extrairSlug(arquivo: string): string | null {
