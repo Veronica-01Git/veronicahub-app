@@ -5,6 +5,11 @@ import { getDb } from "./db";
 import { WIRE_NAME } from "./ecosystem";
 import { isEditorialSkip } from "./editorial-skip";
 import { articles, mediaImages, users } from "./schema";
+import { requireCronSecret } from "./security";
+
+// Único conjunto de MIME aceito para bytes que depois são servidos de volta
+// pela nossa origem (/api/cover-image/, /api/media-images/).
+const MIME_DE_IMAGEM_PERMITIDO = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 const MAX_LIBRARY_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -130,7 +135,7 @@ async function saveCoverToMediaLibrary(input: {
     throw new Error(`Falha ao baixar a capa para a biblioteca (${response.status}).`);
 
   const mimeType = (response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
-  if (!new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]).has(mimeType)) {
+  if (!MIME_DE_IMAGEM_PERMITIDO.has(mimeType)) {
     throw new Error(`MIME de capa não suportado na biblioteca: ${mimeType}`);
   }
 
@@ -160,11 +165,8 @@ async function saveCoverToMediaLibrary(input: {
 }
 
 export async function handleArchiveWireOwnedImagesCron(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return new Response("CRON_SECRET não configurada", { status: 500 });
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return new Response("unauthorized", { status: 401 });
-  }
+  const naoAutorizado = requireCronSecret(request);
+  if (naoAutorizado) return naoAutorizado;
 
   const db = getDb();
   const [admin] = await db
@@ -201,6 +203,12 @@ export async function handleArchiveWireOwnedImagesCron(request: Request): Promis
       return new Response(`Imagem fora do limite: ${image.filename}`, { status: 400 });
     }
     const mimeType = (response.headers.get("content-type") || "image/webp").split(";")[0].trim();
+    // Mesma allowlist do resto do pipeline. O content-type gravado aqui é o
+    // que /api/media-images/<id> devolve depois, então deixar passar
+    // text/html seria servir HTML da nossa própria origem.
+    if (!MIME_DE_IMAGEM_PERMITIDO.has(mimeType)) {
+      return new Response(`MIME não suportado em ${image.filename}: ${mimeType}`, { status: 400 });
+    }
     await db.insert(mediaImages).values({
       filename: image.filename,
       mimeType,
@@ -232,13 +240,8 @@ function currentBeat(): Beat {
 // não permite. Autenticado por CRON_SECRET (header Authorization) porque
 // quem chama não é um admin logado.
 export async function handleGenerateArticleCron(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return new Response("CRON_SECRET não configurada", { status: 500 });
-  }
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return new Response("unauthorized", { status: 401 });
-  }
+  const naoAutorizado = requireCronSecret(request);
+  if (naoAutorizado) return naoAutorizado;
 
   // ?dryRun=1: roda o rascunho + as mesmas checagens de publicação (piso de
   // qualidade, similaridade de manchete, dedup de janela) mas NUNCA grava —
@@ -294,13 +297,8 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
 // autenticação por CRON_SECRET; sem isso o artigo fica publicado sem capa
 // (degradação aceitável, não bloqueia a publicação).
 export async function handleSetCoverImageCron(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return new Response("CRON_SECRET não configurada", { status: 500 });
-  }
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return new Response("unauthorized", { status: 401 });
-  }
+  const naoAutorizado = requireCronSecret(request);
+  if (naoAutorizado) return naoAutorizado;
 
   let body: {
     slug?: unknown;
@@ -373,13 +371,8 @@ export async function handleSetCoverImageCron(request: Request): Promise<Respons
 // Mantém o acervo do Admin completo e autocorretivo. O endpoint é idempotente:
 // capas já arquivadas são ignoradas e somente itens ausentes são baixados.
 export async function handleBackfillWireCoversCron(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return new Response("CRON_SECRET não configurada", { status: 500 });
-  }
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return new Response("unauthorized", { status: 401 });
-  }
+  const naoAutorizado = requireCronSecret(request);
+  if (naoAutorizado) return naoAutorizado;
 
   const db = getDb();
   const rows = await db

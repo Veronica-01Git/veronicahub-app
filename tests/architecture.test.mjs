@@ -151,9 +151,16 @@ test("a automação do Instagram exige segredo e só roda depois da capa", () =>
     "utf8",
   );
 
+  // A conferência do segredo saiu daqui e virou requireCronSecret (comparação
+  // em tempo constante, um lugar só para todos os /api/cron/*). O que este
+  // teste garante continua sendo o mesmo: este endpoint não roda sem segredo.
+  const security = readFileSync(new URL('../src/lib/security.ts', import.meta.url), 'utf8');
+
   assert.match(server, /\/api\/cron\/publish-instagram/);
-  assert.match(cron, /Authorization|authorization/);
-  assert.match(cron, /CRON_SECRET/);
+  assert.match(cron, /requireCronSecret\(request\)/);
+  assert.match(security, /export function requireCronSecret/);
+  assert.match(security, /authorization/);
+  assert.match(security, /CRON_SECRET/);
   assert.match(workflow, /id: set_cover/);
   assert.match(
     workflow,

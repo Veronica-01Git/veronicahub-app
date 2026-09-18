@@ -10,6 +10,8 @@
 // Fazer o fetch com `cf.image` aqui dentro evita o self-fetch de zona
 // inteiramente: quem pede a transformação é o runtime do próprio Worker.
 
+import { resolveSameOriginPath } from "./security";
+
 const ALLOWED_FORMATS = new Set(["auto", "avif", "webp", "jpeg", "baseline-jpeg"]);
 const ALLOWED_FIT = new Set(["scale-down", "contain", "cover", "crop", "pad"]);
 const MAX_WIDTH = 3840;
@@ -32,10 +34,14 @@ export async function handleImageTransform(request: Request): Promise<Response> 
 
   const url = new URL(request.url);
   const src = url.searchParams.get("src");
-  // Exige caminho relativo começando com uma única barra — bloqueia tanto
-  // URL absoluta (https://...) quanto protocol-relative (//host/...), que
-  // o construtor URL resolveria como um host externo arbitrário.
-  if (!src || !src.startsWith("/") || src.startsWith("//")) {
+  // Só imagem do próprio site. A checagem vive em resolveSameOriginPath
+  // porque comparar o começo da string (`/` sim, `//` não) NÃO basta: o
+  // parser de URL traduz `\` para `/` e descarta tab/CR/LF antes de parsear,
+  // então `/\evil.com/x.jpg` passava no teste de string e virava
+  // `https://evil.com/x.jpg` no fetch abaixo — proxy aberto com cache de um
+  // ano. Resolver primeiro e comparar a origem depois é o que fecha isso.
+  const resolvida = src ? resolveSameOriginPath(src, url.origin) : null;
+  if (!resolvida) {
     return new Response("Missing or invalid src", { status: 400 });
   }
 
@@ -56,9 +62,7 @@ export async function handleImageTransform(request: Request): Promise<Response> 
     ? Math.min(Math.max(MIN_QUALITY, Number(qualityParam) || 82), MAX_QUALITY)
     : 82;
 
-  const originalUrl = new URL(src, url.origin).toString();
-
-  const response = await fetch(originalUrl, {
+  const response = await fetch(resolvida.toString(), {
     cf: {
       image: { width, format, quality, fit },
     },
