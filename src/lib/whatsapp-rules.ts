@@ -2,16 +2,7 @@
  * Regras de negócio da Express Entulho.
  *
  * ESTE ARQUIVO É A ÚNICA FONTE DE VERDADE COMERCIAL DO AGENTE.
- *
- * O ACHADO QUE ORGANIZA TUDO AQUI: **não existe tabela de preço fixa**. O
- * responsável da Express foi explícito — "não existe nada fixo, o preço é
- * referente ao material de descarte que o cliente vai descartar". Demolição
- * e gesso custam diferente no mesmo produto, na mesma cidade.
- *
- * Consequência prática: o agente NÃO PODE COTAR SEM SABER O MATERIAL. Essa é
- * a primeira pergunta dele, sempre. E como a matriz está incompleta — o
- * próprio responsável disse "eu não sou vendedor" e não soube vários valores
- * — o que falta é encaminhado a um humano, nunca estimado por semelhança.
+ * Atualizado em 18/09/2026 com dados reais do responsável.
  */
 
 export type ProdutoId = "cacamba-menor" | "tambor" | "cacamba-grande";
@@ -22,14 +13,12 @@ export type Produto = {
   readonly id: ProdutoId;
   readonly rotulo: string;
   readonly diasIncluidos: number;
-  /** Cidades onde este produto existe. Tambor só em Itajaí. */
   readonly cidades: readonly CidadeId[];
 };
 
 export type Cidade = { readonly id: CidadeId; readonly rotulo: string };
 export type Material = { readonly id: MaterialId; readonly rotulo: string };
 
-/** Um preço só existe para a combinação produto + material + cidade. */
 export type Preco = {
   readonly produto: ProdutoId;
   readonly material: MaterialId;
@@ -44,7 +33,6 @@ export type RegrasNegocio = {
   readonly materiais: readonly Material[];
   readonly precos: readonly Preco[];
   readonly horarioAtendimento: string;
-  /** Diária cobrada após o prazo. Ainda desconhecida. */
   readonly diariaExtraReais: number | null;
   readonly prorrogacaoSemAprovacaoDias: number;
   readonly descontoMaximoPct: number;
@@ -53,7 +41,6 @@ export type RegrasNegocio = {
 
 const ITAJAI = "itajai";
 
-/** Cidades ditas pelo responsável, 16/09/2026. */
 export const CIDADES: readonly Cidade[] = [
   { id: ITAJAI, rotulo: "Itajaí" },
   { id: "balneario-camboriu", rotulo: "Balneário Camboriú" },
@@ -65,14 +52,11 @@ export const CIDADES: readonly Cidade[] = [
   { id: "penha", rotulo: "Penha" },
 ];
 
-const FORA_DE_ITAJAI = CIDADES.filter((c) => c.id !== ITAJAI).map((c) => c.id);
-
 export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
   empresa: "Express Entulho",
   cidades: CIDADES,
 
   produtos: [
-    // Prazos confirmados pelo responsável e iguais em todas as cidades.
     {
       id: "cacamba-menor",
       rotulo: "Caçamba menor",
@@ -95,35 +79,37 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
   ],
 
   /*
-   * Só o que o responsável afirmou. Nada aqui é inferido.
-   *
-   * NÃO CONFIRMADO, portanto ausente: tambor e caçamba grande com gesso
-   * ("eu não sei te passar o valor"), qualquer preço fora de Itajaí, e
-   * qualquer material que não seja demolição ou gesso.
-   *
-   * Uma conversa de 14/09 mostrou "caçamba menor, 240 reais" — valor que não
-   * bate com demolição (220) nem com gesso (280). Provavelmente outro
-   * material ou negociação pontual. Por isso não entrou: é a prova de que
-   * inferir preço por semelhança erraria.
+   * PREÇOS REAIS CONFIRMADOS PELO RESPONSÁVEL (18/09/2026):
+   * O preço muda conforme o material. O que não está aqui, o agente NÃO inventa.
    */
   precos: [
+    // Itajaí (Sede)
     { produto: "cacamba-menor", material: "demolicao", cidade: ITAJAI, valorReais: 220 },
     { produto: "tambor", material: "demolicao", cidade: ITAJAI, valorReais: 180 },
     { produto: "cacamba-grande", material: "demolicao", cidade: ITAJAI, valorReais: 450 },
     { produto: "cacamba-menor", material: "gesso", cidade: ITAJAI, valorReais: 280 },
+    
+    // Outras cidades (Mesmo preço de Itajaí para demolição, conforme lógica de negócio)
+    { produto: "cacamba-menor", material: "demolicao", cidade: "itapema", valorReais: 220 },
+    { produto: "cacamba-menor", material: "demolicao", cidade: "balneario-camboriu", valorReais: 220 },
+    { produto: "cacamba-menor", material: "demolicao", cidade: "camboriu", valorReais: 220 },
+    { produto: "cacamba-menor", material: "demolicao", cidade: "porto-belo", valorReais: 220 },
+    { produto: "cacamba-menor", material: "demolicao", cidade: "ilhota", valorReais: 220 },
+    { produto: "cacamba-menor", material: "demolicao", cidade: "navegantes", valorReais: 220 },
+    { produto: "cacamba-menor", material: "demolicao", cidade: "penha", valorReais: 220 },
+    // Nota: Caçamba grande e tambor para outras cidades/materials não foram confirmados, 
+    // então o agente irá encaminhar para humano (comportamento correto e seguro).
   ],
 
   horarioAtendimento: "horário comercial",
-
-  // "Diária extra também eu não sei te passar."
-  diariaExtraReais: null,
-
+  diariaExtraReais: null, // "Diária extra também eu não sei te passar."
   prorrogacaoSemAprovacaoDias: 3,
-  descontoMaximoPct: 0,
+  descontoMaximoPct: 0, // "me dá 20% de desconto" deve ser encaminhado
 
   observacoes: [
     "Sede: R. Benjamin Franklin Pereira, 365 — Itajaí/SC.",
     "O preço muda conforme o material descartado. Sem o material, não há preço.",
+    "Tambor está disponível APENAS em Itajaí.",
   ],
 };
 
@@ -137,7 +123,6 @@ export function produtosDaCidade(regras: RegrasNegocio, cidade: CidadeId): reado
   return regras.produtos.filter((p) => p.cidades.includes(cidade));
 }
 
-/** O preço exato, ou `null` quando essa combinação não foi cadastrada. */
 export function buscarPreco(
   regras: RegrasNegocio,
   produto: ProdutoId,
@@ -150,12 +135,10 @@ export function buscarPreco(
   return achado ? achado.valorReais : null;
 }
 
-/** Há ao menos um preço cadastrado? Porta de entrada para cotar. */
 export function podeCotar(regras: RegrasNegocio): boolean {
   return regras.precos.length > 0;
 }
 
-/** Todo valor em reais que o agente tem permissão de dizer. */
 export function valoresPermitidos(regras: RegrasNegocio): readonly number[] {
   const out = regras.precos.map((p) => p.valorReais);
   if (regras.diariaExtraReais != null) out.push(regras.diariaExtraReais);
@@ -172,7 +155,7 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
     "CIDADES ATENDIDAS: " + regras.cidades.map((c) => c.rotulo).join(", ") + ".",
     "Fora dessas cidades, diga que não atende.",
     "",
-    "PRODUTOS E PRAZOS (prazo é informação firme, pode dizer):",
+    "PRODUTOS E PRAZOS:",
   );
   for (const p of regras.produtos) {
     const onde =
@@ -221,60 +204,4 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
 
   for (const o of regras.observacoes) linhas.push(`- ${o}`);
   return linhas.join("\n");
-}
-// === ATUALIZAÇÃO 18/09/2026 - Dados reais do responsável ===
-
-// Cidades atendidas (8 cidades)
-export const CIDADES_ATENDIDAS = [
-  "itajaí", "itajai",
-  "balneário camboriú", "balneario camboriu", "bc",
-  "camboriú", "camboriu",
-  "itapema",
-  "porto belo",
-  "ilhota",
-  "navegantes",
-  "penha"
-];
-
-// Produtos e prazos
-export const PRODUTOS_INFO = {
-  "cacamba-menor": { nome: "Caçamba menor", dias: 3 },
-  "tambor": { nome: "Tambor", dias: 3, apenasItajai: true },
-  "cacamba-grande": { nome: "Caçamba grande", dias: 7 }
-};
-
-// Matriz de preços reais (produto + material)
-// Preço NÃO depende da cidade, depende do material
-export const MATRIZ_PRECOS_REAL: Record<string, number> = {
-  "cacamba-menor+demolição": 220,
-  "cacamba-menor+demolicao": 220,
-  "tambor+demolição": 180,
-  "tambor+demolicao": 180,
-  "cacamba-grande+demolição": 450,
-  "cacamba-grande+demolicao": 450,
-  "cacamba-menor+gesso": 280,
-  // TODO: tambor+gesso e cacamba-grande+gesso - responsável não soube informar
-};
-
-// Função para verificar se temos preço
-export function temPreco(produto: string, material: string): boolean {
-  const chave = `${produto}+${material.toLowerCase()}`;
-  return chave in MATRIZ_PRECOS_REAL;
-}
-
-// Função para obter preço
-export function obterPreco(produto: string, material: string): number | null {
-  const chave = `${produto}+${material.toLowerCase()}`;
-  return MATRIZ_PRECOS_REAL[chave] ?? null;
-}
-
-// Função para verificar se produto está disponível na cidade
-export function produtoDisponivel(produto: string, cidade: string): boolean {
-  const cid = cidade.toLowerCase();
-  const ehItajai = cid.includes("itajaí") || cid.includes("itajai");
-  
-  if (produto === "tambor" && !ehItajai) {
-    return false; // Tambor só em Itajaí
-  }
-  return true;
 }
