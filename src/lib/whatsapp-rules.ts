@@ -222,3 +222,59 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
   for (const o of regras.observacoes) linhas.push(`- ${o}`);
   return linhas.join("\n");
 }
+// === ATUALIZAÇÃO 18/09/2026 - Dados reais do responsável ===
+
+// Cidades atendidas (8 cidades)
+export const CIDADES_ATENDIDAS = [
+  "itajaí", "itajai",
+  "balneário camboriú", "balneario camboriu", "bc",
+  "camboriú", "camboriu",
+  "itapema",
+  "porto belo",
+  "ilhota",
+  "navegantes",
+  "penha"
+];
+
+// Produtos e prazos
+export const PRODUTOS_INFO = {
+  "cacamba-menor": { nome: "Caçamba menor", dias: 3 },
+  "tambor": { nome: "Tambor", dias: 3, apenasItajai: true },
+  "cacamba-grande": { nome: "Caçamba grande", dias: 7 }
+};
+
+// Matriz de preços reais (produto + material)
+// Preço NÃO depende da cidade, depende do material
+export const MATRIZ_PRECOS_REAL: Record<string, number> = {
+  "cacamba-menor+demolição": 220,
+  "cacamba-menor+demolicao": 220,
+  "tambor+demolição": 180,
+  "tambor+demolicao": 180,
+  "cacamba-grande+demolição": 450,
+  "cacamba-grande+demolicao": 450,
+  "cacamba-menor+gesso": 280,
+  // TODO: tambor+gesso e cacamba-grande+gesso - responsável não soube informar
+};
+
+// Função para verificar se temos preço
+export function temPreco(produto: string, material: string): boolean {
+  const chave = `${produto}+${material.toLowerCase()}`;
+  return chave in MATRIZ_PRECOS_REAL;
+}
+
+// Função para obter preço
+export function obterPreco(produto: string, material: string): number | null {
+  const chave = `${produto}+${material.toLowerCase()}`;
+  return MATRIZ_PRECOS_REAL[chave] ?? null;
+}
+
+// Função para verificar se produto está disponível na cidade
+export function produtoDisponivel(produto: string, cidade: string): boolean {
+  const cid = cidade.toLowerCase();
+  const ehItajai = cid.includes("itajaí") || cid.includes("itajai");
+  
+  if (produto === "tambor" && !ehItajai) {
+    return false; // Tambor só em Itajaí
+  }
+  return true;
+}
