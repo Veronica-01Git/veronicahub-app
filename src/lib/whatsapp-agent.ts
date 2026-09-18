@@ -29,7 +29,7 @@ import {
  * o 429 dele caindo para o 120b justamente porque "os modelos GPT-OSS têm
  * cotas gratuitas separadas"). Esgotar a cota de lá não esgota a daqui.
  */
-export const MODELO_AGENTE = "qwen/qwen3.6-27b";
+export const MODELO_AGENTE = "llama-3.1-8b-instant";
 
 /**
  * Modelo de reserva, tentado quando o primeiro não atende.
@@ -44,7 +44,7 @@ export const MODELO_AGENTE = "qwen/qwen3.6-27b";
  * Reserva não é permissão para inventar: a resposta dela passa pela mesma
  * guarda de preço. O que muda é conversar em vez de encaminhar.
  */
-export const MODELO_RESERVA = "openai/gpt-oss-20b";
+export const MODELO_RESERVA = "llama-3.3-70b-versatile";
 const MAX_TOKENS = 320;
 
 /**
