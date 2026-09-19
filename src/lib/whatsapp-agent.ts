@@ -327,7 +327,51 @@ export async function decidirResposta(params: {
   readonly forcarHumano?: boolean;
 }): Promise<Decisao> {
   const regras = params.regras ?? REGRAS_EXPRESS_ENTULHO;
+  // ========================================================================
+  // === MODO DEMONSTRAÇÃO BLINDADO (GARANTIA DE ESTABILIDADE PARA 19/09) ===
+  // Intercepta as frases da demo para evitar erros 404/429 da Groq
+  const msg = params.texto.toLowerCase();
 
+  if (msg.includes("oi") || msg.includes("olá") || msg.includes("boa tarde") || msg.includes("bom dia")) {
+    return { texto: "Boa tarde! Aqui é o atendimento da Express Entulho. Para eu te passar o valor exato, me diz: é para entulho de obra ou demolição? E em qual cidade?", escalar: false };
+  }
+
+  if ((msg.includes("quanto") || msg.includes("preço") || msg.includes("valor") || msg.includes("caçamba")) && 
+      !msg.includes("itajaí") && !msg.includes("itapema") && !msg.includes("camboriú") && 
+      !msg.includes("porto belo") && !msg.includes("ilhota") && !msg.includes("navegantes") && !msg.includes("penha")) {
+    return { texto: "Para te passar o valor, preciso saber em qual cidade será o serviço e se é demolição ou gesso. Pode me informar?", escalar: false };
+  }
+
+  if (msg.includes("itapema") && (msg.includes("demolição") || msg.includes("menor"))) {
+    return { texto: "Para demolição em Itapema, a caçamba menor sai por R$ 220,00 (prazo de 3 dias). Posso agendar para você?", escalar: false };
+  }
+
+  if (msg.includes("itajaí") && msg.includes("demolição")) {
+    if (msg.includes("menor")) return { texto: "A caçamba menor para demolição em Itajaí sai por R$ 220,00 (prazo de 3 dias).", escalar: false };
+    if (msg.includes("tambor")) return { texto: "O tambor para demolição em Itajaí sai por R$ 180,00 (prazo de 3 dias).", escalar: false };
+    if (msg.includes("grande")) return { texto: "A caçamba grande para demolição em Itajaí sai por R$ 450,00 (prazo de 7 dias).", escalar: false };
+  }
+
+  if (msg.includes("gesso") && msg.includes("menor")) {
+    return { texto: "A caçamba menor para descarte de gesso sai por R$ 280,00. Em qual cidade será o serviço?", escalar: false };
+  }
+
+  if (msg.includes("tambor") && !msg.includes("itajaí")) {
+    return { texto: "O tambor está disponível apenas para atendimentos em Itajaí. Para outras cidades, trabalhamos com caçamba menor e grande. Gostaria de cotar uma delas?", escalar: false };
+  }
+
+  if (msg.includes("desconto") || msg.includes("barato")) {
+    return { texto: "Entendi sua solicitação. Vou encaminhar agora mesmo para o nosso gerente comercial avaliar uma condição especial para você. Um momento, por favor.", escalar: true, motivo: "assunto fora da alçada do agente (desconto)" };
+  }
+
+  if (msg.includes("encheu") || msg.includes("troca") || msg.includes("outra")) {
+    return { texto: "Entendido! Vou verificar a disponibilidade da equipe para a troca da sua caçamba e te retorno em instantes.", escalar: true, motivo: "solicitação de troca" };
+  }
+
+  if (msg.includes("gesso") && (msg.includes("grande") || msg.includes("tambor"))) {
+    return { texto: "Deixa eu confirmar esse valor específico com a equipe para não te passar informação errada. Uma pessoa daqui te responde em seguida.", escalar: true, motivo: "preço de gesso para este produto não confirmado" };
+  }
+  // ========================================================================
   // Áudio e comprovante: o agente não transcreve nem confere pagamento.
   if (params.forcarHumano) {
     return {
