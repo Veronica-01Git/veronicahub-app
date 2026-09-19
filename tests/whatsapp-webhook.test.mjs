@@ -34,7 +34,7 @@ const { podeCotar, buscarPreco, produtosDaCidade, produtoPorId, REGRAS_EXPRESS_E
   await import("../src/lib/whatsapp-rules.ts");
 const { diagnosticarGroq, diagnosticarWhatsApp } =
   await import("../src/lib/whatsapp-diagnostico.ts");
-const { MODELO_AGENTE } = await import("../src/lib/whatsapp-agent.ts");
+const { MODELO_AGENTE, MODELO_RESERVA } = await import("../src/lib/whatsapp-agent.ts");
 
 const SEGREDO = "segredo-de-teste-do-app-meta";
 
@@ -356,25 +356,52 @@ test("sem configuração de WhatsApp, o diagnóstico diz o que falta", async () 
   assert.match(d.motivo, /WHATSAPP_PHONE_NUMBER_ID/);
 });
 
-test("a agente e o pipeline de matérias não dividem o mesmo modelo", async () => {
-  // Esta asserção existe por causa de uma hipótese que atrasou o diagnóstico:
-  // "a cota diária da Groq está estourada por causa do pipeline horário".
-  // Na Groq o teto é POR MODELO. Enquanto os dois pedirem modelos distintos,
-  // gastar a cota de um não derruba o outro — e essa explicação fica de pé.
-  // Se alguém apontar os dois para o mesmo modelo, o raciocínio muda e este
-  // teste avisa antes que ele seja repetido como verdade.
+test("a agente não roda no mesmo modelo que o pipeline queima de hora em hora", async () => {
+  // Esta asserção existe por causa de uma hipótese que atrasou um
+  // diagnóstico: "a cota diária da Groq está estourada por causa do pipeline
+  // horário". Na Groq o teto é POR MODELO, e articles-server.ts registra que
+  // os GPT-OSS têm cotas gratuitas separadas entre si.
+  //
+  // O que precisa ser verdade não é que os dois lados usem famílias
+  // diferentes — é que a agente não dispute o modelo que o pipeline esgota
+  // sozinho. O pipeline roda no DRAFT_MODEL toda hora; o FALLBACK só é
+  // tocado quando aquele estoura. Por isso a agente usa o fallback como
+  // principal: identificador comprovadamente válido, com cota quase intacta.
   const { readFileSync } = await import("node:fs");
   const fonte = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
-  const modelosDoPipeline = [
+  const principalDoPipeline = fonte.match(/^const DRAFT_MODEL = "([^"]+)";/m)?.[1];
+
+  assert.ok(principalDoPipeline, "não achei o modelo principal do pipeline editorial");
+  assert.notEqual(
+    MODELO_AGENTE,
+    principalDoPipeline,
+    `a agente usa ${MODELO_AGENTE}, o mesmo que o pipeline queima de hora em hora`,
+  );
+});
+
+test("os modelos da agente são identificadores que o repositório comprova", async () => {
+  // Em 19/09 a agente ficou muda: primário e reserva davam 404, e toda
+  // conversa caía no offline. O sintoma engana — parece regra de negócio
+  // barrando, é configuração. A defesa é não inventar nome de modelo: usar
+  // os que o pipeline editorial roda em produção com a mesma credencial.
+  const { readFileSync } = await import("node:fs");
+  const fonte = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
+  const comprovados = [
     ...fonte.matchAll(/^const DRAFT_(?:FALLBACK_)?MODEL = "([^"]+)";/gm),
   ].map((m) => m[1]);
 
-  assert.ok(modelosDoPipeline.length >= 1, "não achei o modelo do pipeline editorial");
-  assert.equal(
-    modelosDoPipeline.includes(MODELO_AGENTE),
-    false,
-    `a agente usa ${MODELO_AGENTE}, que também é do pipeline: ${modelosDoPipeline.join(", ")}`,
-  );
+  for (const [papel, modelo] of [
+    ["principal", MODELO_AGENTE],
+    ["reserva", MODELO_RESERVA],
+  ]) {
+    assert.ok(
+      comprovados.includes(modelo),
+      `o modelo ${papel} (${modelo}) não é um dos comprovados em articles-server.ts: ` +
+        `${comprovados.join(", ")}. Se for trocar, confirme antes que o nome existe na Groq.`,
+    );
+  }
+
+  assert.notEqual(MODELO_AGENTE, MODELO_RESERVA, "reserva igual ao principal não é reserva");
 });
 
 /* ------------------------------------- a guarda confere a combinação inteira */

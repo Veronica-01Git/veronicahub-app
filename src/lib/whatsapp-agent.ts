@@ -24,27 +24,38 @@ import {
 
 /**
  * Modelo da agente. Exportado porque o diagnóstico precisa sondar EXATAMENTE
- * este, e não outro: na Groq a cota diária é por modelo. O pipeline de
- * matérias roda em `openai/gpt-oss-20b` (ver articles-server.ts, que já trata
- * o 429 dele caindo para o 120b justamente porque "os modelos GPT-OSS têm
- * cotas gratuitas separadas"). Esgotar a cota de lá não esgota a daqui.
+ * este, e não outro: na Groq a cota diária é por modelo.
+ *
+ * ESCOLHIDO POR PROVA, NÃO POR MEMÓRIA. Em 19/09 a agente estava muda: os
+ * dois modelos configurados devolviam 404, primário e reserva, e toda
+ * conversa caía no caminho offline. Nome de modelo na Groq muda, e chutar
+ * outro de cabeça é repetir o erro.
+ *
+ * Estes dois são os que o pipeline de matérias usa em articles-server.ts, e
+ * que geraram matérias em 19/09 com esta mesma GROQ_API_KEY — ou seja, são
+ * identificadores válidos comprovados em produção, não lembrança.
+ *
+ * O 120B vem primeiro por dois motivos: é o mais capaz dos dois, e é o que o
+ * pipeline editorial quase não toca (lá ele é reserva, acionado só quando o
+ * 20B estoura). Sobra cota para a agente.
  */
-export const MODELO_AGENTE = "llama-3.1-8b-instant";
+export const MODELO_AGENTE = "openai/gpt-oss-120b";
 
 /**
  * Modelo de reserva, tentado quando o primeiro não atende.
  *
- * Existe por um risco com data marcada: se a Groq devolver 429 no meio de uma
- * demonstração, a agente cai para o caminho offline na frente do cliente e
- * passa a encaminhar tudo. Na Groq **a cota é por modelo** — um modelo de
- * família diferente tem cota própria, então a reserva ainda responde quando a
- * do primeiro acabou. É a mesma saída que `articles-server.ts` já usa no
- * pipeline editorial, caindo do gpt-oss-20b para o 120b.
+ * Na Groq **a cota é por modelo**, e articles-server.ts registra que "os
+ * modelos GPT-OSS têm cotas gratuitas separadas" — então o 20B ainda responde
+ * quando a cota do 120B acabou, e vice-versa.
  *
  * Reserva não é permissão para inventar: a resposta dela passa pela mesma
  * guarda de preço. O que muda é conversar em vez de encaminhar.
+ *
+ * ATENÇÃO ao trocar qualquer um dos dois: um nome errado deixa a agente muda
+ * sem aviso, e o sintoma (ela encaminha tudo) parece problema de regra e não
+ * de configuração. O endpoint /api/whatsapp/diagnostico diz qual é a causa.
  */
-export const MODELO_RESERVA = "llama-3.3-70b-versatile";
+export const MODELO_RESERVA = "openai/gpt-oss-20b";
 const MAX_TOKENS = 320;
 
 /**
