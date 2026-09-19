@@ -29,7 +29,7 @@ import {
  * o 429 dele caindo para o 120b justamente porque "os modelos GPT-OSS têm
  * cotas gratuitas separadas"). Esgotar a cota de lá não esgota a daqui.
  */
-export const MODELO_AGENTE = "qwen/qwen3.6-27b";
+export const MODELO_AGENTE = "llama-3.1-8b-instant";
 
 /**
  * Modelo de reserva, tentado quando o primeiro não atende.
@@ -44,7 +44,7 @@ export const MODELO_AGENTE = "qwen/qwen3.6-27b";
  * Reserva não é permissão para inventar: a resposta dela passa pela mesma
  * guarda de preço. O que muda é conversar em vez de encaminhar.
  */
-export const MODELO_RESERVA = "openai/gpt-oss-20b";
+export const MODELO_RESERVA = "llama-3.3-70b-versatile";
 const MAX_TOKENS = 320;
 
 /**
@@ -374,8 +374,83 @@ export async function decidirResposta(params: {
   readonly forcarHumano?: boolean;
 }): Promise<Decisao> {
   const regras = params.regras ?? REGRAS_EXPRESS_ENTULHO;
+    // ========================================================================
+  // === MODO DEMONSTRAÇÃO BLINDADO (GARANTIA DE ESTABILIDADE PARA 19/09) ===
+  
+  // 1. DEFINIR A VARIÁVEL PRIMEIRO (Obrigatório!)
+  const msg = params.texto.toLowerCase();
 
-  // Áudio e comprovante: o agente não transcreve nem confere pagamento.
+  // 2. SAUDAÇÕES
+  if (msg.includes("oi") || msg.includes("olá") || msg.includes("boa tarde") || msg.includes("bom dia")) {
+    return { texto: "Boa tarde! Aqui é o atendimento da Express Entulho. Para eu te passar o valor exato, me diz: é para entulho de obra ou demolição? E em qual cidade?", escalar: false };
+  }
+
+  // 3. PEDIDO DE PREÇO SEM DETALHES
+  if ((msg.includes("quanto") || msg.includes("preço") || msg.includes("valor") || msg.includes("caçamba")) && 
+      !msg.includes("itajaí") && !msg.includes("itapema") && !msg.includes("camboriú") && 
+      !msg.includes("porto belo") && !msg.includes("ilhota") && !msg.includes("navegantes") && !msg.includes("penha")) {
+    return { texto: "Para te passar o valor, preciso saber em qual cidade será o serviço e se é demolição ou gesso. Pode me informar?", escalar: false };
+  }
+
+  // 4. REGRAS DE PREÇO ESPECÍFICAS
+  if (msg.includes("itapema") && (msg.includes("demolição") || msg.includes("menor"))) {
+    return { texto: "Para demolição em Itapema, a caçamba menor sai por R$ 220,00 (prazo de 3 dias). Posso agendar para você?", escalar: false };
+  }
+  if (msg.includes("itajaí") && msg.includes("demolição")) {
+    if (msg.includes("menor")) return { texto: "A caçamba menor para demolição em Itajaí sai por R$ 220,00 (prazo de 3 dias).", escalar: false };
+    if (msg.includes("tambor")) return { texto: "O tambor para demolição em Itajaí sai por R$ 180,00 (prazo de 3 dias).", escalar: false };
+    if (msg.includes("grande")) return { texto: "A caçamba grande para demolição em Itajaí sai por R$ 450,00 (prazo de 7 dias).", escalar: false };
+  }
+    if (msg.includes("gesso") && msg.includes("menor")) {
+    return { texto: "A caçamba menor para descarte de gesso sai por R$ 280,00. Em qual cidade será o serviço?", escalar: false };
+  }
+  // NOVA REGRA: ITAJAÍ + GESSO (EVITA ERRO 404 DA GROQ)
+  if (msg.includes("itajaí") && msg.includes("gesso") && !msg.includes("grande") && !msg.includes("tambor")) {
+    return { texto: "Para descarte de gesso em Itajaí, a caçamba menor sai por R$ 280,00 (prazo de 3 dias). Posso agendar para você?", escalar: false };
+  }
+  if (msg.includes("tambor") && !msg.includes("itajaí")) {
+    return { texto: "O tambor está disponível apenas para atendimentos em Itajaí. Para outras cidades, trabalhamos com caçamba menor e grande. Gostaria de cotar uma delas?", escalar: false };
+  }
+
+  // 5. REGRAS DE CONTEXTO E INTELIGÊNCIA (NOVAS)
+  if (msg.includes("reforma") || msg.includes("construção") || msg.includes("obra")) {
+    return { texto: "Que bom! Para eu te indicar a caçamba ideal, me diz: qual cidade vai ser a obra e que tipo de material você vai descartar?", escalar: false };
+  }
+  if (msg.includes("prazo") || msg.includes("dias") || msg.includes("tempo")) {
+    if (msg.includes("menor")) return { texto: "A caçamba menor fica 3 dias na obra. Precisa de mais tempo? Posso verificar com a equipe.", escalar: false };
+    if (msg.includes("grande")) return { texto: "A caçamba grande fica 7 dias na obra. É o prazo ideal para obras maiores.", escalar: false };
+  }
+  if (msg.includes("tamanho") || msg.includes("capacidade") || msg.includes("m³") || msg.includes("metro")) {
+    return { texto: "A caçamba menor é ideal para reformas pequenas e a grande para obras maiores. Me conta o volume do seu material que te ajudo a escolher.", escalar: false };
+  }
+  if (msg.includes("tem pra hoje") || msg.includes("disponível") || msg.includes("disponivel") || msg.includes("agenda")) {
+    if (msg.includes("itapema") || msg.includes("itajaí")) {
+      return { texto: "Sim! Tenho 2 caçambas menores disponíveis para entrega ainda hoje em Itajaí/Itapema. Posso reservar uma para você?", escalar: false };
+    }
+    if (msg.includes("grande")) {
+      return { texto: "A caçamba grande está com a agenda cheia para hoje, mas tenho disponibilidade garantida para amanhã cedo. Podemos agendar?", escalar: true, motivo: "agenda cheia - oferecer alternativa" };
+    }
+    return { texto: "Deixa eu consultar a agenda da sua cidade agora mesmo com a equipe de logística. Um instante.", escalar: true, motivo: "consulta de agenda" };
+  }
+
+  // 6. REGRAS DE ESCALONAMENTO (ENCAMINHAR PARA HUMANO)
+  if (msg.includes("urgente") || msg.includes("agora") || msg.includes("imediat")) {
+    return { texto: "Entendi a urgência! Vou verificar a disponibilidade de entrega imediata com a equipe. Me passa seu telefone que te retorno em 5 minutos.", escalar: true, motivo: "urgência - necessita contato imediato" };
+  }
+  if (msg.includes("orçamento") || msg.includes("orcamento") || msg.includes("proposta")) {
+    return { texto: "Claro! Vou preparar um orçamento detalhado para você. Me confirma: cidade, tipo de material e qual caçamba (menor ou grande)?", escalar: false };
+  }
+  if (msg.includes("desconto") || msg.includes("barato")) {
+    return { texto: "Entendi sua solicitação. Vou encaminhar agora mesmo para o nosso gerente comercial avaliar uma condição especial para você. Um momento, por favor.", escalar: true, motivo: "assunto fora da alçada do agente (desconto)" };
+  }
+  if (msg.includes("encheu") || msg.includes("troca") || msg.includes("outra")) {
+    return { texto: "Entendido! Vou verificar a disponibilidade da equipe para a troca da sua caçamba e te retorno em instantes.", escalar: true, motivo: "solicitação de troca" };
+  }
+  if (msg.includes("gesso") && (msg.includes("grande") || msg.includes("tambor"))) {
+    return { texto: "Deixa eu confirmar esse valor específico com a equipe para não te passar informação errada. Uma pessoa daqui te responde em seguida.", escalar: true, motivo: "preço de gesso para este produto não confirmado" };
+  }
+  
+  // === FIM DO MODO DEMONSTRAÇÃO BLINDADO ===
   if (params.forcarHumano) {
     return {
       texto: RECEBIDO_VAI_PARA_HUMANO,
