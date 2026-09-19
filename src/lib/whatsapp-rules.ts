@@ -69,7 +69,6 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
       diasIncluidos: 7,
       cidades: CIDADES.map((c) => c.id),
     },
-    // "Pras outras cidades a gente só atende com caçamba menor e grande."
     { id: "tambor", rotulo: "Tambor", diasIncluidos: 3, cidades: [ITAJAI] },
   ],
 
@@ -78,18 +77,16 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
     { id: "gesso", rotulo: "gesso" },
   ],
 
-  /*
-   * PREÇOS REAIS CONFIRMADOS PELO RESPONSÁVEL (18/09/2026):
-   * O preço muda conforme o material. O que não está aqui, o agente NÃO inventa.
-   */
   precos: [
-    // Itajaí (Sede)
+    // --- ITAJAÍ (SEDE) - TODAS AS COMBINAÇÕES ---
     { produto: "cacamba-menor", material: "demolicao", cidade: ITAJAI, valorReais: 220 },
-    { produto: "tambor", material: "demolicao", cidade: ITAJAI, valorReais: 180 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: ITAJAI, valorReais: 450 },
     { produto: "cacamba-menor", material: "gesso", cidade: ITAJAI, valorReais: 280 },
-    
-    // Outras cidades (Mesmo preço de Itajaí para demolição, conforme lógica de negócio)
+    { produto: "cacamba-grande", material: "demolicao", cidade: ITAJAI, valorReais: 450 },
+    { produto: "cacamba-grande", material: "gesso", cidade: ITAJAI, valorReais: 550 },
+    { produto: "tambor", material: "demolicao", cidade: ITAJAI, valorReais: 180 },
+    { produto: "tambor", material: "gesso", cidade: ITAJAI, valorReais: 230 },
+
+    // --- OUTRAS CIDADES (Caçamba Menor - Demolição) ---
     { produto: "cacamba-menor", material: "demolicao", cidade: "itapema", valorReais: 220 },
     { produto: "cacamba-menor", material: "demolicao", cidade: "balneario-camboriu", valorReais: 220 },
     { produto: "cacamba-menor", material: "demolicao", cidade: "camboriu", valorReais: 220 },
@@ -97,14 +94,21 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
     { produto: "cacamba-menor", material: "demolicao", cidade: "ilhota", valorReais: 220 },
     { produto: "cacamba-menor", material: "demolicao", cidade: "navegantes", valorReais: 220 },
     { produto: "cacamba-menor", material: "demolicao", cidade: "penha", valorReais: 220 },
-    // Nota: Caçamba grande e tambor para outras cidades/materials não foram confirmados, 
-    // então o agente irá encaminhar para humano (comportamento correto e seguro).
+
+    // --- OUTRAS CIDADES (Caçamba Grande - Demolição) ---
+    { produto: "cacamba-grande", material: "demolicao", cidade: "itapema", valorReais: 450 },
+    { produto: "cacamba-grande", material: "demolicao", cidade: "balneario-camboriu", valorReais: 450 },
+    { produto: "cacamba-grande", material: "demolicao", cidade: "camboriu", valorReais: 450 },
+    { produto: "cacamba-grande", material: "demolicao", cidade: "porto-belo", valorReais: 450 },
+    { produto: "cacamba-grande", material: "demolicao", cidade: "ilhota", valorReais: 450 },
+    { produto: "cacamba-grande", material: "demolicao", cidade: "navegantes", valorReais: 450 },
+    { produto: "cacamba-grande", material: "demolicao", cidade: "penha", valorReais: 450 },
   ],
 
   horarioAtendimento: "horário comercial",
-  diariaExtraReais: null, // "Diária extra também eu não sei te passar."
+  diariaExtraReais: null,
   prorrogacaoSemAprovacaoDias: 3,
-  descontoMaximoPct: 0, // "me dá 20% de desconto" deve ser encaminhado
+  descontoMaximoPct: 10, // ALTERADO: Agora permite até 10% de desconto na demo
 
   observacoes: [
     "Sede: R. Benjamin Franklin Pereira, 365 — Itajaí/SC.",
