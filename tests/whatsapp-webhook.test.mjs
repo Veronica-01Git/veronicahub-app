@@ -28,13 +28,17 @@ const {
   cidadesCitadas,
   valoresCitados,
   prometeuConfirmar,
-  resumirErro,
 } = await import("../src/lib/whatsapp-agent.ts");
 const { podeCotar, buscarPreco, produtosDaCidade, produtoPorId, REGRAS_EXPRESS_ENTULHO } =
   await import("../src/lib/whatsapp-rules.ts");
 const { diagnosticarGroq, diagnosticarWhatsApp } =
   await import("../src/lib/whatsapp-diagnostico.ts");
-const { MODELO_AGENTE, MODELO_RESERVA } = await import("../src/lib/whatsapp-agent.ts");
+const {
+  CADEIA_DE_PROVEDORES,
+  PROVEDOR_ANTHROPIC,
+  MODELO_GROQ_PRINCIPAL,
+  MODELO_GROQ_RESERVA,
+} = await import("../src/lib/whatsapp-provedores.ts");
 
 const SEGREDO = "segredo-de-teste-do-app-meta";
 
@@ -257,23 +261,31 @@ test("promessa de retorno humano marca a conversa para um humano", () => {
   );
 });
 
-test("cada falha do núcleo tem motivo próprio — três causas, três mensagens", () => {
+test("cada falha tem motivo próprio — causas diferentes, mensagens diferentes", () => {
   // Em produção o segredo estava configurado e a tela dizia apenas
   // "indisponível", o que mandou procurar o problema no lugar errado.
-  assert.equal(resumirErro({ status: 429 }).includes("cota"), true);
-  assert.equal(resumirErro({ status: 401 }).includes("recusou a chave"), true);
-  assert.equal(resumirErro({ status: 404 }).includes("modelo não encontrado"), true);
-  assert.equal(resumirErro({ status: 503 }).includes("503"), true);
-  assert.equal(resumirErro(new Error("socket hang up")).includes("socket hang up"), true);
+  const groq = CADEIA_DE_PROVEDORES.find((p) => p.modelo === MODELO_GROQ_PRINCIPAL);
+  assert.equal(groq.resumirErro({ status: 429 }).includes("cota"), true);
+  assert.equal(groq.resumirErro({ status: 401 }).includes("recusou a chave"), true);
+  assert.equal(groq.resumirErro({ status: 404 }).includes("não encontrado"), true);
+  assert.equal(groq.resumirErro({ status: 503 }).includes("503"), true);
+  assert.equal(groq.resumirErro(new Error("socket hang up")).includes("socket hang up"), true);
+
+  // A Anthropic distingue as mesmas causas com as palavras dela — chave sem
+  // crédito (403) é diferente de chave inválida (401), e confundir as duas
+  // custa uma ida ao painel errado.
+  const anthropic = PROVEDOR_ANTHROPIC.resumirErro(new Error("timeout de rede"));
+  assert.match(anthropic, /Anthropic/);
+  assert.match(anthropic, /timeout de rede/);
 
   const semMotivo = decidirRespostaOffline({ texto: "oi", primeiraMensagem: true });
   assert.equal(semMotivo.escalar, true);
   const comMotivo = decidirRespostaOffline({
     texto: "oi",
     primeiraMensagem: false,
-    motivo: "GROQ_API_KEY não configurada",
+    motivo: "ANTHROPIC_API_KEY não configurada",
   });
-  assert.equal(comMotivo.motivo, "GROQ_API_KEY não configurada");
+  assert.equal(comMotivo.motivo, "ANTHROPIC_API_KEY não configurada");
 });
 
 /* ------------------------------------------------------------ diagnóstico */
@@ -287,7 +299,7 @@ test("diagnóstico sem chave acusa a chave, não a Groq", async () => {
   assert.equal(d.respondeu, false);
   assert.equal(d.status, null);
   assert.equal(d.motivo, "GROQ_API_KEY não configurada");
-  assert.equal(d.modelo, MODELO_AGENTE);
+  assert.equal(d.modelo, MODELO_GROQ_PRINCIPAL);
 });
 
 test("diagnóstico com a Groq respondendo devolve o caminho limpo", async () => {
@@ -303,7 +315,7 @@ test("diagnóstico distingue cota, chave recusada e modelo inexistente", async (
   for (const [status, trecho] of [
     [429, "cota"],
     [401, "recusou a chave"],
-    [404, "modelo não encontrado"],
+    [404, "não encontrado na Groq"],
   ]) {
     const d = await diagnosticarGroq(async () => {
       throw Object.assign(new Error("groq"), { status });
@@ -356,52 +368,78 @@ test("sem configuração de WhatsApp, o diagnóstico diz o que falta", async () 
   assert.match(d.motivo, /WHATSAPP_PHONE_NUMBER_ID/);
 });
 
-test("a agente não roda no mesmo modelo que o pipeline queima de hora em hora", async () => {
-  // Esta asserção existe por causa de uma hipótese que atrasou um
-  // diagnóstico: "a cota diária da Groq está estourada por causa do pipeline
-  // horário". Na Groq o teto é POR MODELO, e articles-server.ts registra que
-  // os GPT-OSS têm cotas gratuitas separadas entre si.
-  //
-  // O que precisa ser verdade não é que os dois lados usem famílias
-  // diferentes — é que a agente não dispute o modelo que o pipeline esgota
-  // sozinho. O pipeline roda no DRAFT_MODEL toda hora; o FALLBACK só é
-  // tocado quando aquele estoura. Por isso a agente usa o fallback como
-  // principal: identificador comprovadamente válido, com cota quase intacta.
+test("a reserva não roda no mesmo modelo que o pipeline queima de hora em hora", async () => {
+  // Hipótese que já atrasou um diagnóstico: "a cota da Groq estourou por causa
+  // do pipeline horário". Na Groq o teto é POR MODELO, e os GPT-OSS têm cotas
+  // separadas entre si. O que precisa ser verdade é a reserva não disputar o
+  // modelo que o pipeline esgota sozinho de hora em hora.
   const { readFileSync } = await import("node:fs");
   const fonte = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
   const principalDoPipeline = fonte.match(/^const DRAFT_MODEL = "([^"]+)";/m)?.[1];
 
   assert.ok(principalDoPipeline, "não achei o modelo principal do pipeline editorial");
   assert.notEqual(
-    MODELO_AGENTE,
+    MODELO_GROQ_PRINCIPAL,
     principalDoPipeline,
-    `a agente usa ${MODELO_AGENTE}, o mesmo que o pipeline queima de hora em hora`,
+    `a reserva usa ${MODELO_GROQ_PRINCIPAL}, o mesmo que o pipeline queima de hora em hora`,
   );
 });
 
-test("os modelos da agente são identificadores que o repositório comprova", async () => {
-  // Em 19/09 a agente ficou muda: primário e reserva davam 404, e toda
-  // conversa caía no offline. O sintoma engana — parece regra de negócio
-  // barrando, é configuração. A defesa é não inventar nome de modelo: usar
+test("a reserva da Groq usa identificadores que o repositório comprova", async () => {
+  // Em 19/09 a agente ficou muda porque os nomes de modelo configurados não
+  // existiam mais (404). A defesa é não inventar nome: os da Groq têm que ser
   // os que o pipeline editorial roda em produção com a mesma credencial.
+  // (O modelo da Anthropic não entra aqui — ele vem do catálogo deles, e quem
+  // o valida é a sonda do /api/whatsapp/diagnostico.)
   const { readFileSync } = await import("node:fs");
   const fonte = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
   const comprovados = [
     ...fonte.matchAll(/^const DRAFT_(?:FALLBACK_)?MODEL = "([^"]+)";/gm),
   ].map((m) => m[1]);
 
-  for (const [papel, modelo] of [
-    ["principal", MODELO_AGENTE],
-    ["reserva", MODELO_RESERVA],
-  ]) {
+  for (const modelo of [MODELO_GROQ_PRINCIPAL, MODELO_GROQ_RESERVA]) {
     assert.ok(
       comprovados.includes(modelo),
-      `o modelo ${papel} (${modelo}) não é um dos comprovados em articles-server.ts: ` +
-        `${comprovados.join(", ")}. Se for trocar, confirme antes que o nome existe na Groq.`,
+      `${modelo} não é um dos comprovados em articles-server.ts: ${comprovados.join(", ")}`,
     );
   }
+  assert.notEqual(MODELO_GROQ_PRINCIPAL, MODELO_GROQ_RESERVA, "reserva igual não é reserva");
+});
 
-  assert.notEqual(MODELO_AGENTE, MODELO_RESERVA, "reserva igual ao principal não é reserva");
+test("a cadeia tem provedores independentes, na ordem certa", () => {
+  // O ponto da cadeia não é ter três tentativas — é que uma falha de conta ou
+  // de cota num provedor não derrube o atendimento. Duas empresas, duas
+  // cobranças, dois limites. Se algum dia a cadeia inteira virar Groq, este
+  // teste avisa: aí uma cota esgotada deixa a agente muda de novo.
+  assert.equal(CADEIA_DE_PROVEDORES[0], PROVEDOR_ANTHROPIC, "a Anthropic é a principal");
+  assert.ok(CADEIA_DE_PROVEDORES.length >= 2, "sem reserva não há cadeia");
+
+  const empresas = new Set(CADEIA_DE_PROVEDORES.map((p) => p.nome.split(" ")[0]));
+  assert.ok(empresas.size >= 2, `cadeia com um fornecedor só: ${[...empresas].join(", ")}`);
+
+  // Toda a interface que o núcleo usa precisa existir em cada provedor.
+  for (const p of CADEIA_DE_PROVEDORES) {
+    assert.equal(typeof p.responder, "function", `${p.nome} não sabe responder`);
+    assert.equal(typeof p.configurado, "function", `${p.nome} não sabe dizer se está configurado`);
+    assert.equal(typeof p.resumirErro, "function", `${p.nome} não sabe explicar o próprio erro`);
+    assert.ok(p.modelo, `${p.nome} sem modelo`);
+  }
+});
+
+test("sem credencial nenhuma a agente escala, e diz o que falta", async () => {
+  // Provedor sem chave é PULADO, não tentado — não adianta gastar uma chamada
+  // para descobrir o que já se sabe. Sem nenhuma chave, sobra encaminhar.
+  const salvo = { ...process.env };
+  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.GROQ_API_KEY;
+  try {
+    const d = await decidirResposta({ texto: "quanto custa?", primeiraMensagem: false });
+    assert.equal(d.escalar, true);
+    assert.match(d.motivo, /ANTHROPIC_API_KEY|GROQ_API_KEY/);
+    assert.equal(valoresCitados(d.texto).length, 0, "não cita valor");
+  } finally {
+    Object.assign(process.env, salvo);
+  }
 });
 
 /* ------------------------------------- a guarda confere a combinação inteira */
@@ -541,21 +579,23 @@ test("nenhum atalho responde sobre disponibilidade sem consultar agenda nenhuma"
   }
 });
 
-test("o motivo do erro nomeia o modelo que falhou, não sempre o primário", () => {
+test("cada provedor explica o próprio erro, nomeando o próprio modelo", () => {
   // O painel chegou a dizer "reserva também falhou (cota esgotada no modelo
-  // openai/gpt-oss-120b)" — o nome do PRIMÁRIO, porque resumirErro fixava
-  // MODELO_AGENTE. Quem lê conclui que a reserva nem foi tentada, ou que as
-  // duas rodam no mesmo modelo. Diagnóstico que mente custa mais caro que
-  // diagnóstico que falta.
+  // openai/gpt-oss-120b)" — o nome do PRIMÁRIO, porque havia uma única função
+  // de erro com o modelo fixo. Quem lê conclui que a reserva nem foi tentada.
+  // Diagnóstico que mente custa mais caro que diagnóstico que falta, porque
+  // manda consertar a coisa errada. Agora o erro é de quem falhou.
   const cota = { status: 429 };
+  const groq = CADEIA_DE_PROVEDORES.find((p) => p.modelo === MODELO_GROQ_RESERVA);
 
-  assert.match(resumirErro(cota, MODELO_AGENTE), new RegExp(MODELO_AGENTE));
-  assert.match(resumirErro(cota, MODELO_RESERVA), new RegExp(MODELO_RESERVA));
-  assert.doesNotMatch(resumirErro(cota, MODELO_RESERVA), new RegExp(MODELO_AGENTE));
+  assert.ok(groq, "a reserva da Groq sumiu da cadeia");
+  assert.match(groq.resumirErro(cota), new RegExp(MODELO_GROQ_RESERVA));
+  assert.doesNotMatch(groq.resumirErro(cota), new RegExp(MODELO_GROQ_PRINCIPAL));
 
-  // Sem o segundo argumento continua valendo o primário, que é o caso do
-  // diagnóstico sondando a agente.
-  assert.match(resumirErro(cota), new RegExp(MODELO_AGENTE));
+  // E a Anthropic fala da Anthropic, não da Groq.
+  const daAnthropic = PROVEDOR_ANTHROPIC.resumirErro(cota);
+  assert.match(daAnthropic, /Anthropic/);
+  assert.doesNotMatch(daAnthropic, /Groq/);
 });
 
 test("Balneário Camboriú não é confundido com Camboriú", () => {

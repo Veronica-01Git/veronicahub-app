@@ -7,7 +7,8 @@
  * troca isso por sondas mínimas, e responde as duas perguntas que derrubam
  * uma agente de WhatsApp na prática:
  *
- *   1. A Groq aceita a nossa chave? (cota, chave recusada, modelo inexistente)
+ *   1. Os provedores de LLM aceitam nossas chaves? (cota, chave recusada,
+ *      modelo inexistente) — a Anthropic como principal e a Groq como reserva
  *   2. O token da Meta ainda vale?
  *
  * A SEGUNDA EXISTE POR UM MOTIVO ESPECÍFICO. O token que a tela
@@ -21,8 +22,9 @@
  * um booleano, um status HTTP e uma frase em português.
  */
 
+import Anthropic from "@anthropic-ai/sdk";
 import Groq from "groq-sdk";
-import { MODELO_AGENTE, resumirErro } from "./whatsapp-agent";
+import { PROVEDOR_ANTHROPIC, PROVEDOR_GROQ } from "./whatsapp-provedores";
 import { getWhatsAppConfig } from "./whatsapp-cloud";
 
 export type SondaGroq = {
@@ -41,7 +43,17 @@ export type SondaWhatsApp = {
   readonly motivo: string | null;
 };
 
+export type SondaAnthropic = {
+  readonly chaveVisivel: boolean;
+  readonly modelo: string;
+  readonly respondeu: boolean;
+  readonly status: number | null;
+  readonly motivo: string | null;
+};
+
 export type Diagnostico = {
+  /** Provedor principal. Quando ele responde, a Groq nem é acionada. */
+  readonly anthropic: SondaAnthropic;
   readonly groq: SondaGroq;
   readonly whatsapp: SondaWhatsApp;
   readonly verificadoEm: string;
@@ -53,7 +65,7 @@ export type Diagnostico = {
 async function sondarGroq(apiKey: string): Promise<void> {
   const groq = new Groq({ apiKey });
   await groq.chat.completions.create({
-    model: MODELO_AGENTE,
+    model: PROVEDOR_GROQ.modelo,
     max_completion_tokens: 1,
     messages: [{ role: "user", content: "ok" }],
   });
@@ -63,7 +75,7 @@ export async function diagnosticarGroq(
   sonda: (apiKey: string) => Promise<void> = sondarGroq,
   chave: string | undefined = process.env.GROQ_API_KEY,
 ): Promise<SondaGroq> {
-  const base = { modelo: MODELO_AGENTE };
+  const base = { modelo: PROVEDOR_GROQ.modelo };
   if (!chave) {
     return {
       ...base,
@@ -83,7 +95,51 @@ export async function diagnosticarGroq(
       chaveVisivel: true,
       respondeu: false,
       status: typeof status === "number" ? status : null,
-      motivo: resumirErro(error),
+      motivo: PROVEDOR_GROQ.resumirErro(error),
+    };
+  }
+}
+
+/* -------------------------------------------------------------- anthropic */
+
+/** Menor chamada possível: um token de saída, uma palavra de entrada. */
+async function sondarAnthropic(): Promise<void> {
+  const client = new Anthropic();
+  await client.messages.create({
+    model: PROVEDOR_ANTHROPIC.modelo,
+    max_tokens: 1,
+    messages: [{ role: "user", content: "ok" }],
+  });
+}
+
+export async function diagnosticarAnthropic(
+  sonda: () => Promise<void> = sondarAnthropic,
+  chave: string | undefined = process.env.ANTHROPIC_API_KEY,
+): Promise<SondaAnthropic> {
+  const base = { modelo: PROVEDOR_ANTHROPIC.modelo };
+  if (!chave) {
+    return {
+      ...base,
+      chaveVisivel: false,
+      respondeu: false,
+      status: null,
+      // Não é erro: sem esta chave a agente ainda atende pela Groq, só sem o
+      // provedor principal. O painel precisa distinguir "não configurado" de
+      // "configurado e quebrado".
+      motivo: "ANTHROPIC_API_KEY não configurada — a agente está atendendo pela Groq",
+    };
+  }
+  try {
+    await sonda();
+    return { ...base, chaveVisivel: true, respondeu: true, status: 200, motivo: null };
+  } catch (error) {
+    const status = (error as { status?: number } | null)?.status;
+    return {
+      ...base,
+      chaveVisivel: true,
+      respondeu: false,
+      status: typeof status === "number" ? status : null,
+      motivo: PROVEDOR_ANTHROPIC.resumirErro(error),
     };
   }
 }
@@ -157,8 +213,12 @@ export async function diagnosticarWhatsApp(
 
 export async function diagnosticar(): Promise<Diagnostico> {
   // Em paralelo: são independentes e o endpoint é chamado por gente esperando.
-  const [groq, whatsapp] = await Promise.all([diagnosticarGroq(), diagnosticarWhatsApp()]);
-  return { groq, whatsapp, verificadoEm: new Date().toISOString() };
+  const [anthropic, groq, whatsapp] = await Promise.all([
+    diagnosticarAnthropic(),
+    diagnosticarGroq(),
+    diagnosticarWhatsApp(),
+  ]);
+  return { anthropic, groq, whatsapp, verificadoEm: new Date().toISOString() };
 }
 
 /**

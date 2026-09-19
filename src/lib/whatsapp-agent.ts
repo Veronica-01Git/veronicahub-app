@@ -11,7 +11,12 @@
  * humano custa alguns minutos.
  */
 
-import Groq from "groq-sdk";
+import {
+  CADEIA_DE_PROVEDORES,
+  PROVEDOR_ANTHROPIC,
+  PROVEDOR_GROQ,
+  type Provedor,
+} from "./whatsapp-provedores";
 import {
   podeCotar,
   regrasParaPrompt,
@@ -23,67 +28,12 @@ import {
 } from "./whatsapp-rules";
 
 /**
- * Modelo da agente. Exportado porque o diagnóstico precisa sondar EXATAMENTE
- * este, e não outro: na Groq a cota diária é por modelo.
- *
- * ESCOLHIDO POR PROVA, NÃO POR MEMÓRIA. Em 19/09 a agente estava muda: os
- * dois modelos configurados devolviam 404, primário e reserva, e toda
- * conversa caía no caminho offline. Nome de modelo na Groq muda, e chutar
- * outro de cabeça é repetir o erro.
- *
- * Estes dois são os que o pipeline de matérias usa em articles-server.ts, e
- * que geraram matérias em 19/09 com esta mesma GROQ_API_KEY — ou seja, são
- * identificadores válidos comprovados em produção, não lembrança.
- *
- * O 120B vem primeiro por dois motivos: é o mais capaz dos dois, e é o que o
- * pipeline editorial quase não toca (lá ele é reserva, acionado só quando o
- * 20B estoura). Sobra cota para a agente.
+ * Modelo sondado pelo diagnóstico. A cadeia inteira vive em
+ * whatsapp-provedores.ts; aqui fica só o nome do principal, que é o que o
+ * endpoint /api/whatsapp/diagnostico precisa citar.
  */
-export const MODELO_AGENTE = "openai/gpt-oss-120b";
-
-/**
- * Modelo de reserva, tentado quando o primeiro não atende.
- *
- * Na Groq **a cota é por modelo**, e articles-server.ts registra que "os
- * modelos GPT-OSS têm cotas gratuitas separadas" — então o 20B ainda responde
- * quando a cota do 120B acabou, e vice-versa.
- *
- * Reserva não é permissão para inventar: a resposta dela passa pela mesma
- * guarda de preço. O que muda é conversar em vez de encaminhar.
- *
- * ATENÇÃO ao trocar qualquer um dos dois: um nome errado deixa a agente muda
- * sem aviso, e o sintoma (ela encaminha tudo) parece problema de regra e não
- * de configuração. O endpoint /api/whatsapp/diagnostico diz qual é a causa.
- */
-export const MODELO_RESERVA = "openai/gpt-oss-20b";
-/**
- * Orçamento de saída. Generoso de propósito para um agente que responde em
- * três frases: nos GPT-OSS o `max_completion_tokens` cobre **também os tokens
- * de raciocínio**, que vêm antes do texto. Com 320 o raciocínio consumia o
- * orçamento inteiro e a resposta chegava vazia — foi o que aconteceu com
- * "entulho e gesso, quais valores de cada uma?", pergunta com duas cotações
- * e portanto mais raciocínio. O tamanho da resposta quem limita é o prompt.
- */
-const MAX_TOKENS = 900;
-
-/**
- * Mesmo ajuste que articles-server.ts já usa: "reasoning_effort baixo mantém
- * a pesquisa dentro do orçamento". Atender obra não precisa de cadeia longa
- * de raciocínio — precisa de resposta curta e rápida, e a decisão difícil
- * (cotar ou não) não é do modelo, é da guarda.
- */
-const ESFORCO_RACIOCINIO = "low" as const;
-
-/**
- * Vale tentar a reserva? Só quando o problema é do modelo, não da conta.
- * Chave recusada (401/403) seria recusada igual no segundo modelo — insistir
- * só gastaria tempo do cliente esperando.
- */
-function vaiParaReserva(error: unknown): boolean {
-  const status = (error as { status?: number } | null)?.status;
-  if (status === 429 || status === 404) return true;
-  return typeof status === "number" && status >= 500;
-}
+export const MODELO_AGENTE = PROVEDOR_ANTHROPIC.modelo;
+export const MODELO_RESERVA = PROVEDOR_GROQ.modelo;
 
 export type Turno = { readonly role: "user" | "assistant"; readonly content: string };
 
@@ -431,68 +381,60 @@ export async function decidirResposta(params: {
     return { texto: ESCALONAMENTO, escalar: true, motivo: "assunto fora da alçada do agente" };
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return decidirRespostaOffline({ ...params, motivo: "GROQ_API_KEY não configurada" });
-  }
-
+  const system = montarSystemPrompt(regras);
   const mensagens = [
-    { role: "system" as const, content: montarSystemPrompt(regras) },
     ...(params.historico ?? []).map((t) => ({ role: t.role, content: t.content })),
     { role: "user" as const, content: params.texto },
   ];
 
-  async function pedir(modelo: string): Promise<string> {
-    const groq = new Groq({ apiKey });
-    const resposta = await groq.chat.completions.create({
-      model: modelo,
-      max_completion_tokens: MAX_TOKENS,
-      reasoning_effort: ESFORCO_RACIOCINIO,
-      messages: mensagens,
+  const disponiveis = CADEIA_DE_PROVEDORES.filter((p) => p.configurado());
+  if (disponiveis.length === 0) {
+    return decidirRespostaOffline({
+      ...params,
+      motivo: "nenhum provedor configurado — falta ANTHROPIC_API_KEY ou GROQ_API_KEY",
     });
-    return (resposta.choices[0]?.message?.content ?? "").trim();
   }
 
   /**
-   * Uma tentativa: devolve o texto, ou o motivo pelo qual não deu.
+   * Uma tentativa: o texto, ou o motivo de não ter dado.
    *
-   * Resposta VAZIA conta como falha, e não como resposta. Nos GPT-OSS ela
-   * acontece quando o raciocínio consome o orçamento inteiro de tokens, e
-   * antes isso encerrava a conversa direto no offline — o cliente levava um
-   * "vou confirmar com a equipe" porque o modelo pensou demais, o que não é
-   * motivo nenhum para incomodar uma pessoa. Agora a reserva tenta.
+   * Resposta VAZIA conta como falha, não como resposta. Nos modelos com
+   * raciocínio ela acontece quando o raciocínio consome o orçamento inteiro
+   * de tokens — e antes isso encerrava a conversa direto, com o cliente
+   * levando um "vou confirmar com a equipe" porque o modelo pensou demais.
+   * Isso não é motivo para incomodar uma pessoa: o próximo provedor tenta.
    */
-  async function tentar(modelo: string): Promise<{ texto?: string; erro?: string; fatal?: boolean }> {
+  async function tentar(p: Provedor): Promise<{ texto?: string; erro?: string }> {
     try {
-      const texto = await pedir(modelo);
-      if (!texto) return { erro: `${modelo} devolveu resposta vazia` };
+      const texto = await p.responder(system, mensagens);
+      if (!texto) return { erro: `${p.nome} devolveu resposta vazia` };
       return { texto };
     } catch (error) {
-      console.error(`Falha ao chamar a Groq em ${modelo}:`, error);
-      return { erro: resumirErro(error, modelo), fatal: !vaiParaReserva(error) };
+      console.error(`Falha em ${p.nome}:`, error);
+      return { erro: p.resumirErro(error) };
     }
   }
 
-  const primeira = await tentar(MODELO_AGENTE);
-  let bruto = primeira.texto;
+  let bruto: string | undefined;
+  const falhas: string[] = [];
+
+  for (const provedor of disponiveis) {
+    const r = await tentar(provedor);
+    if (r.texto) {
+      if (falhas.length > 0) {
+        console.warn(`Respondido por ${provedor.nome} depois de: ${falhas.join("; ")}`);
+      }
+      bruto = r.texto;
+      break;
+    }
+    falhas.push(r.erro ?? `${provedor.nome} falhou`);
+  }
 
   if (bruto == null) {
-    // Chave recusada seria recusada igual no segundo modelo: insistir só
-    // faria o cliente esperar à toa. Cota, modelo sumido, instabilidade ou
-    // resposta vazia, não — a reserva tem cota própria e pode salvar a
-    // conversa em vez de encaminhá-la.
-    if (primeira.fatal) {
-      return decidirRespostaOffline({ ...params, motivo: primeira.erro });
-    }
-    const segunda = await tentar(MODELO_RESERVA);
-    if (segunda.texto == null) {
-      return decidirRespostaOffline({
-        ...params,
-        motivo: `${primeira.erro}; reserva também falhou (${segunda.erro})`,
-      });
-    }
-    console.warn(`Groq respondeu pela reserva ${MODELO_RESERVA} — primário: ${primeira.erro}`);
-    bruto = segunda.texto;
+    // Toda a cadeia caiu. O motivo lista cada provedor, porque um painel que
+    // mostra só a última falha manda consertar a coisa errada — foi assim que
+    // um 429 da reserva já apareceu com o nome do principal.
+    return decidirRespostaOffline({ ...params, motivo: falhas.join("; ") });
   }
 
   // A conferência que o prompt sozinho não garante. Recebe a conversa inteira
