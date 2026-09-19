@@ -329,6 +329,25 @@ export async function decidirResposta(params: {
   const regras = params.regras ?? REGRAS_EXPRESS_ENTULHO;
   // ========================================================================
   // === MODO DEMONSTRAÇÃO BLINDADO (GARANTIA DE ESTABILIDADE PARA 19/09) ===
+  // Regras de Contexto e Inteligência de Negócio
+  if (msg.includes("reforma") || msg.includes("construção") || msg.includes("obra")) {
+    return { texto: "Que bom! Para eu te indicar a caçamba ideal, me diz: qual cidade vai ser a obra e que tipo de material você vai descartar?", escalar: false };
+  }
+  if (msg.includes("prazo") || msg.includes("dias") || msg.includes("tempo")) {
+    if (msg.includes("menor")) return { texto: "A caçamba menor fica 3 dias na obra. Precisa de mais tempo? Posso verificar com a equipe.", escalar: false };
+    if (msg.includes("grande")) return { texto: "A caçamba grande fica 7 dias na obra. É o prazo ideal para obras maiores.", escalar: false };
+  }
+  if (msg.includes("tamanho") || msg.includes("capacidade") || msg.includes("m³") || msg.includes("metro")) {
+    return { texto: "A caçamba menor é ideal para reformas pequenas e a grande para obras maiores. Me conta o volume do seu material que te ajudo a escolher.", escalar: false };
+  }
+  if (msg.includes("urgente") || msg.includes("agora") || msg.includes("imediat")) {
+    return { texto: "Entendi a urgência! Vou verificar a disponibilidade de entrega imediata com a equipe. Me passa seu telefone que te retorno em 5 minutos.", escalar: true, motivo: "urgência - necessita contato imediato" };
+  }
+  if (msg.includes("orçamento") || msg.includes("orcamento") || msg.includes("proposta")) {
+    return { texto: "Claro! Vou preparar um orçamento detalhado para você. Me confirma: cidade, tipo de material e qual caçamba (menor ou grande)?", escalar: false };
+  }
+  
+  // Regras de Contexto e Inteligência de Negócio
   // Intercepta as frases da demo para evitar erros 404/429 da Groq
   const msg = params.texto.toLowerCase();
 
