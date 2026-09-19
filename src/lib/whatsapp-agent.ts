@@ -354,8 +354,12 @@ export async function decidirResposta(params: {
     if (msg.includes("tambor")) return { texto: "O tambor para demolição em Itajaí sai por R$ 180,00 (prazo de 3 dias).", escalar: false };
     if (msg.includes("grande")) return { texto: "A caçamba grande para demolição em Itajaí sai por R$ 450,00 (prazo de 7 dias).", escalar: false };
   }
-  if (msg.includes("gesso") && msg.includes("menor")) {
+    if (msg.includes("gesso") && msg.includes("menor")) {
     return { texto: "A caçamba menor para descarte de gesso sai por R$ 280,00. Em qual cidade será o serviço?", escalar: false };
+  }
+  // NOVA REGRA: ITAJAÍ + GESSO (EVITA ERRO 404 DA GROQ)
+  if (msg.includes("itajaí") && msg.includes("gesso") && !msg.includes("grande") && !msg.includes("tambor")) {
+    return { texto: "Para descarte de gesso em Itajaí, a caçamba menor sai por R$ 280,00 (prazo de 3 dias). Posso agendar para você?", escalar: false };
   }
   if (msg.includes("tambor") && !msg.includes("itajaí")) {
     return { texto: "O tambor está disponível apenas para atendimentos em Itajaí. Para outras cidades, trabalhamos com caçamba menor e grande. Gostaria de cotar uma delas?", escalar: false };
