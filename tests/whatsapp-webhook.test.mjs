@@ -133,30 +133,60 @@ test("os preços confirmados pelo responsável estão cadastrados", () => {
 });
 
 test("combinação que o responsável não soube informar devolve null, não uma estimativa", () => {
-  // Em 18/09 o responsável fechou boa parte da matriz: gesso no tambor e na
-  // grande em Itajaí, e demolição nas outras sete cidades. Este teste segue
-  // apontado para o que ele AINDA não informou — o dia em que alguém
-  // preencher essas caixas, é aqui que se percebe.
+  // A única pessoa que falou do assunto — o vendedor que está saindo — disse
+  // "o tambor eu não sei te passar o valor e a caçamba grande eu também não
+  // sei". Entre 18 e 19/09 essas duas caixas chegaram a ser preenchidas com
+  // 230 e 550, sem fonte. Voltaram a ser null, e é este teste que segura.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), null);
 
-  // Gesso fora de Itajaí: nenhuma cidade tem.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema"), null);
-  assert.equal(
-    buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "balneario-camboriu"),
-    null,
-  );
-  // Tambor não é oferecido fora de Itajaí, então não tem preço em lugar nenhum.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "navegantes"), null);
-  // Material que ninguém mencionou.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "madeira", "itajai"), null);
+  // Fora de Itajaí, só Itapema com gesso tem fonte. Demolição em Itapema
+  // nunca foi informada — e não vale supor que seja a de Itajaí.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "navegantes"), null);
+
+  // Materiais que a agente reconhece mas cujo preço ninguém passou.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "terra", "itajai"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "entulho", "itajai"), null);
 });
 
-test("os preços que chegaram em 18/09 estão cadastrados", () => {
-  // Gesso em Itajaí no tambor e na grande, que antes eram "não sei te passar".
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), 230);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), 550);
-  // Demolição fora de Itajaí, nas sete cidades.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), 220);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "demolicao", "penha"), 450);
+test("cada preço cadastrado tem fonte primária, e só esses seis existem", () => {
+  // Áudio do vendedor que está saindo — fonte fraca, a reconfirmar com o dono.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itajai"), 220);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "itajai"), 180);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "demolicao", "itajai"), 450);
+  // Mesmo áudio, gesso na menor.  (idem: a reconfirmar)
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itajai"), 280);
+  // O DONO, em conversa real com cliente em Itapema, material gesso. Fonte forte.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema"), 250);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itapema"), 470);
+
+  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 6, "nenhum preço sem fonte entrou");
+});
+
+test("Itapema é mais barata que Itajaí no mesmo material — cidade tem preço próprio", () => {
+  // O dado que derrubou a suposição de tabela única: gesso na menor custa
+  // R$ 280 em Itajaí e R$ 250 em Itapema. Não é tabela igual nem Itajaí mais
+  // deslocamento. Se um dia alguém propuser propagar preço entre cidades,
+  // este teste é a resposta.
+  const itajai = buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itajai");
+  const itapema = buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema");
+  assert.notEqual(itajai, itapema);
+  assert.ok(itapema < itajai, "fora da sede não é automaticamente mais caro");
+});
+
+test("a agente reconhece os materiais que o dono lista, mesmo sem preço deles", () => {
+  // Estar em `materiais` é reconhecer a palavra, não saber o preço. Sem
+  // preço, a guarda impede a cotação e a conversa vai para uma pessoa — que
+  // é o que o próprio dono faz quando não sabe o valor.
+  for (const m of ["entulho", "terra", "madeira", "telhas", "vidro", "poda"]) {
+    assert.ok(
+      REGRAS_EXPRESS_ENTULHO.materiais.some((x) => x.id === m),
+      `${m} deveria ser reconhecido`,
+    );
+  }
+  // E reconhecer não virou permissão para cotar.
+  assert.equal(respostaSegura("Para terra em Itajaí a menor sai R$ 220.", undefined, ""), false);
 });
 
 test("tambor só existe em Itajaí; prazos valem em todas as cidades", () => {

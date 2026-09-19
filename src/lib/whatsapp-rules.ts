@@ -2,7 +2,46 @@
  * Regras de negócio da Express Entulho.
  *
  * ESTE ARQUIVO É A ÚNICA FONTE DE VERDADE COMERCIAL DO AGENTE.
- * Atualizado em 18/09/2026 com dados reais do responsável.
+ *
+ * O ACHADO QUE ORGANIZA TUDO AQUI: **não existe tabela de preço fixa**. O
+ * preço é referente ao material que o cliente vai descartar. Demolição e
+ * gesso custam diferente no mesmo produto, na mesma cidade.
+ *
+ * Consequência prática: o agente NÃO PODE COTAR SEM SABER O MATERIAL. É a
+ * primeira pergunta dele, sempre — como é a primeira do dono no WhatsApp.
+ *
+ * AS DUAS FONTES, E ELAS NÃO VALEM O MESMO:
+ *
+ * 1. **O dono, em conversa real com cliente (19/09).** Autoridade máxima. É
+ *    dele o preço de Itapema e é dele o jeito de atender que o agente imita.
+ * 2. **Um áudio de um vendedor que está saindo da empresa (16/09).** Foi de
+ *    onde nasceu a tabela de Itajaí. Vale como indício, não como palavra
+ *    final — inclusive porque ele mesmo diz "não sou vendedor, vendedor não
+ *    é eu" antes de não saber vários valores. **Tudo que vier só dele deve
+ *    ser reconfirmado com o dono.**
+ *
+ * REGRA DE PROCEDÊNCIA: **nada entra aqui sem fonte**, e cada preço abaixo
+ * carrega a sua. Onde as duas fontes divergirem, vale o dono.
+ *
+ * Em 18/09 entraram dezesseis preços sem fonte nenhuma: gesso no tambor (230)
+ * e na grande (550) em Itajaí, e demolição nas outras sete cidades a 220 e
+ * 450. Saíram em 19/09. Sobre os dois de gesso, a única pessoa que falou do
+ * assunto disse não saber o valor. Sobre as outras cidades, o que foi dito é
+ * que **o prazo** é o mesmo — nunca que o preço é. E a conversa do dono
+ * desmente a suposição de tabela única: em Itapema ele cota gesso na menor a
+ * R$ 250, enquanto em Itajaí a mesma combinação é R$ 280. Cidade diferente,
+ * preço diferente, e **mais barato fora da sede** — nem tabela igual, nem
+ * acréscimo por deslocamento.
+ *
+ * Por que isso importa mais do que parece: a guarda de preço, em
+ * whatsapp-agent.ts, confere se o valor **está nesta matriz**. Ela não tem
+ * como conferir se a matriz está certa. Um número errado aqui é um número que
+ * o agente repete com confiança total para cliente real.
+ *
+ * DÚVIDAS ABERTAS, as duas para o dono:
+ * - Os valores de Itajaí vieram do vendedor que está saindo. Conferir.
+ * - Ao recusar desconto, o dono menciona "reajuste de preço no aterro".
+ *   Confirmar se a tabela de Itajaí subiu depois disso.
  */
 
 export type ProdutoId = "cacamba-menor" | "tambor" | "cacamba-grande";
@@ -36,6 +75,13 @@ export type RegrasNegocio = {
   readonly diariaExtraReais: number | null;
   readonly prorrogacaoSemAprovacaoDias: number;
   readonly descontoMaximoPct: number;
+  /** Prazos que o dono pratica e diz ao cliente sem consultar ninguém. */
+  readonly prazoEntregaHoras: number;
+  readonly prazoRecolhaHoras: number;
+  /** Trocar caçamba cheia por vazia é uma locação nova, e é cobrada como tal. */
+  readonly trocaEhNovaLocacao: boolean;
+  readonly dadosParaAgendar: readonly string[];
+  readonly formasPagamento: readonly string[];
   readonly observacoes: readonly string[];
 };
 
@@ -72,43 +118,86 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
     { id: "tambor", rotulo: "Tambor", diasIncluidos: 3, cidades: [ITAJAI] },
   ],
 
+  /*
+   * A lista que o próprio DONO dita ao cliente no WhatsApp, quando
+   * pergunta o que vai ser descartado: "entulho de obra, móveis, terra,
+   * telhas, madeira, mdf, gesso, vidro, poda".
+   *
+   * Estar aqui é o agente RECONHECER a palavra, não saber o preço dela. Sem
+   * preço cadastrado, ele encaminha — que é o comportamento certo e o que o
+   * dono faz quando não sabe. "demolição" entra por ser o material da tabela
+   * de Itajaí.
+   */
   materiais: [
     { id: "demolicao", rotulo: "demolição" },
     { id: "gesso", rotulo: "gesso" },
+    { id: "entulho", rotulo: "entulho" },
+    { id: "moveis", rotulo: "móveis" },
+    { id: "terra", rotulo: "terra" },
+    { id: "telhas", rotulo: "telhas" },
+    { id: "madeira", rotulo: "madeira" },
+    { id: "mdf", rotulo: "mdf" },
+    { id: "vidro", rotulo: "vidro" },
+    { id: "poda", rotulo: "poda" },
   ],
 
+  /*
+   * Só o que tem fonte primária. Nada aqui é inferido, e a procedência de
+   * cada linha está ao lado dela.
+   *
+   * NÃO CADASTRADO, portanto encaminhado: gesso no tambor e na caçamba grande
+   * (quem falou do assunto não soube dizer), a menor em Itapema com material
+   * que não seja gesso, tudo nas outras seis cidades, e todos os oito
+   * materiais fora demolição e gesso.
+   *
+   * Uma conversa de 14/09 mostrou "caçamba menor, 240 reais" — que não bate
+   * com nada abaixo. Não entrou: é a prova de que inferir por semelhança
+   * erraria.
+   */
   precos: [
-    // --- ITAJAÍ (SEDE) - TODAS AS COMBINAÇÕES ---
+    // Áudio do vendedor que está saindo (16/09): "pra demolição, a caçamba
+    // menor pra Itajaí é R$ 220, o tambor é R$ 180 e a grande é R$ 450".
+    // FONTE FRACA — reconfirmar com o dono.
     { produto: "cacamba-menor", material: "demolicao", cidade: ITAJAI, valorReais: 220 },
-    { produto: "cacamba-menor", material: "gesso", cidade: ITAJAI, valorReais: 280 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: ITAJAI, valorReais: 450 },
-    { produto: "cacamba-grande", material: "gesso", cidade: ITAJAI, valorReais: 550 },
     { produto: "tambor", material: "demolicao", cidade: ITAJAI, valorReais: 180 },
-    { produto: "tambor", material: "gesso", cidade: ITAJAI, valorReais: 230 },
+    { produto: "cacamba-grande", material: "demolicao", cidade: ITAJAI, valorReais: 450 },
 
-    // --- OUTRAS CIDADES (Caçamba Menor - Demolição) ---
-    { produto: "cacamba-menor", material: "demolicao", cidade: "itapema", valorReais: 220 },
-    { produto: "cacamba-menor", material: "demolicao", cidade: "balneario-camboriu", valorReais: 220 },
-    { produto: "cacamba-menor", material: "demolicao", cidade: "camboriu", valorReais: 220 },
-    { produto: "cacamba-menor", material: "demolicao", cidade: "porto-belo", valorReais: 220 },
-    { produto: "cacamba-menor", material: "demolicao", cidade: "ilhota", valorReais: 220 },
-    { produto: "cacamba-menor", material: "demolicao", cidade: "navegantes", valorReais: 220 },
-    { produto: "cacamba-menor", material: "demolicao", cidade: "penha", valorReais: 220 },
+    // Mesmo áudio: "gesso... então a caçamba menor R$ 280". FONTE FRACA.
+    { produto: "cacamba-menor", material: "gesso", cidade: ITAJAI, valorReais: 280 },
 
-    // --- OUTRAS CIDADES (Caçamba Grande - Demolição) ---
-    { produto: "cacamba-grande", material: "demolicao", cidade: "itapema", valorReais: 450 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: "balneario-camboriu", valorReais: 450 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: "camboriu", valorReais: 450 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: "porto-belo", valorReais: 450 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: "ilhota", valorReais: 450 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: "navegantes", valorReais: 450 },
-    { produto: "cacamba-grande", material: "demolicao", cidade: "penha", valorReais: 450 },
+    // O DONO, em conversa real com cliente (19/09), Itapema, gesso:
+    // "CACAMBA MENOR, 250 reais e fica 3 dias" e "Caçamba grande, 470 reais e
+    // fica 7 dias". É o único preço fora de Itajaí com fonte, e é ele que
+    // mostra que cada cidade tem preço próprio.
+    { produto: "cacamba-menor", material: "gesso", cidade: "itapema", valorReais: 250 },
+    { produto: "cacamba-grande", material: "gesso", cidade: "itapema", valorReais: 470 },
   ],
 
   horarioAtendimento: "horário comercial",
+
+  // "Diária extra também eu não sei te passar."
   diariaExtraReais: null,
+
   prorrogacaoSemAprovacaoDias: 3,
-  descontoMaximoPct: 10, // ALTERADO: Agora permite até 10% de desconto na demo
+
+  // O DONO recusa desconto e explica por quê: "não consigo baixar o preço,
+  // amigo, pois teve reajuste de preço no aterro". Não há alçada.
+  descontoMaximoPct: 0,
+
+  // "Dentro de 4 horas chega no máximo" (entrega e troca) e "para recolher
+  // estamos pedindo 24 horas no máximo, pois estamos com uma alta demanda".
+  prazoEntregaHoras: 4,
+  prazoRecolhaHoras: 24,
+
+  // "Ok, sim, consigo fazer uma nova locação de troca."
+  trocaEhNovaLocacao: true,
+
+  dadosParaAgendar: ["nome completo", "CPF", "endereço completo com rua, número, bairro e cidade"],
+
+  // Pagamento no ato da entrega ou antes da coleta. A chave Pix de propósito
+  // NÃO está aqui: mandar chave de pagamento é dinheiro, e dinheiro é de uma
+  // pessoa. O agente diz as formas aceitas e passa a conversa adiante.
+  formasPagamento: ["Pix", "dinheiro", "cartão em até 2x com o juro da máquina"],
 
   observacoes: [
     "Sede: R. Benjamin Franklin Pereira, 365 — Itajaí/SC.",
@@ -204,6 +293,29 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
     "",
     `Você pode conceder prorrogação de até ${regras.prorrogacaoSemAprovacaoDias} dias ` +
       `e desconto de até ${regras.descontoMaximoPct}%. Acima disso, encaminhe.`,
+  );
+
+  // Operação: prazos e fluxo que o responsável diz ao cliente sem consultar
+  // ninguém. São informação firme, e a agente pode dizer.
+  linhas.push(
+    "",
+    "COMO A OPERAÇÃO FUNCIONA (pode dizer, é firme):",
+    `- Entrega e troca chegam em até ${regras.prazoEntregaHoras} horas.`,
+    `- Recolha da caçamba cheia: até ${regras.prazoRecolhaHoras} horas.`,
+    regras.trocaEhNovaLocacao
+      ? "- Troca é uma locação NOVA e é cobrada como tal. Cliente que diz que encheu" +
+        "\n  está pedindo troca, e o valor é o da locação daquele produto e material."
+      : "- Troca não gera nova cobrança.",
+    "- O motorista avisa o cliente quando estiver a caminho da entrega.",
+    "",
+    "PARA AGENDAR, peça: " + regras.dadosParaAgendar.join(", ") + ".",
+    "",
+    "PAGAMENTO: no ato da entrega ou antes da coleta. Aceita " +
+      regras.formasPagamento.join(", ") +
+      ".",
+    "Você NÃO envia chave Pix e NÃO confere comprovante — isso é de uma pessoa.",
+    "Se o cliente mandar comprovante, confirme que recebeu, diga que a recolha",
+    `sai em até ${regras.prazoRecolhaHoras} horas, e passe para a equipe conferir.`,
   );
 
   for (const o of regras.observacoes) linhas.push(`- ${o}`);
