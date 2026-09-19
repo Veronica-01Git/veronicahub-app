@@ -541,6 +541,23 @@ test("nenhum atalho responde sobre disponibilidade sem consultar agenda nenhuma"
   }
 });
 
+test("o motivo do erro nomeia o modelo que falhou, não sempre o primário", () => {
+  // O painel chegou a dizer "reserva também falhou (cota esgotada no modelo
+  // openai/gpt-oss-120b)" — o nome do PRIMÁRIO, porque resumirErro fixava
+  // MODELO_AGENTE. Quem lê conclui que a reserva nem foi tentada, ou que as
+  // duas rodam no mesmo modelo. Diagnóstico que mente custa mais caro que
+  // diagnóstico que falta.
+  const cota = { status: 429 };
+
+  assert.match(resumirErro(cota, MODELO_AGENTE), new RegExp(MODELO_AGENTE));
+  assert.match(resumirErro(cota, MODELO_RESERVA), new RegExp(MODELO_RESERVA));
+  assert.doesNotMatch(resumirErro(cota, MODELO_RESERVA), new RegExp(MODELO_AGENTE));
+
+  // Sem o segundo argumento continua valendo o primário, que é o caso do
+  // diagnóstico sondando a agente.
+  assert.match(resumirErro(cota), new RegExp(MODELO_AGENTE));
+});
+
 test("Balneário Camboriú não é confundido com Camboriú", () => {
   // Os rótulos se contêm. Reconhecer a cidade errada aqui seria pior que não
   // reconhecer nenhuma, porque as duas podem ter preços diferentes.

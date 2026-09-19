@@ -56,7 +56,23 @@ export const MODELO_AGENTE = "openai/gpt-oss-120b";
  * de configuração. O endpoint /api/whatsapp/diagnostico diz qual é a causa.
  */
 export const MODELO_RESERVA = "openai/gpt-oss-20b";
-const MAX_TOKENS = 320;
+/**
+ * Orçamento de saída. Generoso de propósito para um agente que responde em
+ * três frases: nos GPT-OSS o `max_completion_tokens` cobre **também os tokens
+ * de raciocínio**, que vêm antes do texto. Com 320 o raciocínio consumia o
+ * orçamento inteiro e a resposta chegava vazia — foi o que aconteceu com
+ * "entulho e gesso, quais valores de cada uma?", pergunta com duas cotações
+ * e portanto mais raciocínio. O tamanho da resposta quem limita é o prompt.
+ */
+const MAX_TOKENS = 900;
+
+/**
+ * Mesmo ajuste que articles-server.ts já usa: "reasoning_effort baixo mantém
+ * a pesquisa dentro do orçamento". Atender obra não precisa de cadeia longa
+ * de raciocínio — precisa de resposta curta e rápida, e a decisão difícil
+ * (cotar ou não) não é do modelo, é da guarda.
+ */
+const ESFORCO_RACIOCINIO = "low" as const;
 
 /**
  * Vale tentar a reserva? Só quando o problema é do modelo, não da conta.
@@ -431,37 +447,52 @@ export async function decidirResposta(params: {
     const resposta = await groq.chat.completions.create({
       model: modelo,
       max_completion_tokens: MAX_TOKENS,
+      reasoning_effort: ESFORCO_RACIOCINIO,
       messages: mensagens,
     });
     return (resposta.choices[0]?.message?.content ?? "").trim();
   }
 
-  let bruto: string;
-  try {
-    bruto = await pedir(MODELO_AGENTE);
-  } catch (error) {
-    console.error(`Falha ao chamar a Groq em ${MODELO_AGENTE}:`, error);
-    if (!vaiParaReserva(error)) {
-      return decidirRespostaOffline({ ...params, motivo: resumirErro(error) });
-    }
-    // Cota, modelo sumido ou instabilidade da Groq: a reserva tem cota
-    // própria e pode salvar a conversa em vez de encaminhá-la.
+  /**
+   * Uma tentativa: devolve o texto, ou o motivo pelo qual não deu.
+   *
+   * Resposta VAZIA conta como falha, e não como resposta. Nos GPT-OSS ela
+   * acontece quando o raciocínio consome o orçamento inteiro de tokens, e
+   * antes isso encerrava a conversa direto no offline — o cliente levava um
+   * "vou confirmar com a equipe" porque o modelo pensou demais, o que não é
+   * motivo nenhum para incomodar uma pessoa. Agora a reserva tenta.
+   */
+  async function tentar(modelo: string): Promise<{ texto?: string; erro?: string; fatal?: boolean }> {
     try {
-      bruto = await pedir(MODELO_RESERVA);
-      console.warn(
-        `Groq respondeu pela reserva ${MODELO_RESERVA} — primário: ${resumirErro(error)}`,
-      );
-    } catch (erroReserva) {
-      console.error(`Falha também na reserva ${MODELO_RESERVA}:`, erroReserva);
-      return decidirRespostaOffline({
-        ...params,
-        motivo: `${resumirErro(error)}; reserva também falhou (${resumirErro(erroReserva)})`,
-      });
+      const texto = await pedir(modelo);
+      if (!texto) return { erro: `${modelo} devolveu resposta vazia` };
+      return { texto };
+    } catch (error) {
+      console.error(`Falha ao chamar a Groq em ${modelo}:`, error);
+      return { erro: resumirErro(error, modelo), fatal: !vaiParaReserva(error) };
     }
   }
 
-  if (!bruto) {
-    return decidirRespostaOffline({ ...params, motivo: "o modelo devolveu resposta vazia" });
+  const primeira = await tentar(MODELO_AGENTE);
+  let bruto = primeira.texto;
+
+  if (bruto == null) {
+    // Chave recusada seria recusada igual no segundo modelo: insistir só
+    // faria o cliente esperar à toa. Cota, modelo sumido, instabilidade ou
+    // resposta vazia, não — a reserva tem cota própria e pode salvar a
+    // conversa em vez de encaminhá-la.
+    if (primeira.fatal) {
+      return decidirRespostaOffline({ ...params, motivo: primeira.erro });
+    }
+    const segunda = await tentar(MODELO_RESERVA);
+    if (segunda.texto == null) {
+      return decidirRespostaOffline({
+        ...params,
+        motivo: `${primeira.erro}; reserva também falhou (${segunda.erro})`,
+      });
+    }
+    console.warn(`Groq respondeu pela reserva ${MODELO_RESERVA} — primário: ${primeira.erro}`);
+    bruto = segunda.texto;
   }
 
   // A conferência que o prompt sozinho não garante. Recebe a conversa inteira
@@ -507,10 +538,10 @@ export function prometeuConfirmar(texto: string): boolean {
  * o pipeline pede `openai/gpt-oss-20b`. Por isso cada status ganha uma frase
  * própria: quem lê o painel precisa saber qual das causas é, não qual parece.
  */
-export function resumirErro(error: unknown): string {
+export function resumirErro(error: unknown, modelo: string = MODELO_AGENTE): string {
   const status = (error as { status?: number } | null)?.status;
   if (status === 429)
-    return `cota da Groq esgotada (429) no modelo ${MODELO_AGENTE} — na Groq o teto é por modelo`;
+    return `cota da Groq esgotada (429) no modelo ${modelo} — na Groq o teto é por modelo`;
   if (status === 401 || status === 403) return `a Groq recusou a chave (${status})`;
   if (status === 404) return "modelo não encontrado na Groq (404)";
   if (typeof status === "number") return `a Groq respondeu ${status}`;
