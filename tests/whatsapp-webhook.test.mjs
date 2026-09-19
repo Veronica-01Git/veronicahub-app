@@ -21,6 +21,7 @@ registerHooks({
 const { verifyWebhookSignature, janela24hAberta } = await import("../src/lib/whatsapp-cloud.ts");
 const {
   precisaDeHumano,
+  decidirResposta,
   decidirRespostaOffline,
   respostaSegura,
   motivoDaGuarda,
@@ -132,13 +133,30 @@ test("os preços confirmados pelo responsável estão cadastrados", () => {
 });
 
 test("combinação que o responsável não soube informar devolve null, não uma estimativa", () => {
-  // "o tambor eu não sei te passar o valor e a caçamba grande eu também não sei"
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), null);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), null);
-  // Nenhum preço fora de Itajaí foi informado.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), null);
+  // Em 18/09 o responsável fechou boa parte da matriz: gesso no tambor e na
+  // grande em Itajaí, e demolição nas outras sete cidades. Este teste segue
+  // apontado para o que ele AINDA não informou — o dia em que alguém
+  // preencher essas caixas, é aqui que se percebe.
+
+  // Gesso fora de Itajaí: nenhuma cidade tem.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema"), null);
+  assert.equal(
+    buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "balneario-camboriu"),
+    null,
+  );
+  // Tambor não é oferecido fora de Itajaí, então não tem preço em lugar nenhum.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "navegantes"), null);
   // Material que ninguém mencionou.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "madeira", "itajai"), null);
+});
+
+test("os preços que chegaram em 18/09 estão cadastrados", () => {
+  // Gesso em Itajaí no tambor e na grande, que antes eram "não sei te passar".
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), 230);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), 550);
+  // Demolição fora de Itajaí, nas sete cidades.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), 220);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "demolicao", "penha"), 450);
 });
 
 test("tambor só existe em Itajaí; prazos valem em todas as cidades", () => {
@@ -332,19 +350,17 @@ test("a agente e o pipeline de matérias não dividem o mesmo modelo", async () 
 /* ------------------------------------- a guarda confere a combinação inteira */
 
 test("o erro que a guarda antiga deixava passar: preço de Itajaí cotado fora dela", () => {
-  // Este é o caso que motivou reescrever a guarda. R$ 220 É um valor
-  // cadastrado — a conferência que olhava só o número aprovava. Mas 220 é o
-  // preço de ITAJAÍ, e para Itapema a Express nunca nos passou preço nenhum.
-  const conversa = "quanto custa? caçamba menor, demolição, a obra é em Itapema";
+  // Este é o caso que motivou reescrever a guarda: um valor que EXISTE na
+  // matriz, cotado para uma cidade onde ele não vale. Desde 18/09 a demolição
+  // fora de Itajaí tem preço, então o teste passou a usar gesso, que continua
+  // só em Itajaí — a forma do erro é a mesma, o dado é que mudou.
+  const conversa = "quanto custa? caçamba menor, gesso, a obra é em Itapema";
 
   assert.equal(
-    respostaSegura("A menor para demolição sai por R$ 220.", undefined, conversa),
+    respostaSegura("A menor com gesso sai por R$ 280.", undefined, conversa),
     false,
   );
-  assert.match(
-    motivoDaGuarda("A menor para demolição sai por R$ 220.", undefined, conversa),
-    /Itapema/,
-  );
+  assert.match(motivoDaGuarda("A menor com gesso sai por R$ 280.", undefined, conversa), /Itapema/);
 });
 
 test("preço sem cidade definida não sai — Itajaí não é suposição segura", () => {
@@ -407,16 +423,17 @@ test("listar as cidades atendidas não emudece a agente sobre preço", () => {
     true,
   );
 
-  // E a proteção continua de pé: o preço de Itajaí não escapa para outra
-  // cidade só porque a lista de cobertura passou por ali.
-  const paraItapema = [
+  // E a proteção continua de pé: um preço que só vale em Itajaí não escapa
+  // para outra cidade só porque a lista de cobertura passou por ali. Gesso
+  // fora de Itajaí segue sem preço nenhum.
+  const gessoEmItapema = [
     "quais cidades vocês atendem?",
     "Atendemos Itajaí, Balneário Camboriú, Camboriú, Itapema, Porto Belo, Ilhota, Navegantes e Penha.",
-    "é em Itapema",
+    "é gesso, em Itapema",
   ].join("\n");
 
-  assert.equal(respostaSegura("A menor para demolição sai por R$ 220.", undefined, paraItapema), false);
-  assert.match(motivoDaGuarda("Sai por R$ 220.", undefined, paraItapema), /Itapema/);
+  assert.equal(respostaSegura("A menor com gesso sai por R$ 280.", undefined, gessoEmItapema), false);
+  assert.match(motivoDaGuarda("Sai por R$ 280.", undefined, gessoEmItapema), /Itapema/);
 });
 
 test("a cidade que vale é a última dita, não a primeira", () => {
@@ -443,6 +460,28 @@ test("resposta que cota duas cidades de uma vez é barrada", () => {
     respostaSegura("Em Itajaí sai R$ 220 e em Itapema R$ 220.", undefined, ""),
     false,
   );
+});
+
+test("nenhum atalho responde sobre disponibilidade sem consultar agenda nenhuma", async () => {
+  // O "modo demonstração blindado" de 18/09 respondia antes do modelo e antes
+  // da guarda, com textos fixos. Dois deles inventavam estoque: "Tenho 2
+  // caçambas menores disponíveis para entrega ainda hoje" e "a grande está
+  // com a agenda cheia hoje". A agente não consulta o MAIS Locações — não
+  // existe fonte para esses números. Sem GROQ_API_KEY ela tem que escalar,
+  // não responder de cabeça.
+  const semChave = { ...process.env };
+  delete process.env.GROQ_API_KEY;
+  try {
+    const d = await decidirResposta({
+      texto: "tem caçamba menor disponível pra hoje em Itajaí?",
+      primeiraMensagem: false,
+    });
+    assert.equal(d.escalar, true, "disponibilidade é sempre de um humano");
+    assert.doesNotMatch(d.texto, /\btenho\b|\bdisponíve/i, "não afirma estoque");
+    assert.equal(valoresCitados(d.texto).length, 0, "não cita valor");
+  } finally {
+    Object.assign(process.env, semChave);
+  }
 });
 
 test("Balneário Camboriú não é confundido com Camboriú", () => {

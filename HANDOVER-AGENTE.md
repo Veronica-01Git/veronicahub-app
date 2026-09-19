@@ -1,47 +1,72 @@
 # Handover técnico — Agente de WhatsApp, Express Entulho
 
-Selo `VH-AUT-WA-2026-000001`. Escrito em **19/09/2026**, no commit `da28803`.
+Selo `VH-AUT-WA-2026-000001`. Escrito em **19/09/2026**. Nasceu descrevendo o
+commit `da28803` e foi atualizado no mesmo dia para o `main` de 19/09 — as
+diferenças estão na seção 0.
 
 Este documento é para quem assume a codificação. Tudo aqui foi **lido do
 código**, não de memória. Onde eu não sei, está escrito que não sei.
 
 > [!CAUTION]
-> **Leia a seção 0 antes de qualquer coisa.** Circula um resumo de contexto
-> deste projeto com vários fatos errados sobre o próprio código. Se você
-> recebeu esse resumo, ele vai te levar a mexer em arquivos que não existem e
-> a "consertar" modelos que o projeto não usa.
+> **Leia a seção 0 antes de qualquer coisa.** O código andou entre 18 e 19/09
+> — preços, modelos e um modo de respostas fixas. A seção 0 é a errata, e
+> explica por que o modo de respostas fixas foi removido.
 
 ---
 
-## 0. Correções a um resumo de contexto que está circulando
+## 0. Erratas — leia antes de confiar no resto
 
-Um documento de contexto (datado de 20/09/2026, atribuindo a continuidade ao
-Qwen) descreve um estado que **não corresponde a este repositório**. Confirmei
-cada item com `grep` no commit `da28803`:
+Este documento nasceu em 19/09 descrevendo o commit `da28803`. Entre 18/09 e
+19/09 o `main` andou bastante, e **partes deste handover ficaram velhas**. O
+que mudou, e o que continua valendo:
 
-| O que o resumo afirma | O que o código diz | Como conferir |
+| Assunto | Estava aqui | Está no `main` de 19/09 |
 | --- | --- | --- |
-| Modelo principal é `llama-3.1-8b-instant`, dando 404 | `MODELO_AGENTE = "qwen/qwen3.6-27b"` | `grep -n "MODELO_AGENTE" src/lib/whatsapp-agent.ts` |
-| Reserva é `llama-3.3-70b-versatile` | `MODELO_RESERVA = "openai/gpt-oss-20b"` | `grep -n "MODELO_RESERVA" src/lib/whatsapp-agent.ts` |
-| Existe um "Modo Demonstração Blindado" | **Não existe.** Zero ocorrências de "blindad" em `src/` | `git grep -ri "blindad" -- src` |
-| Matriz com "20+ combinações" de preço | **4 preços.** 30 das 34 combinações estão vazias | `grep -c "valorReais:" src/lib/whatsapp-rules.ts` (5 = 4 preços + a declaração do tipo) |
-| Deploy "Vercel/Cloudflare Workers" | Lovable (branch conectado) → Cloudflare Worker | `AGENTS.md`, `.github/workflows/ci.yml` |
-| A demonstração de 19/09 já aconteceu | **Hoje é 19/09.** A demonstração não aconteceu ainda | — |
-| `npm install @anthropic-ai/sdk` | Já é dependência: `"@anthropic-ai/sdk": "^0.116.0"` | `grep '@anthropic-ai/sdk' package.json` |
+| Modelo principal | `qwen/qwen3.6-27b` | `llama-3.1-8b-instant` |
+| Modelo de reserva | `openai/gpt-oss-20b` | `llama-3.3-70b-versatile` |
+| Preços | 4 combinações | **20 combinações** (commit `bd39fc5`, 18/09) |
+| Modo demo blindado | não existia | existiu, e **foi removido em 19/09** — ver abaixo |
 
-Nenhuma string `llama` aparece em `src/`. O projeto nunca usou esses modelos.
+**Os preços novos são do responsável**, entregues em 18/09 e commitados pelo
+próprio dono do projeto. Não são inferência de ninguém. O que entrou:
 
-**Consequência prática:** a tarefa "substituir a Groq porque o llama-3.1-8b dá
-404" está resolvendo um problema que não existe aqui. Se houver um 404 real, o
-suspeito é `qwen/qwen3.6-27b` — e o código **já trata 404 caindo para a
-reserva** (ver seção 2.2). Meça antes de trocar de provedor:
+- Gesso em Itajaí no tambor (R$ 230) e na caçamba grande (R$ 550) — as duas
+  caixas que antes eram "eu não sei te passar o valor".
+- Demolição nas outras sete cidades, **com o mesmo preço de Itajaí**: menor
+  R$ 220 e grande R$ 450 em todas. Era uma das duas hipóteses da pendência 1,
+  e a resposta foi essa: não há acréscimo por deslocamento.
 
-```bash
-curl -H "Authorization: Bearer $CRON_SECRET" \
-  https://veronicahub.com/api/whatsapp/diagnostico
-```
+**O que ainda não existe, e não deve ser inventado:** gesso fora de Itajaí (em
+nenhuma das sete), tambor fora de Itajaí (não é oferecido), a diária extra, a
+capacidade em m³ dos três produtos, e qualquer material que não seja demolição
+ou gesso.
 
----
+### O modo demonstração blindado foi removido
+
+Entre 18 e 19/09 entrou em `decidirResposta` um bloco de ~77 linhas de
+`if (msg.includes(...))` que respondia **antes do modelo e antes da guarda de
+preço**, com textos fixos. Servia para garantir estabilidade na apresentação
+de 19/09. A apresentação aconteceu; o bloco saiu. Os motivos, porque eles
+valem como regra para quem for reintroduzir algo parecido:
+
+1. **Inventava estoque.** *"Tenho 2 caçambas menores disponíveis para entrega
+   ainda hoje"* e *"a grande está com a agenda cheia hoje"*, ambos com
+   `escalar: false`. A agente não consulta o MAIS Locações — não existe fonte
+   para esses números, e ninguém revisaria a mensagem. Isso contradiz a
+   proibição que o próprio prompt dela carrega: *"Nunca confirme agendamento:
+   você ainda não consulta a agenda real."*
+2. **Cotava sem cidade.** *"A caçamba menor para descarte de gesso sai por
+   R$ 280,00. Em qual cidade será o serviço?"* — R$ 280 só vale em Itajaí, e
+   a frase o diz antes de perguntar a cidade. É exatamente o erro que a guarda
+   existe para impedir, escrito à mão e desviando dela.
+3. **Passava por fora da guarda.** Estando no topo de `decidirResposta`, com
+   `return` direto, nenhum desses textos passava por `motivoDaGuarda`.
+4. **Casava por substring.** `msg.includes("oi")` dispara em "foi", "depois",
+   "coisa", "oito". E as cidades eram testadas com acento (`"itajaí"`), então
+   quem digita "itajai" caía fora de todas as regras.
+
+Há um teste de regressão contra o item 1: *"nenhum atalho responde sobre
+disponibilidade sem consultar agenda nenhuma"*.
 
 ## 1. Status geral do MVP
 
@@ -272,21 +297,27 @@ Só dois: `demolicao` e `gesso`.
 
 ### 3.4 Preços reais
 
-Tudo em Itajaí. **Nada fora dela.**
+Estado em 19/09, depois dos dados que o responsável passou em 18/09.
+
+**Itajaí — completa:**
 
 | Produto | Prazo | Demolição | Gesso |
 | --- | --- | --- | --- |
 | Caçamba menor | 3 dias | R$ 220 | R$ 280 |
-| Tambor (só Itajaí) | 3 dias | R$ 180 | *falta* |
-| Caçamba grande | 7 dias | R$ 450 | *falta* |
+| Caçamba grande | 7 dias | R$ 450 | R$ 550 |
+| Tambor | 3 dias | R$ 180 | R$ 230 |
 
-Outros valores: `diariaExtraReais: null` (desconhecida),
-`prorrogacaoSemAprovacaoDias: 3`, `descontoMaximoPct: 0`.
+**Outras sete cidades — só demolição**, no mesmo preço de Itajaí: menor
+R$ 220, grande R$ 450. Sem acréscimo por deslocamento. Tambor não é oferecido
+fora de Itajaí.
 
-**4 de 34 combinações preenchidas.** As 30 vazias são: 2 em Itajaí (tambor com
-gesso, grande com gesso) e 28 fora de Itajaí.
+**Ainda vazio:** gesso em qualquer cidade que não seja Itajaí (14 caixas), a
+diária extra (`diariaExtraReais: null`) e a capacidade em m³.
 
----
+`descontoMaximoPct` está em **10**, alterado para a demonstração de 19/09.
+Antes era 0. Confirme se 10% é a alçada real que o dono quer dar à agente —
+`FORA_DA_ALCADA` intercepta "desconto" antes do modelo de qualquer forma, então
+hoje o número quase não é exercido.
 
 ## 4. Pendências do cliente
 
@@ -386,25 +417,30 @@ cotar** — a cotação para de sair.
 
 ---
 
-## O que eu NÃO fiz e por quê
+## Sobre trocar o provedor de LLM
 
-Há uma tarefa circulando para trocar a Groq pela API da Anthropic como
-provedor principal. **Não executei**, por três razões:
+Há uma tarefa circulando para adotar a API da Anthropic como provedor
+principal, mantendo a Groq como reserva. Não executei — mas a ressalva que eu
+tinha (de que ela partia de um diagnóstico errado) **caiu**: o `main` de fato
+usa `llama-3.1-8b-instant`, e se ele estiver dando 404 o problema é real.
 
-1. Ela parte de um diagnóstico errado (seção 0): o modelo que ela quer
-   substituir não é o que o projeto usa.
-2. Trocar o provedor de LLM na véspera de uma demonstração é o tipo de
-   mudança que se descobre quebrada na frente do cliente.
-3. O caminho de fallback **já existe e é testado**. Se o objetivo é
-   confiabilidade, o item 1 da seção 5 compra muito mais do que trocar de
-   provedor.
+Antes de trocar de provedor, meça. O 404 pode ser só o identificador do modelo
+ter mudado na Groq, e aí a correção é uma linha:
 
-Depois de 19/09 é uma mudança razoável, e o SDK já está instalado. Antes de
-fazê-la, confirme na documentação vigente da Anthropic o identificador exato
-do modelo e o preço por token — não copie de resumo nenhum, inclusive deste.
-O desenho a preservar é o de hoje: o provedor muda, a guarda de preço não.
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  https://veronicahub.com/api/whatsapp/diagnostico
+```
 
----
+Vale notar que 404 **já cai para a reserva** (`vaiParaReserva` trata 429, 404 e
+5xx), então mesmo com o principal quebrado a agente responde — só gasta uma
+chamada perdida antes. Não é incêndio.
+
+Se for trocar: o `@anthropic-ai/sdk` já é dependência (`^0.116.0`). Confirme o
+identificador exato do modelo e o preço por token na documentação vigente da
+Anthropic — não copie de resumo nenhum, inclusive deste. O desenho a preservar
+é o de hoje: **o provedor muda, a guarda de preço não**, e nada responde antes
+dela.
 
 ## Comandos
 
