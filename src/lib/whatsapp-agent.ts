@@ -158,6 +158,35 @@ export function cidadesCitadas(
   return achadas;
 }
 
+/**
+ * As cidades da fala mais recente que menciona alguma — e só dela.
+ *
+ * Existe por um erro que só aparece em conversa de verdade, nunca em teste de
+ * uma mensagem só. A guarda olhava a conversa inteira e barrava quando via
+ * mais de uma cidade. Só que a agente sabe as oito cidades atendidas e as
+ * lista quando perguntam — e a resposta dela entra no histórico. Bastava
+ * alguém perguntar "quais cidades vocês atendem?", pergunta óbvia numa
+ * reunião, para toda cotação seguinte daquela conversa ser barrada por
+ * "cita mais de uma cidade". A agente ficava muda sobre preço justamente
+ * depois de mostrar a cobertura.
+ *
+ * Uma lista de cobertura não escolhe cidade nenhuma; a fala seguinte escolhe.
+ * Então o que vale é a última fala que fala de cidade — e se ELA cita várias
+ * ("é em Itajaí... na verdade Navegantes"), aí sim é ambiguidade real e quem
+ * chama é a guarda.
+ */
+function cidadesDaFalaMaisRecente(
+  conversa: string,
+  regras: RegrasNegocio,
+): readonly CidadeId[] {
+  const falas = conversa.split("\n");
+  for (let i = falas.length - 1; i >= 0; i--) {
+    const achadas = cidadesCitadas(falas[i], regras);
+    if (achadas.length > 0) return achadas;
+  }
+  return [];
+}
+
 /** Como o cliente de obra chama cada produto. */
 const APELIDOS_PRODUTO: Record<ProdutoId, RegExp> = {
   tambor: /tambor/,
@@ -201,7 +230,9 @@ export function materiaisCitados(
  * combinação inteira:
  *
  * 1. Valor sem cidade na conversa não sai. Não dá para supor Itajaí só
- *    porque é a sede — a maioria das cidades atendidas não é Itajaí.
+ *    porque é a sede — a maioria das cidades atendidas não é Itajaí. A cidade
+ *    que vale é a da própria resposta e, na falta dela, a da fala mais recente
+ *    que mencionou alguma. Ver `cidadesDaFalaMaisRecente`.
  * 2. Com a cidade definida, só passam preços DAQUELA cidade.
  * 3. Quando a resposta identifica um único produto e um único material, a
  *    conferência vira exata: é o preço daquela combinação ou não é nada.
@@ -219,12 +250,28 @@ export function motivoDaGuarda(
   if (!podeCotar(regras)) return "não há preço cadastrado e o modelo citou valor";
 
   // A cidade pode ter sido dita a qualquer momento — pelo cliente antes, ou
-  // pela própria resposta ("em Itajaí a menor sai por...").
-  const cidades = cidadesCitadas(`${conversa}\n${texto}`, regras);
-  if (cidades.length === 0) return "o modelo cotou sem a cidade estar definida";
-  if (cidades.length > 1) return "a conversa cita mais de uma cidade e o modelo cotou mesmo assim";
+  // pela própria resposta ("em Itajaí a menor sai por..."). Quem manda é a
+  // resposta: se ela nomeia a cidade, é sobre aquela cidade que ela cota.
+  const naResposta = cidadesCitadas(texto, regras);
+  if (naResposta.length > 1) {
+    return "a resposta cita mais de uma cidade e cotou mesmo assim";
+  }
 
-  const cidade = cidades[0];
+  const naConversa = cidadesDaFalaMaisRecente(conversa, regras);
+  if (naResposta.length === 0 && naConversa.length > 1) {
+    return "a última fala cita mais de uma cidade e o modelo cotou mesmo assim";
+  }
+
+  const cidade = naResposta[0] ?? naConversa[0];
+  if (cidade == null) return "o modelo cotou sem a cidade estar definida";
+
+  // Resposta que cota uma cidade enquanto a conversa pedia outra: o valor até
+  // pode ser verdadeiro, mas quem lê entende que é o preço da sua obra.
+  if (naResposta.length === 1 && naConversa.length === 1 && naResposta[0] !== naConversa[0]) {
+    const pedida = regras.cidades.find((c) => c.id === naConversa[0])?.rotulo ?? naConversa[0];
+    const cotada = regras.cidades.find((c) => c.id === naResposta[0])?.rotulo ?? naResposta[0];
+    return `a conversa é sobre ${pedida} e o modelo cotou ${cotada}`;
+  }
   const daCidade = regras.precos.filter((p) => p.cidade === cidade);
   if (daCidade.length === 0) {
     const rotulo = regras.cidades.find((c) => c.id === cidade)?.rotulo ?? cidade;

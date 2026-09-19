@@ -389,6 +389,62 @@ test("conversa com duas cidades não deixa cotar", () => {
   assert.equal(r, false);
 });
 
+test("listar as cidades atendidas não emudece a agente sobre preço", () => {
+  // O bug que motivou este teste: a guarda olhava a conversa inteira, e a
+  // própria agente lista as oito cidades quando perguntam quais ela atende.
+  // Essa resposta entra no histórico, e daí em diante toda cotação era
+  // barrada por "cita mais de uma cidade" — a agente ficava muda sobre preço
+  // logo depois de mostrar a cobertura. Uma lista de cobertura não escolhe
+  // cidade; a fala seguinte escolhe.
+  const conversa = [
+    "quais cidades vocês atendem?",
+    "Atendemos Itajaí, Balneário Camboriú, Camboriú, Itapema, Porto Belo, Ilhota, Navegantes e Penha.",
+    "quero uma caçamba menor pra demolição em Itajaí",
+  ].join("\n");
+
+  assert.equal(
+    respostaSegura("A menor para demolição em Itajaí sai por R$ 220.", undefined, conversa),
+    true,
+  );
+
+  // E a proteção continua de pé: o preço de Itajaí não escapa para outra
+  // cidade só porque a lista de cobertura passou por ali.
+  const paraItapema = [
+    "quais cidades vocês atendem?",
+    "Atendemos Itajaí, Balneário Camboriú, Camboriú, Itapema, Porto Belo, Ilhota, Navegantes e Penha.",
+    "é em Itapema",
+  ].join("\n");
+
+  assert.equal(respostaSegura("A menor para demolição sai por R$ 220.", undefined, paraItapema), false);
+  assert.match(motivoDaGuarda("Sai por R$ 220.", undefined, paraItapema), /Itapema/);
+});
+
+test("a cidade que vale é a última dita, não a primeira", () => {
+  // Conversa real muda de assunto. Quem começou perguntando de Itapema e
+  // depois diz "na minha outra obra, em Itajaí" está pedindo Itajaí.
+  const conversa = ["quanto custa em Itapema?", "e na minha outra obra, em Itajaí?"].join("\n");
+
+  assert.equal(respostaSegura("Em Itajaí, a menor para demolição sai R$ 220.", undefined, conversa), true);
+});
+
+test("resposta que cota cidade diferente da que o cliente pediu é barrada", () => {
+  // R$ 220 é verdade em Itajaí. Dito para quem perguntou de Itapema, vira
+  // uma cotação falsa na cabeça de quem lê.
+  const conversa = "a obra é em Itapema";
+  const motivo = motivoDaGuarda("Em Itajaí a menor sai por R$ 220.", undefined, conversa);
+
+  assert.ok(motivo, "deveria barrar");
+  assert.match(motivo, /Itapema/);
+  assert.match(motivo, /Itaja/);
+});
+
+test("resposta que cota duas cidades de uma vez é barrada", () => {
+  assert.equal(
+    respostaSegura("Em Itajaí sai R$ 220 e em Itapema R$ 220.", undefined, ""),
+    false,
+  );
+});
+
 test("Balneário Camboriú não é confundido com Camboriú", () => {
   // Os rótulos se contêm. Reconhecer a cidade errada aqui seria pior que não
   // reconhecer nenhuma, porque as duas podem ter preços diferentes.
