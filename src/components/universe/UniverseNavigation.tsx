@@ -3,19 +3,19 @@ import { type UniverseTab } from "./types";
 interface NavItem {
   id: UniverseTab;
   label: string;
+  group: "CORE" | "SYSTEM" | "GOVERNANCE";
   functional: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "00", label: "00 / OVERVIEW", functional: true },
-  { id: "01", label: "01 / ESSENCE", functional: false },
-  { id: "02", label: "02 / ECOSYSTEM", functional: true },
-  { id: "03", label: "03 / CHARACTER", functional: true },
-  { id: "04", label: "04 / VISUAL SYSTEM", functional: false },
-  { id: "05", label: "05 / VOICE", functional: false },
-  { id: "06", label: "06 / MEDIA", functional: false },
-  { id: "07", label: "07 / PROMPT LAB", functional: false },
-  { id: "08", label: "08 / DECISIONS", functional: false },
+  { id: "00", label: "TODAY", group: "CORE", functional: true },
+  { id: "09", label: "MONEY", group: "CORE", functional: true },
+  { id: "10", label: "CUSTOMERS", group: "CORE", functional: true },
+  { id: "11", label: "FUNNELS", group: "CORE", functional: true },
+  { id: "02", label: "ECOSYSTEM", group: "SYSTEM", functional: true },
+  { id: "12", label: "HEALTH", group: "SYSTEM", functional: true },
+  { id: "03", label: "CHARACTER", group: "GOVERNANCE", functional: true },
+  { id: "08", label: "DECISIONS", group: "GOVERNANCE", functional: false },
 ];
 
 interface UniverseNavigationProps {
@@ -27,33 +27,39 @@ export function UniverseNavigation({ activeTab, onSelectTab }: UniverseNavigatio
   return (
     <nav
       data-universe-element="nav"
-      className="sticky top-0 z-30 -mx-4 border-y border-border/40 bg-background/85 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6"
+      className="sticky top-[49px] z-30 -mx-4 border-y border-border/40 bg-background/88 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6"
       aria-label="Navegação interna do Veronica Universe"
     >
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
-        {NAV_ITEMS.map((item) => {
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+        {NAV_ITEMS.map((item, index) => {
           const isActive = activeTab === item.id;
+          const previous = NAV_ITEMS[index - 1];
+          const startsGroup = !previous || previous.group !== item.group;
 
           return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelectTab(item.id)}
-              className={`group relative flex shrink-0 items-center gap-2 rounded-sm px-3 py-1.5 font-mono-tech text-[11px] tracking-wider transition ${
-                isActive
-                  ? "bg-surface-elevated text-neon-green border border-neon-green/40 shadow-xs"
-                  : "text-muted-foreground hover:bg-surface/40 hover:text-foreground"
-              }`}
-              aria-current={isActive ? "page" : undefined}
-            >
-              <span className="font-medium">{item.label}</span>
-
-              {!item.functional && (
-                <span className="rounded bg-muted/40 px-1 py-0.2 text-[8px] tracking-normal text-muted-foreground uppercase">
-                  DEV
-                </span>
+            <div key={item.id} className="flex shrink-0 items-center gap-2">
+              {startsGroup && index > 0 && (
+                <span className="mx-1 h-5 w-px bg-border/50" aria-hidden />
               )}
-            </button>
+              <button
+                type="button"
+                onClick={() => onSelectTab(item.id)}
+                className={`group relative flex shrink-0 items-center gap-2 rounded-sm border px-3 py-1.5 font-mono-tech text-[10px] tracking-wider transition ${
+                  isActive
+                    ? "border-neon-green/40 bg-neon-green/8 text-neon-green"
+                    : "border-transparent text-muted-foreground hover:border-border/50 hover:bg-surface/40 hover:text-foreground"
+                }`}
+                aria-current={isActive ? "page" : undefined}
+              >
+                <span className="text-[8px] text-muted-foreground/70">{item.id}</span>
+                <span className="font-medium">{item.label}</span>
+                {!item.functional && (
+                  <span className="rounded border border-border/40 bg-muted/20 px-1 py-0.5 text-[7px] tracking-normal text-muted-foreground">
+                    STRUCTURE
+                  </span>
+                )}
+              </button>
+            </div>
           );
         })}
       </div>
