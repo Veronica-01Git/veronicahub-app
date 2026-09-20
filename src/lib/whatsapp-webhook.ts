@@ -14,7 +14,14 @@ import { getDb } from "./db";
 import { waConversations, waMessages } from "./schema";
 import { decidirResposta } from "./whatsapp-agent";
 import { extrairConteudo, type MensagemMeta } from "./whatsapp-mensagem";
-import { markAsRead, sendText, verifyWebhookSignature } from "./whatsapp-cloud";
+import {
+  markAsRead,
+  sendAudio,
+  sendText,
+  uploadAudio,
+  verifyWebhookSignature,
+} from "./whatsapp-cloud";
+import { decidirVoz, sintetizar } from "./whatsapp-voz";
 
 const TENANT = "express-entulho";
 
@@ -191,7 +198,47 @@ async function processarMensagem(
     primeiraMensagem: anteriores <= 1,
     forcarHumano: conteudo.humanoObrigatorio,
   });
-  const envio = await sendText(waId, decisao.texto);
+  /**
+   * Áudio quando cabe, texto sempre que não.
+   *
+   * A REGRA DE OURO DESTE TRECHO: falha na voz NUNCA custa a resposta. A
+   * ElevenLabs fora do ar, cota estourada, upload recusado pela Meta — em
+   * todos esses casos o cliente recebe o texto, que é o que ele receberia
+   * antes desta funcionalidade existir. Voz é acréscimo, não dependência.
+   *
+   * Quem decide se pode falar é decidirVoz, em whatsapp-voz.ts: resposta que
+   * cita valor vai em texto, porque áudio não se relê, e conversa escalada
+   * vai em texto, porque quem assume precisa LER o histórico.
+   *
+   * O corpo em texto é gravado no banco nos dois caminhos. O painel e o
+   * histórico não podem depender de alguém ouvir um arquivo para saber o que
+   * a agente respondeu.
+   */
+  const voz = decidirVoz(decisao.texto, { escalar: decisao.escalar });
+  let envio = null as Awaited<ReturnType<typeof sendText>> | null;
+  let enviadoComoAudio = false;
+
+  if (voz.falar) {
+    const fala = await sintetizar(decisao.texto);
+    if (fala.ok) {
+      const midia = await uploadAudio(fala.audio, fala.mimeType);
+      if (midia.ok) {
+        const tentativa = await sendAudio(waId, midia.mediaId);
+        if (tentativa.ok) {
+          envio = tentativa;
+          enviadoComoAudio = true;
+        } else {
+          console.error("Falha ao enviar áudio, caindo para texto:", tentativa.erro);
+        }
+      } else {
+        console.error("Falha ao subir áudio, caindo para texto:", midia.erro);
+      }
+    } else {
+      console.error("Falha ao sintetizar voz, caindo para texto:", fala.erro);
+    }
+  }
+
+  if (!envio) envio = await sendText(waId, decisao.texto);
 
   if (envio.ok) {
     await db.insert(waMessages).values({
@@ -199,7 +246,9 @@ async function processarMensagem(
       providerId: envio.providerId,
       direction: "saida",
       author: "ia",
-      kind: "text",
+      kind: enviadoComoAudio ? "audio" : "text",
+      // Mesmo no áudio, o que vai para o banco é o TEXTO falado — é ele que
+      // o painel mostra e é por ele que se audita o que a agente disse.
       body: decisao.texto,
       occurredAt: new Date(),
     });

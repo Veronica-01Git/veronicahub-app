@@ -147,3 +147,94 @@ export function janela24hAberta(lastInboundAt: Date | null): boolean {
   if (!lastInboundAt) return false;
   return Date.now() - lastInboundAt.getTime() < 24 * 60 * 60 * 1000;
 }
+
+/* ------------------------------------------------------------------ áudio */
+
+/**
+ * Sobe um áudio para a Meta e devolve o id da mídia.
+ *
+ * DOIS PASSOS, NÃO UM. A Cloud API não aceita o arquivo junto com a
+ * mensagem: primeiro o binário vai para /media e volta um id, depois esse id
+ * é que viaja na mensagem. O id vale ~30 dias e é reutilizável — mas aqui
+ * cada resposta gera um áudio novo, então não há o que cachear.
+ *
+ * O CORPO É MULTIPART, e o campo `type` precisa repetir o mime do arquivo.
+ * Mandar `audio/ogg` sem o `codecs=opus` no BLOB faz a Meta aceitar o upload
+ * e entregar como anexo de arquivo em vez de nota de voz — falha silenciosa,
+ * que é a pior espécie: ninguém vê erro, só o cliente recebe um documento
+ * esquisito no lugar de um áudio.
+ */
+export async function uploadAudio(
+  bytes: Uint8Array,
+  mimeType: string,
+): Promise<{ ok: true; mediaId: string } | { ok: false; erro: string }> {
+  const config = getWhatsAppConfig();
+  if (!config) return { ok: false, erro: "WhatsApp não configurado" };
+
+  const form = new FormData();
+  form.append("messaging_product", "whatsapp");
+  form.append("type", mimeType);
+  form.append(
+    "file",
+    new Blob([bytes as unknown as ArrayBuffer], { type: `${mimeType}; codecs=opus` }),
+    "resposta.ogg",
+  );
+
+  try {
+    const resposta = await fetch(
+      `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/media`,
+      {
+        method: "POST",
+        // Sem content-type à mão: o fetch precisa inserir o boundary do
+        // multipart sozinho, e defini-lo aqui quebraria o corpo.
+        headers: { authorization: `Bearer ${config.accessToken}` },
+        body: form,
+      },
+    );
+
+    if (!resposta.ok) return { ok: false, erro: `Graph respondeu ${resposta.status} no upload` };
+
+    const json = (await resposta.json()) as { id?: string };
+    return json.id
+      ? { ok: true, mediaId: json.id }
+      : { ok: false, erro: "Graph não devolveu id de mídia" };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return { ok: false, erro: `falha no upload de áudio: ${msg.slice(0, 120)}` };
+  }
+}
+
+/** Envia o áudio já subido. Mesma janela de 24 h que vale para texto. */
+export async function sendAudio(to: string, mediaId: string): Promise<EnvioResultado> {
+  const config = getWhatsAppConfig();
+  if (!config) return { ok: false, erro: "WhatsApp não configurado" };
+
+  const resposta = await fetch(
+    `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${config.accessToken}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to,
+        type: "audio",
+        audio: { id: mediaId },
+      }),
+    },
+  );
+
+  const texto = await resposta.text();
+  if (!resposta.ok) return { ok: false, erro: `Graph respondeu ${resposta.status}` };
+
+  try {
+    const json = JSON.parse(texto) as { messages?: { id?: string }[] };
+    const providerId = json.messages?.[0]?.id;
+    return providerId ? { ok: true, providerId } : { ok: false, erro: "Graph não devolveu id" };
+  } catch {
+    return { ok: false, erro: "Graph devolveu corpo inválido" };
+  }
+}
