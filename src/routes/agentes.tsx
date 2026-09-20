@@ -265,11 +265,27 @@ function useGravador(aoTranscrever: (base64: string, mimeType: string) => void) 
  * O que a Veronica pergunta no áudio. Seis perguntas, na ordem em que um
  * dono responderia sem pensar — não é formulário, é pauta de conversa.
  *
- * O VÍDEO DELA. Cada pergunta tem um arquivo de vídeo esperado em
- * /videos/. Enquanto o arquivo não existir, a página mostra a pergunta
- * escrita e segue funcionando — mesma estratégia do StepVideo em
- * VeronicaDrawer.tsx, que não deixa <video> quebrado na tela.
+ * O VÍDEO DELA. Cada pergunta tem um arquivo de vídeo esperado em /videos/.
+ * Enquanto o arquivo não existir, a página mostra a pergunta escrita e segue
+ * funcionando — mesma estratégia do StepVideo em VeronicaDrawer.tsx.
  */
+
+/**
+ * Os vídeos da Veronica já foram produzidos e publicados em /videos/?
+ *
+ * POR QUE UMA FLAG, E NÃO SÓ O onError DO <video>. O onError só dispara
+ * quando o arquivo responde 404. Este app é uma SPA servida por Worker: um
+ * caminho que não existe devolve o HTML da página, com status 200. O
+ * navegador então recebe "um vídeo" que não é vídeo, não chama onError, e a
+ * tela fica com um player cinza vazio e controles que não fazem nada — que
+ * foi exatamente o que apareceu no print de 20/09.
+ *
+ * Com a flag desligada o <video> nem chega a ser montado: aparece a pergunta
+ * escrita, que é a experiência honesta enquanto os vídeos não existem. Ao
+ * publicar os seis arquivos, troque para true — o onError continua aí como
+ * rede de segurança para o caso de um arquivo faltar depois.
+ */
+const VIDEOS_DA_VERONICA_PUBLICADOS = false;
 const PERGUNTAS_DA_VERONICA: { id: string; pergunta: string; video: string }[] = [
   { id: "oque", pergunta: "O que a sua empresa vende, em uma frase?", video: "agente-p1.mp4" },
   {
@@ -293,13 +309,23 @@ const PERGUNTAS_DA_VERONICA: { id: string; pergunta: string; video: string }[] =
 
 function VideoDaVeronica({ arquivo, pergunta }: { arquivo: string; pergunta: string }) {
   const [falhou, setFalhou] = useState(false);
-  if (falhou) {
+  if (!VIDEOS_DA_VERONICA_PUBLICADOS || falhou) {
+    // A pergunta já aparece escrita logo abaixo deste bloco — repeti-la aqui
+    // dentro seria dizer duas vezes a mesma coisa na mesma tela. O cartão só
+    // guarda o lugar e diz de quem é a fala.
     return (
-      <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-sm border border-border/40 bg-muted/20 p-4 text-center">
-        <Play className="h-5 w-5 text-muted-foreground/50" />
-        <span className="text-sm">{pergunta}</span>
-        <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground/60">
-          vídeo da Veronica em breve
+      <div
+        className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-sm border border-neon-green/25 bg-neon-green/[0.04] p-4 text-center"
+        aria-label={`Vídeo da Veronica perguntando: ${pergunta}`}
+      >
+        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-neon-green/40">
+          <Play className="ml-0.5 h-4 w-4 text-neon-green" />
+        </span>
+        <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+          a Veronica pergunta, você responde falando
+        </span>
+        <span className="font-mono-tech text-[10px] text-muted-foreground/50">
+          vídeo em produção · a pergunta está logo abaixo
         </span>
       </div>
     );
@@ -458,7 +484,11 @@ function Agentes() {
       {/* ------------------------------------------- [04] carteira */}
       <Secao id="creditos" numero="04" titulo="Créditos">
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <div>
+          {/* min-w-0: item de grid nasce com min-width:auto, então ele estica
+              para caber o conteúdo em vez de deixar o filho rolar. Sem isto, a
+              tabela de min-w-[520px] abaixo empurra a PÁGINA INTEIRA para
+              544px no celular, em vez de rolar dentro do próprio overflow-x-auto. */}
+          <div className="min-w-0">
             <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
               Um crédito é saldo em reais na mesma carteira que o Studio e o Currículo-Certo já usam
               — não é uma segunda moeda com câmbio próprio. Você põe saldo, usa avulso quando quiser
