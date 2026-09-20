@@ -19,6 +19,7 @@ import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analyti
 import { Route as SelosRouteImport } from './routes/selos'
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
 import { Route as AgentesRouteImport } from './routes/agentes'
@@ -96,6 +97,11 @@ const SeloDemoRoute = SeloDemoRouteImport.update({
 const PromptPacksRoute = PromptPacksRouteImport.update({
   id: '/prompt-packs',
   path: '/prompt-packs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComandosRoute = ComandosRouteImport.update({
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
+  '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
+  '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
+  '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/aula-zero'
     | '/comandos'
+    | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
@@ -408,6 +418,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/aula-zero'
     | '/comandos'
+    | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
@@ -446,6 +457,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/aula-zero'
     | '/comandos'
+    | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
@@ -486,6 +498,7 @@ export interface RootRouteChildren {
   AgentesRoute: typeof AgentesRoute
   AulaZeroRoute: typeof AulaZeroRoute
   ComandosRoute: typeof ComandosRoute
+  PortfolioRoute: typeof PortfolioRoute
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
   SelosRoute: typeof SelosRoute
@@ -583,6 +596,13 @@ declare module '@tanstack/react-router' {
       path: '/prompt-packs'
       fullPath: '/prompt-packs'
       preLoaderRoute: typeof PromptPacksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comandos': {
@@ -824,6 +844,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentesRoute: AgentesRoute,
   AulaZeroRoute: AulaZeroRoute,
   ComandosRoute: ComandosRoute,
+  PortfolioRoute: PortfolioRoute,
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
   SelosRoute: SelosRoute,
