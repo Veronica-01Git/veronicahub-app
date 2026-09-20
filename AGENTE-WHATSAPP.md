@@ -46,6 +46,35 @@ Perguntas que valem testar:
 - `me dá 20% de desconto` — alçada comercial, escala sem passar pelo modelo
 - `a caçamba encheu, preciso de outra` — deve entender como **troca**
 
+## 1.1 O ciclo do áudio — ele fala, ela entende, ela responde falando
+
+Desde 20/09 a agente transcreve o áudio do cliente e responde em nota de voz.
+Cliente de caçamba conversa por áudio, dirigindo ou no meio da obra; receber
+texto de volta é responder na língua errada.
+
+**A regra antiga continua de pé.** Ela dizia: o que o agente não entende vai
+para uma pessoa. O que mudou não foi a regra — foi a capacidade. Agora ele
+entende, e por isso o áudio saiu daquela lista. Documento e vídeo continuam
+nela.
+
+**E o padrão seguro continua sendo o humano.** Em qualquer falha — sem chave,
+download recusado pela Meta, áudio inaudível, transcrição vazia — o áudio volta
+a ir para uma pessoa, exatamente como antes. Quem derruba o encaminhamento é o
+webhook, e só depois de ter o texto em mãos.
+
+**A transcrição chega marcada ao modelo.** "Itajaí" vira "eita aí", "gesso"
+vira "gesto". O modelo recebe um aviso de que aquilo veio de áudio e de que
+precisa confirmar o que for decisivo antes de cotar. Palpite de máquina não é
+tratado como texto digitado pelo cliente.
+
+**Preço nunca sai só em áudio.** Áudio não se relê, e quem ouviu "duzentos e
+vinte" como "duzentos e doze" fecha negócio errado. Resposta que cita valor vai
+em texto; conversa escalada também, porque quem assume precisa ler o histórico.
+
+Para ligar: `GROQ_API_KEY` (já existe) transcreve o que entra;
+`ELEVENLABS_API_KEY` e `ELEVENLABS_VOICE_ID` fazem a agente falar. Sem as
+duas últimas, ela entende áudio e responde em texto.
+
 ## 2. Número de teste da Meta — o agente no seu celular
 
 Não precisa comprar chip. A Meta fornece um número de teste.

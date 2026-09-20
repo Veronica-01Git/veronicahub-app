@@ -78,6 +78,13 @@
       "when": 1789521314666,
       "tag": "0010_agente_whatsapp",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789866021371,
+      "tag": "0011_agentes_ia",
+      "breakpoints": true
     }
   ]
 }

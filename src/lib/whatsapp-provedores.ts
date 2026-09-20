@@ -175,13 +175,125 @@ function provedorGroq(modelo: string): Provedor {
 export const PROVEDOR_GROQ = provedorGroq(MODELO_GROQ_PRINCIPAL);
 export const PROVEDOR_GROQ_RESERVA = provedorGroq(MODELO_GROQ_RESERVA);
 
+/* ---------------------------------------------------------------- gemini */
+
+/**
+ * Terceiro elo gratuito, atrás das duas Groq.
+ *
+ * POR QUE ELE EXISTE. Em setembro de 2026 sobrou pouca coisa grátis de pé: a
+ * Mistral encerrou o tier de 1 bilhão de tokens/mês, a Cerebras passou a
+ * exigir cartão (julho/2026) e o GitHub Models foi desligado (30/julho/2026).
+ * A Groq segue sem cartão, mas o teto dela é diário — 1.000 requisições e
+ * 200 mil tokens por dia em cada modelo. Num dia movimentado isso acaba, e
+ * quando acaba o cliente recebe "vou confirmar com a equipe" por motivo de
+ * infraestrutura, que é exatamente o que a cadeia existe para evitar.
+ *
+ * O Flash-Lite dá ~500 requisições/dia grátis numa conta separada, com
+ * cobrança separada. É a mesma lógica das duas Groq: independência de conta
+ * é o que faz uma cota estourada não virar silêncio.
+ *
+ * SEM SDK NOVO, DE PROPÓSITO. A chamada é REST pura via fetch. Instalar
+ * @google/genai traria mais um pacote para um Worker que já precisa caber no
+ * limite de bundle, para um provedor que é o terceiro da fila. O formato é o
+ * documentado em ai.google.dev: system como parâmetro de topo
+ * (`system_instruction`), histórico em `contents`.
+ *
+ * ATENÇÃO AO PAPEL. Aqui o assistente se chama "model", não "assistant" —
+ * mandar "assistant" faz a API recusar com 400.
+ */
+
+/**
+ * O padrão é o Flash-Lite, que é a faixa com cota diária folgada. O
+ * identificador veio da documentação do Google, não de memória — a mesma
+ * disciplina que os dois 404 de 19/09 impuseram ao resto deste arquivo.
+ * Trocável por variável de ambiente para não exigir deploy.
+ */
+const MODELO_GEMINI = process.env.GEMINI_MODELO_AGENTE ?? "gemini-3.1-flash-lite";
+
+/**
+ * Erro com status HTTP preservado, para `resumirErro` distinguir 429 de 401.
+ *
+ * O campo é declarado e atribuído à mão em vez de virar propriedade de
+ * parâmetro do construtor: `constructor(msg, readonly status)` é sintaxe que
+ * o Node recusa ao rodar TypeScript em modo strip-only, que é como a suíte
+ * de testes deste projeto carrega os arquivos .ts.
+ */
+class ErroGemini extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ErroGemini";
+    this.status = status;
+  }
+}
+
+export const PROVEDOR_GEMINI: Provedor = {
+  nome: "Gemini",
+  modelo: MODELO_GEMINI,
+
+  configurado: () => Boolean(process.env.GEMINI_API_KEY),
+
+  async responder(system, mensagens) {
+    const resposta = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODELO_GEMINI}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": process.env.GEMINI_API_KEY ?? "",
+        },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: system }] },
+          contents: mensagens.map((m) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }],
+          })),
+          generationConfig: { maxOutputTokens: MAX_TOKENS },
+        }),
+      },
+    );
+
+    if (!resposta.ok) {
+      throw new ErroGemini(`HTTP ${resposta.status}`, resposta.status);
+    }
+
+    const corpo = (await resposta.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+
+    // Resposta vazia não é exceção aqui: quem trata é o chamador, que passa
+    // para o próximo provedor em vez de encerrar a conversa.
+    return (corpo.candidates?.[0]?.content?.parts ?? [])
+      .map((p) => p.text ?? "")
+      .join("")
+      .trim();
+  },
+
+  resumirErro(error) {
+    const status = error instanceof ErroGemini ? error.status : undefined;
+    if (status === 429) return `cota do Gemini esgotada (429) no modelo ${MODELO_GEMINI}`;
+    if (status === 400) return `o Gemini recusou a requisição (400) no modelo ${MODELO_GEMINI}`;
+    if (status === 401 || status === 403) return `o Gemini recusou a chave (${status})`;
+    if (status === 404) return `modelo ${MODELO_GEMINI} não encontrado no Gemini (404)`;
+    if (typeof status === "number") return `o Gemini respondeu ${status}`;
+    const msg = error instanceof Error ? error.message : String(error);
+    return `falha ao chamar o Gemini: ${msg.slice(0, 120)}`;
+  },
+};
+
 /**
  * A cadeia, em ordem de tentativa. Provedor sem credencial é pulado sem gastar
  * uma chamada — assim quem ainda não tem chave da Anthropic continua atendido
- * pela Groq, e quem tem as duas ganha a reserva de graça.
+ * pela Groq, e quem tem as três ganha as reservas de graça.
+ *
+ * A ordem é: conta paga e previsível primeiro (Anthropic), depois as duas
+ * gratuitas da Groq — cujo teto é por modelo, então valem duas cotas — e por
+ * fim o Gemini, que é outra conta e outra cobrança.
  */
 export const CADEIA_DE_PROVEDORES: readonly Provedor[] = [
   PROVEDOR_ANTHROPIC,
   PROVEDOR_GROQ,
   PROVEDOR_GROQ_RESERVA,
+  PROVEDOR_GEMINI,
 ];

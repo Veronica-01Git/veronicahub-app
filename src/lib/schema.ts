@@ -355,3 +355,95 @@ export const waMessages = pgTable(
     index("WaMessage_conversation_idx").on(table.conversationId, table.occurredAt),
   ],
 );
+
+/* ------------------------------------------------------------------ *
+ * Agentes de IA (/agentes) — guiados pela Veronica, desenvolvidos pela
+ * Yo Lab & co.
+ *
+ * Preço e catálogo NÃO moram aqui: moram em src/lib/agentes.ts, com
+ * procedência por valor. Estas tabelas guardam só o que é do usuário —
+ * o que ele contratou e o que ele ensinou para a própria agente.
+ * ------------------------------------------------------------------ */
+
+export const agenteAssinaturaStatus = pgEnum("AgenteAssinaturaStatus", [
+  "teste",
+  "ativa",
+  "expirada",
+  "cancelada",
+]);
+
+export const agentePlano = pgEnum("AgentePlano", ["teste", "avulso", "mensal", "anual"]);
+
+/**
+ * O que cada usuário tem em cada agente. Uma linha por (usuário, agente) —
+ * o índice único é o que impede alguém de ganhar um segundo teste grátis
+ * abrindo a página de novo, e é ele que torna `iniciarTeste` idempotente.
+ *
+ * `expiraEm` serve aos dois casos: fim das 6 horas de teste e fim do período
+ * pago. Quem decide se ainda vale é sempre o servidor comparando com now() —
+ * o relógio do navegador só desenha o que sobrou.
+ */
+export const agenteAssinaturas = pgTable(
+  "AgenteAssinatura",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id),
+    /** AgenteId de src/lib/agentes.ts. Texto porque o catálogo é dado, não enum. */
+    agenteId: text("agenteId").notNull(),
+    status: agenteAssinaturaStatus("status").notNull().default("teste"),
+    plano: agentePlano("plano").notNull().default("teste"),
+    expiraEm: timestamp("expiraEm"),
+    /** WalletTopUp que pagou o período vigente, quando houve pagamento. */
+    topUpId: text("topUpId").references(() => walletTopUps.id),
+    criadoEm: timestamp("criadoEm").notNull().defaultNow(),
+    atualizadoEm: timestamp("atualizadoEm").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("AgenteAssinatura_userId_agenteId_key").on(table.userId, table.agenteId),
+    index("AgenteAssinatura_status_expiraEm_idx").on(table.status, table.expiraEm),
+  ],
+);
+
+export const agenteBriefingFonte = pgEnum("AgenteBriefingFonte", [
+  "audio",
+  "conversa",
+  "texto",
+  "simulacao",
+]);
+
+/**
+ * O que o dono ensinou para a própria agente, cru e extraído.
+ *
+ * `conteudo` é o material original (transcrição do áudio, trecho de conversa
+ * colado, texto digitado). `extraido` é o que o modelo entendeu dali, em
+ * JSON — preços, cidades, jeito de responder.
+ *
+ * OS DOIS FICAM, e essa é a regra que importa: o extraído é palpite de
+ * modelo e vai ser conferido por gente antes de virar resposta a cliente
+ * real. Guardar só o extraído seria perder a fonte — o mesmo erro que
+ * whatsapp-rules.ts documenta ter cometido com dezesseis preços.
+ */
+export const agenteBriefings = pgTable(
+  "AgenteBriefing",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id),
+    agenteId: text("agenteId").notNull(),
+    fonte: agenteBriefingFonte("fonte").notNull(),
+    conteudo: text("conteudo").notNull(),
+    /** JSON do que o modelo extraiu. Null enquanto a extração não rodou. */
+    extraido: text("extraido"),
+    /** true quando uma pessoa conferiu o extraído. Só aí vale para cliente real. */
+    conferido: boolean("conferido").notNull().default(false),
+    criadoEm: timestamp("criadoEm").notNull().defaultNow(),
+  },
+  (table) => [index("AgenteBriefing_userId_agenteId_idx").on(table.userId, table.agenteId)],
+);

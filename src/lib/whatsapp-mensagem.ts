@@ -7,8 +7,21 @@
  * chegava ao agente como string vazia e ele respondia a nada.
  *
  * Regra que organiza o arquivo: o que o agente NÃO consegue interpretar de
- * verdade vai para um humano. Áudio ele não transcreve; comprovante ele não
- * confere. Fingir que entendeu é pior do que encaminhar.
+ * verdade vai para um humano. Comprovante ele não confere. Fingir que
+ * entendeu é pior do que encaminhar.
+ *
+ * ÁUDIO MUDOU DE LADO EM 20/09, E A REGRA NÃO. Antes o áudio ia direto para
+ * uma pessoa porque o agente não transcrevia — a condição da regra estava
+ * satisfeita. Agora ele transcreve (Groq Whisper, o mesmo caminho que o
+ * onboarding em agentes-server.ts já usava), então a condição deixou de
+ * valer para este tipo.
+ *
+ * O que NÃO mudou: quando a transcrição não acontece — sem chave, download
+ * recusado, áudio inaudível, resultado vazio — o áudio volta a ir para uma
+ * pessoa, exatamente como antes. Por isso este arquivo não decide sozinho:
+ * ele MARCA o áudio como "precisa transcrever" e quem orquestra é o webhook,
+ * que tem rede. Enquanto a transcrição não voltar, `humanoObrigatorio`
+ * continua true — o padrão seguro é o de sempre.
  */
 
 export type MensagemMeta = {
@@ -20,7 +33,7 @@ export type MensagemMeta = {
   image?: { caption?: string; mime_type?: string };
   video?: { caption?: string };
   document?: { caption?: string; filename?: string };
-  audio?: { voice?: boolean };
+  audio?: { id?: string; voice?: boolean; mime_type?: string };
   sticker?: Record<string, unknown>;
   location?: { latitude?: number; longitude?: number; name?: string; address?: string };
   contacts?: { name?: { formatted_name?: string } }[];
@@ -42,6 +55,17 @@ export type ConteudoRecebido = {
   readonly humanoObrigatorio: boolean;
   /** Figurinha e reação: não respondemos. */
   readonly ignorar: boolean;
+  /**
+   * Id da mídia na Meta, quando existe. É com ele que o webhook baixa o
+   * arquivo — a Meta não manda o binário no webhook, só a referência.
+   */
+  readonly mediaId?: string;
+  /**
+   * Áudio que ainda não virou texto. Enquanto for true, `humanoObrigatorio`
+   * também é true: se a transcrição não acontecer, o comportamento é o
+   * antigo, e uma pessoa ouve.
+   */
+  readonly precisaTranscrever?: boolean;
 };
 
 function coordenada(n: number | undefined): string {
@@ -88,8 +112,11 @@ export function extrairConteudo(m: MensagemMeta): ConteudoRecebido {
       };
     }
 
-    // Áudio é o canal preferido deste público. O agente não transcreve, então
-    // não finge: manda para um humano ouvir.
+    // Áudio é o canal preferido deste público — é por ele que a maior parte
+    // do atendimento real chega. Sai daqui marcado para transcrição, mas
+    // ainda com humanoObrigatorio: quem derruba essa marca é o webhook,
+    // DEPOIS de ter a transcrição em mãos. Sem transcrição, uma pessoa ouve,
+    // como sempre foi.
     case "audio":
     case "voice":
       return {
@@ -98,6 +125,8 @@ export function extrairConteudo(m: MensagemMeta): ConteudoRecebido {
         paraOAgente: "[o cliente enviou um áudio]",
         humanoObrigatorio: true,
         ignorar: false,
+        mediaId: m.audio?.id,
+        precisaTranscrever: Boolean(m.audio?.id),
       };
 
     case "video":

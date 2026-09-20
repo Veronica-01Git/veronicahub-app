@@ -89,6 +89,28 @@ export const PRODUCTS: Product[] = [
     public: true,
   },
   {
+    id: "portfolio",
+    name: "Veronica Portfolio",
+    category: "Ferramentas",
+    to: "/portfolio",
+    // MVP: o README de src/portfolio declara mais cinco rotas planejadas
+    // (create, preview, editor, technology, store) para marcos seguintes.
+    status: "Parcial",
+    description: "Portfólio profissional gerado com IA; primeira geração gratuita",
+    external: false,
+    public: true,
+  },
+  {
+    id: "agentes",
+    name: "Agentes de IA",
+    category: "Ferramentas",
+    to: "/agentes",
+    status: "Parcial",
+    description: "Agentes guiados pela Veronica; WhatsApp com teste grátis de 6 horas",
+    external: false,
+    public: true,
+  },
+  {
     id: "analytics",
     name: "Veronica Analytics",
     category: "Ferramentas",
@@ -212,6 +234,11 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
 export const PRIMARY_NAV = ["formations", "packs", "wire"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
+  // Primeiro da lista: é o produto que tem teste grátis e caminho de venda
+  // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site
+  // — nem na vitrine da home, nem no menu Ferramentas, que leem desta lista.
+  "agentes",
+  "portfolio",
   "studio",
   "career",
   "analytics",

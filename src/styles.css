@@ -692,3 +692,145 @@
     transform: translate(-8px, 16px);
   }
 }
+
+/* ==========================================================================
+   View Transitions — a troca de rota deixa de ser corte seco
+
+   O roteador (src/router.tsx, defaultViewTransition) embrulha cada navegação
+   em document.startViewTransition. O navegador tira um retrato do antes e do
+   depois e anima a diferença; o que segue abaixo só diz COMO ele anima.
+
+   Navegador sem suporte ignora este bloco inteiro e navega normalmente — é
+   por isso que nada aqui pode ser necessário para a página funcionar.
+   ========================================================================== */
+
+::view-transition-old(root) {
+  animation: vt-sai 180ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-entra 320ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes vt-sai {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes vt-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* O cabeçalho é o mesmo elemento em toda rota. Com nome próprio ele sai do
+   retrato do <html> e fica PARADO enquanto o corpo troca — é isso que faz a
+   navegação parecer aplicativo em vez de recarga de página.
+
+   O nome precisa ser único no documento: dois elementos com o mesmo
+   view-transition-name cancelam a transição inteira, em silêncio. Por isso
+   ele mora aqui, no cabeçalho único de SiteChrome, e não numa classe solta. */
+@utility vt-cabecalho {
+  view-transition-name: cabecalho;
+}
+
+@utility vt-rodape {
+  view-transition-name: rodape;
+}
+
+/* ==========================================================================
+   Animação dirigida por rolagem — sem IntersectionObserver, sem JavaScript
+
+   `animation-timeline: view()` amarra o progresso da animação à posição do
+   elemento dentro da janela. Roda no compositor do navegador, então não
+   disputa a thread principal e não engasga em celular fraco — ao contrário
+   de observador + setState, que repinta o React a cada revelação.
+
+   Fica atrás de @supports porque é o navegador que decide: onde não houver
+   suporte, o elemento simplesmente já nasce visível (nenhuma regra é
+   aplicada), que é o estado correto de fallback. Um reveal que depende de JS
+   para APARECER é um texto que some quando o JS falha; este não.
+   ========================================================================== */
+
+/* A RÉGUA É `entry`, NUNCA `cover`, E O MOTIVO CUSTOU UMA MEDIÇÃO.
+   Com `cover 40%` o progresso passa a depender da ALTURA do elemento: numa
+   seção de 1.759px, o título ficava a 0,79 de opacidade exatamente quando o
+   leitor o alcançava — texto lavado na hora de ler. Com `entry`, o ciclo
+   termina quando o elemento acabou de entrar na janela, e isso vale igual
+   para um cartão de 300px e para uma seção de 2.000px.
+
+   Pelo mesmo motivo, isto NÃO vai em elemento alto: um bloco mais alto que a
+   janela nunca está "entrando" e "sendo lido" ao mesmo tempo. Use em títulos,
+   cartões e blocos que cabem na tela. E nunca aninhe dois: as opacidades se
+   multiplicam, e o filho some enquanto o pai ainda está a meio caminho. */
+@utility revelar {
+  @supports (animation-timeline: view()) {
+    animation: revelar-entrada linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+}
+
+/* Mesma entrada, porém concluída mais cedo: para itens em grade, onde
+   esperar a entrada inteira faria o segundo cartão da linha chegar tarde. */
+@utility revelar-curto {
+  @supports (animation-timeline: view()) {
+    animation: revelar-entrada linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+}
+
+@keyframes revelar-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Barra de progresso da leitura, amarrada à rolagem do documento. Zero JS,
+   zero listener de scroll. */
+@utility barra-de-leitura {
+  @supports (animation-timeline: scroll()) {
+    animation: preencher-barra linear both;
+    animation-timeline: scroll(root block);
+    transform-origin: 0 50%;
+  }
+}
+
+@keyframes preencher-barra {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Movimento é enfeite. Quem pediu para o sistema operacional reduzir
+   movimento recebe a página inteira, de uma vez, sem transição e sem
+   deslocamento — mas NUNCA recebe conteúdo invisível. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+
+  @keyframes revelar-entrada {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
