@@ -1,91 +1,130 @@
 import { PRODUCTS } from "@/lib/ecosystem";
 import { createFileRoute } from "@tanstack/react-router";
 import { getUniverseAdminAccess } from "@/lib/veronica-universe-access";
+import { getAdminOverview } from "@/lib/admin-server";
+import { getPublishedArticles } from "@/lib/articles-server";
+import { getWireCommercialSnapshot } from "@/lib/wire-commerce-server";
 import { useEffect, useState } from "react";
-import { ShieldAlert, Loader2, ArrowLeft, Compass } from "lucide-react";
+import { ShieldAlert, Loader2, ArrowLeft, Compass, Database } from "lucide-react";
 import { UniverseShell } from "@/components/universe/UniverseShell";
-import { UniverseHero } from "@/components/universe/UniverseHero";
 import { EcosystemConstellation } from "@/components/universe/EcosystemConstellation";
-import { SystemStatus } from "@/components/universe/SystemStatus";
-import { NextSystemLayers } from "@/components/universe/NextSystemLayers";
 import { CharacterBible } from "@/components/universe/CharacterBible";
+import {
+  UniverseToday,
+  type UniverseSnapshot,
+} from "@/components/universe/UniverseToday";
+import {
+  UniverseRevenue,
+  UniverseCustomers,
+  UniverseFunnels,
+  UniverseHealth,
+} from "@/components/universe/UniverseOperations";
 import { ECOSYSTEM_NODES, type UniverseTab } from "@/components/universe/types";
 
 export const Route = createFileRoute("/admin/veronica-universe")({
   component: VeronicaUniversePage,
   head: () => ({
-    meta: [{ title: "Veronica Universe · Admin | Veronica Hub" }],
+    meta: [{ title: "Veronica Universe · Operating System | Veronica Hub" }],
   }),
 });
 
 type AdminState = Awaited<ReturnType<typeof getUniverseAdminAccess>>;
 
 const TAB_METADATA: Record<UniverseTab, { title: string; subtitle: string }> = {
-  "00": { title: "OVERVIEW", subtitle: "Root System & Ecosystem Map" },
-  "01": { title: "ESSENCE", subtitle: "Brand Core Archetype & Principles" },
-  "02": { title: "ECOSYSTEM", subtitle: "Constellation Topology & Interconnections" },
-  "03": { title: "CHARACTER", subtitle: "Character Bible & Behavioral Canon" },
-  "04": { title: "VISUAL SYSTEM", subtitle: "Optical Grammar, Motion & Design Tokens" },
-  "05": { title: "VOICE", subtitle: "Acoustic Tone, Cadence & Vocal Synthesis" },
-  "06": { title: "MEDIA", subtitle: "Radar & Algorithmic Narrative Distribution" },
-  "07": { title: "PROMPT LAB", subtitle: "Directives, Reasoning Chains & Automations" },
-  "08": { title: "DECISIONS", subtitle: "Governance, Expansion Thresholds & Brand Matrix" },
+  "00": { title: "TODAY", subtitle: "Executive operating view" },
+  "01": { title: "ESSENCE", subtitle: "Brand core archetype & principles" },
+  "02": { title: "ECOSYSTEM", subtitle: "Topology, products & interconnections" },
+  "03": { title: "CHARACTER", subtitle: "Character bible & behavioral canon" },
+  "04": { title: "VISUAL SYSTEM", subtitle: "Optical grammar, motion & design tokens" },
+  "05": { title: "VOICE", subtitle: "Acoustic tone, cadence & vocal synthesis" },
+  "06": { title: "MEDIA", subtitle: "Editorial and distribution intelligence" },
+  "07": { title: "PROMPT LAB", subtitle: "Directives, skills & automations" },
+  "08": { title: "DECISIONS", subtitle: "Founder decisions & governance" },
+  "09": { title: "MONEY", subtitle: "Verified financial signals" },
+  "10": { title: "CUSTOMERS", subtitle: "Veronica ID & customer view" },
+  "11": { title: "FUNNELS", subtitle: "Telemetry coverage & conversion gaps" },
+  "12": { title: "SYSTEM HEALTH", subtitle: "Connected capabilities & truth layer" },
 };
 
 function VeronicaUniversePage() {
-  const [authState, setAuthState] = useState<AdminState | { ok: false; error: string } | null>(
-    null,
-  );
+  const [authState, setAuthState] = useState<AdminState | { ok: false; error: string } | null>(null);
+  const [snapshot, setSnapshot] = useState<UniverseSnapshot | null>(null);
+  const [snapshotError, setSnapshotError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<UniverseTab>("00");
 
   useEffect(() => {
-    getUniverseAdminAccess()
-      .then(setAuthState)
-      .catch((err) =>
+    let cancelled = false;
+
+    async function boot() {
+      try {
+        const access = await getUniverseAdminAccess();
+        if (cancelled) return;
+        setAuthState(access);
+
+        if (!access.ok) return;
+
+        try {
+          const [overview, articles, wire] = await Promise.all([
+            getAdminOverview(),
+            getPublishedArticles(),
+            getWireCommercialSnapshot(),
+          ]);
+
+          if (cancelled) return;
+          setSnapshot({ overview, articles, wire });
+        } catch (error) {
+          if (cancelled) return;
+          setSnapshotError(
+            error instanceof Error ? error.message : "Falha ao carregar a telemetria do Universe.",
+          );
+        }
+      } catch (error) {
+        if (cancelled) return;
         setAuthState({
           ok: false,
           error:
-            err instanceof Error ? err.message : "Falha na validação de sessão administrativa.",
-        }),
-      );
+            error instanceof Error ? error.message : "Falha na validação de sessão administrativa.",
+        });
+      }
+    }
+
+    void boot();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Loading state
   if (!authState) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
-        <div className="flex items-center gap-3 font-mono-tech text-xs tracking-widest text-muted-foreground uppercase">
+        <div className="flex items-center gap-3 font-mono-tech text-xs uppercase tracking-widest text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin text-neon-green" />
-          <span>INICIALIZANDO VERONICA UNIVERSE CORE…</span>
+          <span>INICIALIZANDO VERONICA UNIVERSE…</span>
         </div>
       </div>
     );
   }
 
-  // Access denied state
   if (!authState.ok) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
         <div className="w-full max-w-md rounded-sm border border-destructive/40 bg-destructive/5 p-6 backdrop-blur">
           <div className="flex items-start gap-3">
-            <ShieldAlert className="mt-0.5 h-6 w-6 flex-shrink-0 text-destructive" />
+            <ShieldAlert className="mt-0.5 h-6 w-6 shrink-0 text-destructive" />
             <div>
               <h2 className="font-display text-lg font-bold text-foreground">Acesso Restrito</h2>
               <p className="mt-1 font-mono-tech text-xs text-muted-foreground">{authState.error}</p>
               <p className="mt-4 text-xs text-muted-foreground">
                 A rota <code className="text-foreground">/admin/veronica-universe</code> exige
-                autenticação de administrador. Realize login com e-mail autorizado através da
-                interface principal.
+                autenticação de administrador.
               </p>
-              <div className="mt-5">
-                <a
-                  href="/"
-                  className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 font-mono-tech text-xs text-foreground transition hover:border-foreground"
-                >
-                  <ArrowLeft className="h-3 w-3" />
-                  <span>Voltar ao início</span>
-                </a>
-              </div>
+              <a
+                href="/"
+                className="mt-5 inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-2 font-mono-tech text-xs text-foreground transition hover:border-foreground"
+              >
+                <ArrowLeft className="h-3 w-3" />
+                Voltar ao início
+              </a>
             </div>
           </div>
         </div>
@@ -99,84 +138,114 @@ function VeronicaUniversePage() {
       onSelectTab={setActiveTab}
       adminEmail={authState.admin?.email}
     >
-      {/* ===================================================================== */}
-      {/* 00 / OVERVIEW TAB (Full System View)                                 */}
-      {/* ===================================================================== */}
-      {activeTab === "00" && (
-        <div className="flex flex-col gap-2">
-          <UniverseHero
-            onOpenCommand={() => {
-              window.dispatchEvent(
-                new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
-              );
-            }}
-            onExploreEcosystem={() => setActiveTab("02")}
-          />
-
-          <EcosystemConstellation />
-
-          <SystemStatus />
-
-          <NextSystemLayers />
+      {!snapshot && !snapshotError && (
+        <div className="flex min-h-[420px] items-center justify-center rounded-sm border border-border/50 bg-surface/20">
+          <div className="flex items-center gap-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin text-neon-green" />
+            conectando dados operacionais…
+          </div>
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* 02 / ECOSYSTEM TAB (Deep Dive Constellation & Directory)             */}
-      {/* ===================================================================== */}
-      {activeTab === "02" && (
+      {snapshotError && (
+        <div className="rounded-sm border border-destructive/40 bg-destructive/5 p-5">
+          <div className="flex items-start gap-3">
+            <Database className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+            <div>
+              <h2 className="text-sm font-medium text-foreground">Telemetria não carregada</h2>
+              <p className="mt-1 text-xs text-muted-foreground">{snapshotError}</p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                O acesso ao Universe continua protegido; recarregue a página para tentar novamente.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {snapshot && activeTab === "00" && <UniverseToday snapshot={snapshot} />}
+      {snapshot && activeTab === "09" && <UniverseRevenue snapshot={snapshot} />}
+      {snapshot && activeTab === "10" && <UniverseCustomers snapshot={snapshot} />}
+      {snapshot && activeTab === "11" && <UniverseFunnels snapshot={snapshot} />}
+      {snapshot && activeTab === "12" && <UniverseHealth snapshot={snapshot} />}
+
+      {snapshot && activeTab === "02" && (
         <div className="flex flex-col gap-8">
           <div className="border-b border-border/40 pb-4">
-            <div className="font-mono-tech text-[10px] tracking-widest text-muted-foreground uppercase">
-              MODULE 02 / DEEP DIVE
+            <div className="font-mono-tech text-[9px] uppercase tracking-[0.2em] text-neon-cyan">
+              ECOSYSTEM / TOPOLOGY
             </div>
-            <h1 className="mt-1 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Ecosystem Topology & Node Directory
+            <h1 className="mt-2 font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+              O mapa vivo da Veronica.
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Mapa das áreas do ecossistema e sua disponibilidade editorial.
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              Relações do ecossistema no mapa; disponibilidade e links vêm do registro canônico de
+              produtos.
             </p>
           </div>
 
           <EcosystemConstellation />
 
-          {/* Node Directory Table */}
           <section className="rounded-sm border border-border/50 bg-surface/20 p-5 sm:p-7">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-mono-tech text-xs tracking-widest text-foreground uppercase">
-                NODE SPECIFICATION DIRECTORY ({PRODUCTS.length})
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-mono-tech text-[10px] uppercase tracking-widest text-foreground">
+                Product directory ({PRODUCTS.length})
               </h2>
-              <span className="font-mono-tech text-[10px] text-neon-green">
-                STATUS DO CATÁLOGO
+              <span className="font-mono-tech text-[9px] uppercase tracking-widest text-neon-green">
+                canonical registry
               </span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] border-collapse text-left text-xs font-mono-tech">
-                <thead>
-                  <tr className="border-b border-border/40 text-muted-foreground">
-                    <th className="py-2.5 px-3">VECTOR</th>
-                    <th className="py-2.5 px-3">NODE</th>
-                    <th className="py-2.5 px-3">CATEGORY</th>
-                    <th className="py-2.5 px-3">RELATION</th>
-                    <th className="py-2.5 px-3">STATUS</th>
+              <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+                <thead className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                  <tr className="border-b border-border/40">
+                    <th className="px-3 py-3">#</th>
+                    <th className="px-3 py-3">Produto</th>
+                    <th className="px-3 py-3">Categoria</th>
+                    <th className="px-3 py-3">Relação</th>
+                    <th className="px-3 py-3">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/20">
-                  {PRODUCTS.map((node, index) => (
-                    <tr key={node.id} className="hover:bg-surface/30 transition">
-                      <td className="py-3 px-3 text-neon-cyan">{String(index + 1).padStart(2, "0")}</td>
-                      <td className="py-3 px-3 font-medium text-foreground"><a href={node.to} className="underline underline-offset-4">{node.name}</a></td>
-                      <td className="py-3 px-3 text-muted-foreground">{node.category}</td>
-                      <td className="py-3 px-3 uppercase text-foreground/80">{ECOSYSTEM_NODES.find(item => item.id === node.id)?.relation ?? "—"}</td>
-                      <td className="py-3 px-3">
-                        <span className="inline-flex items-center gap-1 rounded bg-neon-green/10 px-2 py-0.5 text-[9px] text-neon-green">
-                          <span className="h-1 w-1 rounded-full bg-neon-green" />
-                          {node.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {PRODUCTS.map((node, index) => {
+                    const mapped = ECOSYSTEM_NODES.find((item) => item.id === node.id);
+                    return (
+                      <tr key={node.id} className="bg-background/35 transition hover:bg-surface/30">
+                        <td className="px-3 py-3 font-mono-tech text-[9px] text-neon-cyan">
+                          {String(index + 1).padStart(2, "0")}
+                        </td>
+                        <td className="px-3 py-3">
+                          <a
+                            href={node.to}
+                            target={node.external ? "_blank" : undefined}
+                            rel={node.external ? "noopener noreferrer" : undefined}
+                            className="font-medium text-foreground underline-offset-4 hover:underline"
+                          >
+                            {node.name}
+                          </a>
+                        </td>
+                        <td className="px-3 py-3 text-muted-foreground">{node.category}</td>
+                        <td className="px-3 py-3 font-mono-tech text-[9px] uppercase text-foreground/80">
+                          {mapped?.relation ?? "directory"}
+                        </td>
+                        <td className="px-3 py-3">
+                          <span
+                            className={
+                              "inline-flex items-center gap-1 rounded-full border px-2 py-1 font-mono-tech text-[8px] uppercase tracking-wider " +
+                              (node.status === "Disponível"
+                                ? "border-neon-green/30 bg-neon-green/5 text-neon-green"
+                                : node.status === "Parcial"
+                                  ? "border-neon-cyan/30 bg-neon-cyan/5 text-neon-cyan"
+                                  : "border-border/50 bg-muted/20 text-muted-foreground")
+                            }
+                          >
+                            <span className="h-1 w-1 rounded-full bg-current" />
+                            {node.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -184,49 +253,55 @@ function VeronicaUniversePage() {
         </div>
       )}
 
-      {activeTab === "03" && <CharacterBible />}
+      {snapshot && activeTab === "03" && <CharacterBible />}
 
-      {/* ===================================================================== */}
-      {/* IN DEVELOPMENT MODULES (01, 03-08)                                   */}
-      {/* ===================================================================== */}
-      {activeTab !== "00" && activeTab !== "02" && activeTab !== "03" && (
-        <div className="my-12 flex flex-col items-center justify-center rounded-sm border border-border/50 bg-surface/20 p-12 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/60 bg-background/50">
-            <Compass className="h-6 w-6 text-neon-cyan animate-pulse" />
+      {snapshot && activeTab === "08" && (
+        <div className="rounded-sm border border-border/50 bg-surface/20 p-7 sm:p-10">
+          <div className="font-mono-tech text-[9px] uppercase tracking-[0.2em] text-neon-cyan">
+            GOVERNANCE / DECISIONS
           </div>
-
-          <div className="mt-5 font-mono-tech text-[10px] tracking-widest text-muted-foreground uppercase">
-            MODULE {activeTab} / SYSTEM ARCHITECTURE
-          </div>
-
-          <h2 className="mt-2 font-display text-3xl font-bold text-foreground">
-            {TAB_METADATA[activeTab].title}
-          </h2>
-
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            {TAB_METADATA[activeTab].subtitle}
+          <h1 className="mt-3 font-display text-3xl text-foreground sm:text-4xl">
+            Decisões precisam de memória.
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            A interface está reservada, mas ainda não existe persistência canônica para hipóteses,
+            decisões, impacto e resultado. Esta versão não inventa decisões salvas.
           </p>
-
-          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 font-mono-tech text-xs text-muted-foreground uppercase">
-            <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
-            STATUS: IN DEVELOPMENT (PHASE 2+)
+          <div className="mt-7 inline-flex items-center gap-2 rounded-full border border-border/50 bg-muted/20 px-3 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+            módulo sem persistência
           </div>
-
-          <p className="mt-4 max-w-lg text-xs text-muted-foreground font-mono-tech leading-relaxed">
-            As especificações canônicas desta camada serão orquestradas e consolidadas nas próximas
-            iterações do Veronica Universe.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("00")}
-            className="mt-8 inline-flex items-center gap-2 rounded-sm border border-border/60 bg-surface/50 px-4 py-2 font-mono-tech text-xs text-foreground transition hover:border-neon-green/50 hover:text-neon-green"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Retornar ao Overview (00)</span>
-          </button>
         </div>
       )}
+
+      {snapshot &&
+        !["00", "02", "03", "08", "09", "10", "11", "12"].includes(activeTab) && (
+          <div className="my-8 flex flex-col items-center justify-center rounded-sm border border-border/50 bg-surface/20 p-12 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/60 bg-background/50">
+              <Compass className="h-6 w-6 animate-pulse text-neon-cyan" />
+            </div>
+            <div className="mt-5 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+              MODULE {activeTab} / STRUCTURE
+            </div>
+            <h2 className="mt-2 font-display text-3xl text-foreground">
+              {TAB_METADATA[activeTab].title}
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              {TAB_METADATA[activeTab].subtitle}
+            </p>
+            <div className="mt-6 rounded-full border border-border/60 bg-muted/20 px-3 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+              ainda não conectado
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab("00")}
+              className="mt-8 inline-flex items-center gap-2 rounded-sm border border-border/60 bg-surface/50 px-4 py-2 font-mono-tech text-xs text-foreground transition hover:border-neon-green/50 hover:text-neon-green"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Voltar para Today
+            </button>
+          </div>
+        )}
     </UniverseShell>
   );
 }

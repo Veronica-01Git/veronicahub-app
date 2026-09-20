@@ -10,15 +10,14 @@ import {
 } from "@/components/ui/command";
 import { type UniverseTab } from "./types";
 import {
-  LayoutDashboard,
+  Activity,
+  CircleDollarSign,
+  Gauge,
   Network,
+  ShieldCheck,
   UserCheck,
-  Palette,
-  Mic,
-  Tv,
-  Terminal,
-  Compass,
-  Sparkles,
+  Users,
+  Waypoints,
 } from "lucide-react";
 
 interface UniverseCommandProps {
@@ -46,69 +45,61 @@ export function UniverseCommand({ open, onOpenChange, onSelectTab }: UniverseCom
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <div className="border-b border-border/40 px-3 py-2 font-mono-tech text-[10px] tracking-widest text-muted-foreground uppercase flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-border/40 px-3 py-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
         <span>UNIVERSE COMMAND</span>
         <span>ESC PARA FECHAR</span>
       </div>
 
-      <CommandInput placeholder="Digite um comando do sistema…" />
+      <CommandInput placeholder="Navegar pelo Universe…" />
 
       <CommandList>
-        <CommandEmpty>Nenhum comando do sistema encontrado.</CommandEmpty>
+        <CommandEmpty>Nenhum comando encontrado.</CommandEmpty>
 
-        <CommandGroup heading="SISTEMA DISPONÍVEL">
+        <CommandGroup heading="CORE">
           <CommandItem onSelect={() => handleSelect("00")}>
-            <LayoutDashboard className="mr-2 h-4 w-4 text-neon-green" />
-            <span>00 / Go to Overview</span>
+            <Activity className="mr-2 h-4 w-4 text-neon-green" />
+            <span>Today</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect("02")}>
-            <Network className="mr-2 h-4 w-4 text-neon-green" />
-            <span>02 / Go to Ecosystem</span>
+          <CommandItem onSelect={() => handleSelect("09")}>
+            <CircleDollarSign className="mr-2 h-4 w-4 text-neon-green" />
+            <span>Money</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect("03")}>
-            <UserCheck className="mr-2 h-4 w-4 text-neon-green" />
-            <span>03 / Go to Character Bible</span>
+          <CommandItem onSelect={() => handleSelect("10")}>
+            <Users className="mr-2 h-4 w-4 text-neon-green" />
+            <span>Customers</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect("11")}>
+            <Waypoints className="mr-2 h-4 w-4 text-neon-cyan" />
+            <span>Funnels</span>
           </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
 
-        <CommandGroup heading="MÓDULOS EM DESENVOLVIMENTO (PHASE 2+)">
-          <CommandItem onSelect={() => handleSelect("01")}>
-            <Compass className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">01 / Go to Essence</span>
+        <CommandGroup heading="SYSTEM">
+          <CommandItem onSelect={() => handleSelect("02")}>
+            <Network className="mr-2 h-4 w-4 text-neon-cyan" />
+            <span>Ecosystem</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect("04")}>
-            <Palette className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">04 / Go to Visual System</span>
+          <CommandItem onSelect={() => handleSelect("12")}>
+            <Gauge className="mr-2 h-4 w-4 text-neon-cyan" />
+            <span>System Health</span>
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect("05")}>
-            <Mic className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">05 / Go to Voice</span>
-          </CommandItem>
-          <CommandItem onSelect={() => handleSelect("06")}>
-            <Tv className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">06 / Go to Media</span>
-          </CommandItem>
-          <CommandItem onSelect={() => handleSelect("07")}>
-            <Terminal className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">07 / Go to Prompt Lab</span>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="GOVERNANCE">
+          <CommandItem onSelect={() => handleSelect("03")}>
+            <UserCheck className="mr-2 h-4 w-4 text-muted-foreground" />
+            <span>Character Bible</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect("08")}>
-            <Compass className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">08 / Go to Decisions</span>
-          </CommandItem>
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        <CommandGroup heading="INTELLIGENCE">
-          <CommandItem disabled className="opacity-50 cursor-not-allowed">
-            <Sparkles className="mr-2 h-4 w-4 text-neon-cyan/50" />
+            <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
             <div className="flex flex-col">
-              <span className="font-medium text-muted-foreground">ASK VERONICA UNIVERSE</span>
-              <span className="text-[10px] text-muted-foreground/60 font-mono-tech">
-                Coming later (Phase 3)
+              <span>Decisions</span>
+              <span className="font-mono-tech text-[9px] text-muted-foreground/70">
+                estrutura sem persistência
               </span>
             </div>
           </CommandItem>
