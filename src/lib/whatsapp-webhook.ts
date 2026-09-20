@@ -15,13 +15,14 @@ import { waConversations, waMessages } from "./schema";
 import { decidirResposta } from "./whatsapp-agent";
 import { extrairConteudo, type MensagemMeta } from "./whatsapp-mensagem";
 import {
+  downloadMedia,
   markAsRead,
   sendAudio,
   sendText,
   uploadAudio,
   verifyWebhookSignature,
 } from "./whatsapp-cloud";
-import { decidirVoz, sintetizar } from "./whatsapp-voz";
+import { decidirVoz, marcarComoTranscricao, sintetizar, transcrever } from "./whatsapp-voz";
 
 const TENANT = "express-entulho";
 
@@ -193,10 +194,50 @@ async function processarMensagem(
     and(eq(waMessages.conversationId, conversa.id), eq(waMessages.direction, "entrada")),
   );
 
+  /**
+   * Áudio do cliente vira texto antes de chegar ao agente.
+   *
+   * O PADRÃO AQUI É O ANTIGO, e isso é deliberado: `conteudo` já chega com
+   * humanoObrigatorio true, e só estas linhas podem derrubá-lo. Sem chave,
+   * download recusado, áudio inaudível ou transcrição vazia, nada é
+   * derrubado e uma pessoa ouve — exatamente como antes de 20/09. A regra
+   * de whatsapp-mensagem.ts continua de pé: o que o agente não entende vai
+   * para um humano; o que mudou é que agora ele entende quase sempre.
+   */
+  let paraOAgente = conteudo.paraOAgente;
+  let forcarHumano = conteudo.humanoObrigatorio;
+  let transcricao: string | null = null;
+
+  if (conteudo.precisaTranscrever && conteudo.mediaId) {
+    const midia = await downloadMedia(conteudo.mediaId);
+    if (midia.ok) {
+      const ouvido = await transcrever(midia.bytes, midia.mimeType);
+      if (ouvido.ok) {
+        transcricao = ouvido.texto;
+        paraOAgente = marcarComoTranscricao(ouvido.texto);
+        forcarHumano = false;
+      } else {
+        console.error("Não transcrevi o áudio, encaminhando para humano:", ouvido.erro);
+      }
+    } else {
+      console.error("Não baixei o áudio, encaminhando para humano:", midia.erro);
+    }
+  }
+
+  // O que o cliente disse fica gravado, não só a descrição do anexo. Sem
+  // isto, o painel mostraria "[o cliente enviou um áudio]" e ninguém saberia
+  // o que ele pediu sem reabrir o WhatsApp.
+  if (transcricao) {
+    await db
+      .update(waMessages)
+      .set({ body: transcricao })
+      .where(eq(waMessages.id, inseridas[0].id));
+  }
+
   const decisao = await decidirResposta({
-    texto: conteudo.paraOAgente,
+    texto: paraOAgente,
     primeiraMensagem: anteriores <= 1,
-    forcarHumano: conteudo.humanoObrigatorio,
+    forcarHumano,
   });
   /**
    * Áudio quando cabe, texto sempre que não.

@@ -23,10 +23,39 @@ test("texto passa direto", () => {
   assert.equal(c.ignorar, false);
 });
 
-test("áudio vai para humano — o agente não transcreve", () => {
-  const c = extrairConteudo({ type: "audio", audio: { voice: true } });
-  assert.equal(c.humanoObrigatorio, true);
+test("áudio sai marcado para transcrever, mas o padrão continua sendo humano", () => {
+  // A inversão de 20/09 NÃO é "áudio agora vai para o agente". É "áudio vai
+  // para o agente SE a transcrição funcionar". Quem derruba humanoObrigatorio
+  // é o webhook, depois de ter o texto em mãos — nunca esta função, que não
+  // tem rede e não sabe se a transcrição vai dar certo.
+  const c = extrairConteudo({ type: "audio", audio: { id: "MEDIA123", voice: true } });
+  assert.equal(c.precisaTranscrever, true);
+  assert.equal(c.mediaId, "MEDIA123");
+  assert.equal(c.humanoObrigatorio, true, "o padrão seguro tem que continuar sendo humano");
   assert.equal(c.texto, "");
+});
+
+test("áudio sem id de mídia não tem o que transcrever — vai para humano e pronto", () => {
+  // Acontece de verdade: payload antigo, reentrega estranha, tipo "voice" sem
+  // o bloco de áudio. Sem id não há o que baixar, então nem marca.
+  const c = extrairConteudo({ type: "audio", audio: { voice: true } });
+  assert.equal(c.precisaTranscrever, false);
+  assert.equal(c.mediaId, undefined);
+  assert.equal(c.humanoObrigatorio, true);
+});
+
+test("o que o agente ainda NÃO entende continua indo para uma pessoa", () => {
+  // A regra do arquivo não foi enfraquecida: só o áudio saiu da lista,
+  // porque só o áudio ganhou capacidade. Documento é comprovante e confirmar
+  // pagamento não é decisão de agente; vídeo ele não assiste.
+  for (const m of [
+    { type: "document", document: { filename: "comprovante.pdf" } },
+    { type: "video" },
+    { type: "contacts", contacts: [{ name: { formatted_name: "Fulano" } }] },
+    { type: "algo_novo_da_meta" },
+  ]) {
+    assert.equal(extrairConteudo(m).humanoObrigatorio, true, m.type);
+  }
 });
 
 test("comprovante em documento vai para humano — conferir pagamento não é do agente", () => {

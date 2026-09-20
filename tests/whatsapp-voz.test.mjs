@@ -166,3 +166,116 @@ test("áudio vazio conta como falha — melhor texto que nota de voz muda", asyn
     globalThis.fetch = original;
   }
 });
+
+/* ------------------------------------------- o outro sentido do ciclo */
+
+const { transcrever, marcarComoTranscricao } = await import("../src/lib/whatsapp-voz.ts");
+
+function comGroq(acao) {
+  const anterior = process.env.GROQ_API_KEY;
+  process.env.GROQ_API_KEY = "groq-de-teste";
+  try {
+    return acao();
+  } finally {
+    if (anterior === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = anterior;
+  }
+}
+
+const audioFalso = new Uint8Array([1, 2, 3, 4]);
+
+test("o áudio do cliente vira texto e o ciclo fecha", async () => {
+  const original = globalThis.fetch;
+  const chamadas = [];
+  globalThis.fetch = async (url, init) => {
+    chamadas.push({ url: String(url), init });
+    return { ok: true, status: 200, json: async () => ({ text: "  preciso de uma caçamba  " }) };
+  };
+  try {
+    const r = await comGroq(() => transcrever(audioFalso, "audio/ogg"));
+    assert.equal(r.ok, true);
+    assert.equal(r.texto, "preciso de uma caçamba", "tem que vir aparado");
+    assert.match(chamadas[0].url, /api\.groq\.com.*audio\/transcriptions/);
+    assert.equal(chamadas[0].init.headers.authorization, "Bearer groq-de-teste");
+    // content-type NÃO pode ser definido à mão: o boundary do multipart é do fetch.
+    assert.equal(chamadas[0].init.headers["content-type"], undefined);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("transcrição vazia NÃO é transcrição — volta erro para o humano assumir", async () => {
+  const original = globalThis.fetch;
+  try {
+    for (const corpo of [{ text: "" }, { text: "   " }, {}]) {
+      globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => corpo });
+      const r = await comGroq(() => transcrever(audioFalso, "audio/ogg"));
+      assert.equal(r.ok, false, `aceitou vazio: ${JSON.stringify(corpo)}`);
+      assert.match(r.erro, /não deu para entender|entender/);
+    }
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("sem chave da Groq, nem tenta — e o áudio segue para uma pessoa", async () => {
+  const anterior = process.env.GROQ_API_KEY;
+  delete process.env.GROQ_API_KEY;
+  const original = globalThis.fetch;
+  let chamou = false;
+  globalThis.fetch = async () => {
+    chamou = true;
+    throw new Error("não deveria");
+  };
+  try {
+    const r = await transcrever(audioFalso, "audio/ogg");
+    assert.equal(r.ok, false);
+    assert.equal(chamou, false);
+  } finally {
+    globalThis.fetch = original;
+    if (anterior !== undefined) process.env.GROQ_API_KEY = anterior;
+  }
+});
+
+test("áudio vazio ou grande demais para antes de gastar chamada", async () => {
+  const original = globalThis.fetch;
+  let chamou = false;
+  globalThis.fetch = async () => {
+    chamou = true;
+    return { ok: true, status: 200, json: async () => ({ text: "oi" }) };
+  };
+  try {
+    assert.equal((await comGroq(() => transcrever(new Uint8Array(0), "audio/ogg"))).ok, false);
+    const enorme = new Uint8Array(17 * 1024 * 1024);
+    assert.equal((await comGroq(() => transcrever(enorme, "audio/ogg"))).ok, false);
+    assert.equal(chamou, false, "gastou chamada à toa");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("erro da Groq volta como valor — webhook não pode cair por causa de áudio", async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => ({ ok: false, status: 429 });
+    const r = await comGroq(() => transcrever(audioFalso, "audio/ogg"));
+    assert.equal(r.ok, false);
+    assert.match(r.erro, /429/);
+
+    globalThis.fetch = async () => {
+      throw new Error("ECONNRESET");
+    };
+    const r2 = await comGroq(() => transcrever(audioFalso, "audio/ogg"));
+    assert.equal(r2.ok, false);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("o modelo sabe que aquilo veio de áudio, e que áudio erra", () => {
+  const marcado = marcarComoTranscricao("quero uma caçamba em itajaí");
+  assert.match(marcado, /transcrito/i);
+  assert.match(marcado, /confirme/i);
+  // O que o cliente disse continua inteiro dentro da marcação.
+  assert.ok(marcado.includes("quero uma caçamba em itajaí"));
+});

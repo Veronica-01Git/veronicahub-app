@@ -238,3 +238,42 @@ export async function sendAudio(to: string, mediaId: string): Promise<EnvioResul
     return { ok: false, erro: "Graph devolveu corpo inválido" };
   }
 }
+
+/**
+ * Baixa uma mídia recebida. DOIS PASSOS, e o segundo é onde se erra.
+ *
+ * O webhook da Meta nunca traz o binário — traz um id. Com o id, `GET /{id}`
+ * devolve um JSON com uma `url` temporária. Essa url **exige o mesmo
+ * Bearer token** para ser baixada; buscá-la sem o cabeçalho devolve 401, e é
+ * o engano clássico de quem vê "url" e assume link público.
+ */
+export async function downloadMedia(
+  mediaId: string,
+): Promise<{ ok: true; bytes: Uint8Array; mimeType: string } | { ok: false; erro: string }> {
+  const config = getWhatsAppConfig();
+  if (!config) return { ok: false, erro: "WhatsApp não configurado" };
+
+  try {
+    const meta = await fetch(`https://${GRAPH_HOST}/${config.graphVersion}/${mediaId}`, {
+      headers: { authorization: `Bearer ${config.accessToken}` },
+    });
+    if (!meta.ok) return { ok: false, erro: `Graph respondeu ${meta.status} ao localizar a mídia` };
+
+    const info = (await meta.json()) as { url?: string; mime_type?: string };
+    if (!info.url) return { ok: false, erro: "Graph não devolveu url da mídia" };
+
+    const arquivo = await fetch(info.url, {
+      headers: { authorization: `Bearer ${config.accessToken}` },
+    });
+    if (!arquivo.ok) return { ok: false, erro: `Download da mídia respondeu ${arquivo.status}` };
+
+    return {
+      ok: true,
+      bytes: new Uint8Array(await arquivo.arrayBuffer()),
+      mimeType: info.mime_type ?? "audio/ogg",
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return { ok: false, erro: `falha ao baixar mídia: ${msg.slice(0, 120)}` };
+  }
+}

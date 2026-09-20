@@ -132,3 +132,86 @@ export async function sintetizar(texto: string): Promise<VozResultado> {
     return { ok: false, erro: `falha ao falar com a ElevenLabs: ${msg.slice(0, 120)}` };
   }
 }
+
+/* --------------------------------------------------- o outro sentido */
+
+/**
+ * O áudio do cliente vira texto.
+ *
+ * Fecha o ciclo: ele manda áudio, a agente entende, e responde falando. Até
+ * 20/09 áudio ia direto para uma pessoa, porque o agente não transcrevia —
+ * a regra de whatsapp-mensagem.ts diz que o que ele não entende vai para um
+ * humano, e ela continua valendo. O que mudou é que agora ele entende.
+ *
+ * MESMO MOTOR DO ONBOARDING. É o `whisper-large-v3-turbo` na Groq, o mesmo
+ * que agentes-server.ts já roda para o dono gravar o briefing. Um motor só
+ * para as duas pontas significa uma conta para acompanhar e um lugar para
+ * consertar.
+ *
+ * TRANSCRIÇÃO VAZIA NÃO É TRANSCRIÇÃO. Áudio inaudível, barulho de obra,
+ * cliente que gravou sem querer — tudo isso volta como string vazia, e string
+ * vazia aqui devolve erro, não sucesso. Quem chama trata como "não consegui
+ * entender" e manda para uma pessoa, que é o comportamento antigo.
+ */
+const MODELO_TRANSCRICAO = process.env.GROQ_MODELO_TRANSCRICAO ?? "whisper-large-v3-turbo";
+
+/** Teto de segurança: a Meta limita áudio a 16 MB, e isso é folga sobre ela. */
+const MAX_AUDIO_BYTES = 16 * 1024 * 1024;
+
+export type TranscricaoResultado =
+  | { readonly ok: true; readonly texto: string }
+  | { readonly ok: false; readonly erro: string };
+
+export async function transcrever(
+  bytes: Uint8Array,
+  mimeType: string,
+): Promise<TranscricaoResultado> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return { ok: false, erro: "transcrição não configurada" };
+  if (bytes.byteLength === 0) return { ok: false, erro: "áudio vazio" };
+  if (bytes.byteLength > MAX_AUDIO_BYTES) return { ok: false, erro: "áudio grande demais" };
+
+  try {
+    const form = new FormData();
+    const extensao = mimeType.includes("mp4") || mimeType.includes("m4a") ? "m4a" : "ogg";
+    form.append(
+      "file",
+      new Blob([bytes as unknown as ArrayBuffer], { type: mimeType }),
+      `cliente.${extensao}`,
+    );
+    form.append("model", MODELO_TRANSCRICAO);
+    form.append("language", "pt");
+    form.append("response_format", "json");
+
+    const resposta = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+      method: "POST",
+      // Sem content-type à mão: o boundary do multipart é do fetch.
+      headers: { authorization: `Bearer ${apiKey}` },
+      body: form,
+    });
+
+    if (!resposta.ok) return { ok: false, erro: `Groq respondeu ${resposta.status}` };
+
+    const json = (await resposta.json()) as { text?: string };
+    const texto = (json.text ?? "").trim();
+    if (!texto) return { ok: false, erro: "não deu para entender o áudio" };
+
+    return { ok: true, texto };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return { ok: false, erro: `falha ao transcrever: ${msg.slice(0, 120)}` };
+  }
+}
+
+/**
+ * Como a transcrição chega ao modelo.
+ *
+ * O marcador NÃO é enfeite. Transcrição erra — "Itajaí" vira "eita aí",
+ * "gesso" vira "gesto". Dizer ao modelo que aquilo veio de áudio é o que
+ * permite a ele confirmar antes de agir, em vez de tratar um palpite de
+ * máquina como se fosse texto digitado pelo cliente. É a mesma honestidade
+ * que a guarda de preço impõe do outro lado.
+ */
+export function marcarComoTranscricao(texto: string): string {
+  return `[áudio do cliente, transcrito automaticamente — confirme o que for decisivo antes de cotar] ${texto}`;
+}
