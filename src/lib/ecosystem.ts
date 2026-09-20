@@ -89,6 +89,16 @@ export const PRODUCTS: Product[] = [
     public: true,
   },
   {
+    id: "agentes",
+    name: "Agentes de IA",
+    category: "Ferramentas",
+    to: "/agentes",
+    status: "Parcial",
+    description: "Agentes guiados pela Veronica; WhatsApp com teste grátis de 6 horas",
+    external: false,
+    public: true,
+  },
+  {
     id: "analytics",
     name: "Veronica Analytics",
     category: "Ferramentas",

@@ -21,6 +21,7 @@ import { Route as SeloDemoRouteImport } from './routes/selo-demo'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
+import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -105,6 +106,11 @@ const ComandosRoute = ComandosRouteImport.update({
 const AulaZeroRoute = AulaZeroRouteImport.update({
   id: '/aula-zero',
   path: '/aula-zero',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentesRoute = AgentesRouteImport.update({
+  id: '/agentes',
+  path: '/agentes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -241,6 +247,7 @@ const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
@@ -317,6 +325,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
   '/prompt-packs': typeof PromptPacksRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agentes'
     | '/aula-zero'
     | '/comandos'
     | '/prompt-packs'
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agentes'
     | '/aula-zero'
     | '/comandos'
     | '/prompt-packs'
@@ -432,6 +443,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/agentes'
     | '/aula-zero'
     | '/comandos'
     | '/prompt-packs'
@@ -471,6 +483,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgentesRoute: typeof AgentesRoute
   AulaZeroRoute: typeof AulaZeroRoute
   ComandosRoute: typeof ComandosRoute
   PromptPacksRoute: typeof PromptPacksRoute
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       path: '/aula-zero'
       fullPath: '/aula-zero'
       preLoaderRoute: typeof AulaZeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agentes': {
+      id: '/agentes'
+      path: '/agentes'
+      fullPath: '/agentes'
+      preLoaderRoute: typeof AgentesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -801,6 +821,7 @@ const PreviewExpressOperationsBRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgentesRoute: AgentesRoute,
   AulaZeroRoute: AulaZeroRoute,
   ComandosRoute: ComandosRoute,
   PromptPacksRoute: PromptPacksRoute,
