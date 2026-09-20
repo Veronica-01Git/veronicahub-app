@@ -4,6 +4,7 @@ import { getDb } from "./db";
 import { articles, sourceReferrals } from "./schema";
 import { BEAT_LABELS, type Beat } from "./beats";
 import { sourceDomain, sourceLabel } from "./editorial-network";
+import { isSafeRedirectUrl } from "./security";
 
 let sourceReferralStorageReady = false;
 
@@ -66,6 +67,15 @@ export async function handleSourceReferral(request: Request): Promise<Response> 
     .limit(1);
   const rawDestination = article?.sourceUrls[sourceIndex];
   if (!article || !rawDestination) return new Response("fonte não encontrada", { status: 404 });
+
+  // sourceUrls vem do pipeline de IA que redige a matéria, não de uma pessoa
+  // revisando link a link. Um destino `javascript:` num header Location é
+  // ignorado pelos navegadores de hoje, mas não há motivo para emitir um:
+  // encaminhamento daqui é http(s) ou não é.
+  if (!isSafeRedirectUrl(rawDestination)) {
+    console.warn("Fonte com destino não-http descartada:", article.slug, sourceIndex);
+    return new Response("fonte inválida", { status: 400 });
+  }
 
   let destination: string;
   try {

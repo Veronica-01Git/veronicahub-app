@@ -15,6 +15,7 @@ import { waConversations, waMessages } from "./schema";
 import { decidirResposta } from "./whatsapp-agent";
 import { extrairConteudo, type MensagemMeta } from "./whatsapp-mensagem";
 import { markAsRead, sendText, verifyWebhookSignature } from "./whatsapp-cloud";
+import { timingSafeEqual } from "./security";
 
 const TENANT = "express-entulho";
 
@@ -41,7 +42,9 @@ export function handleWhatsAppVerify(request: Request): Response {
     return new Response("not configured", { status: 500 });
   }
 
-  if (mode === "subscribe" && token === esperado && challenge) {
+  // timingSafeEqual em vez de ===: o token de verificação é um segredo
+  // compartilhado com a Meta como qualquer outro.
+  if (mode === "subscribe" && token !== null && timingSafeEqual(token, esperado) && challenge) {
     return new Response(challenge, {
       status: 200,
       headers: { "content-type": "text/plain; charset=utf-8" },

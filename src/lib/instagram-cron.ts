@@ -1,11 +1,9 @@
 import { publishArticleBySlugToInstagram } from "./instagram-publisher.server";
+import { requireCronSecret } from "./security";
 
 export async function handlePublishInstagramCron(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return new Response("CRON_SECRET não configurada", { status: 500 });
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return new Response("unauthorized", { status: 401 });
-  }
+  const naoAutorizado = requireCronSecret(request);
+  if (naoAutorizado) return naoAutorizado;
 
   let body: { slug?: unknown; imageUrl?: unknown };
   try {

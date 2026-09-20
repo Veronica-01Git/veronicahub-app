@@ -6,6 +6,7 @@ import {
   normalizeHandle,
   type AffiliateProduct,
 } from "./affiliate-products";
+import { isSafeRedirectUrl } from "./security";
 
 // Redirect rastreado dos produtos de afiliado (/r/afiliado) — mesmo desenho
 // do /r/wire: registra a intenção comercial e manda a pessoa pro destino.
@@ -71,6 +72,12 @@ export async function handleAffiliateRedirect(request: Request): Promise<Respons
   if (!product) return new Response("produto não encontrado", { status: 404 });
 
   const destination = buildAffiliateUrl(product, { handle, placement });
+  // O catálogo é versionado no repo, então isto é defesa em profundidade: uma
+  // entrada malformada vira 404, não um Location arbitrário.
+  if (!isSafeRedirectUrl(destination)) {
+    console.error("Produto de afiliado com destino inválido:", product.id);
+    return new Response("produto indisponível", { status: 500 });
+  }
 
   const userAgent = request.headers.get("user-agent") ?? "";
   const isAutomatedPreview = /bot|crawler|spider|preview|facebookexternalhit|whatsapp/i.test(
