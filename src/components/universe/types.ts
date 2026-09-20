@@ -1,4 +1,5 @@
 import { product, type ProductStatus } from "@/lib/ecosystem";
+
 export type NodeRelation =
   | "teaches"
   | "investigates"
@@ -21,14 +22,13 @@ export type EcosystemNode = {
   description: string;
   vector: string;
   position: {
-    // Percent coordinates for spatial layout (0-100)
     x: number;
     y: number;
   };
 };
 
 export type UniverseTab =
-  | "00" // OVERVIEW
+  | "00" // TODAY
   | "01" // ESSENCE
   | "02" // ECOSYSTEM
   | "03" // CHARACTER
@@ -36,17 +36,34 @@ export type UniverseTab =
   | "05" // VOICE
   | "06" // MEDIA
   | "07" // PROMPT LAB
-  | "08"; // DECISIONS
+  | "08" // DECISIONS
+  | "09" // MONEY
+  | "10" // CUSTOMERS
+  | "11" // FUNNELS
+  | "12"; // SYSTEM HEALTH
 
-// Layout-only coordinates; product identity/status/links stay in the canonical registry.
-const TOPOLOGY: { productId: string; relation: NodeRelation; position: { x: number; y: number } }[] = [
-  {productId:"school",relation:"teaches",position:{x:50,y:12}},
-  {productId:"wire",relation:"investigates",position:{x:80,y:24}},
-  {productId:"studio",relation:"creates",position:{x:88,y:62}},
-  {productId:"analytics",relation:"analyzes",position:{x:70,y:88}},
-  {productId:"security",relation:"protects",position:{x:30,y:88}},
-  {productId:"career",relation:"guides",position:{x:12,y:62}},
-  {productId:"china",relation:"connects",position:{x:20,y:24}},
-  {productId:"packs",relation:"equips",position:{x:50,y:94}},
+// Topologia visual do mapa. O Veronica Core ocupa o centro; estes nós representam
+// as áreas que formam o fluxo operacional do ecossistema.
+const TOPOLOGY: {
+  productId: string;
+  relation: NodeRelation;
+  position: { x: number; y: number };
+}[] = [
+  { productId: "formations", relation: "teaches", position: { x: 30, y: 13 } },
+  { productId: "wire", relation: "investigates", position: { x: 70, y: 13 } },
+  { productId: "china", relation: "connects", position: { x: 12, y: 38 } },
+  { productId: "studio", relation: "creates", position: { x: 88, y: 38 } },
+  { productId: "career", relation: "guides", position: { x: 12, y: 70 } },
+  { productId: "analytics", relation: "analyzes", position: { x: 88, y: 70 } },
+  { productId: "rh", relation: "guides", position: { x: 30, y: 90 } },
+  { productId: "security", relation: "protects", position: { x: 50, y: 94 } },
+  { productId: "packs", relation: "equips", position: { x: 70, y: 90 } },
+  { productId: "rede", relation: "connects", position: { x: 50, y: 76 } },
 ];
-export const ECOSYSTEM_NODES: EcosystemNode[] = TOPOLOGY.map((node, index) => ({ ...product(node.productId), relation: node.relation, position: node.position, vector: String(index + 1).padStart(2, "0") }));
+
+export const ECOSYSTEM_NODES: EcosystemNode[] = TOPOLOGY.map((node, index) => ({
+  ...product(node.productId),
+  relation: node.relation,
+  position: node.position,
+  vector: String(index + 1).padStart(2, "0"),
+}));
