@@ -10,7 +10,13 @@ import {
   restanteDoTeste,
   formatarHoras,
 } from "../src/lib/agentes.ts";
-import { PRODUCTS, HOME_PRODUCTS } from "../src/lib/ecosystem.ts";
+import {
+  PRODUCTS,
+  HOME_PRODUCTS,
+  PRIMARY_NAV,
+  INTENT_LINKS,
+  SPECIAL_PROJECTS,
+} from "../src/lib/ecosystem.ts";
 
 const routeDir = new URL("../src/routes/", import.meta.url);
 const routeSources = readdirSync(routeDir, { recursive: true })
@@ -119,6 +125,88 @@ test("a rota é alcançável clicando, não só digitando a URL", () => {
     HOME_PRODUCTS.some((p) => p.id === "agentes"),
     "/agentes fora de HOME_PRODUCTS: não aparece na home nem no menu",
   );
+});
+
+/**
+ * A varredura que pega o defeito de verdade.
+ *
+ * O teste abaixo, e o de arquitetura, partem da LISTA DE PRODUTOS e conferem
+ * se cada um tem rota. O defeito real acontece no sentido contrário: uma rota
+ * nasce, funciona, passa em tudo — e não tem link em lugar nenhum. Foi o que
+ * aconteceu com /agentes e com /portfolio, os dois no mesmo mês.
+ *
+ * Então aqui a varredura começa no DISCO: toda rota declarada precisa ou
+ * aparecer na navegação, ou estar na lista abaixo, que é onde alguém declara,
+ * por escrito, que aquela rota não tem link de propósito.
+ *
+ * Mexer nesta lista é um ato consciente. É exatamente esse o ponto.
+ */
+const SEM_LINK_DE_PROPOSITO = new Set([
+  "/", // a própria raiz
+  // Painel interno: fora da navegação pública por decisão, e o teste de
+  // arquitetura já proíbe /admin de aparecer nela.
+  "/admin/",
+  "/admin/artigos",
+  "/admin/imagens",
+  "/admin/veronica-universe",
+  "/admin/wire",
+  // Páginas de detalhe, alcançadas a partir de uma listagem.
+  "/blog/$slug",
+  "/blog/editoria/$beat",
+  "/selo/$serial",
+  // Material de cliente: link vai por mensagem, não pelo site.
+  "/clientes/express-entulho/operacoes-demo",
+  "/clientes/express-entulho/proposta",
+  "/proposta/express-entulho",
+  "/preview/express-operations-b",
+  "/preview/express-operations-b/",
+  "/preview/express-operations-b/$secao",
+  "/preview/express-operations-b/aprovacoes",
+  "/preview/express-operations-b/atendimento",
+  "/preview/express-operations-b/cacambas",
+  "/preview/express-operations-b/operacoes-hoje",
+  "/preview/express-operations-b/regras-do-agente",
+  // Rodapé e páginas de apoio do Wire, alcançadas de dentro dele.
+  "/blog/expediente",
+  "/blog/rede-de-fontes",
+  "/blog/rede-de-fontes/relatorios",
+  "/selos",
+  "/selo-demo",
+  "/aula-zero",
+  "/veronica-curriculo-certo-rh",
+]);
+
+/** "/blog/" no disco e "/blog" na navegação são a mesma página. */
+const semBarraFinal = (rota) => rota.replace(/\/$/, "") || "/";
+
+test("nenhuma rota pública nasce órfã — ou tem link, ou está declarada sem link", () => {
+  const declaradas = new Set(
+    [...routeSources.matchAll(/createFileRoute\("([^"]+)"\)/g)].map((m) => semBarraFinal(m[1])),
+  );
+  const comLink = new Set(
+    [...HOME_PRODUCTS, ...PRIMARY_NAV, ...INTENT_LINKS, ...SPECIAL_PROJECTS].map((p) =>
+      semBarraFinal(p.to),
+    ),
+  );
+
+  const excecoes = new Set([...SEM_LINK_DE_PROPOSITO].map(semBarraFinal));
+  const orfas = [...declaradas].filter((rota) => !comLink.has(rota) && !excecoes.has(rota));
+
+  assert.deepEqual(
+    orfas.sort(),
+    [],
+    "rota sem link e sem declaração: ou registre na navegação, ou declare em SEM_LINK_DE_PROPOSITO",
+  );
+});
+
+test("a lista de exceções não guarda rota que deixou de existir", () => {
+  // Exceção órfã é pior que rota órfã: ela some do radar e dá a impressão
+  // de que alguém pensou no assunto recentemente.
+  const declaradas = new Set(
+    [...routeSources.matchAll(/createFileRoute\("([^"]+)"\)/g)].map((m) => semBarraFinal(m[1])),
+  );
+  const fantasmas = [...SEM_LINK_DE_PROPOSITO].filter((r) => !declaradas.has(semBarraFinal(r)));
+  assert.deepEqual(fantasmas.sort(), [], "exceções apontando para rota inexistente");
 });
 
 test("todo produto público e interno tem porta de entrada na navegação", () => {

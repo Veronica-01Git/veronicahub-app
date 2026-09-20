@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
+  Briefcase,
   Zap,
   Wifi,
   Target,
@@ -39,6 +40,7 @@ import { courses } from "@/lib/courses";
 import { HOME_PRODUCTS } from "@/lib/ecosystem";
 const HOME_ICONS: Record<string, typeof Wand2> = {
   agentes: MessageCircle,
+  portfolio: Briefcase,
   studio: Wand2,
   career: FileText,
   analytics: BarChart3,
