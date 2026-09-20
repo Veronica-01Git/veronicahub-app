@@ -17,6 +17,7 @@ import {
   Code2,
   RefreshCw,
   GraduationCap,
+  MessageCircle,
   Moon,
   Sun,
 } from "lucide-react";
@@ -37,6 +38,7 @@ import { courses } from "@/lib/courses";
 
 import { HOME_PRODUCTS } from "@/lib/ecosystem";
 const HOME_ICONS: Record<string, typeof Wand2> = {
+  agentes: MessageCircle,
   studio: Wand2,
   career: FileText,
   analytics: BarChart3,
@@ -422,7 +424,9 @@ function Index() {
                 >
                   {c.title}
                 </h3>
-                <p className="mt-3 text-[13px] leading-[1.5] text-muted-foreground">{c.description}</p>
+                <p className="mt-3 text-[13px] leading-[1.5] text-muted-foreground">
+                  {c.description}
+                </p>
                 <div className="mt-6 flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition group-hover:text-neon-green">
                   Ver formação{" "}
                   <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />

@@ -222,6 +222,10 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
 export const PRIMARY_NAV = ["formations", "packs", "wire"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
+  // Primeiro da lista: é o produto que tem teste grátis e caminho de venda
+  // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site
+  // — nem na vitrine da home, nem no menu Ferramentas, que leem desta lista.
+  "agentes",
   "studio",
   "career",
   "analytics",

@@ -10,7 +10,7 @@ import {
   restanteDoTeste,
   formatarHoras,
 } from "../src/lib/agentes.ts";
-import { PRODUCTS } from "../src/lib/ecosystem.ts";
+import { PRODUCTS, HOME_PRODUCTS } from "../src/lib/ecosystem.ts";
 
 const routeDir = new URL("../src/routes/", import.meta.url);
 const routeSources = readdirSync(routeDir, { recursive: true })
@@ -108,4 +108,34 @@ test("pacotes de saldo sobem e não têm bônus escondido", () => {
     // o catálogo não o declara, então o pacote é só um depósito comum.
     assert.equal("bonusCents" in p, false, `${p.rotulo}: bônus não implementado no webhook`);
   }
+});
+
+test("a rota é alcançável clicando, não só digitando a URL", () => {
+  // Este teste nasceu de um defeito real: /agentes estava em PRODUCTS, os
+  // testes passavam, e mesmo assim NÃO HAVIA UM ÚNICO LINK para ela no site
+  // inteiro — a vitrine da home e o menu Ferramentas leem de HOME_PRODUCTS,
+  // que é outra lista. Produto sem link é produto que não existe.
+  assert.ok(
+    HOME_PRODUCTS.some((p) => p.id === "agentes"),
+    "/agentes fora de HOME_PRODUCTS: não aparece na home nem no menu",
+  );
+});
+
+test("todo produto público e interno tem porta de entrada na navegação", () => {
+  // A mesma armadilha vale para qualquer produto futuro. Vale a exceção de
+  // quem tem lugar próprio: a escola é a raiz, e os três do PRIMARY_NAV e os
+  // projetos especiais entram por outras listas.
+  const comCasaPropria = new Set(["school", "formations", "packs", "wire", "zero", "rede", "rh"]);
+  const orfaos = PRODUCTS.filter(
+    (p) =>
+      p.public &&
+      !p.external &&
+      !comCasaPropria.has(p.id) &&
+      !HOME_PRODUCTS.some((h) => h.id === p.id),
+  );
+  assert.deepEqual(
+    orfaos.map((p) => p.id),
+    [],
+    "produtos sem link em lugar nenhum da navegação",
+  );
 });

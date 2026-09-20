@@ -10,6 +10,16 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // Transição contínua entre rotas em vez de corte seco: o roteador
+    // embrulha a troca de tela em document.startViewTransition, e o navegador
+    // anima a diferença entre o antes e o depois. O que morre e o que nasce é
+    // decidido pelo CSS, em src/styles.css (bloco "View Transitions").
+    //
+    // MELHORIA PROGRESSIVA DE VERDADE: em navegador sem suporte o próprio
+    // roteador cai na navegação normal, então nada aqui pode quebrar a troca
+    // de página. E quem pede prefers-reduced-motion recebe corte seco por
+    // CSS, que é o comportamento correto — transição é enfeite, navegar não é.
+    defaultViewTransition: true,
   });
 
   return router;

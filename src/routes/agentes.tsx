@@ -105,7 +105,7 @@ function Secao({
   return (
     <section id={id} className="scroll-mt-24 border-t border-border/40 px-6 py-16 md:py-24">
       <div className="mx-auto max-w-7xl">
-        <div className="flex items-baseline gap-4">
+        <div className="revelar flex items-baseline gap-4">
           <span className="font-mono-tech text-xs text-neon-green">[{numero}]</span>
           <h2 className="font-display text-3xl md:text-4xl" style={{ letterSpacing: "-0.03em" }}>
             {titulo}
@@ -410,7 +410,7 @@ function Agentes() {
             return (
               <article
                 key={a.id}
-                className="flex flex-col rounded-sm border border-border/60 p-6 transition hover:border-neon-green/50"
+                className="revelar-curto flex flex-col rounded-sm border border-border/60 p-6 transition hover:border-neon-green/50"
               >
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="font-display text-2xl">{a.nome}</h3>
