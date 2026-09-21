@@ -26,6 +26,9 @@ import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientesIndexRouteImport } from './routes/clientes/index'
 import { Route as ClientesClientSlugRouteImport } from './routes/clientes/$clientSlug'
+import { Route as ClientesAdminRouteImport } from './routes/clientes/admin'
+import { Route as ClientesVeronicaFashionOperatorIndexRouteImport } from './routes/clientes/veronica-fashion-operator/index'
+import { Route as ClientesVeronicaFashionOperatorExecucaoRouteImport } from './routes/clientes/veronica-fashion-operator/execucao'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
@@ -136,6 +139,23 @@ const ClientesClientSlugRoute = ClientesClientSlugRouteImport.update({
   path: '/clientes/$clientSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientesAdminRoute = ClientesAdminRouteImport.update({
+  id: '/clientes/admin',
+  path: '/clientes/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesVeronicaFashionOperatorIndexRoute =
+  ClientesVeronicaFashionOperatorIndexRouteImport.update({
+    id: '/clientes/veronica-fashion-operator/',
+    path: '/clientes/veronica-fashion-operator/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ClientesVeronicaFashionOperatorExecucaoRoute =
+  ClientesVeronicaFashionOperatorExecucaoRouteImport.update({
+    id: '/clientes/veronica-fashion-operator/execucao',
+    path: '/clientes/veronica-fashion-operator/execucao',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -293,6 +313,9 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/clientes/': typeof ClientesIndexRoute
   '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
+  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
@@ -333,6 +356,10 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/clientes': typeof ClientesIndexRoute
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
+  '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
@@ -376,7 +403,9 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/clientes/': typeof ClientesIndexRoute
   '/clientes/$clientSlug': typeof ClientesClientSlugRoute
-  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
+  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
@@ -421,6 +450,9 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/clientes/'
     | '/clientes/$clientSlug'
+    | '/clientes/admin'
+    | '/clientes/veronica-fashion-operator/'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
@@ -462,6 +494,9 @@ export interface FileRouteTypes {
     | '/blog'
     | '/clientes'
     | '/clientes/$clientSlug'
+    | '/clientes/admin'
+    | '/clientes/veronica-fashion-operator'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
@@ -504,6 +539,9 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/clientes/'
     | '/clientes/$clientSlug'
+    | '/clientes/admin'
+    | '/clientes/veronica-fashion-operator/'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
@@ -547,6 +585,9 @@ export interface RootRouteChildren {
   BlogIndexRoute: typeof BlogIndexRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
   ClientesClientSlugRoute: typeof ClientesClientSlugRoute
+  ClientesAdminRoute: typeof ClientesAdminRoute
+  ClientesVeronicaFashionOperatorIndexRoute: typeof ClientesVeronicaFashionOperatorIndexRoute
+  ClientesVeronicaFashionOperatorExecucaoRoute: typeof ClientesVeronicaFashionOperatorExecucaoRoute
   BlogEditoriaBeatRoute: typeof BlogEditoriaBeatRoute
   ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
@@ -671,6 +712,27 @@ declare module '@tanstack/react-router' {
       path: '/clientes/$clientSlug'
       fullPath: '/clientes/$clientSlug'
       preLoaderRoute: typeof ClientesClientSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/admin': {
+      id: '/clientes/admin'
+      path: '/clientes/admin'
+      fullPath: '/clientes/admin'
+      preLoaderRoute: typeof ClientesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/veronica-fashion-operator/': {
+      id: '/clientes/veronica-fashion-operator/'
+      path: '/clientes/veronica-fashion-operator'
+      fullPath: '/clientes/veronica-fashion-operator/'
+      preLoaderRoute: typeof ClientesVeronicaFashionOperatorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/veronica-fashion-operator/execucao': {
+      id: '/clientes/veronica-fashion-operator/execucao'
+      path: '/clientes/veronica-fashion-operator/execucao'
+      fullPath: '/clientes/veronica-fashion-operator/execucao'
+      preLoaderRoute: typeof ClientesVeronicaFashionOperatorExecucaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -909,6 +971,9 @@ const rootRouteChildren: RootRouteChildren = {
   BlogIndexRoute: BlogIndexRoute,
   ClientesIndexRoute: ClientesIndexRoute,
   ClientesClientSlugRoute: ClientesClientSlugRoute,
+  ClientesAdminRoute: ClientesAdminRoute,
+  ClientesVeronicaFashionOperatorIndexRoute: ClientesVeronicaFashionOperatorIndexRoute,
+  ClientesVeronicaFashionOperatorExecucaoRoute: ClientesVeronicaFashionOperatorExecucaoRoute,
   BlogEditoriaBeatRoute: BlogEditoriaBeatRoute,
   ClientesExpressEntulhoOperacoesDemoRoute:
     ClientesExpressEntulhoOperacoesDemoRoute,

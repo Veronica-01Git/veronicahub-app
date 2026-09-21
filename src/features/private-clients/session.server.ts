@@ -7,11 +7,11 @@ type PrivateClientSession = { clientId: string; grantedAt: number };
 const MAX_AGE_SECONDS = 60 * 60 * 8; // 8 horas
 
 function getPassword(): string {
-  // A área não guarda dado sensível; o serial do selo é identificador
-  // público. Quando SESSION_SECRET estiver configurada, ela é usada.
   const fromEnv = process.env.SESSION_SECRET;
-  if (fromEnv && fromEnv.length >= 32) return fromEnv;
-  return "veronica-private-clients-fallback-sealed-cookie-key";
+  if (!fromEnv || fromEnv.length < 32) {
+    throw new Error("SESSION_SECRET não configurada corretamente.");
+  }
+  return fromEnv;
 }
 
 function getManager() {

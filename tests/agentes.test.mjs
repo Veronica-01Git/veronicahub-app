@@ -155,6 +155,11 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/blog/editoria/$beat",
   "/selo/$serial",
   // Material de cliente: link vai por mensagem, não pelo site.
+  "/clientes/",
+  "/clientes/$clientSlug",
+  "/clientes/admin",
+  "/clientes/veronica-fashion-operator/",
+  "/clientes/veronica-fashion-operator/execucao",
   "/clientes/express-entulho/operacoes-demo",
   "/clientes/express-entulho/proposta",
   "/proposta/express-entulho",
