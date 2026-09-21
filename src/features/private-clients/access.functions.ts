@@ -16,7 +16,7 @@ export const validateSeal = createServerFn({ method: "POST" })
     return { serial };
   })
   .handler(async ({ data }): Promise<ValidateSealResult> => {
-    const { getPrivateClientBySerial, privateClients, normalizeSerial } = await import("./registry");
+    const { getPrivateClientBySerial, normalizeSerial } = await import("./registry");
     const { findSeal } = await import("@/lib/seals");
     const { grantPrivateClientSession } = await import("./session.server");
 
