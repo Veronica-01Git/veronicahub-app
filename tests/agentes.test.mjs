@@ -150,6 +150,7 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/admin/imagens",
   "/admin/veronica-universe",
   "/admin/wire",
+  "/admin/membros", // editorial restrito, acessado pelo painel admin
   // Páginas de detalhe, alcançadas a partir de uma listagem.
   "/blog/$slug",
   "/blog/editoria/$beat",
@@ -218,7 +219,7 @@ test("todo produto público e interno tem porta de entrada na navegação", () =
   // A mesma armadilha vale para qualquer produto futuro. Vale a exceção de
   // quem tem lugar próprio: a escola é a raiz, e os três do PRIMARY_NAV e os
   // projetos especiais entram por outras listas.
-  const comCasaPropria = new Set(["school", "formations", "packs", "wire", "zero", "rede", "rh"]);
+  const comCasaPropria = new Set(["school", "zero", "rede", "rh", ...PRIMARY_NAV.map((p) => p.id)]);
   const orfaos = PRODUCTS.filter(
     (p) =>
       p.public &&

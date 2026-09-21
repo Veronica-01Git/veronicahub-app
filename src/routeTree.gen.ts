@@ -9,68 +9,105 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VideoIaRouteImport } from './routes/video-ia'
-import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security'
-import { Route as VeronicaRedeRouteImport } from './routes/veronica-rede'
-import { Route as VeronicaNauticaRouteImport } from './routes/veronica-nautica'
-import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
-import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
-import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
-import { Route as SelosRouteImport } from './routes/selos'
-import { Route as SeloDemoRouteImport } from './routes/selo-demo'
-import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
-import { Route as PortfolioRouteImport } from './routes/portfolio'
-import { Route as ComandosRouteImport } from './routes/comandos'
-import { Route as AulaZeroRouteImport } from './routes/aula-zero'
-import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgentesRouteImport } from './routes/agentes'
+import { Route as AulaZeroRouteImport } from './routes/aula-zero'
+import { Route as ComandosRouteImport } from './routes/comandos'
+import { Route as MembrosRouteImport } from './routes/membros'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
+import { Route as SeloDemoRouteImport } from './routes/selo-demo'
+import { Route as SelosRouteImport } from './routes/selos'
+import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
+import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
+import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
+import { Route as VeronicaNauticaRouteImport } from './routes/veronica-nautica'
+import { Route as VeronicaRedeRouteImport } from './routes/veronica-rede'
+import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security'
+import { Route as VideoIaRouteImport } from './routes/video-ia'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
+import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
+import { Route as AdminMembrosRouteImport } from './routes/admin/membros'
+import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
+import { Route as AdminWireRouteImport } from './routes/admin/wire'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
+import { Route as BlogRedeDeFontesRouteImport } from './routes/blog/rede-de-fontes'
 import { Route as ClientesIndexRouteImport } from './routes/clientes/index'
 import { Route as ClientesClientSlugRouteImport } from './routes/clientes/$clientSlug'
 import { Route as ClientesAdminRouteImport } from './routes/clientes/admin'
+import { Route as PreviewExpressOperationsBRouteImport } from './routes/preview/express-operations-b'
+import { Route as PropostaExpressEntulhoRouteImport } from './routes/proposta/express-entulho'
+import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
+import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
+import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/rede-de-fontes/relatorios'
+import { Route as ClientesExpressEntulhoOperacoesDemoRouteImport } from './routes/clientes/express-entulho/operacoes-demo'
+import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
 import { Route as ClientesVeronicaFashionOperatorIndexRouteImport } from './routes/clientes/veronica-fashion-operator/index'
 import { Route as ClientesVeronicaFashionOperatorExecucaoRouteImport } from './routes/clientes/veronica-fashion-operator/execucao'
-import { Route as BlogIndexRouteImport } from './routes/blog/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
-import { Route as PropostaExpressEntulhoRouteImport } from './routes/proposta/express-entulho'
-import { Route as PreviewExpressOperationsBRouteImport } from './routes/preview/express-operations-b'
-import { Route as BlogRedeDeFontesRouteImport } from './routes/blog/rede-de-fontes'
-import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
-import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
-import { Route as AdminWireRouteImport } from './routes/admin/wire'
-import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
-import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
-import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as PreviewExpressOperationsBIndexRouteImport } from './routes/preview/express-operations-b/index'
-import { Route as PreviewExpressOperationsBRegrasDoAgenteRouteImport } from './routes/preview/express-operations-b/regras-do-agente'
-import { Route as PreviewExpressOperationsBOperacoesHojeRouteImport } from './routes/preview/express-operations-b/operacoes-hoje'
-import { Route as PreviewExpressOperationsBCacambasRouteImport } from './routes/preview/express-operations-b/cacambas'
-import { Route as PreviewExpressOperationsBAtendimentoRouteImport } from './routes/preview/express-operations-b/atendimento'
-import { Route as PreviewExpressOperationsBAprovacoesRouteImport } from './routes/preview/express-operations-b/aprovacoes'
 import { Route as PreviewExpressOperationsBSecaoRouteImport } from './routes/preview/express-operations-b/$secao'
-import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
-import { Route as ClientesExpressEntulhoOperacoesDemoRouteImport } from './routes/clientes/express-entulho/operacoes-demo'
-import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/rede-de-fontes/relatorios'
-import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
+import { Route as PreviewExpressOperationsBAprovacoesRouteImport } from './routes/preview/express-operations-b/aprovacoes'
+import { Route as PreviewExpressOperationsBAtendimentoRouteImport } from './routes/preview/express-operations-b/atendimento'
+import { Route as PreviewExpressOperationsBCacambasRouteImport } from './routes/preview/express-operations-b/cacambas'
+import { Route as PreviewExpressOperationsBOperacoesHojeRouteImport } from './routes/preview/express-operations-b/operacoes-hoje'
+import { Route as PreviewExpressOperationsBRegrasDoAgenteRouteImport } from './routes/preview/express-operations-b/regras-do-agente'
 
-const VideoIaRoute = VideoIaRouteImport.update({
-  id: '/video-ia',
-  path: '/video-ia',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaSecurityRoute = VeronicaSecurityRouteImport.update({
-  id: '/veronica-security',
-  path: '/veronica-security',
+const AgentesRoute = AgentesRouteImport.update({
+  id: '/agentes',
+  path: '/agentes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaRedeRoute = VeronicaRedeRouteImport.update({
-  id: '/veronica-rede',
-  path: '/veronica-rede',
+const AulaZeroRoute = AulaZeroRouteImport.update({
+  id: '/aula-zero',
+  path: '/aula-zero',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaNauticaRoute = VeronicaNauticaRouteImport.update({
-  id: '/veronica-nautica',
-  path: '/veronica-nautica',
+const ComandosRoute = ComandosRouteImport.update({
+  id: '/comandos',
+  path: '/comandos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembrosRoute = MembrosRouteImport.update({
+  id: '/membros',
+  path: '/membros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptPacksRoute = PromptPacksRouteImport.update({
+  id: '/prompt-packs',
+  path: '/prompt-packs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeloDemoRoute = SeloDemoRouteImport.update({
+  id: '/selo-demo',
+  path: '/selo-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelosRoute = SelosRouteImport.update({
+  id: '/selos',
+  path: '/selos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
+  id: '/veronica-analytics',
+  path: '/veronica-analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeronicaCurriculoCertoRoute = VeronicaCurriculoCertoRouteImport.update({
+  id: '/veronica-curriculo-certo',
+  path: '/veronica-curriculo-certo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VeronicaCurriculoCertoRhRoute =
@@ -79,54 +116,74 @@ const VeronicaCurriculoCertoRhRoute =
     path: '/veronica-curriculo-certo-rh',
     getParentRoute: () => rootRouteImport,
   } as any)
-const VeronicaCurriculoCertoRoute = VeronicaCurriculoCertoRouteImport.update({
-  id: '/veronica-curriculo-certo',
-  path: '/veronica-curriculo-certo',
+const VeronicaNauticaRoute = VeronicaNauticaRouteImport.update({
+  id: '/veronica-nautica',
+  path: '/veronica-nautica',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
-  id: '/veronica-analytics',
-  path: '/veronica-analytics',
+const VeronicaRedeRoute = VeronicaRedeRouteImport.update({
+  id: '/veronica-rede',
+  path: '/veronica-rede',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SelosRoute = SelosRouteImport.update({
-  id: '/selos',
-  path: '/selos',
+const VeronicaSecurityRoute = VeronicaSecurityRouteImport.update({
+  id: '/veronica-security',
+  path: '/veronica-security',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SeloDemoRoute = SeloDemoRouteImport.update({
-  id: '/selo-demo',
-  path: '/selo-demo',
+const VideoIaRoute = VideoIaRouteImport.update({
+  id: '/video-ia',
+  path: '/video-ia',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PromptPacksRoute = PromptPacksRouteImport.update({
-  id: '/prompt-packs',
-  path: '/prompt-packs',
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PortfolioRoute = PortfolioRouteImport.update({
-  id: '/portfolio',
-  path: '/portfolio',
+const AdminArtigosRoute = AdminArtigosRouteImport.update({
+  id: '/admin/artigos',
+  path: '/admin/artigos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ComandosRoute = ComandosRouteImport.update({
-  id: '/comandos',
-  path: '/comandos',
+const AdminImagensRoute = AdminImagensRouteImport.update({
+  id: '/admin/imagens',
+  path: '/admin/imagens',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AulaZeroRoute = AulaZeroRouteImport.update({
-  id: '/aula-zero',
-  path: '/aula-zero',
+const AdminMembrosRoute = AdminMembrosRouteImport.update({
+  id: '/admin/membros',
+  path: '/admin/membros',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AgentesRoute = AgentesRouteImport.update({
-  id: '/agentes',
-  path: '/agentes',
+const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
+  id: '/admin/veronica-universe',
+  path: '/admin/veronica-universe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AdminWireRoute = AdminWireRouteImport.update({
+  id: '/admin/wire',
+  path: '/admin/wire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogExpedienteRoute = BlogExpedienteRouteImport.update({
+  id: '/blog/expediente',
+  path: '/blog/expediente',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRedeDeFontesRoute = BlogRedeDeFontesRouteImport.update({
+  id: '/blog/rede-de-fontes',
+  path: '/blog/rede-de-fontes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
@@ -144,6 +201,45 @@ const ClientesAdminRoute = ClientesAdminRouteImport.update({
   path: '/clientes/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreviewExpressOperationsBRoute =
+  PreviewExpressOperationsBRouteImport.update({
+    id: '/preview/express-operations-b',
+    path: '/preview/express-operations-b',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PropostaExpressEntulhoRoute = PropostaExpressEntulhoRouteImport.update({
+  id: '/proposta/express-entulho',
+  path: '/proposta/express-entulho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeloSerialRoute = SeloSerialRouteImport.update({
+  id: '/selo/$serial',
+  path: '/selo/$serial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
+  id: '/blog/editoria/$beat',
+  path: '/blog/editoria/$beat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRedeDeFontesRelatoriosRoute =
+  BlogRedeDeFontesRelatoriosRouteImport.update({
+    id: '/relatorios',
+    path: '/relatorios',
+    getParentRoute: () => BlogRedeDeFontesRoute,
+  } as any)
+const ClientesExpressEntulhoOperacoesDemoRoute =
+  ClientesExpressEntulhoOperacoesDemoRouteImport.update({
+    id: '/clientes/express-entulho/operacoes-demo',
+    path: '/clientes/express-entulho/operacoes-demo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ClientesExpressEntulhoPropostaRoute =
+  ClientesExpressEntulhoPropostaRouteImport.update({
+    id: '/clientes/express-entulho/proposta',
+    path: '/clientes/express-entulho/proposta',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ClientesVeronicaFashionOperatorIndexRoute =
   ClientesVeronicaFashionOperatorIndexRouteImport.update({
     id: '/clientes/veronica-fashion-operator/',
@@ -156,101 +252,10 @@ const ClientesVeronicaFashionOperatorExecucaoRoute =
     path: '/clientes/veronica-fashion-operator/execucao',
     getParentRoute: () => rootRouteImport,
   } as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SeloSerialRoute = SeloSerialRouteImport.update({
-  id: '/selo/$serial',
-  path: '/selo/$serial',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PropostaExpressEntulhoRoute = PropostaExpressEntulhoRouteImport.update({
-  id: '/proposta/express-entulho',
-  path: '/proposta/express-entulho',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviewExpressOperationsBRoute =
-  PreviewExpressOperationsBRouteImport.update({
-    id: '/preview/express-operations-b',
-    path: '/preview/express-operations-b',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const BlogRedeDeFontesRoute = BlogRedeDeFontesRouteImport.update({
-  id: '/blog/rede-de-fontes',
-  path: '/blog/rede-de-fontes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogExpedienteRoute = BlogExpedienteRouteImport.update({
-  id: '/blog/expediente',
-  path: '/blog/expediente',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminWireRoute = AdminWireRouteImport.update({
-  id: '/admin/wire',
-  path: '/admin/wire',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
-  id: '/admin/veronica-universe',
-  path: '/admin/veronica-universe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminImagensRoute = AdminImagensRouteImport.update({
-  id: '/admin/imagens',
-  path: '/admin/imagens',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminArtigosRoute = AdminArtigosRouteImport.update({
-  id: '/admin/artigos',
-  path: '/admin/artigos',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PreviewExpressOperationsBIndexRoute =
   PreviewExpressOperationsBIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
-  } as any)
-const PreviewExpressOperationsBRegrasDoAgenteRoute =
-  PreviewExpressOperationsBRegrasDoAgenteRouteImport.update({
-    id: '/regras-do-agente',
-    path: '/regras-do-agente',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
-  } as any)
-const PreviewExpressOperationsBOperacoesHojeRoute =
-  PreviewExpressOperationsBOperacoesHojeRouteImport.update({
-    id: '/operacoes-hoje',
-    path: '/operacoes-hoje',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
-  } as any)
-const PreviewExpressOperationsBCacambasRoute =
-  PreviewExpressOperationsBCacambasRouteImport.update({
-    id: '/cacambas',
-    path: '/cacambas',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
-  } as any)
-const PreviewExpressOperationsBAtendimentoRoute =
-  PreviewExpressOperationsBAtendimentoRouteImport.update({
-    id: '/atendimento',
-    path: '/atendimento',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
-  } as any)
-const PreviewExpressOperationsBAprovacoesRoute =
-  PreviewExpressOperationsBAprovacoesRouteImport.update({
-    id: '/aprovacoes',
-    path: '/aprovacoes',
     getParentRoute: () => PreviewExpressOperationsBRoute,
   } as any)
 const PreviewExpressOperationsBSecaoRoute =
@@ -259,35 +264,43 @@ const PreviewExpressOperationsBSecaoRoute =
     path: '/$secao',
     getParentRoute: () => PreviewExpressOperationsBRoute,
   } as any)
-const ClientesExpressEntulhoPropostaRoute =
-  ClientesExpressEntulhoPropostaRouteImport.update({
-    id: '/clientes/express-entulho/proposta',
-    path: '/clientes/express-entulho/proposta',
-    getParentRoute: () => rootRouteImport,
+const PreviewExpressOperationsBAprovacoesRoute =
+  PreviewExpressOperationsBAprovacoesRouteImport.update({
+    id: '/aprovacoes',
+    path: '/aprovacoes',
+    getParentRoute: () => PreviewExpressOperationsBRoute,
   } as any)
-const ClientesExpressEntulhoOperacoesDemoRoute =
-  ClientesExpressEntulhoOperacoesDemoRouteImport.update({
-    id: '/clientes/express-entulho/operacoes-demo',
-    path: '/clientes/express-entulho/operacoes-demo',
-    getParentRoute: () => rootRouteImport,
+const PreviewExpressOperationsBAtendimentoRoute =
+  PreviewExpressOperationsBAtendimentoRouteImport.update({
+    id: '/atendimento',
+    path: '/atendimento',
+    getParentRoute: () => PreviewExpressOperationsBRoute,
   } as any)
-const BlogRedeDeFontesRelatoriosRoute =
-  BlogRedeDeFontesRelatoriosRouteImport.update({
-    id: '/relatorios',
-    path: '/relatorios',
-    getParentRoute: () => BlogRedeDeFontesRoute,
+const PreviewExpressOperationsBCacambasRoute =
+  PreviewExpressOperationsBCacambasRouteImport.update({
+    id: '/cacambas',
+    path: '/cacambas',
+    getParentRoute: () => PreviewExpressOperationsBRoute,
   } as any)
-const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
-  id: '/blog/editoria/$beat',
-  path: '/blog/editoria/$beat',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const PreviewExpressOperationsBOperacoesHojeRoute =
+  PreviewExpressOperationsBOperacoesHojeRouteImport.update({
+    id: '/operacoes-hoje',
+    path: '/operacoes-hoje',
+    getParentRoute: () => PreviewExpressOperationsBRoute,
+  } as any)
+const PreviewExpressOperationsBRegrasDoAgenteRoute =
+  PreviewExpressOperationsBRegrasDoAgenteRouteImport.update({
+    id: '/regras-do-agente',
+    path: '/regras-do-agente',
+    getParentRoute: () => PreviewExpressOperationsBRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
+  '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -301,31 +314,32 @@ export interface FileRoutesByFullPath {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/membros': typeof AdminMembrosRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/clientes/': typeof ClientesIndexRoute
-  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
-  '/clientes/admin': typeof ClientesAdminRoute
-  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
-  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$secao': typeof PreviewExpressOperationsBSecaoRoute
   '/preview/express-operations-b/aprovacoes': typeof PreviewExpressOperationsBAprovacoesRoute
   '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
   '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
   '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
   '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
+  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/preview/express-operations-b/': typeof PreviewExpressOperationsBIndexRoute
 }
 export interface FileRoutesByTo {
@@ -333,6 +347,7 @@ export interface FileRoutesByTo {
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
+  '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -346,30 +361,31 @@ export interface FileRoutesByTo {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/membros': typeof AdminMembrosRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/clientes': typeof ClientesIndexRoute
-  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
-  '/clientes/admin': typeof ClientesAdminRoute
-  '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
-  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$secao': typeof PreviewExpressOperationsBSecaoRoute
   '/preview/express-operations-b/aprovacoes': typeof PreviewExpressOperationsBAprovacoesRoute
   '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
   '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
   '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
   '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
+  '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBIndexRoute
 }
 export interface FileRoutesById {
@@ -378,6 +394,7 @@ export interface FileRoutesById {
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
   '/comandos': typeof ComandosRoute
+  '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -391,31 +408,32 @@ export interface FileRoutesById {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/membros': typeof AdminMembrosRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/clientes/': typeof ClientesIndexRoute
-  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
-  '/clientes/admin': typeof ClientesAdminRoute
-  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
-  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$secao': typeof PreviewExpressOperationsBSecaoRoute
   '/preview/express-operations-b/aprovacoes': typeof PreviewExpressOperationsBAprovacoesRoute
   '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
   '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
   '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
   '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
+  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/preview/express-operations-b/': typeof PreviewExpressOperationsBIndexRoute
 }
 export interface FileRouteTypes {
@@ -425,6 +443,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/aula-zero'
     | '/comandos'
+    | '/membros'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -438,31 +457,32 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/membros'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/clientes/$clientSlug'
+    | '/clientes/admin'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
     | '/admin/'
     | '/blog/'
     | '/clientes/'
-    | '/clientes/$clientSlug'
-    | '/clientes/admin'
-    | '/clientes/veronica-fashion-operator/'
-    | '/clientes/veronica-fashion-operator/execucao'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$secao'
     | '/preview/express-operations-b/aprovacoes'
     | '/preview/express-operations-b/atendimento'
     | '/preview/express-operations-b/cacambas'
     | '/preview/express-operations-b/operacoes-hoje'
     | '/preview/express-operations-b/regras-do-agente'
+    | '/clientes/veronica-fashion-operator/'
     | '/preview/express-operations-b/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -470,6 +490,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/aula-zero'
     | '/comandos'
+    | '/membros'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -483,30 +504,31 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/membros'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/clientes/$clientSlug'
+    | '/clientes/admin'
     | '/proposta/express-entulho'
     | '/selo/$serial'
     | '/admin'
     | '/blog'
     | '/clientes'
-    | '/clientes/$clientSlug'
-    | '/clientes/admin'
-    | '/clientes/veronica-fashion-operator'
-    | '/clientes/veronica-fashion-operator/execucao'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$secao'
     | '/preview/express-operations-b/aprovacoes'
     | '/preview/express-operations-b/atendimento'
     | '/preview/express-operations-b/cacambas'
     | '/preview/express-operations-b/operacoes-hoje'
     | '/preview/express-operations-b/regras-do-agente'
+    | '/clientes/veronica-fashion-operator'
     | '/preview/express-operations-b'
   id:
     | '__root__'
@@ -514,6 +536,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/aula-zero'
     | '/comandos'
+    | '/membros'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -527,31 +550,32 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/membros'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/clientes/$clientSlug'
+    | '/clientes/admin'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
     | '/admin/'
     | '/blog/'
     | '/clientes/'
-    | '/clientes/$clientSlug'
-    | '/clientes/admin'
-    | '/clientes/veronica-fashion-operator/'
-    | '/clientes/veronica-fashion-operator/execucao'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$secao'
     | '/preview/express-operations-b/aprovacoes'
     | '/preview/express-operations-b/atendimento'
     | '/preview/express-operations-b/cacambas'
     | '/preview/express-operations-b/operacoes-hoje'
     | '/preview/express-operations-b/regras-do-agente'
+    | '/clientes/veronica-fashion-operator/'
     | '/preview/express-operations-b/'
   fileRoutesById: FileRoutesById
 }
@@ -560,6 +584,7 @@ export interface RootRouteChildren {
   AgentesRoute: typeof AgentesRoute
   AulaZeroRoute: typeof AulaZeroRoute
   ComandosRoute: typeof ComandosRoute
+  MembrosRoute: typeof MembrosRoute
   PortfolioRoute: typeof PortfolioRoute
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
@@ -573,117 +598,34 @@ export interface RootRouteChildren {
   VideoIaRoute: typeof VideoIaRoute
   AdminArtigosRoute: typeof AdminArtigosRoute
   AdminImagensRoute: typeof AdminImagensRoute
+  AdminMembrosRoute: typeof AdminMembrosRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   AdminWireRoute: typeof AdminWireRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogExpedienteRoute: typeof BlogExpedienteRoute
   BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
+  ClientesClientSlugRoute: typeof ClientesClientSlugRoute
+  ClientesAdminRoute: typeof ClientesAdminRoute
   PreviewExpressOperationsBRoute: typeof PreviewExpressOperationsBRouteWithChildren
   PropostaExpressEntulhoRoute: typeof PropostaExpressEntulhoRoute
   SeloSerialRoute: typeof SeloSerialRoute
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
-  ClientesClientSlugRoute: typeof ClientesClientSlugRoute
-  ClientesAdminRoute: typeof ClientesAdminRoute
-  ClientesVeronicaFashionOperatorIndexRoute: typeof ClientesVeronicaFashionOperatorIndexRoute
-  ClientesVeronicaFashionOperatorExecucaoRoute: typeof ClientesVeronicaFashionOperatorExecucaoRoute
   BlogEditoriaBeatRoute: typeof BlogEditoriaBeatRoute
   ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
+  ClientesVeronicaFashionOperatorExecucaoRoute: typeof ClientesVeronicaFashionOperatorExecucaoRoute
+  ClientesVeronicaFashionOperatorIndexRoute: typeof ClientesVeronicaFashionOperatorIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/video-ia': {
-      id: '/video-ia'
-      path: '/video-ia'
-      fullPath: '/video-ia'
-      preLoaderRoute: typeof VideoIaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-security': {
-      id: '/veronica-security'
-      path: '/veronica-security'
-      fullPath: '/veronica-security'
-      preLoaderRoute: typeof VeronicaSecurityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-rede': {
-      id: '/veronica-rede'
-      path: '/veronica-rede'
-      fullPath: '/veronica-rede'
-      preLoaderRoute: typeof VeronicaRedeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-nautica': {
-      id: '/veronica-nautica'
-      path: '/veronica-nautica'
-      fullPath: '/veronica-nautica'
-      preLoaderRoute: typeof VeronicaNauticaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-curriculo-certo-rh': {
-      id: '/veronica-curriculo-certo-rh'
-      path: '/veronica-curriculo-certo-rh'
-      fullPath: '/veronica-curriculo-certo-rh'
-      preLoaderRoute: typeof VeronicaCurriculoCertoRhRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-curriculo-certo': {
-      id: '/veronica-curriculo-certo'
-      path: '/veronica-curriculo-certo'
-      fullPath: '/veronica-curriculo-certo'
-      preLoaderRoute: typeof VeronicaCurriculoCertoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/veronica-analytics': {
-      id: '/veronica-analytics'
-      path: '/veronica-analytics'
-      fullPath: '/veronica-analytics'
-      preLoaderRoute: typeof VeronicaAnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/selos': {
-      id: '/selos'
-      path: '/selos'
-      fullPath: '/selos'
-      preLoaderRoute: typeof SelosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/selo-demo': {
-      id: '/selo-demo'
-      path: '/selo-demo'
-      fullPath: '/selo-demo'
-      preLoaderRoute: typeof SeloDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prompt-packs': {
-      id: '/prompt-packs'
-      path: '/prompt-packs'
-      fullPath: '/prompt-packs'
-      preLoaderRoute: typeof PromptPacksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portfolio': {
-      id: '/portfolio'
-      path: '/portfolio'
-      fullPath: '/portfolio'
-      preLoaderRoute: typeof PortfolioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/comandos': {
-      id: '/comandos'
-      path: '/comandos'
-      fullPath: '/comandos'
-      preLoaderRoute: typeof ComandosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/aula-zero': {
-      id: '/aula-zero'
-      path: '/aula-zero'
-      fullPath: '/aula-zero'
-      preLoaderRoute: typeof AulaZeroRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agentes': {
@@ -693,11 +635,172 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/aula-zero': {
+      id: '/aula-zero'
+      path: '/aula-zero'
+      fullPath: '/aula-zero'
+      preLoaderRoute: typeof AulaZeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comandos': {
+      id: '/comandos'
+      path: '/comandos'
+      fullPath: '/comandos'
+      preLoaderRoute: typeof ComandosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membros': {
+      id: '/membros'
+      path: '/membros'
+      fullPath: '/membros'
+      preLoaderRoute: typeof MembrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompt-packs': {
+      id: '/prompt-packs'
+      path: '/prompt-packs'
+      fullPath: '/prompt-packs'
+      preLoaderRoute: typeof PromptPacksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/selo-demo': {
+      id: '/selo-demo'
+      path: '/selo-demo'
+      fullPath: '/selo-demo'
+      preLoaderRoute: typeof SeloDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/selos': {
+      id: '/selos'
+      path: '/selos'
+      fullPath: '/selos'
+      preLoaderRoute: typeof SelosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-analytics': {
+      id: '/veronica-analytics'
+      path: '/veronica-analytics'
+      fullPath: '/veronica-analytics'
+      preLoaderRoute: typeof VeronicaAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-curriculo-certo': {
+      id: '/veronica-curriculo-certo'
+      path: '/veronica-curriculo-certo'
+      fullPath: '/veronica-curriculo-certo'
+      preLoaderRoute: typeof VeronicaCurriculoCertoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-curriculo-certo-rh': {
+      id: '/veronica-curriculo-certo-rh'
+      path: '/veronica-curriculo-certo-rh'
+      fullPath: '/veronica-curriculo-certo-rh'
+      preLoaderRoute: typeof VeronicaCurriculoCertoRhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-nautica': {
+      id: '/veronica-nautica'
+      path: '/veronica-nautica'
+      fullPath: '/veronica-nautica'
+      preLoaderRoute: typeof VeronicaNauticaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-rede': {
+      id: '/veronica-rede'
+      path: '/veronica-rede'
+      fullPath: '/veronica-rede'
+      preLoaderRoute: typeof VeronicaRedeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-security': {
+      id: '/veronica-security'
+      path: '/veronica-security'
+      fullPath: '/veronica-security'
+      preLoaderRoute: typeof VeronicaSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/video-ia': {
+      id: '/video-ia'
+      path: '/video-ia'
+      fullPath: '/video-ia'
+      preLoaderRoute: typeof VideoIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/artigos': {
+      id: '/admin/artigos'
+      path: '/admin/artigos'
+      fullPath: '/admin/artigos'
+      preLoaderRoute: typeof AdminArtigosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/imagens': {
+      id: '/admin/imagens'
+      path: '/admin/imagens'
+      fullPath: '/admin/imagens'
+      preLoaderRoute: typeof AdminImagensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/membros': {
+      id: '/admin/membros'
+      path: '/admin/membros'
+      fullPath: '/admin/membros'
+      preLoaderRoute: typeof AdminMembrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/veronica-universe': {
+      id: '/admin/veronica-universe'
+      path: '/admin/veronica-universe'
+      fullPath: '/admin/veronica-universe'
+      preLoaderRoute: typeof AdminVeronicaUniverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/wire': {
+      id: '/admin/wire'
+      path: '/admin/wire'
+      fullPath: '/admin/wire'
+      preLoaderRoute: typeof AdminWireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/expediente': {
+      id: '/blog/expediente'
+      path: '/blog/expediente'
+      fullPath: '/blog/expediente'
+      preLoaderRoute: typeof BlogExpedienteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/rede-de-fontes': {
+      id: '/blog/rede-de-fontes'
+      path: '/blog/rede-de-fontes'
+      fullPath: '/blog/rede-de-fontes'
+      preLoaderRoute: typeof BlogRedeDeFontesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clientes/': {
@@ -721,6 +824,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preview/express-operations-b': {
+      id: '/preview/express-operations-b'
+      path: '/preview/express-operations-b'
+      fullPath: '/preview/express-operations-b'
+      preLoaderRoute: typeof PreviewExpressOperationsBRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposta/express-entulho': {
+      id: '/proposta/express-entulho'
+      path: '/proposta/express-entulho'
+      fullPath: '/proposta/express-entulho'
+      preLoaderRoute: typeof PropostaExpressEntulhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/selo/$serial': {
+      id: '/selo/$serial'
+      path: '/selo/$serial'
+      fullPath: '/selo/$serial'
+      preLoaderRoute: typeof SeloSerialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/editoria/$beat': {
+      id: '/blog/editoria/$beat'
+      path: '/blog/editoria/$beat'
+      fullPath: '/blog/editoria/$beat'
+      preLoaderRoute: typeof BlogEditoriaBeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/rede-de-fontes/relatorios': {
+      id: '/blog/rede-de-fontes/relatorios'
+      path: '/relatorios'
+      fullPath: '/blog/rede-de-fontes/relatorios'
+      preLoaderRoute: typeof BlogRedeDeFontesRelatoriosRouteImport
+      parentRoute: typeof BlogRedeDeFontesRoute
+    }
+    '/clientes/express-entulho/operacoes-demo': {
+      id: '/clientes/express-entulho/operacoes-demo'
+      path: '/clientes/express-entulho/operacoes-demo'
+      fullPath: '/clientes/express-entulho/operacoes-demo'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/express-entulho/proposta': {
+      id: '/clientes/express-entulho/proposta'
+      path: '/clientes/express-entulho/proposta'
+      fullPath: '/clientes/express-entulho/proposta'
+      preLoaderRoute: typeof ClientesExpressEntulhoPropostaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/veronica-fashion-operator/': {
       id: '/clientes/veronica-fashion-operator/'
       path: '/clientes/veronica-fashion-operator'
@@ -735,130 +887,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesVeronicaFashionOperatorExecucaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/selo/$serial': {
-      id: '/selo/$serial'
-      path: '/selo/$serial'
-      fullPath: '/selo/$serial'
-      preLoaderRoute: typeof SeloSerialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proposta/express-entulho': {
-      id: '/proposta/express-entulho'
-      path: '/proposta/express-entulho'
-      fullPath: '/proposta/express-entulho'
-      preLoaderRoute: typeof PropostaExpressEntulhoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/preview/express-operations-b': {
-      id: '/preview/express-operations-b'
-      path: '/preview/express-operations-b'
-      fullPath: '/preview/express-operations-b'
-      preLoaderRoute: typeof PreviewExpressOperationsBRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/rede-de-fontes': {
-      id: '/blog/rede-de-fontes'
-      path: '/blog/rede-de-fontes'
-      fullPath: '/blog/rede-de-fontes'
-      preLoaderRoute: typeof BlogRedeDeFontesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/expediente': {
-      id: '/blog/expediente'
-      path: '/blog/expediente'
-      fullPath: '/blog/expediente'
-      preLoaderRoute: typeof BlogExpedienteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/wire': {
-      id: '/admin/wire'
-      path: '/admin/wire'
-      fullPath: '/admin/wire'
-      preLoaderRoute: typeof AdminWireRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/veronica-universe': {
-      id: '/admin/veronica-universe'
-      path: '/admin/veronica-universe'
-      fullPath: '/admin/veronica-universe'
-      preLoaderRoute: typeof AdminVeronicaUniverseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/imagens': {
-      id: '/admin/imagens'
-      path: '/admin/imagens'
-      fullPath: '/admin/imagens'
-      preLoaderRoute: typeof AdminImagensRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/artigos': {
-      id: '/admin/artigos'
-      path: '/admin/artigos'
-      fullPath: '/admin/artigos'
-      preLoaderRoute: typeof AdminArtigosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/preview/express-operations-b/': {
       id: '/preview/express-operations-b/'
       path: '/'
       fullPath: '/preview/express-operations-b/'
       preLoaderRoute: typeof PreviewExpressOperationsBIndexRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
-    }
-    '/preview/express-operations-b/regras-do-agente': {
-      id: '/preview/express-operations-b/regras-do-agente'
-      path: '/regras-do-agente'
-      fullPath: '/preview/express-operations-b/regras-do-agente'
-      preLoaderRoute: typeof PreviewExpressOperationsBRegrasDoAgenteRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
-    }
-    '/preview/express-operations-b/operacoes-hoje': {
-      id: '/preview/express-operations-b/operacoes-hoje'
-      path: '/operacoes-hoje'
-      fullPath: '/preview/express-operations-b/operacoes-hoje'
-      preLoaderRoute: typeof PreviewExpressOperationsBOperacoesHojeRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
-    }
-    '/preview/express-operations-b/cacambas': {
-      id: '/preview/express-operations-b/cacambas'
-      path: '/cacambas'
-      fullPath: '/preview/express-operations-b/cacambas'
-      preLoaderRoute: typeof PreviewExpressOperationsBCacambasRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
-    }
-    '/preview/express-operations-b/atendimento': {
-      id: '/preview/express-operations-b/atendimento'
-      path: '/atendimento'
-      fullPath: '/preview/express-operations-b/atendimento'
-      preLoaderRoute: typeof PreviewExpressOperationsBAtendimentoRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
-    }
-    '/preview/express-operations-b/aprovacoes': {
-      id: '/preview/express-operations-b/aprovacoes'
-      path: '/aprovacoes'
-      fullPath: '/preview/express-operations-b/aprovacoes'
-      preLoaderRoute: typeof PreviewExpressOperationsBAprovacoesRouteImport
       parentRoute: typeof PreviewExpressOperationsBRoute
     }
     '/preview/express-operations-b/$secao': {
@@ -868,33 +901,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewExpressOperationsBSecaoRouteImport
       parentRoute: typeof PreviewExpressOperationsBRoute
     }
-    '/clientes/express-entulho/proposta': {
-      id: '/clientes/express-entulho/proposta'
-      path: '/clientes/express-entulho/proposta'
-      fullPath: '/clientes/express-entulho/proposta'
-      preLoaderRoute: typeof ClientesExpressEntulhoPropostaRouteImport
-      parentRoute: typeof rootRouteImport
+    '/preview/express-operations-b/aprovacoes': {
+      id: '/preview/express-operations-b/aprovacoes'
+      path: '/aprovacoes'
+      fullPath: '/preview/express-operations-b/aprovacoes'
+      preLoaderRoute: typeof PreviewExpressOperationsBAprovacoesRouteImport
+      parentRoute: typeof PreviewExpressOperationsBRoute
     }
-    '/clientes/express-entulho/operacoes-demo': {
-      id: '/clientes/express-entulho/operacoes-demo'
-      path: '/clientes/express-entulho/operacoes-demo'
-      fullPath: '/clientes/express-entulho/operacoes-demo'
-      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesDemoRouteImport
-      parentRoute: typeof rootRouteImport
+    '/preview/express-operations-b/atendimento': {
+      id: '/preview/express-operations-b/atendimento'
+      path: '/atendimento'
+      fullPath: '/preview/express-operations-b/atendimento'
+      preLoaderRoute: typeof PreviewExpressOperationsBAtendimentoRouteImport
+      parentRoute: typeof PreviewExpressOperationsBRoute
     }
-    '/blog/rede-de-fontes/relatorios': {
-      id: '/blog/rede-de-fontes/relatorios'
-      path: '/relatorios'
-      fullPath: '/blog/rede-de-fontes/relatorios'
-      preLoaderRoute: typeof BlogRedeDeFontesRelatoriosRouteImport
-      parentRoute: typeof BlogRedeDeFontesRoute
+    '/preview/express-operations-b/cacambas': {
+      id: '/preview/express-operations-b/cacambas'
+      path: '/cacambas'
+      fullPath: '/preview/express-operations-b/cacambas'
+      preLoaderRoute: typeof PreviewExpressOperationsBCacambasRouteImport
+      parentRoute: typeof PreviewExpressOperationsBRoute
     }
-    '/blog/editoria/$beat': {
-      id: '/blog/editoria/$beat'
-      path: '/blog/editoria/$beat'
-      fullPath: '/blog/editoria/$beat'
-      preLoaderRoute: typeof BlogEditoriaBeatRouteImport
-      parentRoute: typeof rootRouteImport
+    '/preview/express-operations-b/operacoes-hoje': {
+      id: '/preview/express-operations-b/operacoes-hoje'
+      path: '/operacoes-hoje'
+      fullPath: '/preview/express-operations-b/operacoes-hoje'
+      preLoaderRoute: typeof PreviewExpressOperationsBOperacoesHojeRouteImport
+      parentRoute: typeof PreviewExpressOperationsBRoute
+    }
+    '/preview/express-operations-b/regras-do-agente': {
+      id: '/preview/express-operations-b/regras-do-agente'
+      path: '/regras-do-agente'
+      fullPath: '/preview/express-operations-b/regras-do-agente'
+      preLoaderRoute: typeof PreviewExpressOperationsBRegrasDoAgenteRouteImport
+      parentRoute: typeof PreviewExpressOperationsBRoute
     }
   }
 }
@@ -946,6 +986,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentesRoute: AgentesRoute,
   AulaZeroRoute: AulaZeroRoute,
   ComandosRoute: ComandosRoute,
+  MembrosRoute: MembrosRoute,
   PortfolioRoute: PortfolioRoute,
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
@@ -959,25 +1000,28 @@ const rootRouteChildren: RootRouteChildren = {
   VideoIaRoute: VideoIaRoute,
   AdminArtigosRoute: AdminArtigosRoute,
   AdminImagensRoute: AdminImagensRoute,
+  AdminMembrosRoute: AdminMembrosRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   AdminWireRoute: AdminWireRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogExpedienteRoute: BlogExpedienteRoute,
   BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,
+  ClientesClientSlugRoute: ClientesClientSlugRoute,
+  ClientesAdminRoute: ClientesAdminRoute,
   PreviewExpressOperationsBRoute: PreviewExpressOperationsBRouteWithChildren,
   PropostaExpressEntulhoRoute: PropostaExpressEntulhoRoute,
   SeloSerialRoute: SeloSerialRoute,
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   ClientesIndexRoute: ClientesIndexRoute,
-  ClientesClientSlugRoute: ClientesClientSlugRoute,
-  ClientesAdminRoute: ClientesAdminRoute,
-  ClientesVeronicaFashionOperatorIndexRoute: ClientesVeronicaFashionOperatorIndexRoute,
-  ClientesVeronicaFashionOperatorExecucaoRoute: ClientesVeronicaFashionOperatorExecucaoRoute,
   BlogEditoriaBeatRoute: BlogEditoriaBeatRoute,
   ClientesExpressEntulhoOperacoesDemoRoute:
     ClientesExpressEntulhoOperacoesDemoRoute,
   ClientesExpressEntulhoPropostaRoute: ClientesExpressEntulhoPropostaRoute,
+  ClientesVeronicaFashionOperatorExecucaoRoute:
+    ClientesVeronicaFashionOperatorExecucaoRoute,
+  ClientesVeronicaFashionOperatorIndexRoute:
+    ClientesVeronicaFashionOperatorIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

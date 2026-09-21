@@ -49,6 +49,11 @@ export type Product = {
 };
 export const PRODUCTS: Product[] = [
   {
+    id: "members", name: "Members", category: "Mídia", to: "/membros",
+    status: "Disponível", description: "Comunidade, novidades e prompts gratuitos para membros",
+    external: false, public: true,
+  },
+  {
     id: "school",
     name: "Veronica Hub",
     category: "Escola",
@@ -231,7 +236,7 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
   tag: product(intent.productId).description,
   to: product(intent.productId).to,
 }));
-export const PRIMARY_NAV = ["formations", "packs", "wire"].map(product);
+export const PRIMARY_NAV = ["formations", "packs", "wire", "members"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
   // Primeiro da lista: é o produto que tem teste grátis e caminho de venda

@@ -41,6 +41,7 @@ function AdminPanel() {
             Painel admin
           </div>
           <div className="flex flex-wrap gap-2">
+            <a href="/admin/membros" className="inline-flex items-center rounded-sm border border-border/60 px-3 py-1.5 text-sm">Comunidade Members</a>
             <Link
               to="/admin/veronica-universe"
               className="inline-flex items-center gap-1.5 rounded-sm border border-neon-green/40 bg-neon-green/5 px-3 py-1.5 text-sm text-neon-green transition hover:border-neon-green hover:bg-neon-green/10"
