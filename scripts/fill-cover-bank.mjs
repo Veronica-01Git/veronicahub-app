@@ -1,82 +1,59 @@
-// Abastece o banco curado de capas da Wire TV com fotografias do Pexels.
+// Abastece o banco curado de capas da Wire TV com fotografias de Pexels e
+// Pixabay.
 //
 // Contexto: a capa de cada matéria sai do banco curado da biblioteca do Admin
 // (nível 1). Com o banco vazio, toda matéria caía na arte gerada do slug —
-// que resolve a repetição, mas não é fotografia. Este script enche o banco
-// para que a Wire TV volte a publicar foto de verdade, sem reabrir a busca ao
-// vivo por matéria que foi removida em 13/09.
+// que resolve a repetição, mas não é fotografia.
 //
-// A diferença para aquela busca, que é o ponto todo: os termos abaixo são
-// curados à mão, uma vez, e são deliberadamente genéricos. Uma foto de parque
-// eólico na editoria de clima é assumidamente ilustrativa. O que não se faz
-// mais é pedir ao modelo um termo em inglês para o fato específico da matéria
-// e publicar o resultado como se registrasse aquele fato — foi assim que a
+// MUDOU EM 20/09, a pedido do editor-chefe, em três pontos:
+//
+//   1. O banco deixou de ACUMULAR. Antes a rodada só completava o que faltava
+//      para o alvo, então foto cadastrada em setembro continuava saindo em
+//      capa meses depois. Agora cada sessão começa esvaziando o banco
+//      (DELETE /api/cron/cover-bank) e recadastra tudo da busca daquela
+//      sessão. O expurgo preserva o que alguma matéria publicada está
+//      servindo como capa — a trava mora no servidor, não aqui.
+//
+//   2. Duas fontes, não uma. O Pexels continua primeiro (é o que entrega
+//      2048 px de verdade); o Pixabay completa as cenas em que o Pexels não
+//      dá foto 4K suficiente. Ver a nota sobre o limite do Pixabay em
+//      ./lib/photo-sources.mjs.
+//
+//   3. As cenas saíram daqui e foram para src/lib/cover-scenes.ts, onde o
+//      SERVIDOR também as lê. Antes esta lista era só do runner, e o servidor
+//      não tinha como saber de que cena era cada foto — era por isso que a
+//      capa só podia ser rodízio da editoria. Com a mesma tabela dos dois
+//      lados, o servidor escolhe a foto que faz jus ao texto da matéria.
+//
+// A diferença para a busca ao vivo removida em 13/09, que continua valendo:
+// os termos são curados à mão e deliberadamente genéricos. Uma foto de parque
+// eólico na editoria de clima é assumidamente ilustrativa. O que não se faz é
+// pedir ao modelo um termo em inglês para o fato específico da matéria e
+// publicar o resultado como se registrasse aquele fato — foi assim que a
 // enchente em Telangana saiu com uma rua americana e placa "ROAD CLOSED".
 //
-// Roda no GitHub Actions, onde a PEXELS_API_KEY existe e a rede alcança o
-// Pexels. Não escreve em disco nem commita nada: cadastra pelo endpoint
+// Roda no GitHub Actions, onde as chaves existem e a rede alcança as duas
+// APIs. Não escreve em disco nem commita nada: fala com o endpoint
 // /api/cron/cover-bank, protegido pelo mesmo CRON_SECRET do resto do
 // pipeline. Por isso esta rodada NÃO dispara deploy.
 //
 // Uso:
-//   PEXELS_API_KEY=... CRON_SECRET=... node scripts/fill-cover-bank.mjs
+//   PEXELS_API_KEY=... PIXABAY_API_KEY=... CRON_SECRET=... \
+//     node scripts/fill-cover-bank.mjs
 //   ... node scripts/fill-cover-bank.mjs --dry-run   # só lista o que faria
+//   ... node scripts/fill-cover-bank.mjs --sem-expurgo  # completa sem zerar
 //
 // Variáveis opcionais: SITE_URL (padrão https://veronicahub.com) e
-// BANK_TARGET_PER_BEAT (padrão 8).
+// BANK_TARGET_PER_BEAT (padrão 10).
 import { BEAT_VALUES } from "../src/lib/beats.ts";
 import { interleaveByTerm, MAX_BANK_PER_BEAT, parseBankFilename } from "../src/lib/cover-bank.ts";
-import { searchPexelsMany } from "./lib/photo-sources.mjs";
-
-// Termos por editoria: substantivos concretos e fotografáveis, como o próprio
-// prompt do pipeline já exigia — nada de conceito abstrato, nome de empresa,
-// logotipo ou pessoa pública. Mexer aqui é decisão editorial, não técnica.
-const TERMS = {
-  ia: [
-    "data center server room",
-    "circuit board macro",
-    "industrial robotic arm",
-    "computer chip closeup",
-    "network cables rack",
-    "person coding multiple screens",
-  ],
-  clima: [
-    "wind turbines field",
-    "solar panel farm aerial",
-    "flooded street after rain",
-    "cracked dry earth drought",
-    "storm clouds over city",
-    "high voltage transmission lines",
-  ],
-  economia: [
-    "stock exchange trading screens",
-    "central bank building facade",
-    "banknotes currency closeup",
-    "financial district skyline",
-    "office desk financial documents",
-    "shipping port cargo economy",
-  ],
-  geopolitica: [
-    "international flags row",
-    "government building columns",
-    "container ship port crane",
-    "conference room negotiation table",
-    "parliament chamber interior",
-    "airport border control hall",
-  ],
-  mercado: [
-    "startup team office meeting",
-    "semiconductor wafer manufacturing",
-    "warehouse logistics automation",
-    "business district skyscrapers",
-    "conference keynote stage audience",
-    "electronics factory assembly line",
-  ],
-};
+import { termosDaEditoria } from "../src/lib/cover-scenes.ts";
+import { searchPexelsMany, searchPixabayMany } from "./lib/photo-sources.mjs";
 
 const dryRun = process.argv.includes("--dry-run");
+const semExpurgo = process.argv.includes("--sem-expurgo");
 const siteUrl = (process.env.SITE_URL ?? "https://veronicahub.com").replace(/\/$/, "");
-const target = Number(process.env.BANK_TARGET_PER_BEAT ?? 8);
+const target = Number(process.env.BANK_TARGET_PER_BEAT ?? 10);
 
 function required(name) {
   const value = (process.env[name] ?? "").trim();
@@ -85,6 +62,10 @@ function required(name) {
 }
 
 const pexelsKey = required("PEXELS_API_KEY");
+// O Pixabay é opcional de propósito: sem a chave a rodada continua, só com o
+// Pexels. Exigir as duas faria uma chave que falta derrubar o abastecimento
+// inteiro, e aí a Wire fica sem capa nova por causa da fonte secundária.
+const pixabayKey = (process.env.PIXABAY_API_KEY ?? "").trim();
 const cronSecret = required("CRON_SECRET");
 const authorization = { authorization: `Bearer ${cronSecret}` };
 
@@ -94,6 +75,16 @@ async function readInventory() {
     throw new Error(`Não deu para ler o banco (${response.status}): ${await response.text()}`);
   }
   return response.json();
+}
+
+async function purgeBank() {
+  const response = await fetch(`${siteUrl}/api/cron/cover-bank`, {
+    method: "DELETE",
+    headers: authorization,
+  });
+  const text = await response.text();
+  if (!response.ok) throw new Error(`DELETE ${response.status}: ${text}`);
+  return JSON.parse(text);
 }
 
 async function addToBank(entry) {
@@ -120,7 +111,35 @@ async function downloadJpeg(url) {
   return bytes;
 }
 
+// Busca uma cena nas duas fontes. Pexels primeiro na lista devolvida: com o
+// alvo por editoria menor que o total de candidatos, quem vem antes é quem
+// costuma ser escolhido, e o Pexels é o que entrega a resolução maior.
+async function buscarCena(term, usedIds) {
+  const doPexels = await searchPexelsMany(term, pexelsKey, usedIds, 30);
+  const doPixabay = pixabayKey ? await searchPixabayMany(term, pixabayKey, usedIds, 30) : [];
+  return (
+    [...doPexels, ...doPixabay]
+      // Sem fotógrafo não há como creditar, e o endpoint recusaria.
+      .filter((photo) => photo.photoCredit)
+      .map((photo) => ({ ...photo, term }))
+  );
+}
+
 async function main() {
+  if (!pixabayKey) {
+    console.log("PIXABAY_API_KEY ausente — a rodada vai usar só o Pexels.\n");
+  }
+
+  if (!dryRun && !semExpurgo) {
+    const purge = await purgeBank();
+    console.log(
+      `expurgo: ${purge.apagadas} apagadas, ${purge.preservadas} preservadas ` +
+        `(em uso como capa de matéria publicada) — antes ${JSON.stringify(purge.antes)}`,
+    );
+  } else if (semExpurgo) {
+    console.log("--sem-expurgo: o banco atual foi mantido, a rodada só completa o que falta.\n");
+  }
+
   const inventory = await readInventory();
   const limit = Math.min(target, inventory.maxPerBeat ?? MAX_BANK_PER_BEAT);
 
@@ -135,9 +154,10 @@ async function main() {
   }
 
   console.log(`banco atual: ${JSON.stringify(inventory.totals)} — alvo por editoria: ${limit}`);
-  if (dryRun) console.log("simulação (--dry-run): nada será cadastrado.\n");
+  if (dryRun) console.log("simulação (--dry-run): nada será apagado nem cadastrado.\n");
 
   let added = 0;
+  const porFonte = { pexels: 0, pixabay: 0 };
   for (const beat of BEAT_VALUES) {
     const current = (inventory.bank?.[beat] ?? []).length;
     let missing = limit - current;
@@ -146,29 +166,28 @@ async function main() {
       continue;
     }
 
-    // Busca todos os termos ANTES de consumir, para poder intercalar. Sem
-    // isso o primeiro termo enche a cota sozinho e a editoria inteira sai da
-    // mesma cena — foi o que o primeiro dry run mostrou.
+    // Busca todas as cenas ANTES de consumir, para poder intercalar. Sem isso
+    // a primeira cena enche a cota sozinha e a editoria inteira sai da mesma
+    // imagem — foi o que o primeiro dry run mostrou, em 16/09.
     const porTermo = [];
-    for (const term of TERMS[beat]) {
-      const photos = await searchPexelsMany(term, pexelsKey, usedIds, 30);
-      porTermo.push(
-        // Sem fotógrafo não há como creditar, e o endpoint recusaria.
-        photos.filter((photo) => photo.photoCredit).map((photo) => ({ ...photo, term })),
-      );
+    for (const term of termosDaEditoria(beat)) {
+      porTermo.push(await buscarCena(term, usedIds));
     }
 
     for (const photo of interleaveByTerm(porTermo)) {
       if (missing <= 0) break;
-      // Dois termos podem devolver a mesma foto: a exclusão de searchPexelsMany
-      // foi aplicada antes de qualquer uma ser consumida nesta rodada.
+      // Duas cenas podem devolver a mesma foto: a exclusão das buscas foi
+      // aplicada antes de qualquer uma ser consumida nesta rodada.
       if (usedIds.has(photo.photoId)) continue;
       usedIds.add(photo.photoId);
 
       if (dryRun) {
-        console.log(`  ${beat} ← ${photo.photoId} (${photo.photoCredit}) · ${photo.term}`);
+        console.log(
+          `  ${beat} ← ${photo.source}:${photo.photoId} (${photo.photoCredit}) · ${photo.term}`,
+        );
         missing -= 1;
         added += 1;
+        porFonte[photo.source] += 1;
         continue;
       }
 
@@ -179,6 +198,7 @@ async function main() {
           photoId: photo.photoId,
           photographer: photo.photoCredit,
           term: photo.term,
+          source: photo.source,
           mimeType: "image/jpeg",
           dataBase64: bytes.toString("base64"),
         });
@@ -188,6 +208,7 @@ async function main() {
           );
           missing -= 1;
           added += 1;
+          porFonte[photo.source] += 1;
         } else {
           console.log(`  ${beat} · ${photo.photoId} pulada: ${result.skipped}`);
           if (String(result.skipped).startsWith("editoria cheia")) missing = 0;
@@ -200,11 +221,13 @@ async function main() {
     }
 
     if (missing > 0) {
-      console.log(`${beat}: faltaram ${missing} — os termos não deram foto nova suficiente.`);
+      console.log(`${beat}: faltaram ${missing} — as cenas não deram foto nova suficiente.`);
     }
   }
 
-  console.log(`\ntotal cadastrado: ${added}`);
+  console.log(
+    `\ntotal cadastrado: ${added} (pexels ${porFonte.pexels}, pixabay ${porFonte.pixabay})`,
+  );
 }
 
 await main();

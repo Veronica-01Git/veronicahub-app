@@ -31,6 +31,7 @@ import {
   handleArtCoversCron,
   handleCoverBankAddCron,
   handleCoverBankInventoryCron,
+  handleCoverBankPurgeCron,
 } from "./lib/cover-bank-cron";
 
 type ServerEntry = {
@@ -289,6 +290,18 @@ const app = {
         return await handleCoverBankAddCron(request);
       } catch (error) {
         console.error("Erro ao cadastrar imagem no banco curado de capas:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    // DELETE esvazia o banco curado antes do abastecimento da sessão. Fica no
+    // mesmo caminho e sob o mesmo CRON_SECRET do GET/POST — é a mesma coleção,
+    // e o método é que diz o que fazer com ela.
+    if (url.pathname === "/api/cron/cover-bank" && request.method === "DELETE") {
+      try {
+        return await handleCoverBankPurgeCron(request);
+      } catch (error) {
+        console.error("Erro ao esvaziar o banco curado de capas:", error);
         return new Response("error", { status: 500 });
       }
     }

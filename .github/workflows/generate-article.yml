@@ -100,6 +100,12 @@ jobs:
             echo "libraryCoverId<<COVER_EOF"
             jq -r '.libraryCoverId // ""' response.json
             echo "COVER_EOF"
+            echo "libraryCoverTerm<<COVER_EOF"
+            jq -r '.libraryCoverTerm // ""' response.json
+            echo "COVER_EOF"
+            echo "libraryCoverRelevante<<COVER_EOF"
+            jq -r '.libraryCoverRelevante // false' response.json
+            echo "COVER_EOF"
             echo "libraryCoverCredit<<COVER_EOF"
             jq -r '.libraryCoverCredit // ""' response.json
             echo "COVER_EOF"
@@ -162,12 +168,50 @@ jobs:
         continue-on-error: true
         run: npm install --no-save --no-package-lock @napi-rs/canvas
 
-      # Nível 2: arte própria da matéria, gerada do hash do slug. Substituiu,
+      # Nível 2 (novo em 20/09): ilustração gerada pela Nano Banana Pro, para
+      # quando o banco curado não tinha fotografia para a editoria. Fica
+      # DEPOIS do banco de propósito — fotografia real de cena real é sempre
+      # preferível a imagem inventada — e ANTES da arte tipográfica, que
+      # continua sendo o piso que nunca falha.
+      #
+      # A imagem sai creditada como "Ilustração gerada por IA (Nano Banana
+      # Pro)" pelo próprio script, e esse crédito atravessa até o rodapé da
+      # capa e a legenda do Instagram. Publicar ilustração sintética sem essa
+      # marca seria pior que o erro de 13/09: lá a foto era de outro lugar
+      # real, aqui a cena não existiu em lugar nenhum.
+      #
+      # continue-on-error: sem HF_CREDENTIALS, sem crédito na conta ou com a
+      # API fora, o script imprime {} e a cascata segue para a arte do slug.
+      - name: Gera ilustração de capa (Nano Banana Pro)
+        if: steps.checkout.outcome == 'success' && steps.fetch_photo.outputs.found != 'true'
+        id: generate_cover
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+          COVER_BEAT: ${{ steps.generate.outputs.beat }}
+          COVER_SCENE: ${{ steps.generate.outputs.libraryCoverTerm }}
+          HF_CREDENTIALS: ${{ secrets.HF_CREDENTIALS }}
+        run: |
+          node scripts/generate-cover-image.mjs > generated-cover.json
+          cat generated-cover.json
+          path=$(jq -r '.path // empty' generated-cover.json)
+          if [ -n "$path" ]; then found=true; else found=false; fi
+          {
+            echo "found=$found"
+            echo "photoCredit<<COVER_EOF"
+            jq -r '.photoCredit // empty' generated-cover.json
+            echo "COVER_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Nível 3: arte própria da matéria, gerada do hash do slug. Substituiu,
       # em 15/09, a foto fixa por editoria (que dava a mesma imagem a toda
       # matéria da editoria) e o card tipográfico via Playwright (que baixava
       # um Chromium a cada rodada para desenhar sempre o mesmo layout).
+      #
+      # É o piso: não depende de chave de API nem de rede, então é o que
+      # garante que nenhuma matéria fique sem capa.
       - name: Gera a arte de capa da matéria
-        if: steps.install_canvas.outcome == 'success' && steps.fetch_photo.outputs.found != 'true'
+        if: steps.install_canvas.outcome == 'success' && steps.fetch_photo.outputs.found != 'true' && steps.generate_cover.outputs.found != 'true'
         id: render
         continue-on-error: true
         env:
@@ -175,11 +219,13 @@ jobs:
           COVER_BEAT: ${{ steps.generate.outputs.beat }}
         run: node scripts/render-cover-art.mjs
 
-      # Só para foto do banco curado, que chega no tamanho e no peso que o
-      # fotógrafo mandou. A arte gerada já sai em 1200×630 com ~60 KB, e o
-      # 4:2:0 do otimizador borraria as linhas finas da composição.
+      # Para a foto do banco (que chega no tamanho e no peso que o fotógrafo
+      # mandou) e para a ilustração da Nano Banana Pro (que sai em 1536 px e
+      # bem mais pesada que a caixa da capa precisa). A arte tipográfica do
+      # slug fica de fora: já sai em 1200×630 com ~60 KB, e o 4:2:0 do
+      # otimizador borraria as linhas finas da composição.
       - name: Otimiza a capa para alta resolução e baixo peso
-        if: steps.fetch_photo.outputs.found == 'true'
+        if: steps.fetch_photo.outputs.found == 'true' || steps.generate_cover.outputs.found == 'true'
         continue-on-error: true
         env:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
@@ -198,7 +244,7 @@ jobs:
       # matéria continua publicada e com capa, e o botão da página segue como
       # caminho manual.
       - name: Gera o card do Instagram
-        if: steps.fetch_photo.outputs.found == 'true' || steps.render.outcome == 'success'
+        if: steps.fetch_photo.outputs.found == 'true' || steps.generate_cover.outputs.found == 'true' || steps.render.outcome == 'success'
         id: instagram_card
         continue-on-error: true
         env:
@@ -206,12 +252,12 @@ jobs:
           WIRE_HEADLINE: ${{ steps.generate.outputs.headline }}
           WIRE_EXCERPT: ${{ steps.generate.outputs.excerpt }}
           WIRE_BEAT: ${{ steps.generate.outputs.beat }}
-          WIRE_PHOTO_CREDIT: ${{ steps.fetch_photo.outputs.photoCredit }}
+          WIRE_PHOTO_CREDIT: ${{ steps.fetch_photo.outputs.photoCredit || steps.generate_cover.outputs.photoCredit }}
           WIRE_OUT_DIR: public/images/instagram
         run: node scripts/render-instagram-card.mjs
 
       - name: Commita a capa no repositório
-        if: steps.fetch_photo.outputs.found == 'true' || steps.render.outcome == 'success'
+        if: steps.fetch_photo.outputs.found == 'true' || steps.generate_cover.outputs.found == 'true' || steps.render.outcome == 'success'
         id: commit
         continue-on-error: true
         env:
@@ -262,7 +308,7 @@ jobs:
         env:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
           PHOTO_ID: ${{ steps.fetch_photo.outputs.photoId }}
-          PHOTO_CREDIT: ${{ steps.fetch_photo.outputs.photoCredit }}
+          PHOTO_CREDIT: ${{ steps.fetch_photo.outputs.photoCredit || steps.generate_cover.outputs.photoCredit }}
           PHOTO_URL: ${{ steps.fetch_photo.outputs.photoUrl }}
         run: |
           url="https://veronicahub.com/images/blog-covers/${COVER_SLUG}.jpg"

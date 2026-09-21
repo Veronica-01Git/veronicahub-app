@@ -526,7 +526,28 @@ test("o crédito do fotógrafo atravessa do banco até a matéria", () => {
   assert.match(workflow, /COVER_LIBRARY_CREDIT/, "o crédito precisa chegar ao script da capa");
   assert.match(fetchScript, /COVER_LIBRARY_CREDIT/);
   assert.match(fetchScript, /photoCredit/, "o script precisa devolver o crédito ao workflow");
-  assert.match(workflow, /PHOTO_CREDIT: \$\{\{ steps\.fetch_photo\.outputs\.photoCredit \}\}/);
+  assert.match(workflow, /PHOTO_CREDIT: \$\{\{ steps\.fetch_photo\.outputs\.photoCredit/);
+
+  // Quinto elo, desde 20/09: a ilustração da Nano Banana Pro entra na cascata
+  // entre o banco e a arte do slug, e o crédito dela ("Ilustração gerada por
+  // IA") tem que percorrer o MESMO caminho. Uma imagem sintética publicada
+  // sem essa marca é pior que uma foto de banco sem crédito: a foto ao menos
+  // registra uma cena que existiu.
+  const generateScript = readFileSync(
+    new URL("../scripts/generate-cover-image.mjs", import.meta.url),
+    "utf8",
+  );
+  assert.match(generateScript, /Ilustração gerada por IA/);
+  assert.match(
+    workflow,
+    /PHOTO_CREDIT: .*steps\.generate_cover\.outputs\.photoCredit/,
+    "o crédito da ilustração gerada precisa chegar à matéria",
+  );
+  assert.match(
+    workflow,
+    /WIRE_PHOTO_CREDIT: .*steps\.generate_cover\.outputs\.photoCredit/,
+    "o crédito da ilustração gerada precisa chegar ao card do Instagram",
+  );
 });
 
 test("recusa editorial não vira rodada vermelha, mesmo quando o modelo troca a frase", async () => {
@@ -744,4 +765,202 @@ test("o crédito do fotógrafo aparece no rodapé da capa e na legenda", async (
   // Foto do banco não tem URL de origem: o crédito vira texto em vez de um
   // link para "#", que não leva a lugar nenhum e ainda abre uma aba.
   assert.match(page, /coverPhotoUrl \? \(/);
+});
+
+test("a capa escolhida faz jus à matéria, não só à editoria", async () => {
+  const { escolherCena, pontuarCenas } = await import("../src/lib/cover-scenes.ts");
+
+  // O caso que motivou a mudança (pedido do editor-chefe em 20/09): as duas
+  // matérias abaixo são "clima", e no rodízio antigo a segunda podia sair com
+  // parque eólico — foto da editoria certa e do assunto errado.
+  assert.equal(
+    escolherCena("clima", {
+      headline: "Rio Ribeira de Iguape transborda e submerge cidade de Eldorado (SP)",
+      excerpt: "Moradores deixaram casas após a cheia atingir o centro.",
+    }),
+    "flooded street after heavy rain",
+  );
+  assert.equal(
+    escolherCena("clima", {
+      headline: "Leilão de energia eólica contrata 2 GW no Nordeste",
+      excerpt: "Turbinas entram em operação até 2028.",
+    }),
+    "wind turbines field sunset",
+  );
+
+  // Acento não pode decidir nada: o texto da matéria vem acentuado e as
+  // pistas são gravadas sem acento.
+  assert.equal(
+    escolherCena("economia", {
+      headline: "Copom mantém a Selic e sinaliza juros altos por mais tempo",
+      excerpt: "",
+    }),
+    "central bank building facade",
+  );
+
+  // Matéria que não casa com cena nenhuma NÃO pode receber uma escolha fraca:
+  // devolver null é o que devolve a decisão ao rodízio, que é honesto sobre
+  // ser ilustrativo. Inventar correspondência é como nasceu o erro de 13/09.
+  assert.equal(escolherCena("ia", { headline: "Balanço trimestral", excerpt: "" }), null);
+
+  // A manchete pesa mais que o resumo: é ela que resume o fato.
+  const [melhor] = pontuarCenas("geopolitica", {
+    headline: "Congresso vota projeto de lei sobre tarifas",
+    excerpt: "O texto trata de comércio exterior.",
+  });
+  assert.equal(melhor.term, "parliament chamber interior");
+});
+
+test("a foto certa ganha da foto nova, e o rodízio só entra quando nada casa", async () => {
+  const { pickRelevantCover, buildBankAltText } = await import("../src/lib/cover-bank.ts");
+
+  const foto = (id, term) => ({
+    id,
+    altText: buildBankAltText({ photographer: "Fulano", beat: "clima", term }),
+  });
+  const candidatos = [
+    foto("eolica-1", "wind turbines field sunset"),
+    foto("enchente-1", "flooded street after heavy rain"),
+    foto("solar-1", "solar panel farm aerial"),
+  ];
+  const materiaEnchente = { headline: "Cidade submersa após transbordo do rio", excerpt: "" };
+
+  const escolhida = pickRelevantCover({ beat: "clima", materia: materiaEnchente, candidatos });
+  assert.equal(escolhida.id, "enchente-1");
+  assert.equal(escolhida.relevante, true);
+
+  // A foto da cena certa vence mesmo já tendo sido usada há pouco: repetir a
+  // foto certa é melhor que estrear a errada. Era o contrário antes — o
+  // `notInArray` cortava as recentes no próprio SQL, e a foto da cena certa
+  // nem chegava a concorrer.
+  const aindaCerta = pickRelevantCover({
+    beat: "clima",
+    materia: materiaEnchente,
+    candidatos,
+    usadosRecentemente: ["enchente-1"],
+  });
+  assert.equal(aindaCerta.id, "enchente-1");
+
+  // Sem cena que case, volta o rodízio da editoria — e aí `relevante` é false,
+  // que é o que o resumo da rodada mostra para não se confundir uma coisa
+  // com a outra.
+  const semCena = pickRelevantCover({
+    beat: "clima",
+    materia: { headline: "Balanço anual do setor", excerpt: "" },
+    candidatos,
+    usadosRecentemente: ["eolica-1"],
+  });
+  assert.equal(semCena.relevante, false);
+  assert.notEqual(semCena.id, "eolica-1", "o rodízio ainda evita a usada recentemente");
+
+  // Banco vazio devolve null: quem chama cai para a ilustração gerada e, se
+  // ela falhar, para a arte tipográfica do slug.
+  assert.equal(
+    pickRelevantCover({ beat: "clima", materia: materiaEnchente, candidatos: [] }),
+    null,
+  );
+});
+
+test("o banco credita as duas fontes e o expurgo poupa capa que está no ar", async () => {
+  const { buildBankAltText, parseBankCredit, parseBankTerm, bankFilename, parseBankFilename } =
+    await import("../src/lib/cover-bank.ts");
+
+  // O Pixabay entrou como segunda fonte em 20/09. A forma antiga do crédito
+  // casava só com "no Pexels —", então toda foto do Pixabay seria publicada
+  // sem creditar quem a fez — falha silenciosa, do tipo que ninguém vê.
+  const altPixabay = buildBankAltText({
+    photographer: "Ana Silva",
+    beat: "clima",
+    term: "wind turbines field sunset",
+    source: "pixabay",
+  });
+  assert.equal(parseBankCredit(altPixabay), "Ana Silva");
+  assert.equal(parseBankTerm(altPixabay), "wind turbines field sunset");
+  assert.deepEqual(
+    parseBankFilename(bankFilename({ beat: "clima", photoId: "42", source: "pixabay" })),
+    {
+      beat: "clima",
+      source: "pixabay",
+      photoId: "42",
+    },
+  );
+
+  const purge = readFileSync(new URL("../src/lib/cover-bank-cron.ts", import.meta.url), "utf8");
+
+  // As duas travas do expurgo. Sem a primeira, a limpeza levaria junto a
+  // biblioteca inteira do Admin (capas de curso, cards, uploads à mão), que
+  // não é o banco da Wire. Sem a segunda, apagaria a linha que uma matéria
+  // publicada está servindo como capa — e a capa no ar vira 404.
+  assert.match(purge, /handleCoverBankPurgeCron/);
+  assert.match(
+    purge,
+    /\.delete\(mediaImages\)[\s\S]{0,400}?like\(mediaImages\.filename, `\$\{LIBRARY_COVER_PREFIX\}%`\)/,
+    "o expurgo só pode alcançar o prefixo do banco da Wire",
+  );
+  assert.match(
+    purge,
+    /not\(\s*exists\(/,
+    "o expurgo precisa poupar imagem que alguma matéria publicada serve como capa",
+  );
+
+  const server = readFileSync(new URL("../src/server.ts", import.meta.url), "utf8");
+  assert.match(server, /"\/api\/cron\/cover-bank" && request\.method === "DELETE"/);
+});
+
+test("o abastecimento por sessão busca nas duas fontes e continua sem commitar", () => {
+  const workflow = readFileSync(
+    new URL("../.github/workflows/fill-cover-bank.yml", import.meta.url),
+    "utf8",
+  );
+  const script = readFileSync(new URL("../scripts/fill-cover-bank.mjs", import.meta.url), "utf8");
+
+  // A regra que não muda: esta rodada escreve no banco pelo endpoint e nada
+  // mais. Se ganhar git push, cada rodada passa a republicar o site inteiro.
+  assert.ok(!/git (push|commit)/.test(workflow), "o abastecimento não pode commitar");
+  assert.match(workflow, /permissions:\s*\n\s*contents: read/);
+  assert.match(workflow, /PIXABAY_API_KEY: \$\{\{ secrets\.PIXABAY_API_KEY \}\}/);
+
+  // Nenhuma das duas chaves pode chegar ao Worker: quem busca é o runner.
+  const server = readFileSync(new URL("../src/server.ts", import.meta.url), "utf8");
+  assert.ok(!/PEXELS_API_KEY|PIXABAY_API_KEY/.test(server), "as chaves não podem chegar ao Worker");
+
+  // O expurgo por sessão é o ponto todo da mudança: sem o DELETE, o banco
+  // volta a acumular e a foto de setembro segue saindo em capa em dezembro.
+  assert.match(script, /method: "DELETE"/);
+  assert.match(script, /searchPixabayMany/);
+  assert.match(script, /--sem-expurgo/, "precisa existir saída para completar sem zerar");
+});
+
+test("a ilustração gerada é marcada como sintética e nunca desenha o fato", () => {
+  const script = readFileSync(
+    new URL("../scripts/generate-cover-image.mjs", import.meta.url),
+    "utf8",
+  );
+
+  // O prompt é montado da CENA do catálogo, nunca da manchete. Pedir o fato
+  // específico a um gerador é fabricar registro de acontecimento — a versão
+  // pior do erro de 13/09, em que a foto ao menos era de um lugar real.
+  assert.ok(
+    !/headline|manchete/i.test(script.split("export function montarPrompt")[1].slice(0, 1200)),
+    "o prompt não pode ser montado da manchete da matéria",
+  );
+  assert.match(script, /no identifiable real people/);
+  assert.match(script, /must not/);
+  assert.match(script, /Ilustração gerada por IA/);
+
+  // E é nível 2 da cascata: entra depois do banco, antes da arte do slug.
+  const workflow = readFileSync(
+    new URL("../.github/workflows/generate-article.yml", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    workflow,
+    /id: generate_cover[\s\S]*?id: render/,
+    "a ilustração precisa vir antes da arte tipográfica",
+  );
+  assert.match(
+    workflow,
+    /steps\.fetch_photo\.outputs\.found != 'true'[\s\S]{0,200}?id: generate_cover/,
+    "a ilustração só entra quando o banco não deu foto",
+  );
 });
