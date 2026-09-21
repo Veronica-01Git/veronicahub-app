@@ -1,232 +1,262 @@
-# Roteiro de subida — agente de WhatsApp da Express Entulho
+# O que falta para a sua agente começar a atender
 
-Este arquivo responde uma pergunta só: **o que precisa acontecer, e em que
-ordem, para a agente sair do computador e começar a atender de verdade.**
+Express Entulho · Projeto `VH-AUT-WA-2026-000001` · 21/09/2026
 
-Está escrito para ser lido por quem não programa. Onde aparecer algo técnico,
-vem a tradução do lado.
+Este documento responde uma pergunta só: **o que precisa acontecer, e em que
+ordem, para a agente sair do computador e começar a atender os seus clientes.**
 
-Projeto `VH-AUT-WA-2026-000001`. Escrito em 21/09/2026.
-
----
-
-## Antes de tudo: onde estamos hoje
-
-A agente está **pronta e muda**.
-
-Pronta: ela sabe o preço, sabe os prazos, sabe pedir os dados para agendar,
-sabe recusar desconto com o motivo certo e sabe quando calar a boca e chamar
-uma pessoa. Dá para conversar com ela agora mesmo, no computador.
-
-Muda: ela **não manda mensagem para ninguém**. Não é que ainda não configuramos
-— é que existe uma trava de propósito, e ela está ligada. Mesmo que tudo o
-mais esteja pronto, nada sai até alguém desligar essa trava de forma
-deliberada.
-
-Isso é o item 7 deste roteiro, e é o **último** de todos.
+Está escrito sem termo técnico. Onde não deu para evitar, vem a explicação do
+lado.
 
 ---
 
-## O mapa, em uma olhada
+## Onde estamos hoje
 
-| #   | Passo                         | Quem faz                     | Quanto demora   |
-| --- | ----------------------------- | ---------------------------- | --------------- |
-| 1   | Conferir os preços com o dono | Você + dono                  | 15 minutos      |
-| 2   | Dono testa a agente           | Dono                         | 20 minutos      |
-| 3   | Chip novo                     | Dono                         | 1 a 3 dias      |
-| 4   | Acertar o endereço da empresa | Dono + contador              | 1 a 5 dias      |
-| 5   | Verificação na Meta           | Você, com documentos do dono | Depende da Meta |
-| 6   | Ligar a agente no chip novo   | Você                         | 1 hora          |
-| 7   | **Destravar o envio**         | Você, com o "sim" do dono    | 1 minuto        |
+A agente está **pronta e calada**.
 
-Os passos 3, 4 e 5 correm por fora e **não aceleram com esforço nosso**. São os
-que devem começar primeiro, mesmo que os outros ainda não estejam prontos.
+**Pronta:** ela sabe os preços, os prazos, pede os dados para agendar, recusa
+desconto explicando o motivo do aterro, entende quando o cliente diz que a
+caçamba encheu, e sabe a hora de parar e chamar uma pessoa. Ela foi ensinada
+a partir das suas próprias conversas — usamos o jeito que você atende, com as
+frases que você usa.
+
+**Calada:** ela não manda mensagem para ninguém. Isso não é falta de
+configuração. Existe uma trava de segurança, e ela está fechada de propósito.
+Mesmo com tudo o mais pronto, nada sai até alguém abrir essa trava de forma
+deliberada — e isso só acontece depois que **você** testar e aprovar.
+
+É o passo 7 deste documento, e é o último de todos.
 
 ---
 
-## 1. Conferir os preços com o dono
+## Os sete passos
 
-**Por quê:** a agente repete com confiança total o preço que está cadastrado.
-Se um número estiver errado, ela erra para cliente real, com a voz da empresa.
+| #   | O que é                        | Quem faz                 | Tempo         |
+| --- | ------------------------------ | ------------------------ | ------------- |
+| 1   | Confirmar os preços            | Você                     | 15 minutos    |
+| 2   | Você testa a agente            | Você                     | 20 minutos    |
+| 3   | Comprar um chip novo           | Você                     | 1 a 3 dias    |
+| 4   | Acertar o endereço da empresa  | Você + contador          | 1 a 5 dias    |
+| 5   | Aprovação da Meta (WhatsApp)   | Nós, com seus documentos | Depende deles |
+| 6   | Instalar a agente no chip novo | Nós                      | 1 hora        |
+| 7   | **Liberar o atendimento**      | Nós, com o seu sim       | 1 minuto      |
 
-Hoje ela conhece **sete combinações**. Quatro vieram de um vendedor que saiu da
-empresa, e ele mesmo disse não ser vendedor antes de não saber vários valores.
-Essas quatro precisam de um "confirmo" do dono.
+Os passos **3, 4 e 5 dependem de terceiros e não andam mais rápido com
+esforço nosso.** São os que valem começar primeiro, mesmo que o resto ainda
+não esteja pronto. Os passos 1 e 2 são uma conversa de meia hora com você — e
+são os que mais mudam o que a agente consegue resolver sozinha.
 
-O que perguntar, e está tudo detalhado em `PENDENCIAS-CLIENTE.md`:
+---
 
-- Os preços de Itajaí estão certos? (menor R$ 220, tambor R$ 180, grande
-  R$ 450 para demolição; menor R$ 280 para gesso)
+## 1. Confirmar os preços
+
+**Por que isso é o mais importante da lista:** a agente repete com total
+confiança o preço que estiver cadastrado. Se um número estiver errado, ela
+erra para um cliente de verdade, com o nome da sua empresa.
+
+Hoje ela conhece **sete combinações de produto, material e cidade**. Quatro
+delas vieram de um áudio do vendedor que saiu da empresa — e ele mesmo avisou
+que não era vendedor antes de não saber vários valores. Essas quatro precisam
+do seu "confirmo".
+
+**As perguntas, e são rápidas:**
+
+- Em Itajaí, para demolição: caçamba menor R$ 220, tambor R$ 180 e caçamba
+  grande R$ 450. Está certo?
+- Em Itajaí, gesso na caçamba menor R$ 280. Está certo?
 - Quanto custa gesso no tambor e na caçamba grande?
-- O preço de Itapema vale para as outras seis cidades, ou cada uma tem o seu?
-- Quanto custa a diária extra depois do prazo?
-- O tambor custa R$ 180 tanto para demolição quanto para entulho. Tem preço
-  único, independente do material?
+- Em Itapema você cotou a menor a R$ 250 e a grande a R$ 470, para gesso. Esse
+  preço vale para as outras cidades também, ou cada cidade tem o seu?
+- Quanto custa a diária extra, depois de vencido o prazo?
+- O tambor custa R$ 180 tanto para demolição quanto para entulho. Ele tem
+  preço único, independente do material?
 
-**Enquanto não vier resposta:** a agente encaminha para uma pessoa em tudo que
-não souber. Isso funciona e não constrange ninguém — ela só resolve menos
-conversas sozinha.
-
----
-
-## 2. O dono testa a agente
-
-**Isso acontece no computador, sem WhatsApp nenhum.** Zero risco: não existe
-número envolvido, não existe cliente do outro lado, não tem como escapar
-mensagem.
-
-Você abre o simulador e ele conversa como se fosse cliente. Digita "quanto
-custa uma caçamba?", ela responde, ele vê se soou como ele falaria.
-
-É aqui que ele aprova ou pede ajuste. Se ele disser "eu não falo assim", a
-gente muda o texto e testa de novo na hora.
-
-**O que ele deve testar de propósito:**
-
-- Pedir preço sem dizer a cidade → ela tem que perguntar, não chutar
-- Pedir desconto → ela tem que recusar e explicar o motivo do aterro
-- Perguntar algo que ela não sabe → ela tem que encaminhar, não inventar
-- Dizer que a caçamba encheu → ela tem que entender que é troca, não retirada
+**Enquanto você não responder:** a agente não inventa. Ela encaminha para uma
+pessoa da equipe tudo que não souber. Isso funciona e não passa vergonha — ela
+só resolve menos conversas sozinha, e a sua equipe atende mais.
 
 ---
 
-## 3. Chip novo
+## 2. Você testa a agente
 
-**Este é o que mais demora e o que mais gente esquece.**
+**Isso acontece no computador, sem WhatsApp nenhum.** Não tem número
+envolvido, não tem cliente do outro lado, não tem como escapar mensagem.
+Risco zero.
 
-A agente vai para um **número novo, dedicado**. O número atual da empresa
-continua exatamente como está: no aparelho, com o histórico, atendendo.
+A gente abre a agente na tela e **você conversa com ela como se fosse um
+cliente seu.** Escreve "quanto custa uma caçamba?", ela responde, e você vê
+se aquilo soa como você falaria.
 
-**Por que não dá para usar o número atual:** ao ligar um número na ferramenta
-da Meta, aquele número **sai do WhatsApp comum** e o histórico de conversas
-não vai junto. O número atual é o canal que fatura a empresa. Não se arrisca
-isso por conveniência técnica.
+É aqui que você aprova ou manda mudar. Se disser "eu não falo assim", a gente
+muda na hora e testa de novo na sua frente.
 
-Isso está registrado como regra permanente do projeto em `AGENTS.md`, e vale
-também para número pessoal de quem desenvolve.
+**Vale testar de propósito:**
 
-**O que o dono precisa fazer:** comprar um chip, ativar, e mandar o número.
+- Pedir preço sem dizer a cidade — ela tem que perguntar, não chutar
+- Pedir desconto — ela tem que recusar e explicar o motivo do aterro
+- Perguntar algo que ela não sabe — ela tem que encaminhar, não inventar
+- Dizer que encheu — ela tem que entender que é troca, não retirada
+
+---
+
+## 3. Comprar um chip novo
+
+**Este é o passo mais demorado e o que costuma ser esquecido.**
+
+A agente vai funcionar num **número novo, só dela.** O número que a Express
+Entulho usa hoje continua exatamente como está: no aparelho, com todo o
+histórico, atendendo normalmente.
+
+**Por que não dá para usar o número de hoje:** quando um número é ligado na
+ferramenta de automação da Meta, ele **sai do WhatsApp comum** — deixa de
+funcionar no aplicativo do celular — e as conversas antigas não vão junto. O
+seu número atual é o canal que fatura a empresa. Não vale arriscar isso por
+comodidade nossa.
+
+Essa é uma regra fixa do projeto, e nós a seguimos mesmo que alguém peça o
+contrário.
+
+**O que você precisa fazer:** comprar um chip, ativar e nos passar o número.
 Entre comprar e estar pronto para usar costuma levar alguns dias.
 
 ---
 
 ## 4. Acertar o endereço da empresa
 
-Dois documentos da mesma empresa dizem bairros diferentes:
+Dois documentos da sua empresa dizem bairros diferentes:
 
-- A nota fiscal diz **Vila Operária**
-- O Google Meu Negócio diz **São João**
+- A **nota fiscal** diz Vila Operária
+- O **Google Meu Negócio** diz São João
 
 **Por que isso importa:** no passo 5, a Meta compara o que a gente digita com
-o que está no documento. Endereço que não bate é motivo clássico de recusa —
-e recusa significa refazer e esperar de novo.
+o que está no seu documento. Endereço que não bate é um dos motivos mais
+comuns de recusa — e ser recusado significa corrigir e entrar na fila de novo.
 
-**O que o dono precisa decidir:** qual é o endereço oficial, o que está no
-Cartão CNPJ. Esse é o que vale. Depois, corrigir o outro.
+**O que você precisa decidir:** qual é o endereço oficial, o que está no
+Cartão CNPJ. Esse é o que vale. Depois é corrigir o outro — se o Cartão CNPJ
+disser Vila Operária, o Google é que precisa ser ajustado; se disser São
+João, é a nota fiscal, com o seu contador.
 
-**A ordem importa: corrigir primeiro, mandar para a Meta depois.** Mandar com
-os dois divergentes é gastar uma rodada de análise para receber "não".
+**A ordem importa: corrigir primeiro, mandar para a Meta depois.** Enviar com
+os dois divergentes é gastar uma rodada inteira de análise para receber "não".
 
 ---
 
-## 5. Verificação na Meta
+## 5. Aprovação da Meta
 
-A Meta precisa confirmar que a empresa existe antes de deixar a agente
-conversar com o público. **Esse processo ainda não foi aberto.**
+Antes de a agente conversar com o público, a Meta (dona do WhatsApp) precisa
+confirmar que a sua empresa existe de verdade. **Esse processo ainda não foi
+aberto.**
 
-**Por que é o passo mais crítico:** o prazo não depende de nós. A Meta analisa
-quando analisa, pode pedir documento a mais, e pode recusar por detalhe de
-cadastro. Abrir hoje não custa nada e é a única coisa que encurta esse prazo.
+**Por que é o passo mais crítico:** o prazo não depende de nós nem de você. A
+Meta analisa quando analisa, pode pedir documento a mais, e pode recusar por
+um detalhe de cadastro. Abrir hoje não custa nada e é a única coisa que
+encurta essa espera.
 
-**O que separar:** documento oficial que mostre razão social e endereço,
-batendo exatamente com o que for digitado. O Cartão CNPJ é o caminho mais
-direto.
+**O que você precisa separar:** um documento oficial que mostre a razão social
+e o endereço. O Cartão CNPJ da Receita Federal é o caminho mais direto.
 
-Pelos documentos que já vi, a razão social é **INOVAÇÃO SERVIÇOS
+Pelos documentos que já vimos, a razão social é **INOVAÇÃO SERVIÇOS
 ADMINISTRATIVOS E TRANSPORTE LTDA**, CNPJ 48.091.178/0001-11 — "Express
-Entulho" é o nome fantasia. Vale conferir com o dono antes de digitar.
+Entulho" sendo o nome fantasia. **Confirme isso para nós**, porque é
+exatamente o dado que, se estiver errado, faz a Meta recusar.
 
-**Enquanto a verificação não sai:** a agente funciona num número de teste que
-a Meta fornece, que só conversa com números cadastrados um a um. Dá para
-demonstrar de ponta a ponta numa reunião. Não dá para atender cliente de
-verdade.
-
----
-
-## 6. Ligar a agente no chip novo
-
-Este é o passo técnico, e é meu. Em linguagem simples, são quatro coisas:
-
-1. **Cadastrar o chip novo** no painel da Meta como o número da agente.
-2. **Guardar as senhas** do painel no servidor. São quatro códigos que a Meta
-   fornece; eles ficam guardados no servidor, nunca dentro do programa.
-3. **Avisar a Meta para onde mandar as mensagens** — o endereço na internet
-   onde a agente escuta.
-4. **Rodar a checagem.** Existe um teste pronto que responde se cada peça está
-   no lugar.
-
-Ao fim deste passo, a agente **ainda não manda nada**. Tudo está ligado, mas
-a trava do passo 7 continua fechada. É de propósito: quero conseguir conferir
-que tudo funciona antes de qualquer mensagem sair.
+**Enquanto a aprovação não sai:** a agente funciona num número de testes que a
+Meta fornece, que só conversa com celulares cadastrados um a um. Dá para
+demonstrar tudo numa reunião. Não dá para atender cliente de verdade.
 
 ---
 
-## 7. Destravar o envio
+## 6. Instalar a agente no chip novo
 
-**Um passo. Um minuto. E é o único que muda o mundo real.**
+Este passo é nosso e é técnico. Em resumo, são quatro coisas: cadastrar o chip
+novo, guardar as senhas com segurança no servidor, avisar o WhatsApp para onde
+mandar as mensagens, e rodar uma checagem que confirma se cada peça está no
+lugar.
 
-Até aqui, mesmo com absolutamente tudo pronto e configurado, a agente não
-manda mensagem. Existe uma segunda chave, separada das senhas da Meta.
-
-As senhas dizem **"consigo enviar"**. Esta chave diz **"posso enviar"**.
-
-Ela vem desligada de fábrica. E não destrava por acidente: escrever "sim",
-"true", "1", "yes" ou "on" **não funciona**. Só um texto específico e
-propositalmente esquisito libera, justamente para ninguém ligar sem querer
-nem copiando de tutorial.
-
-**Quando virar esta chave:** depois que o dono testou, viu, e disse sim.
-
-Esse "sim" é do dono da Express Entulho, não meu nem seu.
+Ao fim disso, **a agente ainda não manda nada.** Tudo fica ligado e testado,
+mas a trava do passo 7 continua fechada. É de propósito: a gente quer poder
+conferir que está tudo certo antes de qualquer mensagem sair para um cliente
+seu.
 
 ---
 
-## Se der errado depois de no ar
+## 7. Liberar o atendimento
 
-**Para desligar tudo:** apaga-se a chave do passo 7. A agente para de
-responder na mesma hora, sem apagar nada e sem perder configuração. Religar
-depois é escrever a chave de novo.
+**Um passo. Um minuto. E é o único que muda alguma coisa no mundo real.**
 
-Não é preciso desfazer nada, nem mexer no número, nem avisar a Meta.
+Até aqui, mesmo com absolutamente tudo pronto, a agente continua calada.
+Existe uma segunda chave, separada das senhas do WhatsApp.
+
+As senhas dizem **"a agente consegue enviar"**. Essa chave diz **"a agente
+pode enviar"**.
+
+Ela vem fechada de fábrica, e não abre por acidente: escrever "sim", "ok" ou
+"ligado" não funciona. Só um texto específico e esquisito de propósito abre,
+justamente para ninguém ligar sem querer.
+
+**Quando essa chave é virada:** depois que você testou, viu funcionando, e
+disse sim.
+
+Esse sim é seu. Não é nosso.
 
 ---
 
-## O que a agente NÃO faz, e é de propósito
+## Se der problema depois de estar no ar
 
-Vale o dono saber disso **antes** de aprovar, para não descobrir depois e se
-sentir enganado.
+**Para desligar tudo:** fechamos a mesma chave do passo 7. A agente para de
+responder na mesma hora. Não se perde configuração, não se apaga nada, e não
+é preciso mexer no número nem avisar a Meta. Religar depois é abrir a chave
+de novo.
 
-- **Não confirma agendamento.** Ela pede os dados e passa para uma pessoa. Ela
-  não enxerga a agenda real nem sabe se tem caçamba livre.
-- **Não manda chave Pix e não confere comprovante.** Dinheiro é de pessoa.
-- **Não fala de multa, cancelamento, boleto ou nota fiscal.** Encaminha.
+---
+
+## O que a agente NÃO faz — e é de propósito
+
+Vale você saber disso **antes** de aprovar, para não descobrir depois e achar
+que foi enganado.
+
+- **Não confirma agendamento.** Ela pega os dados e passa para uma pessoa. Ela
+  não enxerga a sua agenda nem sabe se tem caçamba livre.
+- **Não manda chave Pix e não confere comprovante.** Dinheiro é assunto de
+  gente.
+- **Não trata de multa, cancelamento, boleto ou nota fiscal.** Encaminha.
 - **Não dá desconto.** Nenhum, em nenhuma situação. Recusa explicando o
-  reajuste do aterro, como o dono faz.
+  reajuste do aterro, do mesmo jeito que você faz.
 - **Não inventa preço.** Se a combinação de produto, material e cidade não
-  estiver cadastrada, ela não estima e não usa preço parecido — encaminha.
-  Existe uma conferência automática que derruba a resposta e chama uma pessoa
-  se o modelo tentar.
-- **Não diz "já abri a ordem de serviço".** Ela não abre. Diz que vai passar
-  para a equipe.
+  estiver cadastrada, ela não estima nem usa o preço de um material parecido.
+  Existe uma conferência automática que barra a resposta e chama uma pessoa
+  se ela tentar.
+- **Não diz "já abri a ordem de serviço".** Ela não abre. Ela diz que vai
+  passar para a equipe.
 
-Essa última lista é o que separa uma agente que ajuda de uma que cria problema
-— e é o que mais precisa sobreviver a pedidos de "deixa ela mais solta".
+Essa lista é o que separa uma agente que ajuda de uma que dá problema. Se
+alguém sugerir "deixar ela mais solta", é essa lista que precisa ser
+defendida.
 
 ---
 
-## Resumo em três linhas
+## Em três linhas
 
 Comece hoje pelos passos 3, 4 e 5 — são os que dependem de terceiros e não
-aceleram. Os passos 1 e 2 são uma conversa de meia hora com o dono e é o que
-mais muda o que ele vai ver funcionando. O passo 7 só acontece depois que ele
-disser sim.
+aceleram. Os passos 1 e 2 são meia hora sua e é o que mais muda o que a agente
+consegue resolver sozinha. O passo 7 só acontece depois que você disser sim.
+
+---
+
+## Notas para a equipe técnica
+
+_Esta seção não é para o cliente; fica aqui para o documento continuar sendo
+fonte única._
+
+- Detalhe de cada pendência comercial e o tamanho real da matriz de preços:
+  `PENDENCIAS-CLIENTE.md`.
+- A regra permanente sobre não migrar o número atual da empresa, incluindo
+  número pessoal de quem desenvolve: `AGENTS.md`.
+- A trava do passo 7 é a variável `WHATSAPP_ENVIO_LIBERADO`, documentada em
+  `.env.example`. Ela é conferida em `getWhatsAppConfig`, por onde passam os
+  quatro caminhos que falam com a Meta, e há teste travando isso em
+  `tests/whatsapp-webhook.test.mjs`.
+- A checagem do passo 6 é `GET /api/whatsapp/diagnostico`, protegida pelo
+  `CRON_SECRET`.
+- O teste do passo 2 roda com `npm run agente`.
