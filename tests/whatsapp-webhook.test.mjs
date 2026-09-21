@@ -152,9 +152,13 @@ test("combinação que o responsável não soube informar devolve null, não uma
   // Materiais que a agente reconhece mas cujo preço ninguém passou.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "terra", "itajai"), null);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "entulho", "itajai"), null);
+  // Entulho tem preço no TAMBOR (peça oficial da empresa, 14/09), e continuar
+  // sem preço na caçamba é o ponto: material com preço num produto não vira
+  // preço no outro.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "entulho", "itajai"), null);
 });
 
-test("cada preço cadastrado tem fonte primária, e só esses seis existem", () => {
+test("cada preço cadastrado tem fonte primária, e só esses sete existem", () => {
   // Áudio do vendedor que está saindo — fonte fraca, a reconfirmar com o dono.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itajai"), 220);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "itajai"), 180);
@@ -164,8 +168,13 @@ test("cada preço cadastrado tem fonte primária, e só esses seis existem", () 
   // O DONO, em conversa real com cliente em Itapema, material gesso. Fonte forte.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema"), 250);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itapema"), 470);
+  // A PRÓPRIA EMPRESA, no WhatsApp dela (14/09, 13:26): peça oficial do tambor
+  // com a legenda "Tambor de entulho / 180 reias e fica 3 dias". Fonte forte.
+  // A cidade é Itajaí porque o tambor só existe lá — regra já registrada, não
+  // suposição nova. Ver o teste do tambor mais abaixo, que é o que segura isso.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "entulho", "itajai"), 180);
 
-  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 6, "nenhum preço sem fonte entrou");
+  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 7, "nenhum preço sem fonte entrou");
 });
 
 test("Itapema é mais barata que Itajaí no mesmo material — cidade tem preço próprio", () => {
