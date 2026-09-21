@@ -51,6 +51,13 @@ async function pendentes() {
   return response.json();
 }
 
+// A cena da foto e se ela casou com o texto, para a linha de log. Fica vazio
+// quando o servidor ainda não manda esses campos (deploy anterior a 21/09).
+function cenaDe(artigo) {
+  if (!artigo.term) return "";
+  return ` · ${artigo.term}${artigo.relevante ? "" : " [rodízio]"}`;
+}
+
 async function baixarFoto(photoId) {
   const response = await fetch(`${siteUrl}/api/media-images/${photoId}`, {
     headers: { Accept: "image/*" },
@@ -91,6 +98,16 @@ async function main() {
   }
   if (dryRun) console.log("simulação (--dry-run): nada será escrito.\n");
 
+  // Quantas capas saíram por assunto e quantas por rodízio. É o número que
+  // diz se a troca melhorou as capas ou só as embaralhou — sem ele, uma
+  // rodada que não casou nada parece idêntica a uma que casou tudo.
+  if (typeof lista.relevantes === "number") {
+    console.log(
+      `casadas com o texto da matéria: ${lista.relevantes} · por rodízio da editoria: ` +
+        `${lista.porRodizio ?? 0} · sem banco: ${(lista.semBanco ?? []).length}\n`,
+    );
+  }
+
   // Duas passagens separadas, e nessa ordem: primeiro os arquivos, depois o
   // commit (no workflow), e só então o registro no banco. Gravar coverPhotoId
   // antes do arquivo estar publicado apontaria a procedência para uma capa que
@@ -119,7 +136,10 @@ async function main() {
       continue;
     }
     if (dryRun) {
-      console.log(`  ${artigo.slug} ← ${artigo.photoId} (${artigo.photoCredit ?? "sem crédito"})`);
+      console.log(
+        `  ${artigo.slug} ← ${artigo.photoId} (${artigo.photoCredit ?? "sem crédito"})` +
+          `${cenaDe(artigo)}`,
+      );
       trocadas += 1;
       continue;
     }
@@ -157,7 +177,7 @@ async function main() {
       );
 
       trocadas += 1;
-      console.log(`  ${artigo.slug} ← ${artigo.photoId} (${bytes.length} B)`);
+      console.log(`  ${artigo.slug} ← ${artigo.photoId} (${bytes.length} B)${cenaDe(artigo)}`);
     } catch (error) {
       // Uma matéria que falha não derruba as outras: ela fica com a arte e a
       // próxima rodada tenta de novo.
