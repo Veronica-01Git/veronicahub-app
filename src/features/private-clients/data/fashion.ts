@@ -20,7 +20,7 @@ export const fashionWorkspace: WorkspaceContent = {
   nextActions: [
     { label: "01", detail: "Validar os módulos com o cliente", state: "current" },
     { label: "02", detail: "Levantar fontes de dados reais (ERP, planilhas, loja)", state: "next" },
-    { label: "03", detail: "Emitir selo de procedência do projeto", state: "next" },
+    { label: "03", detail: "Selo de membro VH-MEM-2026-000003 emitido", state: "done" },
     { label: "04", detail: "Conectar dados reais — não configurado", state: "blocked" },
   ],
   activity: [

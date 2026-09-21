@@ -18,6 +18,7 @@ function SealVerification() {
   if (!record) return <UnknownSeal serial={serial} />;
 
   const verificationUrl = `https://veronicahub.com/selo/${record.serial}`;
+  const isMember = record.status === "member";
   const isConcept = Boolean(record.isDemonstration);
   const activeStepIndex = Math.max(0, record.timeline.findIndex((event) => event.state === "current"));
   const progress = Math.round(((activeStepIndex + 1) / record.timeline.length) * 100);
@@ -43,7 +44,7 @@ function SealVerification() {
                 <div aria-hidden className="absolute h-[19rem] w-[19rem] rounded-full border border-neon-green/25 motion-safe:animate-[spin_24s_linear_infinite] before:absolute before:inset-4 before:rounded-full before:border before:border-dashed before:border-neon-cyan/30" />
                 <div className="relative transition-transform duration-700 [transform:rotateX(4deg)_rotateY(-5deg)] group-hover:[transform:rotateX(0deg)_rotateY(0deg)_scale(1.025)]">
                   <div aria-hidden className="absolute inset-[12%] rounded-full bg-gradient-to-br from-neon-cyan/25 via-transparent to-neon-green/20 blur-2xl" />
-                  <VeronicaSeal serialNumber={record.serial} issuedTo={record.client} issuedDate={record.issuedAt} productName={isConcept ? "CONCEITO" : "SOLUÇÃO IA"} size="lg" className="relative drop-shadow-[0_30px_45px_oklch(0.58_0.17_155/.24)]" />
+                  <VeronicaSeal serialNumber={record.serial} issuedTo={record.client} issuedDate={record.issuedAt} membership={isMember} productName={isMember ? "MEMBRO" : isConcept ? "CONCEITO" : "SOLUÇÃO IA"} size="lg" className="relative drop-shadow-[0_30px_45px_oklch(0.58_0.17_155/.24)]" />
                   <div aria-hidden className="absolute inset-[7%] rounded-full bg-gradient-to-tr from-transparent via-white/30 to-transparent opacity-70 mix-blend-screen motion-safe:animate-pulse" />
                 </div>
               </div>
@@ -65,14 +66,18 @@ function SealVerification() {
             <dl className="grid content-start overflow-hidden rounded-sm border border-border/60 bg-border/50">{[["Número de série", record.serial], ["Categoria", record.category], ["Versão", record.version], ["Registro", record.issuedAt], ["Desenvolvedor", record.provider], ...(record.support ? [["Suporte", record.support]] : [])].map(([term, value]) => <div key={term} className="grid gap-1 bg-background p-5 sm:grid-cols-[8rem_1fr]"><dt className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">{term}</dt><dd className="text-sm">{value}</dd></div>)}</dl>
           </div>
 
-          <div className="mt-16 border-t border-border/50 pt-12">
+          {isMember ? <section className="mt-16 rounded-2xl border border-neon-cyan/25 bg-white/70 p-8">
+            <h2 className="font-display text-3xl">Membro {String(record.memberNumber).padStart(2, "0")} · Registro emitido</h2>
+            <p className="mt-4 text-muted-foreground">Emitido em {record.issuedAt}. Entre com seu e-mail na comunidade para acessar as publicações e participar das conversas.</p>
+            <Link to="/membros" className="mt-6 inline-flex rounded-full bg-neon-green px-6 py-3 text-primary-foreground">Acessar área de membros</Link>
+          </section> : <div className="mt-16 border-t border-border/50 pt-12">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div><div className="font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-cyan">Cronograma de implantação</div><h2 className="mt-3 font-display text-4xl tracking-[-.04em]">Progresso até a entrega</h2></div>
               <div className="font-mono-tech text-xs uppercase tracking-widest text-muted-foreground"><span className="text-neon-green">{progress}%</span> do ciclo sinalizado</div>
             </div>
             <div className="mt-7 h-2 overflow-hidden rounded-full bg-border/50" role="progressbar" aria-label="Progresso do projeto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className="h-full rounded-full bg-gradient-to-r from-neon-green to-neon-cyan shadow-glow-green transition-[width] duration-700" style={{ width: `${progress}%` }} /></div>
             <div className="mt-7 grid gap-4 md:grid-cols-5">{record.timeline.map((event, index) => <article key={`${event.date}-${event.label}`} className={`relative min-h-44 overflow-hidden rounded-sm border p-5 ${event.state === "current" ? "border-neon-green/60 bg-neon-green/[.08] shadow-[0_22px_70px_oklch(0.58_0.17_155/.12)]" : event.state === "done" ? "border-neon-cyan/35 bg-neon-cyan/[.05]" : "border-border/60 bg-surface/40"}`}><span aria-hidden className="absolute right-3 top-2 font-display text-5xl text-neon-green/[.08]">0{index + 1}</span><div className="font-mono-tech text-[10px] uppercase tracking-widest text-neon-cyan">{event.date}</div><div className="mt-8 text-sm font-medium leading-relaxed">{event.label}</div><div className={`mt-5 inline-flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-widest ${event.state === "current" ? "text-neon-green" : "text-muted-foreground"}`}><span className={`h-1.5 w-1.5 rounded-full ${event.state === "current" ? "bg-neon-green animate-pulse" : event.state === "done" ? "bg-neon-cyan" : "bg-border"}`} />{event.state === "current" ? "Em andamento" : event.state === "done" ? "Concluído" : "Próxima etapa"}</div></article>)}</div>
-          </div>
+          </div>}
 
           {record.operations && (
             <section className="mt-16 overflow-hidden rounded-sm border border-neon-cyan/25 bg-[radial-gradient(circle_at_85%_10%,oklch(0.56_0.13_195/.14),transparent_34%),linear-gradient(135deg,white,oklch(0.97_0.01_180))] p-6 shadow-[0_30px_100px_oklch(0.56_0.13_195/.1)] md:p-9">

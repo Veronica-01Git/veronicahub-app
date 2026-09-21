@@ -4,6 +4,7 @@ import { ShieldCheck } from "lucide-react";
 export interface VeronicaSealProps {
   /** Número de série único, ex.: "VH-2026-000001" (sem o prefixo "Nº"). */
   serialNumber: string;
+  membership?: boolean;
   /** Nome de quem recebeu o selo — opcional. */
   issuedTo?: string;
   /** Data de emissão, já formatada (ex.: "24/07/2026"). */
@@ -41,7 +42,7 @@ const HALF_CIRCUMFERENCE = Math.PI * TEXT_RADIUS;
 const RING_LABEL = "VERONICA · SELO DE ORIGINALIDADE · ";
 const VERIFY_LABEL = "VERIFICADO EM VERONICAHUB.COM/VERIFICAR";
 
-export function VeronicaSeal({ serialNumber, issuedTo, issuedDate, productName, size = "md", className }: VeronicaSealProps) {
+export function VeronicaSeal({ serialNumber, issuedTo, issuedDate, productName, size = "md", className, membership = false }: VeronicaSealProps) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const topArcId = `seal-top-${uid}`;
   const bottomArcId = `seal-bottom-${uid}`;
@@ -53,7 +54,7 @@ export function VeronicaSeal({ serialNumber, issuedTo, issuedDate, productName, 
       height={px}
       viewBox="0 0 240 240"
       role="img"
-      aria-label={`Selo Veronica de Originalidade — ${productName}, nº ${serialNumber}, emitido em ${issuedDate}`}
+      aria-label={`Selo Veronica ${membership ? "de Membro" : "de Originalidade"} — ${productName}, nº ${serialNumber}, emitido em ${issuedDate}`}
       className={className}
       style={{ display: "block", flexShrink: 0 }}
     >
@@ -70,12 +71,12 @@ export function VeronicaSeal({ serialNumber, issuedTo, issuedDate, productName, 
       {/* Texto no perímetro */}
       <text fill={INK} fontSize="9.5" letterSpacing="1.5" fontFamily={FONT_MONO} style={{ textTransform: "uppercase" }}>
         <textPath href={`#${topArcId}`} startOffset="0" textLength={HALF_CIRCUMFERENCE} lengthAdjust="spacing">
-          {RING_LABEL.repeat(2)}
+          {(membership ? "VERONICA · SELO DE MEMBRO · " : RING_LABEL).repeat(2)}
         </textPath>
       </text>
       <text fill={ACCENT} fontSize="6.5" letterSpacing="1" fontFamily={FONT_MONO} textAnchor="middle" style={{ textTransform: "uppercase" }}>
         <textPath href={`#${bottomArcId}`} startOffset="50%">
-          {VERIFY_LABEL}
+          {membership ? "VERIFIQUE O SERIAL EM VERONICAHUB.COM/SELOS" : VERIFY_LABEL}
         </textPath>
       </text>
 

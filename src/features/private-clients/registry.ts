@@ -61,9 +61,9 @@ export const privateClients: readonly PrivateClient[] = [
     id: "lz-team",
     slug: "lz-team",
     displayName: "LZ Team",
-    tagline: "Ambiente em preparação",
-    sealSerial: null,
-    accessState: "awaiting-seal",
+    tagline: "Membro 02 · escopo em definição",
+    sealSerial: "VH-MEM-2026-000002",
+    accessState: "active",
     requiresPin: false,
     modules: [
       {
@@ -83,10 +83,10 @@ export const privateClients: readonly PrivateClient[] = [
   {
     id: "veronica-fashion-operator",
     slug: "veronica-fashion-operator",
-    displayName: "Veronica Fashion Operator",
+    displayName: "Veronica Fashion & Co.",
     tagline: "Operação e monetização para marcas de moda · protótipo",
-    sealSerial: null,
-    accessState: "awaiting-seal",
+    sealSerial: "VH-MEM-2026-000003",
+    accessState: "active",
     requiresPin: false,
     modules: [
       { id: "live", label: "Veronica Live", description: "Conversa com a Veronica.", state: "demo" },
