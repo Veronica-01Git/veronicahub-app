@@ -124,7 +124,7 @@ export function GlassCard({
   return (
     <div
       className={[
-        "rounded-[30px] border border-white/80 bg-white/72 shadow-[0_20px_70px_rgba(16,24,40,.09)] backdrop-blur-2xl",
+        "rounded-[30px] border border-white/80 bg-white/[.72] shadow-[0_20px_70px_rgba(16,24,40,.09)] backdrop-blur-2xl",
         interactive
           ? "transition duration-500 hover:-translate-y-1 hover:shadow-[0_28px_90px_rgba(16,24,40,.14)] motion-reduce:transform-none"
           : "",
@@ -183,7 +183,7 @@ export function MetricTile({
   accent?: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/[.055] bg-white/78 p-5 backdrop-blur-xl">
+    <div className="rounded-[24px] border border-black/[.055] bg-white/[.78] p-5 backdrop-blur-xl">
       <div className="text-[11px] font-semibold uppercase tracking-[.16em] text-black/42">{label}</div>
       <div className="mt-3 text-3xl font-semibold tracking-[-.05em] text-black/90" style={accent ? { color: accent } : undefined}>
         {value}
