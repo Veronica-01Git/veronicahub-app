@@ -80,7 +80,7 @@ function FashionExecution() {
           <>
             <HoloBadge>DEMO</HoloBadge>
             <Link
-              to="/clientes/veronica-fashion-operator/"
+              to="/clientes/veronica-fashion-operator"
               className="hidden min-h-10 items-center gap-2 rounded-full border border-black/[.08] bg-white/80 px-4 text-[12px] font-semibold text-black/65 transition hover:bg-white sm:inline-flex"
             >
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Vitrine
