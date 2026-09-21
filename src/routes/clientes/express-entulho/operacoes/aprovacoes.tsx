@@ -16,7 +16,7 @@ import {
 import { fmtEspera, fmtMoeda } from "@/features/express-ops-b/format";
 import type { Aprovacao, DecisaoRegistrada } from "@/features/express-ops-b/data/types";
 
-export const Route = createFileRoute("/preview/express-operations-b/aprovacoes")({
+export const Route = createFileRoute("/clientes/express-entulho/operacoes/aprovacoes")({
   component: Aprovacoes,
 });
 

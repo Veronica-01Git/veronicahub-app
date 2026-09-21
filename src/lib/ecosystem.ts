@@ -31,12 +31,7 @@ export const CATEGORIES = [
   "Projetos especiais",
 ] as const;
 export type ProductStatus =
-  | "Disponível"
-  | "Parcial"
-  | "Demonstração"
-  | "Em produção"
-  | "Em estruturação"
-  | "Externo";
+  "Disponível" | "Parcial" | "Demonstração" | "Em produção" | "Em estruturação" | "Externo";
 export type Product = {
   id: string;
   name: string;
@@ -201,6 +196,16 @@ export const PRODUCTS: Product[] = [
     public: true,
   },
   {
+    id: "clientes",
+    name: "Clientes",
+    category: "Governança",
+    to: "/clientes",
+    status: "Disponível",
+    description: "Clientes atendidos, com selo de procedência e entregas abertas",
+    external: false,
+    public: true,
+  },
+  {
     id: "china",
     name: "Negócio da China",
     category: "Projetos especiais",
@@ -231,7 +236,7 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
   tag: product(intent.productId).description,
   to: product(intent.productId).to,
 }));
-export const PRIMARY_NAV = ["formations", "packs", "wire"].map(product);
+export const PRIMARY_NAV = ["formations", "packs", "wire", "clientes"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
   // Primeiro da lista: é o produto que tem teste grátis e caminho de venda

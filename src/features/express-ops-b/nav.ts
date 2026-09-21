@@ -177,7 +177,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
 
 export const NAV_POR_SLUG = new Map(ITENS_NAV.map((i) => [i.slug, i]));
 
-export const BASE = "/preview/express-operations-b";
+export const BASE = "/clientes/express-entulho/operacoes";
 
 export function hrefDe(slug: string): string {
   return slug === "" ? BASE : `${BASE}/${slug}`;

@@ -18,7 +18,7 @@ import { BarraPrazo } from "@/features/express-ops-b/components/charts";
 import { fmtDias } from "@/features/express-ops-b/format";
 import type { Conversa, ConversaEstado, Mensagem } from "@/features/express-ops-b/data/types";
 
-export const Route = createFileRoute("/preview/express-operations-b/atendimento")({
+export const Route = createFileRoute("/clientes/express-entulho/operacoes/atendimento")({
   component: CentralAtendimento,
 });
 

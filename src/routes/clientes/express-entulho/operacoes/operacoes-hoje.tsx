@@ -36,7 +36,7 @@ import {
 type Filtro = "todas" | "entregas" | "retiradas" | "trocas" | "atrasadas";
 const FILTROS: readonly Filtro[] = ["todas", "entregas", "retiradas", "trocas", "atrasadas"];
 
-export const Route = createFileRoute("/preview/express-operations-b/operacoes-hoje")({
+export const Route = createFileRoute("/clientes/express-entulho/operacoes/operacoes-hoje")({
   component: OperacoesHoje,
   validateSearch: (busca: Record<string, unknown>): { filtro: Filtro } => {
     const bruto = busca.filtro;
