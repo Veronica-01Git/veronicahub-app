@@ -356,6 +356,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/clientes': typeof ClientesIndexRoute
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
   '/clientes/admin': typeof ClientesAdminRoute
   '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
