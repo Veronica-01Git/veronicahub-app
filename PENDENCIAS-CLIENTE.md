@@ -13,17 +13,23 @@ entrega menos.
 
 Levantado em 17/09/2026. Selo `VH-AUT-WA-2026-000001`.
 
+**Atualizado em 21/09/2026.** Entraram os dois preços de Itapema que o dono
+ditou ao cliente na conversa de 19/09. A matriz agora tem **seis** combinações
+preenchidas, não quatro, e elas não são todas em Itajaí. As contagens deste
+arquivo foram refeitas, e a pergunta (b) abaixo mudou de natureza: ela já tem
+meia resposta, vinda do próprio dono.
+
 ---
 
 ## Resumo
 
-| #   | Pendência                            | Quem resolve                 | Sem isso, a agente…                                                                |
-| --- | ------------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------- |
-| 1   | Preços que faltam                    | Dono / setor comercial       | encaminha todo pedido de valor que não seja Itajaí com demolição ou gesso na menor |
-| 2   | Verificação de negócio na Meta       | Dono (documentos da empresa) | só funciona no número de teste da Meta, para números cadastrados à mão             |
-| 3   | Divergência de endereço              | Dono (contador / Google)     | corre risco de reprovar a verificação do item 2 e ter de refazer                   |
-| 4   | API do MAIS Locações                 | Suporte do fornecedor        | nunca responde "tem caçamba livre hoje" — sempre encaminha                         |
-| 5   | Tambor R$ 180 × caçamba menor R$ 220 | Dono                         | cota os dois valores como estão; se um estiver errado, cota errado                 |
+| #   | Pendência                            | Quem resolve                 | Sem isso, a agente…                                                     |
+| --- | ------------------------------------ | ---------------------------- | ----------------------------------------------------------------------- |
+| 1   | Preços que faltam                    | Dono / setor comercial       | encaminha todo pedido de valor fora das seis combinações já confirmadas |
+| 2   | Verificação de negócio na Meta       | Dono (documentos da empresa) | só funciona no número de teste da Meta, para números cadastrados à mão  |
+| 3   | Divergência de endereço              | Dono (contador / Google)     | corre risco de reprovar a verificação do item 2 e ter de refazer        |
+| 4   | API do MAIS Locações                 | Suporte do fornecedor        | nunca responde "tem caçamba livre hoje" — sempre encaminha              |
+| 5   | Tambor R$ 180 × caçamba menor R$ 220 | Dono                         | cota os dois valores como estão; se um estiver errado, cota errado      |
 
 Os itens **1 e 5 são os únicos que mudam o que a agente responde no dia 19**.
 Os itens 2 e 3 decidem se ela atende cliente real ou só demonstração. O item 4
@@ -35,7 +41,11 @@ decide o teto do produto daqui para a frente.
 
 ### O que já está confirmado
 
-Só isto, e só em Itajaí:
+Seis preços, em duas cidades, e eles não têm o mesmo peso de fonte.
+
+**Itajaí** — vieram do áudio do vendedor que está saindo (16/09). Ele mesmo
+diz "não sou vendedor, vendedor não é eu" antes de não saber vários valores.
+Valem como indício. **Reconfirmar com o dono.**
 
 | Produto            | Prazo  | Demolição | Gesso     |
 | ------------------ | ------ | --------- | --------- |
@@ -43,40 +53,61 @@ Só isto, e só em Itajaí:
 | Tambor (só Itajaí) | 3 dias | R$ 180    | **falta** |
 | Caçamba grande     | 7 dias | R$ 450    | **falta** |
 
+**Itapema** — ditos pelo **próprio dono**, em conversa real com cliente
+(19/09): "CACAMBA MENOR, 250 reais e fica 3 dias" e "Caçamba grande, 470 reais
+e fica 7 dias". É a fonte mais forte que existe no projeto.
+
+| Produto        | Prazo  | Demolição | Gesso  |
+| -------------- | ------ | --------- | ------ |
+| Caçamba menor  | 3 dias | **falta** | R$ 250 |
+| Caçamba grande | 7 dias | **falta** | R$ 470 |
+
+Repare no que essas duas tabelas dizem juntas: gesso na caçamba menor custa
+**R$ 280 em Itajaí e R$ 250 em Itapema**. Cidade diferente, preço diferente —
+e mais barato fora da sede. Isso não é detalhe de cadastro; é o que responde
+metade da pergunta (b) mais abaixo.
+
 ### O tamanho real do buraco
 
 Contando as oito cidades atendidas e os dois materiais que já conhecemos, a
-matriz tem **34 combinações de produto × material × cidade. Quatro estão
-preenchidas. Trinta estão vazias** — e isso ainda é o cenário otimista, porque
-considera que só existem dois materiais.
+matriz tem **34 combinações de produto × material × cidade. Seis estão
+preenchidas. Vinte e oito estão vazias** — e isso ainda é o cenário otimista,
+porque considera que só existem dois materiais.
 
-Duas dessas trinta são em Itajaí:
+Onde estão os vinte e oito buracos:
 
-- Tambor com gesso
-- Caçamba grande com gesso
-
-As outras **vinte e oito** são todo o preço fora de Itajaí: Balneário Camboriú,
-Camboriú, Itapema, Porto Belo, Ilhota, Navegantes e Penha — caçamba menor e
-caçamba grande, demolição e gesso, em cada uma.
+- **Duas em Itajaí:** tambor com gesso e caçamba grande com gesso.
+- **Duas em Itapema:** demolição na menor e na grande. A cidade tem gesso
+  cotado pelo dono, mas demolição não.
+- **Vinte e quatro nas outras seis cidades:** Balneário Camboriú, Camboriú,
+  Porto Belo, Ilhota, Navegantes e Penha — caçamba menor e caçamba grande,
+  demolição e gesso, em cada uma. Nenhum preço, de nada, em nenhuma delas.
 
 ### As três perguntas que fecham isso
 
-Em vez de pedir trinta números, três perguntas resolvem quase tudo:
+Em vez de pedir vinte e oito números, três perguntas resolvem quase tudo:
 
 **a) Os dois preços de gesso em Itajaí.** Tambor com gesso e caçamba grande com
 gesso. São dois valores.
 
-**b) Fora de Itajaí, o preço muda como?** Esta é a pergunta que vale mais.
-Existem dois jeitos de a empresa cobrar, e eles dão trabalhos muito diferentes:
+**b) Fora de Itajaí, o preço muda como? — meia resposta já veio, e ela fecha
+uma porta.** A conversa do dono em 19/09 mostra gesso na caçamba menor a
+**R$ 250 em Itapema** contra **R$ 280 em Itajaí**. Isso elimina as duas
+hipóteses mais convenientes de uma vez: não é tabela única, e não é "preço de
+Itajaí mais deslocamento" — fosse deslocamento, a cidade de fora sairia mais
+cara, não mais barata.
 
-- _Se for "o mesmo preço de Itajaí mais um valor de deslocamento por cidade"_,
-  são **sete números** e acabou. Qualquer preço novo de Itajaí se propaga
-  sozinho para as outras cidades.
-- _Se cada cidade tiver tabela própria_, são mesmo vinte e oito números, e cada
-  preço novo no futuro vira mais sete.
+O que sobra é tabela por cidade. Resta confirmar **o formato**, e é isso que
+muda o trabalho:
 
-Só o dono sabe qual dos dois é. A resposta muda a forma da tabela no sistema,
-então é melhor perguntar antes de preencher.
+- _Se cada uma das oito cidades tiver preço próprio_, são mesmo vinte e oito
+  números, e cada material novo no futuro vira mais oito.
+- _Se as cidades se agruparem_ (por exemplo, todo o litoral com o mesmo preço,
+  ou Itajaí de um lado e o resto de outro), são poucos números e o resto se
+  propaga sozinho.
+
+A pergunta ao dono, então, não é mais "muda como?" e sim: **o preço de Itapema
+vale para as outras seis cidades, ou cada uma tem o seu?**
 
 **c) Quais materiais existem, além de demolição e gesso?** Terra, entulho
 misto, madeira, poda, mudança, lixo de reforma — a lista real da empresa. Cada
@@ -97,8 +128,10 @@ preenchendo, e não descobrir um material por vez.
 
 ### O que acontece sem essas respostas
 
-A agente cota **só** caçamba menor e tambor com demolição em Itajaí, e caçamba
-menor com gesso em Itajaí. Todo o resto vira "deixa eu confirmar com a equipe".
+A agente cota **seis combinações** e só elas: em Itajaí, demolição na menor,
+no tambor e na grande, mais gesso na menor; em Itapema, gesso na menor e na
+grande. Todo o resto vira "deixa eu confirmar com a equipe" — inclusive
+demolição em Itapema, que é a mesma cidade onde ela acabou de cotar gesso.
 Isso funciona e não constrange ninguém — mas é uma agente que encaminha a maior
 parte das conversas em vez de resolver.
 
