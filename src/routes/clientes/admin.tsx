@@ -27,7 +27,9 @@ export const Route = createFileRoute("/clientes/admin")({
   }),
 });
 
-type Dashboard = Awaited<ReturnType<typeof getPrivateClientsAdminDashboard>>;\ntype DashboardState = Dashboard | { ok: false; error: string };\n
+type Dashboard = Awaited<ReturnType<typeof getPrivateClientsAdminDashboard>>;
+type DashboardState = Dashboard | { ok: false; error: string };
+
 function PrivateClientsAdmin() {
   const [dashboard, setDashboard] = useState<DashboardState | null>(null);
   const [checking, setChecking] = useState(true);
