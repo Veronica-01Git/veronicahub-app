@@ -18,7 +18,14 @@ registerHooks({
 });
 // Import dinâmico de propósito: `import` estático é resolvido antes do corpo
 // do módulo rodar, então o hook acima ainda não valeria.
-const { verifyWebhookSignature, janela24hAberta } = await import("../src/lib/whatsapp-cloud.ts");
+const {
+  verifyWebhookSignature,
+  janela24hAberta,
+  motivoEnvioBloqueado,
+  getWhatsAppConfig,
+  sendText,
+  EXPLICACAO_BLOQUEIO,
+} = await import("../src/lib/whatsapp-cloud.ts");
 const {
   precisaDeHumano,
   decidirResposta,
@@ -33,12 +40,8 @@ const { podeCotar, buscarPreco, produtosDaCidade, produtoPorId, REGRAS_EXPRESS_E
   await import("../src/lib/whatsapp-rules.ts");
 const { diagnosticarGroq, diagnosticarWhatsApp } =
   await import("../src/lib/whatsapp-diagnostico.ts");
-const {
-  CADEIA_DE_PROVEDORES,
-  PROVEDOR_ANTHROPIC,
-  MODELO_GROQ_PRINCIPAL,
-  MODELO_GROQ_RESERVA,
-} = await import("../src/lib/whatsapp-provedores.ts");
+const { CADEIA_DE_PROVEDORES, PROVEDOR_ANTHROPIC, MODELO_GROQ_PRINCIPAL, MODELO_GROQ_RESERVA } =
+  await import("../src/lib/whatsapp-provedores.ts");
 
 const SEGREDO = "segredo-de-teste-do-app-meta";
 
@@ -402,9 +405,9 @@ test("a reserva da Groq usa identificadores que o repositório comprova", async 
   // o valida é a sonda do /api/whatsapp/diagnostico.)
   const { readFileSync } = await import("node:fs");
   const fonte = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
-  const comprovados = [
-    ...fonte.matchAll(/^const DRAFT_(?:FALLBACK_)?MODEL = "([^"]+)";/gm),
-  ].map((m) => m[1]);
+  const comprovados = [...fonte.matchAll(/^const DRAFT_(?:FALLBACK_)?MODEL = "([^"]+)";/gm)].map(
+    (m) => m[1],
+  );
 
   for (const modelo of [MODELO_GROQ_PRINCIPAL, MODELO_GROQ_RESERVA]) {
     assert.ok(
@@ -460,10 +463,7 @@ test("o erro que a guarda antiga deixava passar: preço de Itajaí cotado fora d
   // só em Itajaí — a forma do erro é a mesma, o dado é que mudou.
   const conversa = "quanto custa? caçamba menor, gesso, a obra é em Itapema";
 
-  assert.equal(
-    respostaSegura("A menor com gesso sai por R$ 280.", undefined, conversa),
-    false,
-  );
+  assert.equal(respostaSegura("A menor com gesso sai por R$ 280.", undefined, conversa), false);
   assert.match(motivoDaGuarda("A menor com gesso sai por R$ 280.", undefined, conversa), /Itapema/);
 });
 
@@ -536,7 +536,10 @@ test("listar as cidades atendidas não emudece a agente sobre preço", () => {
     "é gesso, em Itapema",
   ].join("\n");
 
-  assert.equal(respostaSegura("A menor com gesso sai por R$ 280.", undefined, gessoEmItapema), false);
+  assert.equal(
+    respostaSegura("A menor com gesso sai por R$ 280.", undefined, gessoEmItapema),
+    false,
+  );
   assert.match(motivoDaGuarda("Sai por R$ 280.", undefined, gessoEmItapema), /Itapema/);
 });
 
@@ -545,7 +548,10 @@ test("a cidade que vale é a última dita, não a primeira", () => {
   // depois diz "na minha outra obra, em Itajaí" está pedindo Itajaí.
   const conversa = ["quanto custa em Itapema?", "e na minha outra obra, em Itajaí?"].join("\n");
 
-  assert.equal(respostaSegura("Em Itajaí, a menor para demolição sai R$ 220.", undefined, conversa), true);
+  assert.equal(
+    respostaSegura("Em Itajaí, a menor para demolição sai R$ 220.", undefined, conversa),
+    true,
+  );
 });
 
 test("resposta que cota cidade diferente da que o cliente pediu é barrada", () => {
@@ -560,10 +566,7 @@ test("resposta que cota cidade diferente da que o cliente pediu é barrada", () 
 });
 
 test("resposta que cota duas cidades de uma vez é barrada", () => {
-  assert.equal(
-    respostaSegura("Em Itajaí sai R$ 220 e em Itapema R$ 220.", undefined, ""),
-    false,
-  );
+  assert.equal(respostaSegura("Em Itajaí sai R$ 220 e em Itapema R$ 220.", undefined, ""), false);
 });
 
 test("nenhum atalho responde sobre disponibilidade sem consultar agenda nenhuma", async () => {
@@ -618,4 +621,93 @@ test("Balneário Camboriú não é confundido com Camboriú", () => {
 test("texto sem preço nenhum passa sempre — a guarda só olha dinheiro", () => {
   assert.equal(respostaSegura("Em qual cidade é a obra?"), true);
   assert.equal(respostaSegura("A menor fica 3 dias na obra."), true);
+});
+
+/* ------------------------------------------- trava de envio (decisão 21/09) */
+
+/**
+ * Nada sai para WhatsApp antes da aprovação do dono da Express Entulho.
+ *
+ * Estes testes existem porque a trava é fácil de remover sem querer: ela é um
+ * `if` de três linhas dentro de `getWhatsAppConfig`, e quem estiver caçando um
+ * "WhatsApp não configurado" em produção tem todo incentivo para apagá-la.
+ * Se alguém apagar, isto aqui fica vermelho e diz por quê.
+ */
+test("com credencial e sem liberação, o envio continua bloqueado", async () => {
+  const antes = {
+    id: process.env.WHATSAPP_PHONE_NUMBER_ID,
+    token: process.env.WHATSAPP_ACCESS_TOKEN,
+    liberado: process.env.WHATSAPP_ENVIO_LIBERADO,
+  };
+  try {
+    // Credenciais completas: o único motivo de não enviar é a falta de
+    // aprovação. É exatamente o estado em que o projeto está hoje.
+    process.env.WHATSAPP_PHONE_NUMBER_ID = "000000000000000";
+    process.env.WHATSAPP_ACCESS_TOKEN = "token-de-teste";
+    delete process.env.WHATSAPP_ENVIO_LIBERADO;
+
+    assert.equal(motivoEnvioBloqueado(), "envio-nao-liberado");
+    assert.equal(getWhatsAppConfig(), null, "config saiu mesmo sem liberação");
+
+    // Valores que alguém tentaria por hábito não podem destravar.
+    for (const tentativa of ["true", "1", "sim", "yes", "on", ""]) {
+      process.env.WHATSAPP_ENVIO_LIBERADO = tentativa;
+      assert.equal(
+        motivoEnvioBloqueado(),
+        "envio-nao-liberado",
+        `"${tentativa}" não deveria liberar envio`,
+      );
+    }
+
+    // O envio real devolve o motivo certo SEM TOCAR NA REDE.
+    //
+    // O `fetch` é substituído por um que estoura. Não é paranoia: se alguém
+    // remover a trava, sem isto este teste passaria a abrir conexão de
+    // verdade com a Graph da Meta toda vez que alguém rodasse `npm test`.
+    // Um teste que conecta na Meta por acidente é exatamente o que este
+    // arquivo existe para impedir. Com o estouro, a trava quebrada vira
+    // teste vermelho em vez de tráfego.
+    delete process.env.WHATSAPP_ENVIO_LIBERADO;
+    const fetchOriginal = globalThis.fetch;
+    globalThis.fetch = () => {
+      throw new Error("a trava deixou passar: houve tentativa de conexão com a Meta");
+    };
+    try {
+      const r = await sendText("5547999999999", "não deve sair");
+      assert.equal(r.ok, false);
+      assert.match(r.erro, /aguardando aprova/i);
+    } finally {
+      globalThis.fetch = fetchOriginal;
+    }
+  } finally {
+    process.env.WHATSAPP_PHONE_NUMBER_ID = antes.id;
+    process.env.WHATSAPP_ACCESS_TOKEN = antes.token;
+    if (antes.liberado === undefined) delete process.env.WHATSAPP_ENVIO_LIBERADO;
+    else process.env.WHATSAPP_ENVIO_LIBERADO = antes.liberado;
+    for (const k of ["WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_ACCESS_TOKEN"]) {
+      if (antes[k === "WHATSAPP_PHONE_NUMBER_ID" ? "id" : "token"] === undefined)
+        delete process.env[k];
+    }
+  }
+});
+
+test("sem credencial nenhuma, o motivo é outro — e a frase também", () => {
+  const antes = {
+    id: process.env.WHATSAPP_PHONE_NUMBER_ID,
+    token: process.env.WHATSAPP_ACCESS_TOKEN,
+  };
+  try {
+    delete process.env.WHATSAPP_PHONE_NUMBER_ID;
+    delete process.env.WHATSAPP_ACCESS_TOKEN;
+    assert.equal(motivoEnvioBloqueado(), "sem-credenciais");
+    // As duas causas se consertam de formas opostas. Confundi-las manda a
+    // pessoa procurar token quando o que falta é a aprovação do dono.
+    assert.notEqual(
+      EXPLICACAO_BLOQUEIO["sem-credenciais"],
+      EXPLICACAO_BLOQUEIO["envio-nao-liberado"],
+    );
+  } finally {
+    if (antes.id !== undefined) process.env.WHATSAPP_PHONE_NUMBER_ID = antes.id;
+    if (antes.token !== undefined) process.env.WHATSAPP_ACCESS_TOKEN = antes.token;
+  }
 });
