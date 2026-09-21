@@ -81,7 +81,7 @@ function PrivateClientWorkspace() {
     try {
       await signOut();
     } finally {
-      void navigate({ to: "/clientes/" });
+      void navigate({ to: "/clientes" });
     }
   }
 
@@ -113,7 +113,7 @@ function PrivateClientWorkspace() {
               Esta sessão não possui acesso a este ambiente. Entre novamente usando o número de série do selo correspondente.
             </p>
             <Link
-              to="/clientes/"
+              to="/clientes"
               className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-sm bg-neon-green px-5 font-mono-tech text-[10px] uppercase tracking-widest text-primary-foreground transition hover:brightness-110"
             >
               Voltar ao acesso <ArrowRight className="h-4 w-4" aria-hidden />
