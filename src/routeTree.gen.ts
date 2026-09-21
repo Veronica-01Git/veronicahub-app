@@ -25,6 +25,7 @@ import { Route as AulaZeroRouteImport } from './routes/aula-zero'
 import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientesIndexRouteImport } from './routes/clientes/index'
+import { Route as ClientesClientSlugRouteImport } from './routes/clientes/$clientSlug'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
@@ -128,6 +129,11 @@ const IndexRoute = IndexRouteImport.update({
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
   id: '/clientes/',
   path: '/clientes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesClientSlugRoute = ClientesClientSlugRouteImport.update({
+  id: '/clientes/$clientSlug',
+  path: '/clientes/$clientSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -286,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/clientes/': typeof ClientesIndexRoute
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
@@ -368,6 +375,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/clientes/': typeof ClientesIndexRoute
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
@@ -411,6 +420,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/clientes/'
+    | '/clientes/$clientSlug'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
@@ -451,6 +461,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/blog'
     | '/clientes'
+    | '/clientes/$clientSlug'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
@@ -492,6 +503,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/clientes/'
+    | '/clientes/$clientSlug'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
@@ -534,6 +546,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
+  ClientesClientSlugRoute: typeof ClientesClientSlugRoute
   BlogEditoriaBeatRoute: typeof BlogEditoriaBeatRoute
   ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
@@ -651,6 +664,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/clientes/'
       preLoaderRoute: typeof ClientesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/$clientSlug': {
+      id: '/clientes/$clientSlug'
+      path: '/clientes/$clientSlug'
+      fullPath: '/clientes/$clientSlug'
+      preLoaderRoute: typeof ClientesClientSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -888,6 +908,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   ClientesIndexRoute: ClientesIndexRoute,
+  ClientesClientSlugRoute: ClientesClientSlugRoute,
   BlogEditoriaBeatRoute: BlogEditoriaBeatRoute,
   ClientesExpressEntulhoOperacoesDemoRoute:
     ClientesExpressEntulhoOperacoesDemoRoute,
