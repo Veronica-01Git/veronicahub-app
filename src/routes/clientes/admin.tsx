@@ -27,10 +27,9 @@ export const Route = createFileRoute("/clientes/admin")({
   }),
 });
 
-type Dashboard = Awaited<ReturnType<typeof getPrivateClientsAdminDashboard>>;
-
+type Dashboard = Awaited<ReturnType<typeof getPrivateClientsAdminDashboard>>;\ntype DashboardState = Dashboard | { ok: false; error: string };\n
 function PrivateClientsAdmin() {
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardState | null>(null);
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -262,7 +261,7 @@ function AdminWorkspace({
   busy,
   onSignOut,
 }: {
-  dashboard: Extract<Dashboard, { ok: true }>;
+  dashboard: Extract<DashboardState, { ok: true }>;
   busy: boolean;
   onSignOut: () => Promise<void>;
 }) {
