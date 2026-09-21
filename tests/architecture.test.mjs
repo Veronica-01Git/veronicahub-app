@@ -987,3 +987,49 @@ test("a ilustração gerada é marcada como sintética e nunca desenha o fato", 
     "a ilustração só entra quando o banco não deu foto",
   );
 });
+
+test("a troca ampliada alcança o rodízio antigo, mas nunca a capa manual", () => {
+  const bank = readFileSync(new URL("../src/lib/cover-bank-cron.ts", import.meta.url), "utf8");
+
+  // Escopo padrão (backfill de arte gerada) e escopo ampliado precisam
+  // dividir a MESMA cláusula de capa manual. Se ela for escrita duas vezes,
+  // uma pode ser afrouxada sem a outra — e foi exatamente assim que, em
+  // 16/09, três matérias com capa escolhida à mão foram sobrescritas.
+  assert.match(bank, /const semCapaManual = or\(/);
+  assert.match(
+    bank,
+    /todas\s*\?\s*and\(eq\(articles\.status, "published"\), semCapaManual\)/,
+    "o escopo ampliado precisa manter a trava da capa manual",
+  );
+  assert.match(
+    bank,
+    /and\(eq\(articles\.status, "published"\), isNull\(articles\.coverPhotoId\), semCapaManual\)/,
+    "o escopo padrão continua só para matéria com arte gerada",
+  );
+
+  // A cláusula em si: capa que aponta para a biblioteca é escolha de uma
+  // pessoa, e nenhuma automação a sobrescreve.
+  assert.match(bank, /not\(like\(articles\.coverImageUrl, "%\/api\/media-images\/%"\)\)/);
+
+  // O escopo precisa atravessar os três elos: workflow → script → endpoint.
+  // Em 21/09 a troca rodou com o escopo padrão contra 70 matérias publicadas
+  // e encontrou ZERO elegíveis — todas já tinham foto do rodízio antigo, que
+  // é justamente o que precisava ser trocado.
+  const script = readFileSync(new URL("../scripts/swap-art-covers.mjs", import.meta.url), "utf8");
+  const workflow = readFileSync(
+    new URL("../.github/workflows/swap-art-covers.yml", import.meta.url),
+    "utf8",
+  );
+  assert.match(script, /--todas/);
+  assert.match(script, /\?todas=1/);
+  assert.match(workflow, /inputs\.todas/);
+
+  // O registro da procedência tem que rodar no MESMO escopo da troca, senão
+  // ele lê uma lista diferente da que foi commitada e grava procedência
+  // cruzada.
+  assert.match(
+    workflow,
+    /args="--registrar"[\s\S]{0,200}?inputs\.todas/,
+    "o registro precisa repetir o escopo da troca",
+  );
+});

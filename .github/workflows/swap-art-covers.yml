@@ -17,6 +17,10 @@ on:
         description: "Só listar o que seria trocado, sem escrever nem commitar"
         type: boolean
         default: true
+      todas:
+        description: "Incluir matérias que já têm foto do banco (trocadas pelo rodízio antigo)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -39,11 +43,10 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
-            node scripts/swap-art-covers.mjs --dry-run | tee swap.log
-          else
-            node scripts/swap-art-covers.mjs | tee swap.log
-          fi
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          if [ "${{ inputs.todas }}" = "true" ]; then args="$args --todas"; fi
+          node scripts/swap-art-covers.mjs $args | tee swap.log
 
       - name: Commita capas e cards
         id: commit
@@ -71,7 +74,10 @@ jobs:
         continue-on-error: true
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: node scripts/swap-art-covers.mjs --registrar | tee -a swap.log
+        run: |
+          args="--registrar"
+          if [ "${{ inputs.todas }}" = "true" ]; then args="$args --todas"; fi
+          node scripts/swap-art-covers.mjs $args | tee -a swap.log
 
       - name: Resumo da rodada
         if: always()

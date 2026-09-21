@@ -18,6 +18,8 @@
 // Uso:
 //   CRON_SECRET=... node scripts/swap-art-covers.mjs
 //   CRON_SECRET=... node scripts/swap-art-covers.mjs --dry-run
+//   CRON_SECRET=... node scripts/swap-art-covers.mjs --todas   # inclui as
+//     matérias que já têm foto do banco, trocadas pelo rodízio antigo
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -44,7 +46,13 @@ if (!cronSecret) throw new Error("CRON_SECRET é obrigatório.");
 const authorization = { authorization: `Bearer ${cronSecret}` };
 
 async function pendentes() {
-  const response = await fetch(`${siteUrl}/api/cron/art-covers`, { headers: authorization });
+  // --todas inclui as matérias que JÁ têm foto do banco. São elas que mais
+  // precisam da troca: receberam a capa pelo rodízio antigo, que só olhava a
+  // editoria. Capa escolhida à mão pelo Admin continua fora, sempre.
+  const escopo = process.argv.includes("--todas") ? "?todas=1" : "";
+  const response = await fetch(`${siteUrl}/api/cron/art-covers${escopo}`, {
+    headers: authorization,
+  });
   if (!response.ok) {
     throw new Error(`Não deu para listar as capas (${response.status}): ${await response.text()}`);
   }

@@ -318,6 +318,28 @@ export async function handleArtCoversCron(request: Request): Promise<Response> {
   //
   // O caminho aqui espelha mediaLibraryImageId, em article-cron.ts: se um dos
   // dois mudar, capa manual volta a ser sobrescrita.
+  // `?todas=1` amplia o escopo para TODA matéria publicada que não tenha capa
+  // manual — inclusive as que já têm `coverPhotoId`, ou seja, as que já
+  // receberam foto do banco.
+  //
+  // Por que precisou existir (21/09): o escopo padrão só pega matéria com
+  // arte gerada, que é o que ele foi feito para fazer — backfill do acervo
+  // que ficou para trás. Mas quando a escolha de capa passou a ser por
+  // assunto, as matérias que MAIS precisavam de troca eram justamente as que
+  // já tinham foto: elas receberam a foto pelo rodízio antigo, que só olhava
+  // a editoria. Com o escopo padrão a troca rodava e não fazia nada — 70
+  // matérias publicadas, 0 elegíveis.
+  //
+  // O que o `todas=1` NÃO alcança, e não pode alcançar: capa escolhida à mão
+  // pelo Admin (`/api/media-images/`). Essa é decisão editorial de uma pessoa
+  // e nenhuma automação a sobrescreve — a regra é de 16/09, quando três
+  // matérias foram sobrescritas por engano.
+  const todas = new URL(request.url).searchParams.get("todas");
+  const semCapaManual = or(
+    isNull(articles.coverImageUrl),
+    not(like(articles.coverImageUrl, "%/api/media-images/%")),
+  );
+
   const pendentes = await db
     .select({
       slug: articles.slug,
@@ -327,14 +349,9 @@ export async function handleArtCoversCron(request: Request): Promise<Response> {
     })
     .from(articles)
     .where(
-      and(
-        eq(articles.status, "published"),
-        isNull(articles.coverPhotoId),
-        or(
-          isNull(articles.coverImageUrl),
-          not(like(articles.coverImageUrl, "%/api/media-images/%")),
-        ),
-      ),
+      todas
+        ? and(eq(articles.status, "published"), semCapaManual)
+        : and(eq(articles.status, "published"), isNull(articles.coverPhotoId), semCapaManual),
     )
     .orderBy(asc(articles.publishedAt));
 
