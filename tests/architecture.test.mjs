@@ -892,10 +892,18 @@ test("o banco credita as duas fontes e o expurgo poupa capa que está no ar", as
   // não é o banco da Wire. Sem a segunda, apagaria a linha que uma matéria
   // publicada está servindo como capa — e a capa no ar vira 404.
   assert.match(purge, /handleCoverBankPurgeCron/);
+  // O DELETE só pode alcançar o prefixo do banco da Wire. As outras 88
+  // imagens da biblioteca do Admin (capas de curso, cards, uploads à mão) não
+  // são o banco e são servidas por outras páginas.
   assert.match(
     purge,
-    /\.delete\(mediaImages\)[\s\S]{0,400}?like\(mediaImages\.filename, `\$\{LIBRARY_COVER_PREFIX\}%`\)/,
-    "o expurgo só pode alcançar o prefixo do banco da Wire",
+    /const doPrefixo = like\(mediaImages\.filename, `\$\{LIBRARY_COVER_PREFIX\}%`\)/,
+    "o expurgo precisa restringir ao prefixo do banco da Wire",
+  );
+  assert.match(
+    purge,
+    /\.delete\(mediaImages\)\s*\.where\(and\(doPrefixo, not\(emUsoComoCapa\(db\)\)\)\)/,
+    "o DELETE só pode alcançar o prefixo, e nunca capa que está no ar",
   );
   assert.match(
     purge,
@@ -927,6 +935,21 @@ test("o abastecimento por sessão busca nas duas fontes e continua sem commitar"
   // O expurgo por sessão é o ponto todo da mudança: sem o DELETE, o banco
   // volta a acumular e a foto de setembro segue saindo em capa em dezembro.
   assert.match(script, /method: "DELETE"/);
+
+  // A simulação tem que partir do estado PÓS-expurgo. Na primeira rodada de
+  // simulação (21/09) ela partia do banco cheio, via 16 por editoria contra um
+  // alvo de 10 e imprimia "nada a fazer" nas cinco — o oposto do que a rodada
+  // real faz. Simulação que não espelha a rodada real dá confiança sem base.
+  assert.match(script, /purgeBank\(\{ preview: true \}\)/);
+  const bankCron = readFileSync(new URL("../src/lib/cover-bank-cron.ts", import.meta.url), "utf8");
+  assert.match(bankCron, /searchParams\.get\("dryRun"\)/);
+  // O DELETE e a simulação precisam usar a MESMA condição de "está no ar":
+  // se divergirem, a simulação promete um resultado que a rodada não entrega.
+  assert.equal(
+    (bankCron.match(/emUsoComoCapa\(db\)/g) ?? []).length,
+    2,
+    "a simulação e o expurgo precisam compartilhar a condição de capa em uso",
+  );
   assert.match(script, /searchPixabayMany/);
   assert.match(script, /--sem-expurgo/, "precisa existir saída para completar sem zerar");
 });

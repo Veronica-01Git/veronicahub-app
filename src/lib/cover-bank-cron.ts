@@ -93,36 +93,77 @@ export async function handleCoverBankInventoryCron(request: Request): Promise<Re
 //    (alerta-amarelo-tempestade..., servindo wire-banco-clima-pexels-1689645)
 //    e uma outra já quebrada por uma imagem que sumiu antes desta trava
 //    existir — é exatamente o estrago que esta cláusula impede.
+// A imagem está servindo de capa em alguma matéria publicada? É esta condição
+// que a trava 2 usa. Fica numa função porque o DELETE e a simulação precisam
+// usar EXATAMENTE a mesma: se divergirem, a simulação passa a prometer um
+// resultado que a rodada real não entrega.
+//
+// `not(exists(...))` em vez de ler os ids em uso e mandar um notInArray: a
+// lista de capas cresce com o acervo, e uma consulta que monta IN com 68 ids
+// hoje monta com 600 depois.
+function emUsoComoCapa(db: ReturnType<typeof getDb>) {
+  return exists(
+    db
+      .select({ um: sql`1` })
+      .from(articles)
+      .where(
+        and(
+          eq(articles.status, "published"),
+          like(articles.coverImageUrl, sql`'%/api/media-images/' || ${mediaImages.id}`),
+        ),
+      ),
+  );
+}
+
+function agruparPorEditoria(filenames: string[]) {
+  const bank: Record<string, string[]> = {};
+  for (const beat of BEAT_VALUES) bank[beat] = [];
+  for (const filename of filenames) {
+    const beat = BEAT_VALUES.find((value) =>
+      filename.startsWith(`${LIBRARY_COVER_PREFIX}${value}-`),
+    );
+    if (beat) bank[beat].push(filename);
+  }
+  return bank;
+}
+
 export async function handleCoverBankPurgeCron(request: Request): Promise<Response> {
   const denied = unauthorized(request);
   if (denied) return denied;
 
   const db = getDb();
   const antes = await inventory(db);
+  const doPrefixo = like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}%`);
+
+  // `?dryRun=1` responde o que a rodada real faria, SEM apagar. Existe porque
+  // a primeira simulação (21/09) não simulava nada: ela pulava o expurgo, lia
+  // o banco ainda cheio, via que já passava do alvo e concluía "nada a fazer"
+  // — ou seja, prometia o oposto do que a rodada real faz. Simulação que não
+  // espelha a rodada real é pior que não ter simulação, porque dá confiança.
+  if (new URL(request.url).searchParams.get("dryRun")) {
+    const preservadas = await db
+      .select({ filename: mediaImages.filename })
+      .from(mediaImages)
+      .where(and(doPrefixo, emUsoComoCapa(db)));
+    const total = Object.values(antes).reduce((soma, lista) => soma + lista.length, 0);
+    const bank = agruparPorEditoria(preservadas.map((linha) => linha.filename));
+
+    return Response.json({
+      ok: true,
+      preview: true,
+      apagaria: total - preservadas.length,
+      preservaria: preservadas.length,
+      // Mesma forma da resposta do inventário, para quem simula poder tratar
+      // o estado pós-expurgo como ponto de partida sem converter nada.
+      maxPerBeat: MAX_BANK_PER_BEAT,
+      bank,
+      totals: Object.fromEntries(Object.entries(bank).map(([beat, l]) => [beat, l.length])),
+    });
+  }
 
   const apagadas = await db
     .delete(mediaImages)
-    .where(
-      and(
-        like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}%`),
-        // `not(exists(...))` em vez de ler os ids em uso e mandar um
-        // notInArray: a lista de capas cresce com o acervo, e uma consulta que
-        // monta IN com 68 ids hoje monta com 600 depois.
-        not(
-          exists(
-            db
-              .select({ um: sql`1` })
-              .from(articles)
-              .where(
-                and(
-                  eq(articles.status, "published"),
-                  like(articles.coverImageUrl, sql`'%/api/media-images/' || ${mediaImages.id}`),
-                ),
-              ),
-          ),
-        ),
-      ),
-    )
+    .where(and(doPrefixo, not(emUsoComoCapa(db))))
     .returning({ filename: mediaImages.filename });
 
   const depois = await inventory(db);

@@ -77,14 +77,73 @@ async function readInventory() {
   return response.json();
 }
 
-async function purgeBank() {
-  const response = await fetch(`${siteUrl}/api/cron/cover-bank`, {
-    method: "DELETE",
-    headers: authorization,
-  });
+async function purgeBank({ preview = false } = {}) {
+  const url = `${siteUrl}/api/cron/cover-bank${preview ? "?dryRun=1" : ""}`;
+  const response = await fetch(url, { method: "DELETE", headers: authorization });
   const text = await response.text();
+  // 404/405 aqui tem um significado só, e é operacional: a produção ainda não
+  // recebeu o deploy que criou a rota DELETE. Acontece de verdade quando se
+  // roda este workflow de uma branch antes de o código estar no main — o
+  // runner tem o script novo, o site responde com o código velho. Distinguir
+  // isso de um erro real evita que alguém leia "falhou" e vá procurar defeito
+  // onde só falta deploy.
+  if (response.status === 404 || response.status === 405) {
+    return { rotaAusente: true };
+  }
   if (!response.ok) throw new Error(`DELETE ${response.status}: ${text}`);
   return JSON.parse(text);
+}
+
+// Estado do banco de onde a rodada começa a contar o que falta.
+//
+// A simulação PRECISA partir do estado pós-expurgo, não do banco atual. Na
+// primeira simulação (21/09) ela partia do banco cheio, via 16 por editoria
+// contra um alvo de 10 e imprimia "nada a fazer" nas cinco — exatamente o
+// contrário do que a rodada real faz, que é esvaziar e recadastrar 10. Uma
+// simulação que não espelha a rodada real não protege ninguém: dá confiança.
+async function estadoInicial() {
+  if (dryRun) {
+    const preview = await purgeBank({ preview: true });
+    if (preview.rotaAusente) {
+      // Sem a rota no ar não dá para saber QUAIS seriam preservadas, então a
+      // simulação assume o pior caso (banco zerado) e diz isso em voz alta.
+      // O que não se faz é simular contra o banco cheio: foi assim que a
+      // primeira simulação concluiu "nada a fazer" nas cinco editorias.
+      const inventario = await readInventory();
+      console.log(
+        "AVISO: a rota DELETE /api/cron/cover-bank ainda não está no ar — a produção\n" +
+          "  roda o código anterior a esta branch. A simulação segue assumindo o banco\n" +
+          "  zerado (pior caso). Quantas fotos seriam preservadas por estarem no ar como\n" +
+          "  capa só dá para saber depois do deploy.\n" +
+          `  Banco hoje: ${JSON.stringify(inventario.totals)}\n`,
+      );
+      return { bank: {}, totals: {}, maxPerBeat: inventario.maxPerBeat };
+    }
+    console.log(
+      `expurgo (simulado): ${preview.apagaria} seriam apagadas, ` +
+        `${preview.preservaria} preservadas por estarem no ar como capa.`,
+    );
+    return preview;
+  }
+
+  if (semExpurgo) {
+    console.log("--sem-expurgo: o banco atual foi mantido, a rodada só completa o que falta.\n");
+  } else {
+    const purge = await purgeBank();
+    if (purge.rotaAusente) {
+      throw new Error(
+        "A rota DELETE /api/cron/cover-bank não está no ar: a produção ainda roda o " +
+          "código anterior. Sem expurgo esta rodada só completaria o alvo e o banco " +
+          "seguiria acumulando — que é justamente o que ela existe para acabar. " +
+          "Faça o deploy, ou rode com --sem-expurgo se quiser só completar de propósito.",
+      );
+    }
+    console.log(
+      `expurgo: ${purge.apagadas} apagadas, ${purge.preservadas} preservadas ` +
+        `(em uso como capa de matéria publicada) — antes ${JSON.stringify(purge.antes)}`,
+    );
+  }
+  return readInventory();
 }
 
 async function addToBank(entry) {
@@ -130,17 +189,7 @@ async function main() {
     console.log("PIXABAY_API_KEY ausente — a rodada vai usar só o Pexels.\n");
   }
 
-  if (!dryRun && !semExpurgo) {
-    const purge = await purgeBank();
-    console.log(
-      `expurgo: ${purge.apagadas} apagadas, ${purge.preservadas} preservadas ` +
-        `(em uso como capa de matéria publicada) — antes ${JSON.stringify(purge.antes)}`,
-    );
-  } else if (semExpurgo) {
-    console.log("--sem-expurgo: o banco atual foi mantido, a rodada só completa o que falta.\n");
-  }
-
-  const inventory = await readInventory();
+  const inventory = await estadoInicial();
   const limit = Math.min(target, inventory.maxPerBeat ?? MAX_BANK_PER_BEAT);
 
   // Um id só entra uma vez no banco inteiro: a mesma foto em duas editorias
