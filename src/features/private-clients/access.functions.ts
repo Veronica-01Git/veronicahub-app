@@ -30,16 +30,13 @@ export const validateSeal = createServerFn({ method: "POST" })
       }
     }
 
-    // Cliente já previsto no registry, mas ainda sem selo emitido.
-    const normalized = normalizeSerial(data.serial);
-    const pending = privateClients.find(
-      (candidate) =>
-        candidate.accessState === "awaiting-seal" &&
-        normalized.includes(candidate.slug.split("-")[0]?.toUpperCase() ?? "@@@"),
-    );
-    if (pending) return { status: "awaiting-seal", displayName: pending.displayName };
+    // Serial existe no registro de selos, mas ainda não corresponde a um
+    // ambiente privado liberado (ex.: registro demonstrativo).
+    const seal = findSeal(normalizeSerial(data.serial));
+    if (seal) return { status: "awaiting-seal", displayName: seal.client };
 
     return { status: "invalid" };
+
   });
 
 export type WorkspaceAccess =
