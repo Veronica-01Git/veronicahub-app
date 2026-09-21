@@ -1,3 +1,75 @@
+## Automação, deploy e ciclo de conteúdo — 2026-09-21
+
+### Routine agendada não consegue publicar neste projeto
+
+> [!CAUTION]
+> **Routine (agendamento que cria sessão nova) não publica em `main`.** Vale
+> para qualquer automação futura deste repositório que precise empurrar
+> código, não só para o feed de vídeos.
+
+Medido, não suposto. A Routine `trig_01X3fQC2UjMZxLGBJKQqcvJJ` ("Vídeos em
+alta — ciclo 48h") rodou em 20/09 às 16:34 por **5 minutos e 13 segundos** e
+terminou com status **`SUCCEEDED`**. Não deixou nada: nem commit em `main`,
+nem branch, nem PR — conferido em todos os branches do remoto, nenhum tinha
+`refreshedAt` mais novo. O feed ficou **142 horas** no ar com conteúdo velho
+até ser republicado à mão.
+
+A causa provável é o push em `main` ser barrado por disparar deploy em
+produção, sem humano na sessão para aprovar. O status `SUCCEEDED` é
+enganoso: ele registra que a sessão terminou sem erro, não que o trabalho
+chegou ao repositório. A sessão `cse_01RkW7CzPeV1C1t8rc9Uk5HM` guarda o
+motivo real, se alguém quiser confirmar.
+
+A Routine foi apagada em 21/09. **O padrão que funciona** é um agendamento
+que acorda uma sessão existente, onde a aprovação de push existe — foi assim
+que as levas de 15/09 e 21/09 foram publicadas.
+
+### Deploy automático limitado ao `main`
+
+Até 13/09 a integração Git do Cloudflare tinha **"Builds for non-production
+branches" ligado**, e o *deploy command* é `npx wrangler deploy` — um deploy
+comum, que publica em produção. Na prática, **push em qualquer branch
+substituía o site**. Em 13/09 dois pushes quase simultâneos (um de branch
+paralelo, outro do `main`) derrubaram `/blog`, `/selos`, `/aula-zero` e
+`/admin` por ~25 minutos: o build do branch venceu e o site passou a servir
+uma linhagem reduzida do projeto.
+
+A caixa foi desmarcada e o *production branch* confirmado em `main`.
+Verificado por teste: um branch descartável com commit trivial não gerou
+build nenhum, enquanto antes o bot do Cloudflare comentava em 5 segundos.
+
+### Histórico de migrações do drizzle estava fora de sincronia
+
+`drizzle.__drizzle_migrations` tinha **4 registros para 10 arquivos** de
+migração, o último de 14/08. As tabelas existiam mesmo assim porque os
+endpoints as criam sob demanda (`CREATE TABLE IF NOT EXISTS`, padrão do
+`/r/wire`). O efeito colateral: o bootstrap idempotente mascarava a deriva,
+e o próximo `drizzle-kit migrate` teria **falhado** ao recriar
+`WireOfferClick`.
+
+Sincronizado em 13/09: registros de `0002` a `0009` inseridos, com hash
+conferido por cálculo contra o conteúdo de cada arquivo. Os registros `id=3`
+e `id=4` são duplicados de uma migração reescrita depois de aplicada —
+inofensivos, deixados como estão.
+
+O bootstrap continua sendo boa rede de segurança, mas **enquanto ninguém
+rodar `migrate` no deploy, o histórico desanda de novo na próxima tabela.**
+
+### Ciclo de 48h dos vídeos em alta
+
+- Fonte: `src/data/trending-videos.json`. A rotina troca a leva e nada mais.
+- Capas: `node scripts/render-trending-covers.mjs` renderiza 9:16 com
+  Chromium/Playwright (mesma técnica do `render-cover.mjs` do Wire, sem API
+  de imagem paga). **Obrigatório a cada leva** — capa velha com título novo
+  é pior que capa nenhuma. Nenhum arquivo em `public/images/trending/` pode
+  ficar sem vídeo correspondente, e vice-versa.
+- Trava de ciclo: **47h**, não 48h. A margem de 1 hora não é descuido — um
+  cron diário cai sempre no mesmo minuto do relógio e raspa o limite por
+  segundos, o que em 15/09 transformou o ciclo em 72h.
+- Números de views e GMV são **estimativa de curadoria por pesquisa pública**,
+  e a página diz isso ao leitor. Não escrever nada que sugira telemetria
+  auditada da plataforma.
+
 ## Estado operacional consolidado — 2026-09-13
 
 - Continuidade assumida integralmente pelo Codex a partir de `origin/main` no
