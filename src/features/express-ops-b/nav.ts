@@ -14,6 +14,7 @@ import {
   CalendarDays,
   Container,
   FileText,
+  Send,
   LayoutDashboard,
   Map as MapIcon,
   MessagesSquare,
@@ -52,6 +53,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     ],
   },
   { slug: "operacoes-hoje", rotulo: "Operações de hoje", icone: Truck, pronta: true },
+  { slug: "despacho", rotulo: "Despacho interno", icone: Send, pronta: true },
   {
     slug: "planejamento-amanha",
     rotulo: "Planejamento de amanhã",

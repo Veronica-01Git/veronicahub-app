@@ -103,12 +103,7 @@ export type ProgressoDia = {
 /* ------------------------------------------------------- Frota e caçambas */
 
 export type CacambaEstado =
-  | "disponivel"
-  | "reservada"
-  | "em-transito"
-  | "instalada"
-  | "aguardando-retirada"
-  | "descarregada";
+  "disponivel" | "reservada" | "em-transito" | "instalada" | "aguardando-retirada" | "descarregada";
 
 export type Cacamba = {
   readonly id: string;
@@ -220,6 +215,76 @@ export type AgendaAmanha = {
   readonly conflitos: readonly string[];
 };
 
+/* ------------------------------------------------------- Despacho interno */
+
+/**
+ * O despacho da Express Entulho não acontece num sistema: acontece em GRUPOS
+ * DE WHATSAPP. Observado nos prints de 14/09 do aparelho da empresa — existem
+ * grupos fixos por função ("Prioridade", "Adm express", "Express |
+ * Motoristas") e grupos por rota de motorista ("Rota Rafael", "Rota Arthur"),
+ * e é neles que cai "Favor recolher essa caçamba" seguido do contato do
+ * cliente encaminhado.
+ *
+ * Modelar isso importa porque define onde o agente entrega o trabalho. Ele
+ * não "abre uma OS" — ele põe um cartão no grupo certo, e uma pessoa pega.
+ */
+export type GrupoFuncao = "prioridade" | "administrativo" | "motoristas" | "rota" | "transicao";
+
+export type GrupoInterno = {
+  readonly id: string;
+  readonly nome: string;
+  readonly funcao: GrupoFuncao;
+  readonly integrantes: readonly string[];
+  /** Última mensagem despachada, como aparece na lista do WhatsApp. */
+  readonly ultimoDespacho: {
+    readonly texto: string;
+    readonly quandoRel: string;
+    /** Quem mandou. `"agente"` quando foi a IA. */
+    readonly autor: "agente" | "humano";
+    readonly assinatura?: string;
+  } | null;
+  readonly naoLidas: number;
+  /**
+   * O agente pode postar aqui sozinho? Grupo administrativo recebe nota
+   * fiscal e boleto — documento financeiro é de gente.
+   */
+  readonly agentePodePostar: boolean;
+};
+
+/**
+ * O cartão de locação que o sistema de gestão emite e que é encaminhado ao
+ * grupo do motorista. O formato veio do print: número, produtos em operação,
+ * contato, o bloco "Endereço da Obra" com os campos que costumam vir vazios,
+ * e o botão de traçar rota.
+ *
+ * Campo vazio no cartão real aparece como travessão. Aqui ele é `null`, e a
+ * UI mostra o mesmo travessão — nunca preenche com suposição.
+ */
+export type ItemLocacao = {
+  readonly produto: string;
+  readonly pecas: number;
+  readonly situacao: "em-operacao" | "ordem-finalizada";
+};
+
+export type CartaoLocacao = {
+  readonly numero: number;
+  readonly contato: string;
+  readonly telefone: string;
+  readonly enderecoObra: {
+    readonly endereco: string;
+    readonly cep: string | null;
+    readonly bairro: string | null;
+    readonly complemento: string | null;
+    readonly cidade: string;
+    readonly estado: string;
+    readonly observacao: string | null;
+  };
+  readonly itens: readonly ItemLocacao[];
+  /** Grupo para onde o cartão foi despachado. `null` = ainda não despachado. */
+  readonly despachadoPara: string | null;
+  readonly quandoRel: string;
+};
+
 /* ------------------------------------------------------------- Raiz mock */
 
 export type ExpressOpsData = {
@@ -234,4 +299,6 @@ export type ExpressOpsData = {
   readonly conversas: readonly Conversa[];
   readonly operacoesHoje: readonly Operacao[];
   readonly cacambas: readonly Cacamba[];
+  readonly gruposInternos: readonly GrupoInterno[];
+  readonly locacoes: readonly CartaoLocacao[];
 };
