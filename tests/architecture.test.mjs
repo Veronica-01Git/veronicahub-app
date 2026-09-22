@@ -65,7 +65,14 @@ test("navegação pública não inclui administração nem destinos vazios", () 
   }
   assert.deepEqual(
     PRIMARY_NAV.map((item) => item.to),
-    ["/comandos", "/prompt-packs", "/blog", "/membros", "/clientes-veronica"],
+    [
+      "/comandos",
+      "/clientes/veronica-fashion-operator",
+      "/prompt-packs",
+      "/blog",
+      "/membros",
+      "/clientes-veronica",
+    ],
   );
 });
 test("as seis intenções apontam para produtos públicos existentes", () => {
