@@ -19,7 +19,7 @@ import {
 } from "@/lib/affiliate-catalog-server";
 import { AFFILIATE_CATEGORIES } from "@/lib/affiliate-products";
 
-export const Route = createFileRoute("/admin/produtos-shopee")({
+export const Route = createFileRoute("/admin/produtos-shopee" as any)({
   component: ShopeeProductsAdmin,
   head: () => ({
     meta: [{ title: "Produtos Shopee · Painel Admin | Veronica Hub" }],
@@ -119,7 +119,7 @@ function ShopeeProductsAdmin() {
     try {
       const result = await importAffiliateProductsAdmin({ data: { raw: bulk } });
       if (!result.ok) {
-        setNotice(`${result.imported} importados. ${result.errors.join(" | ")}`);
+        setNotice(`${result.imported} importados. ${(result.errors ?? []).join(" | ")}`);
       } else {
         setNotice(`${result.imported} produtos importados e publicados.`);
         setBulk("");
