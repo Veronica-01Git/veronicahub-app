@@ -40,10 +40,10 @@ export const Route = createFileRoute("/clientes/veronica-fashion-operator/execuc
   component: FashionExecution,
   head: () => ({
     meta: [
-      { title: "Execução | Veronica Fashion Operator" },
+      { title: "Execução | Veronica Fashion & Co." },
       {
         name: "description",
-        content: "Ambiente de execução demonstrativo do Veronica Fashion Operator.",
+        content: "Ambiente de execução demonstrativo do Veronica Fashion & Co..",
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
@@ -74,16 +74,16 @@ function FashionExecution() {
   return (
     <AppleClientFrame tone={toneFor(active)}>
       <AppleClientNav
-        eyebrow="Veronica Fashion Operator"
+        eyebrow="Veronica Fashion & Co."
         title={`Execução · ${currentLabel}`}
         right={
           <>
-            <HoloBadge>DEMO</HoloBadge>
+            <HoloBadge>STUDIO</HoloBadge>
             <Link
               to="/clientes/veronica-fashion-operator"
               className="hidden min-h-10 items-center gap-2 rounded-full border border-black/[.08] bg-white/80 px-4 text-[12px] font-semibold text-black/65 transition hover:bg-white sm:inline-flex"
             >
-              <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Vitrine
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Maison
             </Link>
           </>
         }
@@ -161,7 +161,7 @@ function OverviewSection({
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <SectionLabel>Veronica Live</SectionLabel>
-                <h2 className="mt-3 text-3xl font-semibold tracking-[-.045em] text-black/88">A operação conversa.</h2>
+                <h2 className="mt-3 text-3xl font-semibold tracking-[-.045em] text-black/88">Sua maison conversa.</h2>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_24px_rgba(52,211,153,.85)]" />
@@ -242,7 +242,7 @@ function OverviewSection({
         <div className="grid gap-8 lg:grid-cols-[.7fr_1.3fr]">
           <div>
             <SectionLabel>Modelo recorrente</SectionLabel>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-.045em] text-black/88">Acompanhamento contínuo, não relatório parado.</h2>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-.045em] text-black/88">Inteligência contínua para uma marca em movimento.</h2>
             <p className="mt-4 text-sm leading-6 text-black/48">
               Os blocos abaixo representam o valor mensal do produto. Nesta fase não existe cobrança conectada.
             </p>
