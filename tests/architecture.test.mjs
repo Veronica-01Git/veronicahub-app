@@ -1042,3 +1042,42 @@ test("a troca ampliada alcança o rodízio antigo, mas nunca a capa manual", () 
     "o registro precisa repetir o escopo da troca",
   );
 });
+
+test("todo produto da vitrine da home tem ícone, senão o SSR da home morre", () => {
+  // O defeito que este teste trava, e que já tirou o site inteiro do ar em
+  // 22/09: "clientes" entrou em HOME_PRODUCTS (443fbd6) sem entrar em
+  // HOME_ICONS. `icon` virou undefined, o React recebeu <undefined />, o SSR
+  // da home lançou "Element type is invalid" e TODA página caiu na tela de
+  // erro — não só a home, porque é ela que o visitante abre primeiro.
+  //
+  // Por que nada pegou: `tsc` tipa HOME_ICONS como Record<string, Icone>, que
+  // promete um ícone para QUALQUER chave; o build compila sem reclamar; e o
+  // React trata o erro de SSR como fallback para render no cliente, sem
+  // derrubar o processo. Só abrindo a página dá para ver.
+  const home = readFileSync(new URL("../src/routes/index.tsx", import.meta.url), "utf8");
+  const eco = readFileSync(new URL("../src/lib/ecosystem.ts", import.meta.url), "utf8");
+
+  const listaHome = eco.match(/export const HOME_PRODUCTS = \[([\s\S]*?)\]\.map\(/);
+  assert.ok(listaHome, "HOME_PRODUCTS precisa continuar legível para este teste");
+  const ids = [...listaHome[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(ids.length > 0, "HOME_PRODUCTS não pode estar vazio");
+
+  const mapa = home.match(/const HOME_ICONS[^=]*=\s*\{([\s\S]*?)\n\};/);
+  assert.ok(mapa, "HOME_ICONS precisa continuar legível para este teste");
+  const comIcone = new Set([...mapa[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*:/gm)].map((m) => m[1]));
+
+  const semIcone = ids.filter((id) => !comIcone.has(id));
+  assert.deepStrictEqual(
+    semIcone,
+    [],
+    `produto na vitrine da home sem ícone em HOME_ICONS: ${semIcone.join(", ")}`,
+  );
+
+  // Cinto e suspensório: mesmo com o teste acima, um id que escape não pode
+  // derrubar o site. O fallback transforma "ícone errado" em defeito visual.
+  assert.match(
+    home,
+    /icon:\s*HOME_ICONS\[item\.id\]\s*\?\?/,
+    "HOME_ICONS[item.id] precisa de fallback (??) para nunca renderizar undefined",
+  );
+});

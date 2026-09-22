@@ -19,6 +19,7 @@ import {
   RefreshCw,
   GraduationCap,
   MessageCircle,
+  Users,
   Moon,
   Sun,
 } from "lucide-react";
@@ -38,7 +39,13 @@ import { VeronicaPresence } from "@/components/home/VeronicaPresence";
 import { courses } from "@/lib/courses";
 
 import { HOME_PRODUCTS } from "@/lib/ecosystem";
+// Todo id que entra em HOME_PRODUCTS precisa de um ícone aqui. Quando
+// "clientes" foi adicionado à vitrine (443fbd6) sem passar por este mapa,
+// `icon` virou undefined, o React recebeu <undefined /> e o SSR da home
+// morreu — o site inteiro na página de erro. `tsc` não pega: um
+// Record<string, T> promete que qualquer chave existe. Por isso o ?? abaixo.
 const HOME_ICONS: Record<string, typeof Wand2> = {
+  clientes: Users,
   agentes: MessageCircle,
   portfolio: Briefcase,
   studio: Wand2,
@@ -51,7 +58,7 @@ const HOME_ICONS: Record<string, typeof Wand2> = {
 };
 const ecosystem = HOME_PRODUCTS.map((item) => ({
   ...item,
-  icon: HOME_ICONS[item.id],
+  icon: HOME_ICONS[item.id] ?? Layers,
   tag: item.category,
   desc: item.description,
   ready: true,
