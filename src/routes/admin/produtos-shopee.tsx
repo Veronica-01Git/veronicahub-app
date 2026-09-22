@@ -17,7 +17,7 @@ import {
   saveAffiliateProductAdmin,
   setAffiliateProductStatusAdmin,
 } from "@/lib/affiliate-catalog-server";
-import { AFFILIATE_CATEGORIES } from "@/lib/affiliate-products";
+import { AFFILIATE_AUDIENCES, AFFILIATE_CATEGORIES } from "@/lib/affiliate-products";
 
 export const Route = createFileRoute("/admin/produtos-shopee")({
   component: ShopeeProductsAdmin,
@@ -34,6 +34,9 @@ type ProductRow = {
   priceLabel: string;
   commissionLabel?: string;
   angle: string;
+  coverUrl?: string;
+  videoUrl?: string;
+  audience?: string;
   active: boolean;
   priority: number;
   clicks30d: number;
@@ -49,6 +52,9 @@ const emptyForm = {
   commissionLabel: "",
   angle: "",
   priority: "0",
+  audience: "feminino",
+  coverUrl: "",
+  videoUrl: "",
 };
 
 function ShopeeProductsAdmin() {
@@ -88,6 +94,9 @@ function ShopeeProductsAdmin() {
       commissionLabel: product.commissionLabel ?? "",
       angle: product.angle,
       priority: String(product.priority),
+      audience: product.audience ?? "unissex",
+      coverUrl: product.coverUrl ?? "",
+      videoUrl: product.videoUrl ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -210,6 +219,12 @@ function ShopeeProductsAdmin() {
                     </select>
                   </label>
                   <label className="text-xs font-medium">
+                    Público
+                    <select value={form.audience} onChange={(e) => setForm({ ...form, audience: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 text-sm">
+                      {AFFILIATE_AUDIENCES.map((audience) => <option key={audience} value={audience}>{audience}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-xs font-medium">
                     Prioridade
                     <input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 text-sm" />
                   </label>
@@ -225,8 +240,16 @@ function ShopeeProductsAdmin() {
                     Ângulo de venda
                     <textarea required rows={3} value={form.angle} onChange={(e) => setForm({ ...form, angle: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 text-sm leading-6" />
                   </label>
+                  <label className="text-xs font-medium">
+                    Capa (URL da imagem, opcional)
+                    <input placeholder="https://down-br.img.susercontent.com/file/..." value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 text-sm" />
+                  </label>
+                  <label className="text-xs font-medium">
+                    Vídeo criativo (URL .mp4, opcional)
+                    <input placeholder="https://.../criativo.mp4" value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 text-sm" />
+                  </label>
                   <label className="sm:col-span-2 text-xs font-medium">
-                    Link completo de afiliado Shopee
+                    Link de afiliado Shopee (curto s.shopee.com.br ou completo)
                     <textarea required rows={4} value={form.affiliateUrl} onChange={(e) => setForm({ ...form, affiliateUrl: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 font-mono text-xs leading-5" />
                   </label>
                 </div>
@@ -244,7 +267,8 @@ function ShopeeProductsAdmin() {
                 <h2 className="mt-4 font-display text-2xl">Importação em lote</h2>
                 <p className="mt-2 text-xs leading-6 text-white/55">
                   Cole um array JSON com até 50 produtos ou linhas copiadas de uma planilha,
-                  separadas por TAB: nome, categoria, preço, comissão, ângulo, link e prioridade.
+                  separadas por TAB: nome, categoria, preço, comissão, ângulo, link, prioridade,
+                  público, capa e vídeo. Link curto s.shopee.com.br é expandido automaticamente.
                 </p>
                 <textarea
                   rows={13}
@@ -269,10 +293,16 @@ function ShopeeProductsAdmin() {
               </div>
               <div className="mt-5 grid gap-4">
                 {products.map((product) => (
-                  <article key={product.id} className="grid gap-4 rounded-2xl border border-black/10 bg-white p-5 shadow-sm md:grid-cols-[1fr_auto] md:items-center">
+                  <article key={product.id} className="grid gap-4 rounded-2xl border border-black/10 bg-white p-5 shadow-sm md:grid-cols-[64px_1fr_auto] md:items-center">
+                    <div className="h-16 w-16 overflow-hidden rounded-xl bg-[#f0f0f2]">
+                      {product.coverUrl && <img src={product.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                    </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wider text-[#77777c]">
                         <span>{product.category}</span>
+                        <span>·</span>
+                        <span>{product.audience ?? "unissex"}</span>
+                        {product.videoUrl && <span>· vídeo ✓</span>}
                         <span>·</span>
                         <span className={product.active ? "text-emerald-700" : "text-red-600"}>{product.active ? "ativo" : "arquivado"}</span>
                         <span>· prioridade {product.priority}</span>
