@@ -42,12 +42,12 @@ function AdminPanel() {
           </div>
           <div className="flex flex-wrap gap-2">
             <a href="/admin/membros" className="inline-flex items-center rounded-sm border border-border/60 px-3 py-1.5 text-sm">Comunidade Members</a>
-            <Link
-              to="/admin/produtos-shopee"
+            <a
+              href="/admin/produtos-shopee"
               className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/40 bg-emerald-500/5 px-3 py-1.5 text-sm text-emerald-600 transition hover:border-emerald-500"
             >
               <PackagePlus className="h-4 w-4" /> Produtos Shopee
-            </Link>
+            </a>
             <Link
               to="/admin/veronica-universe"
               className="inline-flex items-center gap-1.5 rounded-sm border border-neon-green/40 bg-neon-green/5 px-3 py-1.5 text-sm text-neon-green transition hover:border-neon-green hover:bg-neon-green/10"
