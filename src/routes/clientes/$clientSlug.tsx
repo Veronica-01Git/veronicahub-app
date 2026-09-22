@@ -212,7 +212,7 @@ function LzWorkspaceExtra() {
     <div className="mt-5">
       <Panel title="Ambiente reservado">
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          O LZ Team ainda não possui selo emitido nem integrações registradas. Esta estrutura permanece preparada, sem inventar métricas, documentos ou resultados.
+          O LZ Team possui o selo de membro VH-MEM-2026-000002, emitido em 21/09/2026. O escopo e as integrações ainda estão em definição.
         </p>
       </Panel>
     </div>

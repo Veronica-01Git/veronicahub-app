@@ -26,7 +26,7 @@ function RecordCard({ record, index }: { record: (typeof sealRecords)[number]; i
     >
       <div className="relative flex min-h-36 items-center justify-center overflow-hidden border-b border-border/50 bg-background/60 sm:border-b-0 sm:border-r">
         <div aria-hidden className="absolute inset-0 opacity-50 [background-image:linear-gradient(oklch(0.85_0.22_155/.08)_1px,transparent_1px),linear-gradient(90deg,oklch(0.85_0.22_155/.08)_1px,transparent_1px)] [background-size:18px_18px]" />
-        <VeronicaSeal serialNumber={record.serial} issuedDate={record.issuedAt} productName={record.isDemonstration ? "CONCEITO" : "SOLUÇÃO IA"} size="sm" className="relative transition duration-500 group-hover:scale-105" />
+        <VeronicaSeal serialNumber={record.serial} issuedDate={record.issuedAt} membership={record.status === "member"} productName={record.status === "member" ? "MEMBRO" : record.isDemonstration ? "CONCEITO" : "SOLUÇÃO IA"} size="sm" className="relative transition duration-500 group-hover:scale-105" />
       </div>
       <div className="flex flex-col p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -62,14 +62,14 @@ function SealRegistry() {
             <div className="relative overflow-hidden rounded-sm border border-neon-cyan/25 bg-white/65 p-1 shadow-[0_30px_100px_oklch(0.56_0.13_195/.12)] backdrop-blur-xl">
               <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-neon-cyan/[.09] via-transparent to-neon-green/[.09]" />
               <div className="relative grid grid-cols-3 gap-px overflow-hidden rounded-sm bg-border/60">
-                {[{ n: realRecords.length, label: "Projeto real" }, { n: "3", label: "Estados" }, { n: "100%", label: "Rastreável" }].map((item) => <div key={item.label} className="bg-white/80 p-4 text-center backdrop-blur"><div className="font-display text-2xl text-neon-cyan">{item.n}</div><div className="mt-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</div></div>)}
+                {[{ n: realRecords.length, label: "Registros reais" }, { n: "3", label: "Estados" }, { n: "100%", label: "Rastreável" }].map((item) => <div key={item.label} className="bg-white/80 p-4 text-center backdrop-blur"><div className="font-display text-2xl text-neon-cyan">{item.n}</div><div className="mt-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</div></div>)}
               </div>
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
-          <div className="mb-8 flex items-end justify-between gap-6"><div><div className="font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-green">Registro oficial</div><h2 className="mt-3 font-display text-4xl tracking-[-.04em]">Soluções registradas</h2></div><BadgeCheck className="hidden h-9 w-9 text-neon-green sm:block" /></div>
+          <div className="mb-8 flex items-end justify-between gap-6"><div><div className="font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-green">Registro oficial</div><h2 className="mt-3 font-display text-4xl tracking-[-.04em]">Membros e soluções registradas</h2></div><BadgeCheck className="hidden h-9 w-9 text-neon-green sm:block" /></div>
           <div className="relative"><div aria-hidden className="absolute -inset-8 rounded-full bg-neon-green/[.045] blur-3xl" /><div className="relative grid gap-5 lg:grid-cols-2">{realRecords.map((record, index) => <RecordCard key={record.serial} record={record} index={index} />)}</div></div>
         </section>
 

@@ -4,10 +4,10 @@ import type { WorkspaceContent } from "./types";
 // honesto de "ainda não configurado" — nada de métricas inventadas.
 export const lzTeamWorkspace: WorkspaceContent = {
   operationStatus: {
-    label: "Aguardando selo",
-    tone: "muted",
+    label: "Membro registrado",
+    tone: "green",
     detail:
-      "Ambiente reservado. O acesso é liberado assim que um número de série do selo for emitido para o LZ Team.",
+      "Selo de membro VH-MEM-2026-000002 emitido em 21/09/2026. Escopo e integrações ainda em definição.",
   },
   mission: {
     title: "Definir escopo e primeiro entregável",
@@ -16,9 +16,9 @@ export const lzTeamWorkspace: WorkspaceContent = {
   },
   nextActions: [
     { label: "01", detail: "Reunião de escopo e definição do objetivo", state: "current" },
-    { label: "02", detail: "Emissão do selo de procedência do projeto", state: "next" },
+    { label: "02", detail: "Selo de membro emitido", state: "done" },
     { label: "03", detail: "Cadastro de ativos e documentos do time", state: "next" },
     { label: "04", detail: "Integração de dados — não configurada", state: "blocked" },
   ],
-  activity: [{ when: "—", text: "Nenhuma atividade registrada até o momento." }],
+  activity: [{ when: "21/09/2026", text: "Selo de membro emitido · Cliente 02." }],
 };
