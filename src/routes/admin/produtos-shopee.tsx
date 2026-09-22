@@ -19,7 +19,7 @@ import {
 } from "@/lib/affiliate-catalog-server";
 import { AFFILIATE_CATEGORIES } from "@/lib/affiliate-products";
 
-export const Route = createFileRoute("/admin/produtos-shopee" as any)({
+export const Route = createFileRoute("/admin/produtos-shopee")({
   component: ShopeeProductsAdmin,
   head: () => ({
     meta: [{ title: "Produtos Shopee · Painel Admin | Veronica Hub" }],
