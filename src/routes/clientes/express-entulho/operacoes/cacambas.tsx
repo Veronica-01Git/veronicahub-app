@@ -16,7 +16,7 @@ import { CACAMBA_ESTADOS } from "@/features/express-ops-b/data/mock";
 import { fmtDias } from "@/features/express-ops-b/format";
 import type { Cacamba, CacambaEstado } from "@/features/express-ops-b/data/types";
 
-export const Route = createFileRoute("/preview/express-operations-b/cacambas")({
+export const Route = createFileRoute("/clientes/express-entulho/operacoes/cacambas")({
   component: Cacambas,
 });
 

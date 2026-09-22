@@ -31,12 +31,7 @@ export const CATEGORIES = [
   "Projetos especiais",
 ] as const;
 export type ProductStatus =
-  | "Disponível"
-  | "Parcial"
-  | "Demonstração"
-  | "Em produção"
-  | "Em estruturação"
-  | "Externo";
+  "Disponível" | "Parcial" | "Demonstração" | "Em produção" | "Em estruturação" | "Externo";
 export type Product = {
   id: string;
   name: string;
@@ -49,9 +44,14 @@ export type Product = {
 };
 export const PRODUCTS: Product[] = [
   {
-    id: "members", name: "Members", category: "Mídia", to: "/membros",
-    status: "Disponível", description: "Comunidade, novidades e prompts gratuitos para membros",
-    external: false, public: true,
+    id: "members",
+    name: "Members",
+    category: "Mídia",
+    to: "/membros",
+    status: "Disponível",
+    description: "Comunidade, novidades e prompts gratuitos para membros",
+    external: false,
+    public: true,
   },
   {
     id: "school",
@@ -206,6 +206,18 @@ export const PRODUCTS: Product[] = [
     public: true,
   },
   {
+    id: "clientes",
+    name: "Clientes",
+    category: "Governança",
+    // Aponta para a VITRINE pública, não para /clientes — aquele endereço é
+    // o portal privado onde o cliente entra com o número do selo.
+    to: "/clientes-veronica",
+    status: "Disponível",
+    description: "Quem a Veronica já atendeu e atende, com selo de procedência",
+    external: false,
+    public: true,
+  },
+  {
     id: "china",
     name: "Negócio da China",
     category: "Projetos especiais",
@@ -236,9 +248,13 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
   tag: product(intent.productId).description,
   to: product(intent.productId).to,
 }));
-export const PRIMARY_NAV = ["formations", "packs", "wire", "members"].map(product);
+export const PRIMARY_NAV = ["formations", "packs", "wire", "members", "clientes"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
+  // A prova social do Hub: quem a Veronica já atendeu e atende. Fica na
+  // vitrine porque é a pergunta que todo visitante faz antes de contratar, e
+  // porque ela é pública mesmo com o espaço de cada cliente fechado.
+  "clientes",
   // Primeiro da lista: é o produto que tem teste grátis e caminho de venda
   // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site
   // — nem na vitrine da home, nem no menu Ferramentas, que leem desta lista.

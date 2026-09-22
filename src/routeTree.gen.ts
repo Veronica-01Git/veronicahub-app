@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
+import { Route as ClientesVeronicaRouteImport } from './routes/clientes-veronica'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -43,17 +44,21 @@ import { Route as PropostaExpressEntulhoRouteImport } from './routes/proposta/ex
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
 import { Route as BlogEditoriaBeatRouteImport } from './routes/blog/editoria/$beat'
 import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/rede-de-fontes/relatorios'
+import { Route as ClientesExpressEntulhoOperacoesRouteImport } from './routes/clientes/express-entulho/operacoes'
 import { Route as ClientesExpressEntulhoOperacoesDemoRouteImport } from './routes/clientes/express-entulho/operacoes-demo'
 import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
 import { Route as ClientesVeronicaFashionOperatorIndexRouteImport } from './routes/clientes/veronica-fashion-operator/index'
 import { Route as ClientesVeronicaFashionOperatorExecucaoRouteImport } from './routes/clientes/veronica-fashion-operator/execucao'
-import { Route as PreviewExpressOperationsBIndexRouteImport } from './routes/preview/express-operations-b/index'
-import { Route as PreviewExpressOperationsBSecaoRouteImport } from './routes/preview/express-operations-b/$secao'
-import { Route as PreviewExpressOperationsBAprovacoesRouteImport } from './routes/preview/express-operations-b/aprovacoes'
-import { Route as PreviewExpressOperationsBAtendimentoRouteImport } from './routes/preview/express-operations-b/atendimento'
-import { Route as PreviewExpressOperationsBCacambasRouteImport } from './routes/preview/express-operations-b/cacambas'
-import { Route as PreviewExpressOperationsBOperacoesHojeRouteImport } from './routes/preview/express-operations-b/operacoes-hoje'
-import { Route as PreviewExpressOperationsBRegrasDoAgenteRouteImport } from './routes/preview/express-operations-b/regras-do-agente'
+import { Route as PreviewExpressOperationsBSplatRouteImport } from './routes/preview/express-operations-b/$'
+import { Route as ClientesExpressEntulhoOperacoesIndexRouteImport } from './routes/clientes/express-entulho/operacoes/index'
+import { Route as ClientesExpressEntulhoOperacoesSecaoRouteImport } from './routes/clientes/express-entulho/operacoes/$secao'
+import { Route as ClientesExpressEntulhoOperacoesAprovacoesRouteImport } from './routes/clientes/express-entulho/operacoes/aprovacoes'
+import { Route as ClientesExpressEntulhoOperacoesAtendimentoRouteImport } from './routes/clientes/express-entulho/operacoes/atendimento'
+import { Route as ClientesExpressEntulhoOperacoesCacambasRouteImport } from './routes/clientes/express-entulho/operacoes/cacambas'
+import { Route as ClientesExpressEntulhoOperacoesDespachoRouteImport } from './routes/clientes/express-entulho/operacoes/despacho'
+import { Route as ClientesExpressEntulhoOperacoesOperacoesHojeRouteImport } from './routes/clientes/express-entulho/operacoes/operacoes-hoje'
+import { Route as ClientesExpressEntulhoOperacoesRegrasDoAgenteRouteImport } from './routes/clientes/express-entulho/operacoes/regras-do-agente'
+import { Route as ClientesExpressEntulhoOperacoesTestarRouteImport } from './routes/clientes/express-entulho/operacoes/testar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -68,6 +73,11 @@ const AgentesRoute = AgentesRouteImport.update({
 const AulaZeroRoute = AulaZeroRouteImport.update({
   id: '/aula-zero',
   path: '/aula-zero',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesVeronicaRoute = ClientesVeronicaRouteImport.update({
+  id: '/clientes-veronica',
+  path: '/clientes-veronica',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComandosRoute = ComandosRouteImport.update({
@@ -228,6 +238,12 @@ const BlogRedeDeFontesRelatoriosRoute =
     path: '/relatorios',
     getParentRoute: () => BlogRedeDeFontesRoute,
   } as any)
+const ClientesExpressEntulhoOperacoesRoute =
+  ClientesExpressEntulhoOperacoesRouteImport.update({
+    id: '/clientes/express-entulho/operacoes',
+    path: '/clientes/express-entulho/operacoes',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ClientesExpressEntulhoOperacoesDemoRoute =
   ClientesExpressEntulhoOperacoesDemoRouteImport.update({
     id: '/clientes/express-entulho/operacoes-demo',
@@ -252,53 +268,72 @@ const ClientesVeronicaFashionOperatorExecucaoRoute =
     path: '/clientes/veronica-fashion-operator/execucao',
     getParentRoute: () => rootRouteImport,
   } as any)
-const PreviewExpressOperationsBIndexRoute =
-  PreviewExpressOperationsBIndexRouteImport.update({
+const PreviewExpressOperationsBSplatRoute =
+  PreviewExpressOperationsBSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
+    getParentRoute: () => PreviewExpressOperationsBRoute,
+  } as any)
+const ClientesExpressEntulhoOperacoesIndexRoute =
+  ClientesExpressEntulhoOperacoesIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
-const PreviewExpressOperationsBSecaoRoute =
-  PreviewExpressOperationsBSecaoRouteImport.update({
+const ClientesExpressEntulhoOperacoesSecaoRoute =
+  ClientesExpressEntulhoOperacoesSecaoRouteImport.update({
     id: '/$secao',
     path: '/$secao',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
-const PreviewExpressOperationsBAprovacoesRoute =
-  PreviewExpressOperationsBAprovacoesRouteImport.update({
+const ClientesExpressEntulhoOperacoesAprovacoesRoute =
+  ClientesExpressEntulhoOperacoesAprovacoesRouteImport.update({
     id: '/aprovacoes',
     path: '/aprovacoes',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
-const PreviewExpressOperationsBAtendimentoRoute =
-  PreviewExpressOperationsBAtendimentoRouteImport.update({
+const ClientesExpressEntulhoOperacoesAtendimentoRoute =
+  ClientesExpressEntulhoOperacoesAtendimentoRouteImport.update({
     id: '/atendimento',
     path: '/atendimento',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
-const PreviewExpressOperationsBCacambasRoute =
-  PreviewExpressOperationsBCacambasRouteImport.update({
+const ClientesExpressEntulhoOperacoesCacambasRoute =
+  ClientesExpressEntulhoOperacoesCacambasRouteImport.update({
     id: '/cacambas',
     path: '/cacambas',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
-const PreviewExpressOperationsBOperacoesHojeRoute =
-  PreviewExpressOperationsBOperacoesHojeRouteImport.update({
+const ClientesExpressEntulhoOperacoesDespachoRoute =
+  ClientesExpressEntulhoOperacoesDespachoRouteImport.update({
+    id: '/despacho',
+    path: '/despacho',
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
+  } as any)
+const ClientesExpressEntulhoOperacoesOperacoesHojeRoute =
+  ClientesExpressEntulhoOperacoesOperacoesHojeRouteImport.update({
     id: '/operacoes-hoje',
     path: '/operacoes-hoje',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
-const PreviewExpressOperationsBRegrasDoAgenteRoute =
-  PreviewExpressOperationsBRegrasDoAgenteRouteImport.update({
+const ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute =
+  ClientesExpressEntulhoOperacoesRegrasDoAgenteRouteImport.update({
     id: '/regras-do-agente',
     path: '/regras-do-agente',
-    getParentRoute: () => PreviewExpressOperationsBRoute,
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
+  } as any)
+const ClientesExpressEntulhoOperacoesTestarRoute =
+  ClientesExpressEntulhoOperacoesTestarRouteImport.update({
+    id: '/testar',
+    path: '/testar',
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
+  '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
   '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
@@ -330,22 +365,27 @@ export interface FileRoutesByFullPath {
   '/clientes/': typeof ClientesIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
+  '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
-  '/preview/express-operations-b/$secao': typeof PreviewExpressOperationsBSecaoRoute
-  '/preview/express-operations-b/aprovacoes': typeof PreviewExpressOperationsBAprovacoesRoute
-  '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
-  '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
-  '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
-  '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
+  '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
   '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
-  '/preview/express-operations-b/': typeof PreviewExpressOperationsBIndexRoute
+  '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
+  '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
+  '/clientes/express-entulho/operacoes/atendimento': typeof ClientesExpressEntulhoOperacoesAtendimentoRoute
+  '/clientes/express-entulho/operacoes/cacambas': typeof ClientesExpressEntulhoOperacoesCacambasRoute
+  '/clientes/express-entulho/operacoes/despacho': typeof ClientesExpressEntulhoOperacoesDespachoRoute
+  '/clientes/express-entulho/operacoes/operacoes-hoje': typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
+  '/clientes/express-entulho/operacoes/regras-do-agente': typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  '/clientes/express-entulho/operacoes/testar': typeof ClientesExpressEntulhoOperacoesTestarRoute
+  '/clientes/express-entulho/operacoes/': typeof ClientesExpressEntulhoOperacoesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
+  '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
   '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
@@ -369,6 +409,7 @@ export interface FileRoutesByTo {
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
   '/clientes/$clientSlug': typeof ClientesClientSlugRoute
   '/clientes/admin': typeof ClientesAdminRoute
+  '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
   '/admin': typeof AdminIndexRoute
@@ -379,20 +420,24 @@ export interface FileRoutesByTo {
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
-  '/preview/express-operations-b/$secao': typeof PreviewExpressOperationsBSecaoRoute
-  '/preview/express-operations-b/aprovacoes': typeof PreviewExpressOperationsBAprovacoesRoute
-  '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
-  '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
-  '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
-  '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
+  '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
   '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
-  '/preview/express-operations-b': typeof PreviewExpressOperationsBIndexRoute
+  '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
+  '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
+  '/clientes/express-entulho/operacoes/atendimento': typeof ClientesExpressEntulhoOperacoesAtendimentoRoute
+  '/clientes/express-entulho/operacoes/cacambas': typeof ClientesExpressEntulhoOperacoesCacambasRoute
+  '/clientes/express-entulho/operacoes/despacho': typeof ClientesExpressEntulhoOperacoesDespachoRoute
+  '/clientes/express-entulho/operacoes/operacoes-hoje': typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
+  '/clientes/express-entulho/operacoes/regras-do-agente': typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  '/clientes/express-entulho/operacoes/testar': typeof ClientesExpressEntulhoOperacoesTestarRoute
+  '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
+  '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
   '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
@@ -424,17 +469,21 @@ export interface FileRoutesById {
   '/clientes/': typeof ClientesIndexRoute
   '/blog/editoria/$beat': typeof BlogEditoriaBeatRoute
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
+  '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
-  '/preview/express-operations-b/$secao': typeof PreviewExpressOperationsBSecaoRoute
-  '/preview/express-operations-b/aprovacoes': typeof PreviewExpressOperationsBAprovacoesRoute
-  '/preview/express-operations-b/atendimento': typeof PreviewExpressOperationsBAtendimentoRoute
-  '/preview/express-operations-b/cacambas': typeof PreviewExpressOperationsBCacambasRoute
-  '/preview/express-operations-b/operacoes-hoje': typeof PreviewExpressOperationsBOperacoesHojeRoute
-  '/preview/express-operations-b/regras-do-agente': typeof PreviewExpressOperationsBRegrasDoAgenteRoute
+  '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
   '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
-  '/preview/express-operations-b/': typeof PreviewExpressOperationsBIndexRoute
+  '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
+  '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
+  '/clientes/express-entulho/operacoes/atendimento': typeof ClientesExpressEntulhoOperacoesAtendimentoRoute
+  '/clientes/express-entulho/operacoes/cacambas': typeof ClientesExpressEntulhoOperacoesCacambasRoute
+  '/clientes/express-entulho/operacoes/despacho': typeof ClientesExpressEntulhoOperacoesDespachoRoute
+  '/clientes/express-entulho/operacoes/operacoes-hoje': typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
+  '/clientes/express-entulho/operacoes/regras-do-agente': typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  '/clientes/express-entulho/operacoes/testar': typeof ClientesExpressEntulhoOperacoesTestarRoute
+  '/clientes/express-entulho/operacoes/': typeof ClientesExpressEntulhoOperacoesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -442,6 +491,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agentes'
     | '/aula-zero'
+    | '/clientes-veronica'
     | '/comandos'
     | '/membros'
     | '/portfolio'
@@ -473,22 +523,27 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
+    | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
     | '/clientes/veronica-fashion-operator/execucao'
-    | '/preview/express-operations-b/$secao'
-    | '/preview/express-operations-b/aprovacoes'
-    | '/preview/express-operations-b/atendimento'
-    | '/preview/express-operations-b/cacambas'
-    | '/preview/express-operations-b/operacoes-hoje'
-    | '/preview/express-operations-b/regras-do-agente'
+    | '/preview/express-operations-b/$'
     | '/clientes/veronica-fashion-operator/'
-    | '/preview/express-operations-b/'
+    | '/clientes/express-entulho/operacoes/$secao'
+    | '/clientes/express-entulho/operacoes/aprovacoes'
+    | '/clientes/express-entulho/operacoes/atendimento'
+    | '/clientes/express-entulho/operacoes/cacambas'
+    | '/clientes/express-entulho/operacoes/despacho'
+    | '/clientes/express-entulho/operacoes/operacoes-hoje'
+    | '/clientes/express-entulho/operacoes/regras-do-agente'
+    | '/clientes/express-entulho/operacoes/testar'
+    | '/clientes/express-entulho/operacoes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/agentes'
     | '/aula-zero'
+    | '/clientes-veronica'
     | '/comandos'
     | '/membros'
     | '/portfolio'
@@ -512,6 +567,7 @@ export interface FileRouteTypes {
     | '/blog/rede-de-fontes'
     | '/clientes/$clientSlug'
     | '/clientes/admin'
+    | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
     | '/admin'
@@ -522,19 +578,23 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
     | '/clientes/veronica-fashion-operator/execucao'
-    | '/preview/express-operations-b/$secao'
-    | '/preview/express-operations-b/aprovacoes'
-    | '/preview/express-operations-b/atendimento'
-    | '/preview/express-operations-b/cacambas'
-    | '/preview/express-operations-b/operacoes-hoje'
-    | '/preview/express-operations-b/regras-do-agente'
+    | '/preview/express-operations-b/$'
     | '/clientes/veronica-fashion-operator'
-    | '/preview/express-operations-b'
+    | '/clientes/express-entulho/operacoes/$secao'
+    | '/clientes/express-entulho/operacoes/aprovacoes'
+    | '/clientes/express-entulho/operacoes/atendimento'
+    | '/clientes/express-entulho/operacoes/cacambas'
+    | '/clientes/express-entulho/operacoes/despacho'
+    | '/clientes/express-entulho/operacoes/operacoes-hoje'
+    | '/clientes/express-entulho/operacoes/regras-do-agente'
+    | '/clientes/express-entulho/operacoes/testar'
+    | '/clientes/express-entulho/operacoes'
   id:
     | '__root__'
     | '/'
     | '/agentes'
     | '/aula-zero'
+    | '/clientes-veronica'
     | '/comandos'
     | '/membros'
     | '/portfolio'
@@ -566,23 +626,28 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/blog/editoria/$beat'
     | '/blog/rede-de-fontes/relatorios'
+    | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
     | '/clientes/veronica-fashion-operator/execucao'
-    | '/preview/express-operations-b/$secao'
-    | '/preview/express-operations-b/aprovacoes'
-    | '/preview/express-operations-b/atendimento'
-    | '/preview/express-operations-b/cacambas'
-    | '/preview/express-operations-b/operacoes-hoje'
-    | '/preview/express-operations-b/regras-do-agente'
+    | '/preview/express-operations-b/$'
     | '/clientes/veronica-fashion-operator/'
-    | '/preview/express-operations-b/'
+    | '/clientes/express-entulho/operacoes/$secao'
+    | '/clientes/express-entulho/operacoes/aprovacoes'
+    | '/clientes/express-entulho/operacoes/atendimento'
+    | '/clientes/express-entulho/operacoes/cacambas'
+    | '/clientes/express-entulho/operacoes/despacho'
+    | '/clientes/express-entulho/operacoes/operacoes-hoje'
+    | '/clientes/express-entulho/operacoes/regras-do-agente'
+    | '/clientes/express-entulho/operacoes/testar'
+    | '/clientes/express-entulho/operacoes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentesRoute: typeof AgentesRoute
   AulaZeroRoute: typeof AulaZeroRoute
+  ClientesVeronicaRoute: typeof ClientesVeronicaRoute
   ComandosRoute: typeof ComandosRoute
   MembrosRoute: typeof MembrosRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -613,6 +678,7 @@ export interface RootRouteChildren {
   BlogIndexRoute: typeof BlogIndexRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
   BlogEditoriaBeatRoute: typeof BlogEditoriaBeatRoute
+  ClientesExpressEntulhoOperacoesRoute: typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
   ClientesVeronicaFashionOperatorExecucaoRoute: typeof ClientesVeronicaFashionOperatorExecucaoRoute
@@ -640,6 +706,13 @@ declare module '@tanstack/react-router' {
       path: '/aula-zero'
       fullPath: '/aula-zero'
       preLoaderRoute: typeof AulaZeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes-veronica': {
+      id: '/clientes-veronica'
+      path: '/clientes-veronica'
+      fullPath: '/clientes-veronica'
+      preLoaderRoute: typeof ClientesVeronicaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comandos': {
@@ -859,6 +932,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRedeDeFontesRelatoriosRouteImport
       parentRoute: typeof BlogRedeDeFontesRoute
     }
+    '/clientes/express-entulho/operacoes': {
+      id: '/clientes/express-entulho/operacoes'
+      path: '/clientes/express-entulho/operacoes'
+      fullPath: '/clientes/express-entulho/operacoes'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/express-entulho/operacoes-demo': {
       id: '/clientes/express-entulho/operacoes-demo'
       path: '/clientes/express-entulho/operacoes-demo'
@@ -887,54 +967,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesVeronicaFashionOperatorExecucaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preview/express-operations-b/': {
-      id: '/preview/express-operations-b/'
+    '/preview/express-operations-b/$': {
+      id: '/preview/express-operations-b/$'
+      path: '/$'
+      fullPath: '/preview/express-operations-b/$'
+      preLoaderRoute: typeof PreviewExpressOperationsBSplatRouteImport
+      parentRoute: typeof PreviewExpressOperationsBRoute
+    }
+    '/clientes/express-entulho/operacoes/': {
+      id: '/clientes/express-entulho/operacoes/'
       path: '/'
-      fullPath: '/preview/express-operations-b/'
-      preLoaderRoute: typeof PreviewExpressOperationsBIndexRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
+      fullPath: '/clientes/express-entulho/operacoes/'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesIndexRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
-    '/preview/express-operations-b/$secao': {
-      id: '/preview/express-operations-b/$secao'
+    '/clientes/express-entulho/operacoes/$secao': {
+      id: '/clientes/express-entulho/operacoes/$secao'
       path: '/$secao'
-      fullPath: '/preview/express-operations-b/$secao'
-      preLoaderRoute: typeof PreviewExpressOperationsBSecaoRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
+      fullPath: '/clientes/express-entulho/operacoes/$secao'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesSecaoRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
-    '/preview/express-operations-b/aprovacoes': {
-      id: '/preview/express-operations-b/aprovacoes'
+    '/clientes/express-entulho/operacoes/aprovacoes': {
+      id: '/clientes/express-entulho/operacoes/aprovacoes'
       path: '/aprovacoes'
-      fullPath: '/preview/express-operations-b/aprovacoes'
-      preLoaderRoute: typeof PreviewExpressOperationsBAprovacoesRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
+      fullPath: '/clientes/express-entulho/operacoes/aprovacoes'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesAprovacoesRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
-    '/preview/express-operations-b/atendimento': {
-      id: '/preview/express-operations-b/atendimento'
+    '/clientes/express-entulho/operacoes/atendimento': {
+      id: '/clientes/express-entulho/operacoes/atendimento'
       path: '/atendimento'
-      fullPath: '/preview/express-operations-b/atendimento'
-      preLoaderRoute: typeof PreviewExpressOperationsBAtendimentoRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
+      fullPath: '/clientes/express-entulho/operacoes/atendimento'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesAtendimentoRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
-    '/preview/express-operations-b/cacambas': {
-      id: '/preview/express-operations-b/cacambas'
+    '/clientes/express-entulho/operacoes/cacambas': {
+      id: '/clientes/express-entulho/operacoes/cacambas'
       path: '/cacambas'
-      fullPath: '/preview/express-operations-b/cacambas'
-      preLoaderRoute: typeof PreviewExpressOperationsBCacambasRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
+      fullPath: '/clientes/express-entulho/operacoes/cacambas'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesCacambasRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
-    '/preview/express-operations-b/operacoes-hoje': {
-      id: '/preview/express-operations-b/operacoes-hoje'
+    '/clientes/express-entulho/operacoes/despacho': {
+      id: '/clientes/express-entulho/operacoes/despacho'
+      path: '/despacho'
+      fullPath: '/clientes/express-entulho/operacoes/despacho'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesDespachoRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
+    }
+    '/clientes/express-entulho/operacoes/operacoes-hoje': {
+      id: '/clientes/express-entulho/operacoes/operacoes-hoje'
       path: '/operacoes-hoje'
-      fullPath: '/preview/express-operations-b/operacoes-hoje'
-      preLoaderRoute: typeof PreviewExpressOperationsBOperacoesHojeRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
+      fullPath: '/clientes/express-entulho/operacoes/operacoes-hoje'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesOperacoesHojeRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
-    '/preview/express-operations-b/regras-do-agente': {
-      id: '/preview/express-operations-b/regras-do-agente'
+    '/clientes/express-entulho/operacoes/regras-do-agente': {
+      id: '/clientes/express-entulho/operacoes/regras-do-agente'
       path: '/regras-do-agente'
-      fullPath: '/preview/express-operations-b/regras-do-agente'
-      preLoaderRoute: typeof PreviewExpressOperationsBRegrasDoAgenteRouteImport
-      parentRoute: typeof PreviewExpressOperationsBRoute
+      fullPath: '/clientes/express-entulho/operacoes/regras-do-agente'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
+    }
+    '/clientes/express-entulho/operacoes/testar': {
+      id: '/clientes/express-entulho/operacoes/testar'
+      path: '/testar'
+      fullPath: '/clientes/express-entulho/operacoes/testar'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesTestarRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
   }
 }
@@ -951,29 +1052,12 @@ const BlogRedeDeFontesRouteWithChildren =
   BlogRedeDeFontesRoute._addFileChildren(BlogRedeDeFontesRouteChildren)
 
 interface PreviewExpressOperationsBRouteChildren {
-  PreviewExpressOperationsBSecaoRoute: typeof PreviewExpressOperationsBSecaoRoute
-  PreviewExpressOperationsBAprovacoesRoute: typeof PreviewExpressOperationsBAprovacoesRoute
-  PreviewExpressOperationsBAtendimentoRoute: typeof PreviewExpressOperationsBAtendimentoRoute
-  PreviewExpressOperationsBCacambasRoute: typeof PreviewExpressOperationsBCacambasRoute
-  PreviewExpressOperationsBOperacoesHojeRoute: typeof PreviewExpressOperationsBOperacoesHojeRoute
-  PreviewExpressOperationsBRegrasDoAgenteRoute: typeof PreviewExpressOperationsBRegrasDoAgenteRoute
-  PreviewExpressOperationsBIndexRoute: typeof PreviewExpressOperationsBIndexRoute
+  PreviewExpressOperationsBSplatRoute: typeof PreviewExpressOperationsBSplatRoute
 }
 
 const PreviewExpressOperationsBRouteChildren: PreviewExpressOperationsBRouteChildren =
   {
-    PreviewExpressOperationsBSecaoRoute: PreviewExpressOperationsBSecaoRoute,
-    PreviewExpressOperationsBAprovacoesRoute:
-      PreviewExpressOperationsBAprovacoesRoute,
-    PreviewExpressOperationsBAtendimentoRoute:
-      PreviewExpressOperationsBAtendimentoRoute,
-    PreviewExpressOperationsBCacambasRoute:
-      PreviewExpressOperationsBCacambasRoute,
-    PreviewExpressOperationsBOperacoesHojeRoute:
-      PreviewExpressOperationsBOperacoesHojeRoute,
-    PreviewExpressOperationsBRegrasDoAgenteRoute:
-      PreviewExpressOperationsBRegrasDoAgenteRoute,
-    PreviewExpressOperationsBIndexRoute: PreviewExpressOperationsBIndexRoute,
+    PreviewExpressOperationsBSplatRoute: PreviewExpressOperationsBSplatRoute,
   }
 
 const PreviewExpressOperationsBRouteWithChildren =
@@ -981,10 +1065,50 @@ const PreviewExpressOperationsBRouteWithChildren =
     PreviewExpressOperationsBRouteChildren,
   )
 
+interface ClientesExpressEntulhoOperacoesRouteChildren {
+  ClientesExpressEntulhoOperacoesSecaoRoute: typeof ClientesExpressEntulhoOperacoesSecaoRoute
+  ClientesExpressEntulhoOperacoesAprovacoesRoute: typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
+  ClientesExpressEntulhoOperacoesAtendimentoRoute: typeof ClientesExpressEntulhoOperacoesAtendimentoRoute
+  ClientesExpressEntulhoOperacoesCacambasRoute: typeof ClientesExpressEntulhoOperacoesCacambasRoute
+  ClientesExpressEntulhoOperacoesDespachoRoute: typeof ClientesExpressEntulhoOperacoesDespachoRoute
+  ClientesExpressEntulhoOperacoesOperacoesHojeRoute: typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
+  ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute: typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  ClientesExpressEntulhoOperacoesTestarRoute: typeof ClientesExpressEntulhoOperacoesTestarRoute
+  ClientesExpressEntulhoOperacoesIndexRoute: typeof ClientesExpressEntulhoOperacoesIndexRoute
+}
+
+const ClientesExpressEntulhoOperacoesRouteChildren: ClientesExpressEntulhoOperacoesRouteChildren =
+  {
+    ClientesExpressEntulhoOperacoesSecaoRoute:
+      ClientesExpressEntulhoOperacoesSecaoRoute,
+    ClientesExpressEntulhoOperacoesAprovacoesRoute:
+      ClientesExpressEntulhoOperacoesAprovacoesRoute,
+    ClientesExpressEntulhoOperacoesAtendimentoRoute:
+      ClientesExpressEntulhoOperacoesAtendimentoRoute,
+    ClientesExpressEntulhoOperacoesCacambasRoute:
+      ClientesExpressEntulhoOperacoesCacambasRoute,
+    ClientesExpressEntulhoOperacoesDespachoRoute:
+      ClientesExpressEntulhoOperacoesDespachoRoute,
+    ClientesExpressEntulhoOperacoesOperacoesHojeRoute:
+      ClientesExpressEntulhoOperacoesOperacoesHojeRoute,
+    ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute:
+      ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute,
+    ClientesExpressEntulhoOperacoesTestarRoute:
+      ClientesExpressEntulhoOperacoesTestarRoute,
+    ClientesExpressEntulhoOperacoesIndexRoute:
+      ClientesExpressEntulhoOperacoesIndexRoute,
+  }
+
+const ClientesExpressEntulhoOperacoesRouteWithChildren =
+  ClientesExpressEntulhoOperacoesRoute._addFileChildren(
+    ClientesExpressEntulhoOperacoesRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentesRoute: AgentesRoute,
   AulaZeroRoute: AulaZeroRoute,
+  ClientesVeronicaRoute: ClientesVeronicaRoute,
   ComandosRoute: ComandosRoute,
   MembrosRoute: MembrosRoute,
   PortfolioRoute: PortfolioRoute,
@@ -1015,6 +1139,8 @@ const rootRouteChildren: RootRouteChildren = {
   BlogIndexRoute: BlogIndexRoute,
   ClientesIndexRoute: ClientesIndexRoute,
   BlogEditoriaBeatRoute: BlogEditoriaBeatRoute,
+  ClientesExpressEntulhoOperacoesRoute:
+    ClientesExpressEntulhoOperacoesRouteWithChildren,
   ClientesExpressEntulhoOperacoesDemoRoute:
     ClientesExpressEntulhoOperacoesDemoRoute,
   ClientesExpressEntulhoPropostaRoute: ClientesExpressEntulhoPropostaRoute,

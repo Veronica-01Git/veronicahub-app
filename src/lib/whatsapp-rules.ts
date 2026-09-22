@@ -38,10 +38,12 @@
  * como conferir se a matriz está certa. Um número errado aqui é um número que
  * o agente repete com confiança total para cliente real.
  *
- * DÚVIDAS ABERTAS, as duas para o dono:
+ * DÚVIDAS ABERTAS, as três para o dono:
  * - Os valores de Itajaí vieram do vendedor que está saindo. Conferir.
  * - Ao recusar desconto, o dono menciona "reajuste de preço no aterro".
  *   Confirmar se a tabela de Itajaí subiu depois disso.
+ * - O tambor custa 180 com demolição e 180 com entulho. Tem preço único,
+ *   independente do material? Se tiver, o tambor sai da lógica de matriz.
  */
 
 export type ProdutoId = "cacamba-menor" | "tambor" | "cacamba-grande";
@@ -80,6 +82,8 @@ export type RegrasNegocio = {
   readonly prazoRecolhaHoras: number;
   /** Trocar caçamba cheia por vazia é uma locação nova, e é cobrada como tal. */
   readonly trocaEhNovaLocacao: boolean;
+  /** A recolha só é aberta depois do comprovante de pagamento. */
+  readonly comprovanteAntesDaRecolha: boolean;
   readonly dadosParaAgendar: readonly string[];
   readonly formasPagamento: readonly string[];
   readonly observacoes: readonly string[];
@@ -165,6 +169,22 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
     // Mesmo áudio: "gesso... então a caçamba menor R$ 280". FONTE FRACA.
     { produto: "cacamba-menor", material: "gesso", cidade: ITAJAI, valorReais: 280 },
 
+    // FONTE FORTE, e de um tipo novo: mensagem que a PRÓPRIA EMPRESA mandou a
+    // um cliente pelo WhatsApp dela, em 14/09 às 13:26 — a peça de marketing
+    // oficial do tambor com a legenda "Tambor de entulho / 180 reias e fica 3
+    // dias". Não é alguém contando de memória o que a empresa cobra; é a
+    // empresa cobrando.
+    //
+    // A CIDADE NÃO APARECE NO PRINT. Ela entra como Itajaí porque o tambor só
+    // existe em Itajaí — regra que já estava neste arquivo, não suposição
+    // feita agora. Se o tambor passar a rodar em outra cidade, esta linha
+    // precisa ser revista antes.
+    //
+    // Repare que o valor é o MESMO do tambor com demolição (180). Ou o tambor
+    // tem preço único independente do material, ou é coincidência. É pergunta
+    // para o dono, e está em PENDENCIAS-CLIENTE.md.
+    { produto: "tambor", material: "entulho", cidade: ITAJAI, valorReais: 180 },
+
     // O DONO, em conversa real com cliente (19/09), Itapema, gesso:
     // "CACAMBA MENOR, 250 reais e fica 3 dias" e "Caçamba grande, 470 reais e
     // fica 7 dias". É o único preço fora de Itajaí com fonte, e é ele que
@@ -191,6 +211,13 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
 
   // "Ok, sim, consigo fazer uma nova locação de troca."
   trocaEhNovaLocacao: true,
+
+  // O DONO, mesma conversa (19/09), quando o cliente diz que a caçamba
+  // encheu e pergunta se quer recolher: "Perfeito, consegue enviar o
+  // comprovante de pagamento para possamos abrir uma ordem de serviço para
+  // recolher sua caçamba". O comprovante vem ANTES da ordem de recolha —
+  // não é detalhe de cobrança, é o passo que destrava a operação.
+  comprovanteAntesDaRecolha: true,
 
   dadosParaAgendar: ["nome completo", "CPF", "endereço completo com rua, número, bairro e cidade"],
 
@@ -304,7 +331,7 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
     `- Recolha da caçamba cheia: até ${regras.prazoRecolhaHoras} horas.`,
     regras.trocaEhNovaLocacao
       ? "- Troca é uma locação NOVA e é cobrada como tal. Cliente que diz que encheu" +
-        "\n  está pedindo troca, e o valor é o da locação daquele produto e material."
+          "\n  está pedindo troca, e o valor é o da locação daquele produto e material."
       : "- Troca não gera nova cobrança.",
     "- O motorista avisa o cliente quando estiver a caminho da entrega.",
     "",
@@ -314,6 +341,13 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
       regras.formasPagamento.join(", ") +
       ".",
     "Você NÃO envia chave Pix e NÃO confere comprovante — isso é de uma pessoa.",
+    'Se o cliente pedir a chave ("manda o Pix"), não enrole e não peça dados:',
+    "diga que uma pessoa da equipe manda a chave agora e encaminhe.",
+    regras.comprovanteAntesDaRecolha
+      ? "RECOLHA: quem pede recolha sem ter pago, você pede o comprovante primeiro —\n" +
+          "  é ele que destrava a ordem de serviço. Peça do jeito do dono: diga PARA QUE\n" +
+          "  serve, não só que precisa."
+      : "RECOLHA: não depende de comprovante.",
     "Se o cliente mandar comprovante, confirme que recebeu, diga que a recolha",
     `sai em até ${regras.prazoRecolhaHoras} horas, e passe para a equipe conferir.`,
   );

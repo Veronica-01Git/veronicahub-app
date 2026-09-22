@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
-    "agente": "node scripts/agente-simulador.mjs"
+    "agente": "node scripts/agente-simulador.mjs",
+    "roteiro-pdf": "node scripts/roteiro-pdf.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.116.0",

@@ -15,7 +15,7 @@ import { conversarComAgente } from "@/features/express-ops-b/data/agente";
 import { OpsCard, SectionTitle, EstadoBadge } from "@/features/express-ops-b/components/primitives";
 import { REGRAS_EXPRESS_ENTULHO as R, produtoPorId, type ProdutoId } from "@/lib/whatsapp-rules";
 
-export const Route = createFileRoute("/preview/express-operations-b/regras-do-agente")({
+export const Route = createFileRoute("/clientes/express-entulho/operacoes/regras-do-agente")({
   component: RegrasDoAgente,
 });
 

@@ -15,9 +15,170 @@ import {
   awaiting,
   type Cacamba,
   type CacambaEstado,
+  type CartaoLocacao,
   type ExpressOpsData,
+  type GrupoInterno,
   type Operacao,
 } from "./types";
+
+/**
+ * Os grupos de despacho.
+ *
+ * A ESTRUTURA é real, observada no aparelho da empresa em 14/09: grupos fixos
+ * por função e um grupo por rota de motorista. Os NOMES DE PESSOAS são
+ * inventados — esta página é pública, e integrante de grupo interno é gente
+ * de verdade com nome de verdade.
+ *
+ * `agentePodePostar: false` no administrativo não é limitação técnica: é a
+ * mesma regra de whatsapp-rules.ts que impede o agente de mandar chave Pix e
+ * conferir comprovante. Documento financeiro passa por pessoa.
+ */
+const gruposInternos: readonly GrupoInterno[] = [
+  {
+    id: "g-prioridade",
+    nome: "Prioridade",
+    funcao: "prioridade",
+    integrantes: ["Coordenação", "Operação", "Agente"],
+    ultimoDespacho: {
+      texto: "Favor recolher essa caçamba",
+      quandoRel: "há 6 min",
+      autor: "agente",
+    },
+    naoLidas: 2,
+    agentePodePostar: true,
+  },
+  {
+    id: "g-motoristas",
+    nome: "Express | Motoristas",
+    funcao: "motoristas",
+    integrantes: ["Motorista 01", "Motorista 02", "Motorista 03", "Operação"],
+    ultimoDespacho: {
+      texto: "Rota da tarde fechada — 4 paradas",
+      quandoRel: "há 22 min",
+      autor: "humano",
+      assinatura: "Operação",
+    },
+    naoLidas: 0,
+    agentePodePostar: true,
+  },
+  {
+    id: "g-rota-01",
+    nome: "Rota · Motorista 01",
+    funcao: "rota",
+    integrantes: ["Motorista 01", "Coordenação", "Operação"],
+    ultimoDespacho: {
+      texto: "Locação #5390 · Caçamba grande · Fazenda, Itajaí",
+      quandoRel: "há 31 min",
+      autor: "agente",
+    },
+    naoLidas: 1,
+    agentePodePostar: true,
+  },
+  {
+    id: "g-rota-02",
+    nome: "Rota · Motorista 02",
+    funcao: "rota",
+    integrantes: ["Motorista 02", "Coordenação"],
+    ultimoDespacho: {
+      texto: "Fazer troca — cliente confirmou que encheu",
+      quandoRel: "há 48 min",
+      autor: "agente",
+    },
+    naoLidas: 0,
+    agentePodePostar: true,
+  },
+  {
+    id: "g-transicao",
+    nome: "Transição",
+    funcao: "transicao",
+    integrantes: ["Coordenação", "Operação"],
+    ultimoDespacho: {
+      texto: "Passagem de turno registrada",
+      quandoRel: "há 1 h",
+      autor: "humano",
+      assinatura: "Coordenação",
+    },
+    naoLidas: 0,
+    agentePodePostar: false,
+  },
+  {
+    id: "g-adm",
+    nome: "Adm express",
+    funcao: "administrativo",
+    integrantes: ["Administrativo", "Coordenação", "Financeiro"],
+    ultimoDespacho: {
+      texto: "Nota fiscal e boleto do dia",
+      quandoRel: "há 1 h",
+      autor: "humano",
+      assinatura: "Administrativo",
+    },
+    naoLidas: 0,
+    agentePodePostar: false,
+  },
+];
+
+/**
+ * Cartões de locação, no formato que o sistema de gestão emite e que é
+ * encaminhado ao grupo do motorista.
+ *
+ * Os campos em `null` são de propósito: no cartão real, CEP, complemento e
+ * observação vêm vazios com frequência, e a UI mostra travessão. Fingir que
+ * o cadastro está completo esconderia justamente o trabalho que sobra para
+ * uma pessoa.
+ */
+const locacoes: readonly CartaoLocacao[] = [
+  {
+    numero: 5390,
+    contato: "Obra Fazenda · responsável no local",
+    telefone: "(47) 9xxxx-xxxx",
+    enderecoObra: {
+      endereco: "Rua das Obras, 174",
+      cep: null,
+      bairro: "Fazenda",
+      complemento: null,
+      cidade: "Itajaí",
+      estado: "SC",
+      observacao: null,
+    },
+    itens: [{ produto: "Caçamba grande", pecas: 1, situacao: "ordem-finalizada" }],
+    despachadoPara: "Rota · Motorista 01",
+    quandoRel: "há 31 min",
+  },
+  {
+    numero: 5391,
+    contato: "Reforma residencial · Centro",
+    telefone: "(47) 9xxxx-xxxx",
+    enderecoObra: {
+      endereco: "Rua 3100, 610",
+      cep: "88330-000",
+      bairro: "Centro",
+      complemento: "Portão lateral",
+      cidade: "Balneário Camboriú",
+      estado: "SC",
+      observacao: "Liberar antes das 8h — rua com carga e descarga",
+    },
+    itens: [{ produto: "Caçamba menor", pecas: 1, situacao: "em-operacao" }],
+    despachadoPara: "Rota · Motorista 02",
+    quandoRel: "há 48 min",
+  },
+  {
+    numero: 5392,
+    contato: "Condomínio · área comum",
+    telefone: "(47) 9xxxx-xxxx",
+    enderecoObra: {
+      endereco: "Rua Benjamin Franklin Pereira, 365",
+      cep: null,
+      bairro: null,
+      complemento: null,
+      cidade: "Itajaí",
+      estado: "SC",
+      observacao: null,
+    },
+    itens: [{ produto: "Tambor", pecas: 2, situacao: "em-operacao" }],
+    despachadoPara: null,
+    quandoRel: "há 4 min",
+  },
+];
 
 const cacambas: readonly Cacamba[] = [
   {
@@ -723,4 +884,6 @@ export const expressOpsMock: ExpressOpsData = {
   ],
   operacoesHoje,
   cacambas,
+  gruposInternos,
+  locacoes,
 };

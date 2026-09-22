@@ -13,7 +13,7 @@ import {
 import { usePainelOps } from "@/features/express-ops-b/data/queries";
 import { EsqueletoPainel } from "@/features/express-ops-b/components/esqueleto";
 
-export const Route = createFileRoute("/preview/express-operations-b/")({
+export const Route = createFileRoute("/clientes/express-entulho/operacoes/")({
   component: VisaoGeral,
 });
 

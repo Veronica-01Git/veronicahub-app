@@ -11,7 +11,7 @@ import { ArrowRight } from "lucide-react";
 import { OpsCard } from "@/features/express-ops-b/components/primitives";
 import { BASE, NAV_POR_SLUG } from "@/features/express-ops-b/nav";
 
-export const Route = createFileRoute("/preview/express-operations-b/$secao")({
+export const Route = createFileRoute("/clientes/express-entulho/operacoes/$secao")({
   component: SecaoEmConstrucao,
 });
 

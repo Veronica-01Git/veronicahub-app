@@ -17,6 +17,7 @@ import {
   INTENT_LINKS,
   SPECIAL_PROJECTS,
 } from "../src/lib/ecosystem.ts";
+import { LINKS_DE_CLIENTES } from "../src/lib/clientes.ts";
 
 const routeDir = new URL("../src/routes/", import.meta.url);
 const routeSources = readdirSync(routeDir, { recursive: true })
@@ -162,16 +163,24 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/clientes/veronica-fashion-operator/",
   "/clientes/veronica-fashion-operator/execucao",
   "/clientes/express-entulho/operacoes-demo",
-  "/clientes/express-entulho/proposta",
+  // Redirect do endereço antigo da proposta.
   "/proposta/express-entulho",
+  // Redirects do endereço antigo do Express Operations, que saiu de
+  // /preview em 21/09. Não têm link porque não são página — são o link
+  // velho que o dono já tem salvo continuando a abrir.
   "/preview/express-operations-b",
-  "/preview/express-operations-b/",
-  "/preview/express-operations-b/$secao",
-  "/preview/express-operations-b/aprovacoes",
-  "/preview/express-operations-b/atendimento",
-  "/preview/express-operations-b/cacambas",
-  "/preview/express-operations-b/operacoes-hoje",
-  "/preview/express-operations-b/regras-do-agente",
+  "/preview/express-operations-b/$",
+  // Seções internas do Express Operations: alcançadas pela barra lateral do
+  // próprio painel, depois de entrar por /clientes. A raiz dele tem link de
+  // verdade e por isso NÃO está nesta lista.
+  "/clientes/express-entulho/operacoes/$secao",
+  "/clientes/express-entulho/operacoes/aprovacoes",
+  "/clientes/express-entulho/operacoes/atendimento",
+  "/clientes/express-entulho/operacoes/cacambas",
+  "/clientes/express-entulho/operacoes/despacho",
+  "/clientes/express-entulho/operacoes/operacoes-hoje",
+  "/clientes/express-entulho/operacoes/regras-do-agente",
+  "/clientes/express-entulho/operacoes/testar",
   // Rodapé e páginas de apoio do Wire, alcançadas de dentro dele.
   "/blog/expediente",
   "/blog/rede-de-fontes",
@@ -189,11 +198,13 @@ test("nenhuma rota pública nasce órfã — ou tem link, ou está declarada sem
   const declaradas = new Set(
     [...routeSources.matchAll(/createFileRoute\("([^"]+)"\)/g)].map((m) => semBarraFinal(m[1])),
   );
-  const comLink = new Set(
-    [...HOME_PRODUCTS, ...PRIMARY_NAV, ...INTENT_LINKS, ...SPECIAL_PROJECTS].map((p) =>
+  const comLink = new Set([
+    ...[...HOME_PRODUCTS, ...PRIMARY_NAV, ...INTENT_LINKS, ...SPECIAL_PROJECTS].map((p) =>
       semBarraFinal(p.to),
     ),
-  );
+    // A listagem /clientes também é navegação: o que ela lista tem link.
+    ...LINKS_DE_CLIENTES.map(semBarraFinal),
+  ]);
 
   const excecoes = new Set([...SEM_LINK_DE_PROPOSITO].map(semBarraFinal));
   const orfas = [...declaradas].filter((rota) => !comLink.has(rota) && !excecoes.has(rota));
@@ -219,6 +230,8 @@ test("todo produto público e interno tem porta de entrada na navegação", () =
   // A mesma armadilha vale para qualquer produto futuro. Vale a exceção de
   // quem tem lugar próprio: a escola é a raiz, e os três do PRIMARY_NAV e os
   // projetos especiais entram por outras listas.
+  // Deriva do PRIMARY_NAV em vez de repetir os ids à mão: acrescentar item ao
+  // menu passa a não exigir mexer neste teste.
   const comCasaPropria = new Set(["school", "zero", "rede", "rh", ...PRIMARY_NAV.map((p) => p.id)]);
   const orfaos = PRODUCTS.filter(
     (p) =>

@@ -11,14 +11,67 @@
 const GRAPH_HOST = "graph.facebook.com";
 const DEFAULT_GRAPH_VERSION = "v21.0";
 
+/**
+ * A TRAVA DE ENVIO, e por que ela existe.
+ *
+ * Até 21/09 bastava ter `WHATSAPP_PHONE_NUMBER_ID` e `WHATSAPP_ACCESS_TOKEN`
+ * no ambiente para o agente sair mandando mensagem para cliente real. Ter
+ * credencial e ter AUTORIZAÇÃO são coisas diferentes, e o código não sabia
+ * distinguir: um deploy com as variáveis certas já era um agente falando com
+ * gente de verdade.
+ *
+ * Decisão do proprietário do projeto, registrada em 21/09: nada é enviado
+ * antes dos testes e da aprovação do dono da Express Entulho. Enquanto essa
+ * aprovação não vier, o agente é montado, testado no simulador e revisado —
+ * mas não fala com ninguém.
+ *
+ * Então agora são DUAS chaves. As credenciais dizem "consigo enviar"; esta
+ * variável diz "posso enviar". O padrão é NÃO: ausência, string vazia,
+ * "true", "1" ou qualquer outro valor mantém o envio bloqueado. Só o texto
+ * exato abaixo libera, e ele é feio de propósito — ninguém digita isso por
+ * acidente nem copia de um tutorial.
+ *
+ * Isto não substitui a regra de AGENTS.md sobre o número da empresa não ser
+ * migrado. São camadas diferentes: lá é qual número; aqui é se sai mensagem.
+ */
+const ENVIO_LIBERADO = "sim-o-dono-aprovou";
+
+export type MotivoBloqueio = "sem-credenciais" | "envio-nao-liberado";
+
+/** Por que o envio está bloqueado — ou `null` quando pode sair. */
+export function motivoEnvioBloqueado(): MotivoBloqueio | null {
+  if (!process.env.WHATSAPP_PHONE_NUMBER_ID || !process.env.WHATSAPP_ACCESS_TOKEN) {
+    return "sem-credenciais";
+  }
+  if (process.env.WHATSAPP_ENVIO_LIBERADO !== ENVIO_LIBERADO) return "envio-nao-liberado";
+  return null;
+}
+
+export const EXPLICACAO_BLOQUEIO: Record<MotivoBloqueio, string> = {
+  "sem-credenciais": "WhatsApp não configurado",
+  "envio-nao-liberado": "envio desarmado — aguardando aprovação do dono (WHATSAPP_ENVIO_LIBERADO)",
+};
+
 export type WhatsAppConfig = {
   readonly phoneNumberId: string;
   readonly accessToken: string;
   readonly graphVersion: string;
 };
 
-/** Config de envio. `null` quando não está configurado — nunca lança. */
+/**
+ * Config de envio. `null` quando não está configurado OU quando o envio
+ * ainda não foi liberado — nunca lança.
+ *
+ * Os quatro caminhos que falam com a Graph (sendText, sendAudio, markAsRead,
+ * uploadAudio) chamam esta função antes de qualquer fetch. Ela é o
+ * estrangulamento de propósito: uma trava só, num lugar só, em vez de quatro
+ * verificações que alguém esquece de repetir na quinta função.
+ *
+ * `downloadMedia` recebe a config de fora e por isso cai na mesma trava pelo
+ * chamador.
+ */
 export function getWhatsAppConfig(): WhatsAppConfig | null {
+  if (motivoEnvioBloqueado() !== null) return null;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   if (!phoneNumberId || !accessToken) return null;
@@ -85,7 +138,13 @@ export type EnvioResultado =
 /** Envia texto simples. Só funciona dentro da janela de 24 h da Meta. */
 export async function sendText(to: string, body: string): Promise<EnvioResultado> {
   const config = getWhatsAppConfig();
-  if (!config) return { ok: false, erro: "WhatsApp não configurado" };
+  if (!config) {
+    // Diz QUAL das duas causas é: sem credencial e desarmado se consertam de
+    // formas opostas, e um painel que mostra a frase errada manda a pessoa
+    // procurar token quando o que falta é a aprovação do dono.
+    const motivo = motivoEnvioBloqueado();
+    return { ok: false, erro: EXPLICACAO_BLOQUEIO[motivo ?? "sem-credenciais"] };
+  }
 
   const resposta = await fetch(
     `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/messages`,
@@ -169,7 +228,10 @@ export async function uploadAudio(
   mimeType: string,
 ): Promise<{ ok: true; mediaId: string } | { ok: false; erro: string }> {
   const config = getWhatsAppConfig();
-  if (!config) return { ok: false, erro: "WhatsApp não configurado" };
+  if (!config) {
+    const motivo = motivoEnvioBloqueado();
+    return { ok: false, erro: EXPLICACAO_BLOQUEIO[motivo ?? "sem-credenciais"] };
+  }
 
   const form = new FormData();
   form.append("messaging_product", "whatsapp");
@@ -207,7 +269,10 @@ export async function uploadAudio(
 /** Envia o áudio já subido. Mesma janela de 24 h que vale para texto. */
 export async function sendAudio(to: string, mediaId: string): Promise<EnvioResultado> {
   const config = getWhatsAppConfig();
-  if (!config) return { ok: false, erro: "WhatsApp não configurado" };
+  if (!config) {
+    const motivo = motivoEnvioBloqueado();
+    return { ok: false, erro: EXPLICACAO_BLOQUEIO[motivo ?? "sem-credenciais"] };
+  }
 
   const resposta = await fetch(
     `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/messages`,
@@ -251,7 +316,10 @@ export async function downloadMedia(
   mediaId: string,
 ): Promise<{ ok: true; bytes: Uint8Array; mimeType: string } | { ok: false; erro: string }> {
   const config = getWhatsAppConfig();
-  if (!config) return { ok: false, erro: "WhatsApp não configurado" };
+  if (!config) {
+    const motivo = motivoEnvioBloqueado();
+    return { ok: false, erro: EXPLICACAO_BLOQUEIO[motivo ?? "sem-credenciais"] };
+  }
 
   try {
     const meta = await fetch(`https://${GRAPH_HOST}/${config.graphVersion}/${mediaId}`, {

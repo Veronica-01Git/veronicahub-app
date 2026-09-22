@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, BadgeCheck, Building2, Check, CircleDot, Copy, Database, ExternalLink, FileText, MessageSquare, Network, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Building2, Check, CircleDot, Copy, Database, FileText, Lock, MessageSquare, Network, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { VeronicaSeal } from "@/components/VeronicaSeal";
@@ -54,7 +54,11 @@ function SealVerification() {
                 <h1 className="mt-6 font-display text-5xl leading-[.94] tracking-[-.05em] sm:text-6xl">{record.client}</h1>
                 <p className="mt-4 text-xl text-neon-cyan">{record.solution}</p>
                 <p className="mt-5 max-w-2xl leading-relaxed text-muted-foreground">{record.summary}</p>
-                <div className="mt-7 flex flex-wrap gap-3"><button type="button" onClick={copyVerification} className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-neon-green px-5 font-mono-tech text-[10px] uppercase tracking-widest text-primary-foreground shadow-glow-green transition hover:brightness-110">{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copied ? "Link copiado" : "Copiar verificação"}</button>{record.serial === "VH-AUT-WA-2026-000001" && <Link to="/clientes/express-entulho/proposta" className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-neon-green/45 bg-white/55 px-5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green transition hover:bg-neon-green/[.08]"><FileText className="h-3.5 w-3.5" />Abrir proposta</Link>}<a href={verificationUrl} className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-border/70 px-5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition hover:border-neon-cyan/60 hover:text-neon-cyan">Abrir endereço oficial <ExternalLink className="h-3.5 w-3.5" /></a></div>
+                <div className="mt-7 flex flex-wrap gap-3"><button type="button" onClick={copyVerification} className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-neon-green px-5 font-mono-tech text-[10px] uppercase tracking-widest text-primary-foreground shadow-glow-green transition hover:brightness-110">{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copied ? "Link copiado" : "Copiar verificação"}</button>{record.serial === "VH-AUT-WA-2026-000001" && <Link to="/clientes/express-entulho/proposta" className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-neon-green/45 bg-white/55 px-5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green transition hover:bg-neon-green/[.08]"><FileText className="h-3.5 w-3.5" />Abrir proposta</Link>}{/* O botão apontava para a própria página do selo — ou seja, para onde a
+                  pessoa já estava. Agora leva ao portal de clientes, que é onde o
+                  dono do selo digita este número e entra no espaço dele. Só aparece
+                  para selo real: conceito não tem espaço privado. */}
+                {!isConcept && <Link to="/clientes" className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-border/70 px-5 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground transition hover:border-neon-cyan/60 hover:text-neon-cyan"><Lock className="h-3.5 w-3.5" />Entrar com este selo</Link>}</div>
               </div>
             </div>
           </div>

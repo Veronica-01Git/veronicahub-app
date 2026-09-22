@@ -1,63 +1,21 @@
 /**
- * Express Operations — demonstração visual (variante B).
+ * Redirect do endereço antigo.
  *
- * Rota isolada e não indexável. Não aparece em nenhum menu, nav ou listagem
- * do Hub: só é alcançável por URL direta. Nenhum dado real.
+ * A central de operações morava em /preview/express-operations-b enquanto era
+ * protótipo. Saiu de lá em 21/09 para /clientes/express-entulho/operacoes, e
+ * este arquivo existe por um motivo só: o link antigo já foi mandado para o
+ * cliente pelo WhatsApp. Link que o dono abriu uma vez e salvou não pode
+ * quebrar na véspera da reunião.
+ *
+ * O `$` ao lado cobre as subrotas — /preview/express-operations-b/atendimento
+ * e as outras cinco — porque o beforeLoad do layout roda antes de qualquer
+ * filho e derruba a navegação aqui.
  */
 
-import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
-import {
-  RodapeProcedencia,
-  Sidebar,
-  TarjaDemo,
-  Topbar,
-} from "@/features/express-ops-b/components/shell";
-import { BASE, NAV_POR_SLUG } from "@/features/express-ops-b/nav";
-import "@/features/express-ops-b/tokens.css";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/preview/express-operations-b")({
-  component: ExpressOperationsLayout,
-  head: () => ({
-    meta: [
-      { title: "Express Operations · Protótipo visual" },
-      { name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
-      { name: "googlebot", content: "noindex, nofollow" },
-      {
-        name: "description",
-        content: "Demonstração visual com dados fictícios. Não é sistema em operação.",
-      },
-    ],
-  }),
+  beforeLoad: () => {
+    throw redirect({ to: "/clientes/express-entulho/operacoes", replace: true });
+  },
 });
-
-const APOIO: Record<string, string> = {
-  "": "Sexta-feira, 14 de setembro · dados fictícios",
-  atendimento: "Conversas do WhatsApp atendidas pelo agente",
-  aprovacoes: "Decisões que a IA escalou para um humano",
-  "operacoes-hoje": "Entregas e retiradas do dia",
-  cacambas: "Inventário e ciclo de vida",
-  "regras-do-agente": "Preços por material e conversa com o agente",
-};
-
-function ExpressOperationsLayout() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const resto = pathname.replace(/\/$/, "").slice(BASE.length).replace(/^\//, "");
-  const item = NAV_POR_SLUG.get(resto);
-  const titulo = item?.rotulo ?? "Seção";
-
-  return (
-    <div className="express-ops-b min-h-screen">
-      <TarjaDemo />
-      <div className="grid md:grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[264px_minmax(0,1fr)]">
-        <Sidebar />
-        <div className="flex min-h-[calc(100vh-37px)] min-w-0 flex-col">
-          <Topbar titulo={titulo} apoio={APOIO[resto]} />
-          <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-            <Outlet />
-          </main>
-          <RodapeProcedencia />
-        </div>
-      </div>
-    </div>
-  );
-}

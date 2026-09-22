@@ -14,6 +14,8 @@ import {
   CalendarDays,
   Container,
   FileText,
+  MessageCircle,
+  Send,
   LayoutDashboard,
   Map as MapIcon,
   MessagesSquare,
@@ -37,6 +39,7 @@ export type ItemNav = {
 
 export const ITENS_NAV: readonly ItemNav[] = [
   { slug: "", rotulo: "Visão geral", icone: LayoutDashboard, pronta: true },
+  { slug: "testar", rotulo: "Sala de teste", icone: MessageCircle, pronta: true },
   { slug: "atendimento", rotulo: "Central de atendimento", icone: MessagesSquare, pronta: true },
   { slug: "aprovacoes", rotulo: "Aprovações humanas", icone: ShieldCheck, pronta: true },
   {
@@ -52,6 +55,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     ],
   },
   { slug: "operacoes-hoje", rotulo: "Operações de hoje", icone: Truck, pronta: true },
+  { slug: "despacho", rotulo: "Despacho interno", icone: Send, pronta: true },
   {
     slug: "planejamento-amanha",
     rotulo: "Planejamento de amanhã",
@@ -177,7 +181,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
 
 export const NAV_POR_SLUG = new Map(ITENS_NAV.map((i) => [i.slug, i]));
 
-export const BASE = "/preview/express-operations-b";
+export const BASE = "/clientes/express-entulho/operacoes";
 
 export function hrefDe(slug: string): string {
   return slug === "" ? BASE : `${BASE}/${slug}`;

@@ -5,6 +5,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
 import { handleWhatsAppVerify, handleWhatsAppWebhook } from "./lib/whatsapp-webhook";
 import { handleWhatsAppDiagnostico } from "./lib/whatsapp-diagnostico";
+import { handleTesteAgente } from "./lib/whatsapp-teste";
 import { guardarNoCacheDeBorda, lerDoCacheDeBorda, podeCachear } from "./lib/edge-cache";
 import { handleImageTransform } from "./lib/image-transform-server";
 import { handleNewsSitemap, handleSitemap, handleRssFeed } from "./lib/seo-feed";
@@ -134,6 +135,17 @@ const app = {
 
     // Por que a agente cai no offline, sem abrir a demonstração e sem gastar
     // uma conversa: uma sonda de um token e o status que a Groq devolveu.
+    // Sala de teste do dono: mesma agente, mesma guarda, SEM WhatsApp. Não
+    // há caminho daqui para a Meta — ver src/lib/whatsapp-teste.ts.
+    if (url.pathname === "/api/whatsapp/testar") {
+      try {
+        return await handleTesteAgente(request);
+      } catch (error) {
+        console.error("Erro na sala de teste da agente:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
     if (url.pathname === "/api/whatsapp/diagnostico" && request.method === "GET") {
       try {
         return await handleWhatsAppDiagnostico(request);
