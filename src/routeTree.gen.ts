@@ -28,6 +28,7 @@ import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security
 import { Route as VideoIaRouteImport } from './routes/video-ia'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
+import { Route as AdminComissoesShopeeRouteImport } from './routes/admin/comissoes-shopee'
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminMembrosRouteImport } from './routes/admin/membros'
 import { Route as AdminProdutosShopeeRouteImport } from './routes/admin/produtos-shopee'
@@ -155,6 +156,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminArtigosRoute = AdminArtigosRouteImport.update({
   id: '/admin/artigos',
   path: '/admin/artigos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminComissoesShopeeRoute = AdminComissoesShopeeRouteImport.update({
+  id: '/admin/comissoes-shopee',
+  path: '/admin/comissoes-shopee',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminImagensRoute = AdminImagensRouteImport.update({
@@ -354,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/comissoes-shopee': typeof AdminComissoesShopeeRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
@@ -407,6 +414,7 @@ export interface FileRoutesByTo {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/comissoes-shopee': typeof AdminComissoesShopeeRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
@@ -460,6 +468,7 @@ export interface FileRoutesById {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/comissoes-shopee': typeof AdminComissoesShopeeRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
@@ -515,8 +524,10 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/comissoes-shopee'
     | '/admin/imagens'
     | '/admin/membros'
+    | '/admin/produtos-shopee'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
@@ -567,8 +578,10 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/comissoes-shopee'
     | '/admin/imagens'
     | '/admin/membros'
+    | '/admin/produtos-shopee'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
@@ -618,8 +631,10 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/comissoes-shopee'
     | '/admin/imagens'
     | '/admin/membros'
+    | '/admin/produtos-shopee'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
@@ -671,6 +686,7 @@ export interface RootRouteChildren {
   VeronicaSecurityRoute: typeof VeronicaSecurityRoute
   VideoIaRoute: typeof VideoIaRoute
   AdminArtigosRoute: typeof AdminArtigosRoute
+  AdminComissoesShopeeRoute: typeof AdminComissoesShopeeRoute
   AdminImagensRoute: typeof AdminImagensRoute
   AdminMembrosRoute: typeof AdminMembrosRoute
   AdminProdutosShopeeRoute: typeof AdminProdutosShopeeRoute
@@ -828,6 +844,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/artigos'
       fullPath: '/admin/artigos'
       preLoaderRoute: typeof AdminArtigosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/comissoes-shopee': {
+      id: '/admin/comissoes-shopee'
+      path: '/admin/comissoes-shopee'
+      fullPath: '/admin/comissoes-shopee'
+      preLoaderRoute: typeof AdminComissoesShopeeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/imagens': {
@@ -1140,6 +1163,7 @@ const rootRouteChildren: RootRouteChildren = {
   VeronicaSecurityRoute: VeronicaSecurityRoute,
   VideoIaRoute: VideoIaRoute,
   AdminArtigosRoute: AdminArtigosRoute,
+  AdminComissoesShopeeRoute: AdminComissoesShopeeRoute,
   AdminImagensRoute: AdminImagensRoute,
   AdminMembrosRoute: AdminMembrosRoute,
   AdminProdutosShopeeRoute: AdminProdutosShopeeRoute,

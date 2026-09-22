@@ -299,6 +299,35 @@ export const affiliateCatalogProducts = pgTable(
   ],
 );
 
+// Venda/comissão importada do relatório oficial da Shopee. Um pedido só
+// aparece como saldo confirmado depois que o próprio relatório o marca assim;
+// clique nunca cria comissão. O pagamento é uma baixa administrativa
+// auditável, sem movimentação bancária automática.
+export const affiliateSales = pgTable(
+  "AffiliateSale",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    externalOrderId: text("externalOrderId").notNull().unique(),
+    affiliateCode: text("affiliateCode").notNull(),
+    productId: text("productId"),
+    commissionCents: integer("commissionCents").notNull(),
+    affiliateCents: integer("affiliateCents").notNull(),
+    houseCents: integer("houseCents").notNull(),
+    status: text("status").notNull().default("pending"),
+    orderAt: timestamp("orderAt"),
+    importedAt: timestamp("importedAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+    paidAt: timestamp("paidAt"),
+    paymentReference: text("paymentReference"),
+  },
+  (table) => [
+    index("AffiliateSale_code_status_idx").on(table.affiliateCode, table.status),
+    index("AffiliateSale_status_paidAt_idx").on(table.status, table.paidAt),
+  ],
+);
+
 /* ------------------------------------------------------------------ *
  * Agente de WhatsApp — Express Entulho (VH-AUT-WA-2026-000001)
  *

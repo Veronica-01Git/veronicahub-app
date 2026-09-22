@@ -88,9 +88,9 @@ export function isAffiliateCategory(value: string): value is FeedCategory {
 
 // Só aceita o link completo gerado pelo programa de afiliados. O link curto
 // esconde o destino e não permite preservar o Sub_id da Veronica.
-export function validateShopeeAffiliateUrl(value: string):
-  | { ok: true; url: string }
-  | { ok: false; error: string } {
+export function validateShopeeAffiliateUrl(
+  value: string,
+): { ok: true; url: string } | { ok: false; error: string } {
   let url: URL;
   try {
     url = new URL(value.trim());
@@ -170,17 +170,16 @@ export function buildAffiliateUrl(
   return url.toString();
 }
 
-// DIVISÃO DA COMISSÃO — regra registrada, ainda não paga por ninguém.
+// DIVISÃO DA COMISSÃO — regra aplicada na conciliação do relatório Shopee.
 //
 // A divisão é sobre a comissão que a Shopee paga, não sobre o valor da
 // venda. Isso é deliberado: a taxa da Shopee muda de produto pra produto, e
 // dividir a venda faria um produto de taxa baixa custar dinheiro em vez de
 // render. Sobre a comissão, a conta nunca fica negativa.
 //
-// Nada aqui credita saldo: a venda acontece na Shopee e não existe callback
-// dela pra cá, então a conciliação depende do relatório por Sub_id. Esta
-// função existe pra que a regra seja executável e testável quando essa
-// entrada existir — e pra que ela não viva só num acordo verbal.
+// A venda acontece na Shopee e não existe callback dela pra cá, então a
+// conciliação depende do relatório por Sub_id. O importador usa esta função
+// para gravar as duas partes sem centavo criado ou perdido.
 export function splitCommissionCents(commissionCents: number): {
   affiliateCents: number;
   houseCents: number;

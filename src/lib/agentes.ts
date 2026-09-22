@@ -190,12 +190,12 @@ const ANALYTICS_AFILIADO: Agente = {
   entregas: [
     "Feed de ofertas com GMV e crescimento, renovado a cada ciclo",
     "Kit por oferta: roteiro de vídeo, legenda, hashtags e gancho",
-    "Link de afiliado carimbado com o seu código — a comissão cai no seu Sub_id",
+    "Link de afiliado carimbado com o seu código e painel de comissão conciliada",
     "Veronica entrevista, recomenda a oferta e cobra o resultado depois",
   ],
   pendencias: [
-    "A venda e a comissão acontecem na Shopee; o Hub mede o encaminhamento, não o pagamento",
-    "Crédito automático de comissão ao divulgador ainda não é implementado",
+    "A venda e a comissão acontecem na Shopee; a confirmação depende da importação do relatório oficial",
+    "O repasse bancário ao divulgador é manual e fica registrado por referência no painel admin",
   ],
 };
 

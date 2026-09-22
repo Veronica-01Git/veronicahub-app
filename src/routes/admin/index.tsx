@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShieldAlert, Newspaper, ImageIcon, Sparkles, BarChart3, PackagePlus } from "lucide-react";
+import {
+  BadgeDollarSign,
+  ShieldAlert,
+  Newspaper,
+  ImageIcon,
+  Sparkles,
+  BarChart3,
+  PackagePlus,
+} from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
 import { formatBRL } from "@/lib/account";
@@ -41,7 +49,18 @@ function AdminPanel() {
             Painel admin
           </div>
           <div className="flex flex-wrap gap-2">
-            <a href="/admin/membros" className="inline-flex items-center rounded-sm border border-border/60 px-3 py-1.5 text-sm">Comunidade Members</a>
+            <a
+              href="/admin/membros"
+              className="inline-flex items-center rounded-sm border border-border/60 px-3 py-1.5 text-sm"
+            >
+              Comunidade Members
+            </a>
+            <Link
+              to="/admin/comissoes-shopee"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/40 bg-emerald-500/5 px-3 py-1.5 text-sm text-emerald-600 transition hover:border-emerald-500"
+            >
+              <BadgeDollarSign className="h-4 w-4" /> Comissões Shopee
+            </Link>
             <a
               href="/admin/produtos-shopee"
               className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/40 bg-emerald-500/5 px-3 py-1.5 text-sm text-emerald-600 transition hover:border-emerald-500"
