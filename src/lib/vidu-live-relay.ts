@@ -35,8 +35,16 @@ declare global {
   };
 }
 
-const VIDU_ENVIRONMENT = process.env.VIDU_ENVIRONMENT === "china" ? "china" : "global";
-const VIDU_HOST = VIDU_ENVIRONMENT === "china" ? "api.vidu.cn" : "api.vidu.com";
+// DENTRO da função, nunca no topo do módulo. Este arquivo é importado por
+// src/server.ts, que é o ENTRY do Worker: o topo dele roda no startup do
+// isolate, antes de qualquer request — e é justamente aí que o runtime da
+// Cloudflare não entrega env ("env could only be accessed during a
+// request", developers.cloudflare.com/workers/runtime-apis/bindings). Uma
+// const de topo aqui derruba o Worker inteiro no startup, o que tira do ar
+// TODAS as páginas, não só o avatar. Não mover isto pra cima.
+function viduHost(): string {
+  return process.env.VIDU_ENVIRONMENT === "china" ? "api.vidu.cn" : "api.vidu.com";
+}
 
 export async function handleViduLiveRelay(request: Request): Promise<Response> {
   if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") {
@@ -66,7 +74,7 @@ export async function handleViduLiveRelay(request: Request): Promise<Response> {
     // Doc: developers.cloudflare.com/workers/configuration/compatibility-flags
     // ("you should still use http: or https: as the protocol, not ws: nor wss:").
     const upstream = await fetch(
-      `https://${VIDU_HOST}/live/ws/live/connect` +
+      `https://${viduHost()}/live/ws/live/connect` +
         `?live_id=${encodeURIComponent(liveId)}&conn_id=${encodeURIComponent(connId)}`,
       { headers: { Authorization: `Token ${apiKey}`, Upgrade: "websocket" } },
     );
