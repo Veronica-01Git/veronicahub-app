@@ -20,12 +20,8 @@ import {
   Wand2,
 } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
-import {
-  affiliateProducts,
-  buildTrackedPath,
-  hasAffiliateProducts,
-  type AffiliateProduct,
-} from "@/lib/affiliate-products";
+import { buildTrackedPath, type AffiliateProduct } from "@/lib/affiliate-products";
+import { getPublicAffiliateCatalog } from "@/lib/affiliate-catalog-server";
 import {
   formatNextRefreshLabel,
   formatRefreshedLabel,
@@ -36,6 +32,7 @@ import {
 
 export const Route = createFileRoute("/veronica-analytics")({
   component: VeronicaAnalytics,
+  loader: () => getPublicAffiliateCatalog(),
   head: () => ({
     meta: [
       { title: "Veronica Analytics — Inteligência de Produtos Shopee" },
@@ -375,6 +372,8 @@ function CreativeCard({ video }: { video: TrendingVideo }) {
 }
 
 function VeronicaAnalytics() {
+  const { products: affiliateProducts } = Route.useLoaderData();
+  const hasAffiliateProducts = affiliateProducts.length > 0;
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"todos" | FeedCategory>("todos");
   const [, forceClock] = useState(0);
@@ -395,7 +394,7 @@ function VeronicaAnalytics() {
         categoryMeta[product.category].label.toLocaleLowerCase("pt-BR").includes(normalizedQuery);
       return matchesCategory && matchesQuery;
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, affiliateProducts, query]);
 
   const feedCategories = useMemo(
     () => new Set(trendingFeed.videos.map((video) => video.category)),
