@@ -73,6 +73,53 @@ export const affiliateProducts = affiliateCatalog.products.filter(
 
 export const hasAffiliateProducts = affiliateProducts.length > 0;
 
+export const AFFILIATE_CATEGORIES = [
+  "beleza",
+  "casa",
+  "saude",
+  "moda",
+  "pet",
+  "eletronicos",
+] as const satisfies readonly FeedCategory[];
+
+export function isAffiliateCategory(value: string): value is FeedCategory {
+  return (AFFILIATE_CATEGORIES as readonly string[]).includes(value);
+}
+
+// Só aceita o link completo gerado pelo programa de afiliados. O link curto
+// esconde o destino e não permite preservar o Sub_id da Veronica.
+export function validateShopeeAffiliateUrl(value: string):
+  | { ok: true; url: string }
+  | { ok: false; error: string } {
+  let url: URL;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    return { ok: false, error: "URL inválida." };
+  }
+
+  const hostname = url.hostname.toLowerCase().replace(/^www\\./, "");
+  if (url.protocol !== "https:" || hostname !== "shopee.com.br") {
+    return { ok: false, error: "Use um link HTTPS oficial de shopee.com.br." };
+  }
+  if (isShortLink(url.toString())) {
+    return { ok: false, error: "Link curto não é aceito; gere o link completo no painel Shopee." };
+  }
+
+  const affiliateSource = url.searchParams.get("mmp_pid") || url.searchParams.get("utm_source");
+  const subId = url.searchParams
+    .get(affiliateCatalog.subId.param)
+    ?.split(affiliateCatalog.subId.separator)[0];
+  if (!affiliateSource || !subId) {
+    return {
+      ok: false,
+      error: "O link não contém identificação de afiliado e Sub_id da Veronica.",
+    };
+  }
+
+  return { ok: true, url: url.toString() };
+}
+
 export function affiliateProductsByCategory(category: "todos" | FeedCategory): AffiliateProduct[] {
   if (category === "todos") return affiliateProducts;
   return affiliateProducts.filter((p) => p.category === category);
