@@ -796,7 +796,8 @@ async function recentCoverPhotoIds(db: ReturnType<typeof getDb>): Promise<string
 // A convenção do nome vive em ./cover-bank, que também é usada pelo cron de
 // abastecimento e pelos testes; reexportada aqui porque é daqui que a consulta
 // do rodízio a lê.
-import { LIBRARY_COVER_PREFIX, parseBankCredit } from "./cover-bank";
+import { LIBRARY_COVER_PREFIX, parseBankCredit, pickRelevantCover } from "./cover-bank";
+import type { MateriaParaCapa } from "./cover-scenes";
 export { LIBRARY_COVER_PREFIX };
 
 // Capa vinda do banco curado, em vez de busca ao vivo no Pexels/Pixabay.
@@ -812,26 +813,41 @@ async function pickLibraryCover(
   db: ReturnType<typeof getDb>,
   beat: Beat,
   recentPhotoIds: string[],
-): Promise<{ id: string; credit: string | null } | null> {
+  // Texto da matéria recém-publicada. É o que faz a capa ser dela e não só da
+  // editoria — ver pickRelevantCover, em cover-bank.ts.
+  materia: MateriaParaCapa,
+): Promise<{ id: string; credit: string | null; term: string | null; relevante: boolean } | null> {
+  // Lê a editoria INTEIRA, sem excluir as recentes na consulta. Antes o
+  // `notInArray` cortava as últimas 40 no SQL e sobrava pegar a mais antiga —
+  // o que basta para rodízio, mas impede escolher por assunto: a foto da cena
+  // certa pode estar justamente entre as recentes, e aí ela nem chegava aqui
+  // para concorrer. A exclusão continua existindo, agora como preferência
+  // dentro de pickRelevantCover, que só repete quando não há alternativa.
   const rows = await db
     .select({ id: mediaImages.id, altText: mediaImages.altText })
     .from(mediaImages)
-    .where(
-      recentPhotoIds.length > 0
-        ? and(
-            like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}${beat}-%`),
-            notInArray(mediaImages.id, recentPhotoIds),
-          )
-        : like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}${beat}-%`),
-    )
-    .orderBy(asc(mediaImages.createdAt))
-    .limit(1);
+    .where(like(mediaImages.filename, `${LIBRARY_COVER_PREFIX}${beat}-%`))
+    .orderBy(asc(mediaImages.createdAt));
+
+  const escolhida = pickRelevantCover({
+    beat,
+    materia,
+    candidatos: rows,
+    usadosRecentemente: recentPhotoIds,
+  });
+  if (!escolhida) return null;
+
   // O crédito do fotógrafo sai do altText (a biblioteca não tem coluna para
   // ele) e segue até a coluna photoCredit da matéria. Fotos que alguém subiu
   // à mão pelo Admin não têm crédito nesse formato e devolvem null, o que é
   // correto: não dá para creditar quem não se sabe quem é.
-  const row = rows[0];
-  return row ? { id: row.id, credit: parseBankCredit(row.altText) } : null;
+  const row = rows.find((candidato) => candidato.id === escolhida.id);
+  return {
+    id: escolhida.id,
+    credit: parseBankCredit(row?.altText ?? null),
+    term: escolhida.term,
+    relevante: escolhida.relevante,
+  };
 }
 
 // Últimas manchetes publicadas (todas as editorias — o mesmo fato pode vazar
@@ -1052,10 +1068,20 @@ export async function publishArticleFromCron(beat: Beat): Promise<
       fotoTermos: string[];
       recentPhotoIds: string[];
       // Imagem escolhida no banco curado da biblioteca, com o crédito do
-      // fotógrafo quando ela veio do abastecimento automático do Pexels. Null
-      // quando a editoria ainda não tem nenhuma cadastrada — aí o workflow
-      // gera a arte própria da matéria (scripts/render-cover-art.mjs).
-      libraryCover: { id: string; credit: string | null } | null;
+      // fotógrafo (Pexels ou Pixabay). Null quando a editoria ainda não tem
+      // nenhuma cadastrada — aí o workflow gera a arte própria da matéria
+      // (scripts/render-cover-art.mjs).
+      //
+      // `term` é a cena da foto e `relevante` diz se ela foi escolhida por
+      // casar com o texto da matéria (true) ou se caiu no rodízio da editoria
+      // (false). Os dois sobem até o resumo do workflow: é como se enxerga,
+      // sem abrir o site, quantas capas do dia realmente fazem jus à matéria.
+      libraryCover: {
+        id: string;
+        credit: string | null;
+        term: string | null;
+        relevante: boolean;
+      } | null;
     }
   | { ok: false; error: string }
 > {
@@ -1099,7 +1125,11 @@ export async function publishArticleFromCron(beat: Beat): Promise<
     article: mapArticle(row),
     fotoTermos: result.content.fotoTermos,
     recentPhotoIds,
-    libraryCover: await pickLibraryCover(db, beat, recentPhotoIds),
+    libraryCover: await pickLibraryCover(db, beat, recentPhotoIds, {
+      headline: result.content.headline,
+      excerpt: result.content.excerpt,
+      fotoTermos: result.content.fotoTermos,
+    }),
   };
 }
 

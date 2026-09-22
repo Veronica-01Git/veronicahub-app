@@ -1,32 +1,40 @@
 name: Abastece o banco de capas (Wire TV)
 
-# Enche o banco curado de capas da biblioteca do Admin com fotografias do
-# Pexels, para a Wire TV publicar foto de verdade em vez da arte gerada do
-# slug (que é o piso, não o teto — ver scripts/render-cover-art.mjs).
+# Esvazia e reabastece o banco curado de capas da biblioteca do Admin com
+# fotografias do Pexels e do Pixabay, para a Wire TV publicar foto de verdade
+# em vez da arte gerada do slug (que é o piso, não o teto — ver
+# scripts/render-cover-art.mjs).
 #
 # NÃO commita nada e NÃO dispara deploy: o script fala com o endpoint
 # /api/cron/cover-bank do site, protegido pelo CRON_SECRET, e quem grava é o
 # banco. É a diferença deste workflow para o do cron editorial, que commita
 # capa no main e por isso publica a cada rodada.
 #
-# Semanal porque o banco é reaproveitado: pickLibraryCover faz rodízio
-# evitando as últimas 40 capas usadas, então 8 fotos por editoria já giram
-# bastante. O teto por editoria mora no servidor (MAX_BANK_PER_BEAT), não
-# aqui — o endpoint recusa o que passar disso, mesmo que este workflow rode
-# duas vezes.
+# DIÁRIO desde 20/09, e não mais semanal, porque o banco deixou de ser
+# acervo e virou abastecimento por sessão: cada rodada apaga o que está lá
+# (menos o que alguma matéria publicada serve como capa — a trava mora no
+# servidor) e recadastra da busca daquele dia. Foi o pedido do editor-chefe:
+# "só alimente a cada sessão buscada no pexels e pixabay".
+#
+# O teto por editoria continua no servidor (MAX_BANK_PER_BEAT), não aqui — o
+# endpoint recusa o que passar disso, mesmo que este workflow rode duas vezes.
 on:
   schedule:
-    - cron: "40 6 * * 1"
+    - cron: "40 6 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Só listar o que seria cadastrado, sem gravar"
+        description: "Só listar o que seria cadastrado, sem apagar nem gravar"
+        type: boolean
+        default: false
+      sem_expurgo:
+        description: "Manter o banco atual e só completar o que falta"
         type: boolean
         default: false
       target_per_beat:
         description: "Quantas fotos por editoria o banco deve ter"
         type: string
-        default: "8"
+        default: "10"
 
 permissions:
   contents: read
@@ -42,17 +50,19 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Busca no Pexels e cadastra na biblioteca
+      - name: Esvazia o banco, busca no Pexels e no Pixabay e recadastra
         env:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          # Opcional: sem ela a rodada segue só com o Pexels, em vez de
+          # falhar. Ver a nota no topo de scripts/fill-cover-bank.mjs.
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          BANK_TARGET_PER_BEAT: ${{ inputs.target_per_beat || '8' }}
+          BANK_TARGET_PER_BEAT: ${{ inputs.target_per_beat || '10' }}
         run: |
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
-            node scripts/fill-cover-bank.mjs --dry-run | tee bank.log
-          else
-            node scripts/fill-cover-bank.mjs | tee bank.log
-          fi
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          if [ "${{ inputs.sem_expurgo }}" = "true" ]; then args="$args --sem-expurgo"; fi
+          node scripts/fill-cover-bank.mjs $args | tee bank.log
 
       - name: Resumo da rodada
         if: always()

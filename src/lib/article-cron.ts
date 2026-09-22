@@ -278,9 +278,14 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
       recentPhotoIds: result.recentPhotoIds,
       libraryCoverId: result.libraryCover?.id ?? null,
       // Crédito do fotógrafo, quando a imagem veio do abastecimento
-      // automático do Pexels. Atravessa o workflow e é gravado na coluna
-      // photoCredit da matéria pelo passo set-cover-image.
+      // automático (Pexels ou Pixabay). Atravessa o workflow e é gravado na
+      // coluna photoCredit da matéria pelo passo set-cover-image.
       libraryCoverCredit: result.libraryCover?.credit ?? null,
+      // Cena da foto e se ela casou com o texto da matéria. Só diagnóstico:
+      // o workflow imprime no resumo da rodada para dar para ver, sem abrir o
+      // site, quantas capas do dia saíram por assunto e quantas por rodízio.
+      libraryCoverTerm: result.libraryCover?.term ?? null,
+      libraryCoverRelevante: result.libraryCover?.relevante ?? false,
     }),
     { headers: { "content-type": "application/json" } },
   );

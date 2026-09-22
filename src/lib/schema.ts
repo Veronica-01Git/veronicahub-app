@@ -447,3 +447,6 @@ export const agenteBriefings = pgTable(
   },
   (table) => [index("AgenteBriefing_userId_agenteId_idx").on(table.userId, table.agenteId)],
 );
+
+// Additive community tables share the existing migration schema.
+export { memberPosts, memberComments, memberCommentCooldown } from "../members/schema";

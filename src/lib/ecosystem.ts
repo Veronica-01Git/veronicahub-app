@@ -44,6 +44,16 @@ export type Product = {
 };
 export const PRODUCTS: Product[] = [
   {
+    id: "members",
+    name: "Members",
+    category: "Mídia",
+    to: "/membros",
+    status: "Disponível",
+    description: "Comunidade, novidades e prompts gratuitos para membros",
+    external: false,
+    public: true,
+  },
+  {
     id: "school",
     name: "Veronica Hub",
     category: "Escola",
@@ -199,9 +209,11 @@ export const PRODUCTS: Product[] = [
     id: "clientes",
     name: "Clientes",
     category: "Governança",
-    to: "/clientes",
+    // Aponta para a VITRINE pública, não para /clientes — aquele endereço é
+    // o portal privado onde o cliente entra com o número do selo.
+    to: "/clientes-veronica",
     status: "Disponível",
-    description: "Clientes atendidos, com selo de procedência e entregas abertas",
+    description: "Quem a Veronica já atendeu e atende, com selo de procedência",
     external: false,
     public: true,
   },
@@ -236,12 +248,12 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
   tag: product(intent.productId).description,
   to: product(intent.productId).to,
 }));
-export const PRIMARY_NAV = ["formations", "packs", "wire", "clientes"].map(product);
+export const PRIMARY_NAV = ["formations", "packs", "wire", "members", "clientes"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
   // A prova social do Hub: quem a Veronica já atendeu e atende. Fica na
   // vitrine porque é a pergunta que todo visitante faz antes de contratar, e
-  // porque a listagem é pública mesmo quando o painel do cliente é fechado.
+  // porque ela é pública mesmo com o espaço de cada cliente fechado.
   "clientes",
   // Primeiro da lista: é o produto que tem teste grátis e caminho de venda
   // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site

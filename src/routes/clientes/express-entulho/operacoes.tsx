@@ -5,15 +5,23 @@
  * outras entregas do mesmo cliente. O endereço antigo redireciona para cá,
  * porque o dono já tem aquele link salvo.
  *
- * ACESSO FECHADO desde 22/09. Esta rota é o **endereço oficial** da Express
- * Entulho no Hub, e só o dono do selo entra — mais quem dá suporte. A
- * verificação é por identidade, em `acesso-cliente.server.ts`: login por
- * e-mail, e o e-mail precisa estar liberado para o selo.
+ * ACESSO FECHADO. Esta rota é o espaço da Express Entulho, e quem guarda a
+ * porta é o **portal de clientes privados** que já existe no Hub
+ * (`src/features/private-clients`): o cliente entra em /clientes, digita o
+ * número do selo, e a sessão dele libera o próprio workspace.
+ *
+ * POR QUE NÃO FIZ UM PORTÃO PRÓPRIO. Eu havia escrito um, com login por
+ * e-mail liberado por selo, sem saber que este sistema estava sendo
+ * construído em paralelo. Dois portões para a mesma porta é pior que um
+ * portão imperfeito: dobra o lugar onde uma regra de acesso pode divergir, e
+ * um dia alguém conserta um e esquece o outro. O meu saiu; este ficou, porque
+ * é mais completo — tem registro por cliente, estado de liberação, painel de
+ * administração e confere o selo na fonte canônica.
  *
  * A rota já foi pública por um dia (21/09), enquanto era vitrine de
  * protótipo. Virou espaço de cliente e voltou a ser fechada, com `noindex`.
- * Quem fica pública é a listagem /clientes, que mostra QUEM a Veronica
- * atende sem abrir o painel de ninguém.
+ * Quem mostra QUEM a Veronica atende é a vitrine em /clientes-veronica, sem
+ * abrir o espaço de ninguém.
  *
  * A natureza dos dados não mudou: continuam fictícios, e a TarjaDemo segue no
  * topo de todas as telas dizendo isso.
@@ -22,7 +30,10 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
-import { autorizarAcessoCliente, type Autorizacao } from "@/lib/acesso-cliente-server";
+import {
+  getWorkspaceAccess,
+  type WorkspaceAccess,
+} from "@/features/private-clients/access.functions";
 import {
   RodapeProcedencia,
   Sidebar,
@@ -68,7 +79,7 @@ function Verificando() {
  * exista para tal pessoa. Página de acesso negado que conta quem entra é uma
  * lista de alvos.
  */
-function PortaFechada({ motivo }: { motivo: "sem-sessao" | "sem-permissao" }) {
+function PortaFechada({ motivo }: { motivo: "unauthenticated" | "forbidden" }) {
   return (
     <div className="express-ops-b flex min-h-screen items-center justify-center p-6">
       <div className="ops-card max-w-md p-7">
@@ -79,30 +90,30 @@ function PortaFechada({ motivo }: { motivo: "sem-sessao" | "sem-permissao" }) {
         <h1 className="mt-3 text-[20px] font-semibold leading-tight text-[var(--ops-ink)]">
           Este é o espaço da Express Entulho
         </h1>
-        {motivo === "sem-sessao" ? (
+        {motivo === "unauthenticated" ? (
           <>
             <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--ops-ink-muted)]">
-              Entre com o e-mail liberado para este cliente. O acesso é por identidade — não existe
-              link que abra sem login.
+              Entre no portal de clientes com o número do seu selo. O acesso é por credencial — não
+              existe link que abra sem ela.
             </p>
             <Link
               to="/clientes"
               className="mt-5 inline-flex rounded-md bg-[var(--ops-accent)] px-4 py-2 text-[13px] font-medium text-white"
             >
-              Ir para a lista de clientes
+              Entrar com o número do selo
             </Link>
           </>
         ) : (
           <>
             <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--ops-ink-muted)]">
-              Você está conectado, mas esta conta não está liberada para este cliente. Se deveria
-              estar, fale com a YO LAB &amp; CO.
+              Você está conectado, mas com o selo de outro cliente. Cada cliente enxerga só o
+              próprio espaço.
             </p>
             <Link
               to="/clientes"
               className="mt-5 inline-flex rounded-md border border-[var(--ops-line)] px-4 py-2 text-[13px] text-[var(--ops-ink)]"
             >
-              Ver os clientes da Veronica
+              Voltar ao portal
             </Link>
           </>
         )}
@@ -120,7 +131,8 @@ const APOIO: Record<string, string> = {
   "regras-do-agente": "Preços por material e conversa com o agente",
 };
 
-const SELO = "VH-AUT-WA-2026-000001";
+/** O slug deste cliente no registro de clientes privados. */
+const SLUG = "express-entulho";
 
 function ExpressOperationsLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -128,18 +140,18 @@ function ExpressOperationsLayout() {
   const item = NAV_POR_SLUG.get(resto);
   const titulo = item?.rotulo ?? "Seção";
 
-  const [acesso, setAcesso] = useState<Autorizacao | null>(null);
+  const [acesso, setAcesso] = useState<WorkspaceAccess | null>(null);
   useEffect(() => {
-    autorizarAcessoCliente({ data: SELO })
+    getWorkspaceAccess({ data: { slug: SLUG } })
       .then(setAcesso)
-      .catch(() => setAcesso({ ok: false, motivo: "sem-sessao" }));
+      .catch(() => setAcesso({ ok: false, reason: "unauthenticated" }));
   }, []);
 
   // Enquanto o servidor não responde, nada do painel é montado. Mostrar o
   // conteúdo e esconder depois seria pior que não mostrar: daria um piscar
   // com o painel do cliente visível.
   if (acesso === null) return <Verificando />;
-  if (!acesso.ok) return <PortaFechada motivo={acesso.motivo} />;
+  if (!acesso.ok) return <PortaFechada motivo={acesso.reason} />;
 
   return (
     <div className="express-ops-b min-h-screen">

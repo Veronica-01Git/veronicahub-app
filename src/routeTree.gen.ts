@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
+import { Route as ClientesVeronicaRouteImport } from './routes/clientes-veronica'
 import { Route as ComandosRouteImport } from './routes/comandos'
+import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
@@ -27,6 +29,7 @@ import { Route as VideoIaRouteImport } from './routes/video-ia'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
+import { Route as AdminMembrosRouteImport } from './routes/admin/membros'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as AdminWireRouteImport } from './routes/admin/wire'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
@@ -34,6 +37,8 @@ import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
 import { Route as BlogRedeDeFontesRouteImport } from './routes/blog/rede-de-fontes'
 import { Route as ClientesIndexRouteImport } from './routes/clientes/index'
+import { Route as ClientesClientSlugRouteImport } from './routes/clientes/$clientSlug'
+import { Route as ClientesAdminRouteImport } from './routes/clientes/admin'
 import { Route as PreviewExpressOperationsBRouteImport } from './routes/preview/express-operations-b'
 import { Route as PropostaExpressEntulhoRouteImport } from './routes/proposta/express-entulho'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
@@ -42,6 +47,8 @@ import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/re
 import { Route as ClientesExpressEntulhoOperacoesRouteImport } from './routes/clientes/express-entulho/operacoes'
 import { Route as ClientesExpressEntulhoOperacoesDemoRouteImport } from './routes/clientes/express-entulho/operacoes-demo'
 import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
+import { Route as ClientesVeronicaFashionOperatorIndexRouteImport } from './routes/clientes/veronica-fashion-operator/index'
+import { Route as ClientesVeronicaFashionOperatorExecucaoRouteImport } from './routes/clientes/veronica-fashion-operator/execucao'
 import { Route as PreviewExpressOperationsBSplatRouteImport } from './routes/preview/express-operations-b/$'
 import { Route as ClientesExpressEntulhoOperacoesIndexRouteImport } from './routes/clientes/express-entulho/operacoes/index'
 import { Route as ClientesExpressEntulhoOperacoesSecaoRouteImport } from './routes/clientes/express-entulho/operacoes/$secao'
@@ -68,9 +75,19 @@ const AulaZeroRoute = AulaZeroRouteImport.update({
   path: '/aula-zero',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientesVeronicaRoute = ClientesVeronicaRouteImport.update({
+  id: '/clientes-veronica',
+  path: '/clientes-veronica',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComandosRoute = ComandosRouteImport.update({
   id: '/comandos',
   path: '/comandos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembrosRoute = MembrosRouteImport.update({
+  id: '/membros',
+  path: '/membros',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioRoute = PortfolioRouteImport.update({
@@ -144,6 +161,11 @@ const AdminImagensRoute = AdminImagensRouteImport.update({
   path: '/admin/imagens',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMembrosRoute = AdminMembrosRouteImport.update({
+  id: '/admin/membros',
+  path: '/admin/membros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
   id: '/admin/veronica-universe',
   path: '/admin/veronica-universe',
@@ -177,6 +199,16 @@ const BlogRedeDeFontesRoute = BlogRedeDeFontesRouteImport.update({
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
   id: '/clientes/',
   path: '/clientes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesClientSlugRoute = ClientesClientSlugRouteImport.update({
+  id: '/clientes/$clientSlug',
+  path: '/clientes/$clientSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesAdminRoute = ClientesAdminRouteImport.update({
+  id: '/clientes/admin',
+  path: '/clientes/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewExpressOperationsBRoute =
@@ -222,6 +254,18 @@ const ClientesExpressEntulhoPropostaRoute =
   ClientesExpressEntulhoPropostaRouteImport.update({
     id: '/clientes/express-entulho/proposta',
     path: '/clientes/express-entulho/proposta',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ClientesVeronicaFashionOperatorIndexRoute =
+  ClientesVeronicaFashionOperatorIndexRouteImport.update({
+    id: '/clientes/veronica-fashion-operator/',
+    path: '/clientes/veronica-fashion-operator/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ClientesVeronicaFashionOperatorExecucaoRoute =
+  ClientesVeronicaFashionOperatorExecucaoRouteImport.update({
+    id: '/clientes/veronica-fashion-operator/execucao',
+    path: '/clientes/veronica-fashion-operator/execucao',
     getParentRoute: () => rootRouteImport,
   } as any)
 const PreviewExpressOperationsBSplatRoute =
@@ -289,7 +333,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
+  '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -303,11 +349,14 @@ export interface FileRoutesByFullPath {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/membros': typeof AdminMembrosRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
@@ -319,7 +368,9 @@ export interface FileRoutesByFullPath {
   '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
   '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
   '/clientes/express-entulho/operacoes/atendimento': typeof ClientesExpressEntulhoOperacoesAtendimentoRoute
@@ -334,7 +385,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
+  '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -348,11 +401,14 @@ export interface FileRoutesByTo {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/membros': typeof AdminMembrosRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
@@ -363,7 +419,9 @@ export interface FileRoutesByTo {
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
   '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
   '/clientes/express-entulho/operacoes/atendimento': typeof ClientesExpressEntulhoOperacoesAtendimentoRoute
@@ -379,7 +437,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/aula-zero': typeof AulaZeroRoute
+  '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -393,11 +453,14 @@ export interface FileRoutesById {
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
+  '/admin/membros': typeof AdminMembrosRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/clientes/$clientSlug': typeof ClientesClientSlugRoute
+  '/clientes/admin': typeof ClientesAdminRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
@@ -409,7 +472,9 @@ export interface FileRoutesById {
   '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
   '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
   '/clientes/express-entulho/operacoes/atendimento': typeof ClientesExpressEntulhoOperacoesAtendimentoRoute
@@ -426,7 +491,9 @@ export interface FileRouteTypes {
     | '/'
     | '/agentes'
     | '/aula-zero'
+    | '/clientes-veronica'
     | '/comandos'
+    | '/membros'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -440,11 +507,14 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/membros'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/clientes/$clientSlug'
+    | '/clientes/admin'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
@@ -456,7 +526,9 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/veronica-fashion-operator/'
     | '/clientes/express-entulho/operacoes/$secao'
     | '/clientes/express-entulho/operacoes/aprovacoes'
     | '/clientes/express-entulho/operacoes/atendimento'
@@ -471,7 +543,9 @@ export interface FileRouteTypes {
     | '/'
     | '/agentes'
     | '/aula-zero'
+    | '/clientes-veronica'
     | '/comandos'
+    | '/membros'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -485,11 +559,14 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/membros'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/clientes/$clientSlug'
+    | '/clientes/admin'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
@@ -500,7 +577,9 @@ export interface FileRouteTypes {
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/veronica-fashion-operator'
     | '/clientes/express-entulho/operacoes/$secao'
     | '/clientes/express-entulho/operacoes/aprovacoes'
     | '/clientes/express-entulho/operacoes/atendimento'
@@ -515,7 +594,9 @@ export interface FileRouteTypes {
     | '/'
     | '/agentes'
     | '/aula-zero'
+    | '/clientes-veronica'
     | '/comandos'
+    | '/membros'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -529,11 +610,14 @@ export interface FileRouteTypes {
     | '/video-ia'
     | '/admin/artigos'
     | '/admin/imagens'
+    | '/admin/membros'
     | '/admin/veronica-universe'
     | '/admin/wire'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/clientes/$clientSlug'
+    | '/clientes/admin'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
@@ -545,7 +629,9 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/veronica-fashion-operator/'
     | '/clientes/express-entulho/operacoes/$secao'
     | '/clientes/express-entulho/operacoes/aprovacoes'
     | '/clientes/express-entulho/operacoes/atendimento'
@@ -561,7 +647,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentesRoute: typeof AgentesRoute
   AulaZeroRoute: typeof AulaZeroRoute
+  ClientesVeronicaRoute: typeof ClientesVeronicaRoute
   ComandosRoute: typeof ComandosRoute
+  MembrosRoute: typeof MembrosRoute
   PortfolioRoute: typeof PortfolioRoute
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
@@ -575,11 +663,14 @@ export interface RootRouteChildren {
   VideoIaRoute: typeof VideoIaRoute
   AdminArtigosRoute: typeof AdminArtigosRoute
   AdminImagensRoute: typeof AdminImagensRoute
+  AdminMembrosRoute: typeof AdminMembrosRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   AdminWireRoute: typeof AdminWireRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogExpedienteRoute: typeof BlogExpedienteRoute
   BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
+  ClientesClientSlugRoute: typeof ClientesClientSlugRoute
+  ClientesAdminRoute: typeof ClientesAdminRoute
   PreviewExpressOperationsBRoute: typeof PreviewExpressOperationsBRouteWithChildren
   PropostaExpressEntulhoRoute: typeof PropostaExpressEntulhoRoute
   SeloSerialRoute: typeof SeloSerialRoute
@@ -590,6 +681,8 @@ export interface RootRouteChildren {
   ClientesExpressEntulhoOperacoesRoute: typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
+  ClientesVeronicaFashionOperatorExecucaoRoute: typeof ClientesVeronicaFashionOperatorExecucaoRoute
+  ClientesVeronicaFashionOperatorIndexRoute: typeof ClientesVeronicaFashionOperatorIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -615,11 +708,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AulaZeroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes-veronica': {
+      id: '/clientes-veronica'
+      path: '/clientes-veronica'
+      fullPath: '/clientes-veronica'
+      preLoaderRoute: typeof ClientesVeronicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comandos': {
       id: '/comandos'
       path: '/comandos'
       fullPath: '/comandos'
       preLoaderRoute: typeof ComandosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membros': {
+      id: '/membros'
+      path: '/membros'
+      fullPath: '/membros'
+      preLoaderRoute: typeof MembrosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolio': {
@@ -720,6 +827,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImagensRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/membros': {
+      id: '/admin/membros'
+      path: '/admin/membros'
+      fullPath: '/admin/membros'
+      preLoaderRoute: typeof AdminMembrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/veronica-universe': {
       id: '/admin/veronica-universe'
       path: '/admin/veronica-universe'
@@ -767,6 +881,20 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/clientes/'
       preLoaderRoute: typeof ClientesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/$clientSlug': {
+      id: '/clientes/$clientSlug'
+      path: '/clientes/$clientSlug'
+      fullPath: '/clientes/$clientSlug'
+      preLoaderRoute: typeof ClientesClientSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/admin': {
+      id: '/clientes/admin'
+      path: '/clientes/admin'
+      fullPath: '/clientes/admin'
+      preLoaderRoute: typeof ClientesAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preview/express-operations-b': {
@@ -823,6 +951,20 @@ declare module '@tanstack/react-router' {
       path: '/clientes/express-entulho/proposta'
       fullPath: '/clientes/express-entulho/proposta'
       preLoaderRoute: typeof ClientesExpressEntulhoPropostaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/veronica-fashion-operator/': {
+      id: '/clientes/veronica-fashion-operator/'
+      path: '/clientes/veronica-fashion-operator'
+      fullPath: '/clientes/veronica-fashion-operator/'
+      preLoaderRoute: typeof ClientesVeronicaFashionOperatorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/veronica-fashion-operator/execucao': {
+      id: '/clientes/veronica-fashion-operator/execucao'
+      path: '/clientes/veronica-fashion-operator/execucao'
+      fullPath: '/clientes/veronica-fashion-operator/execucao'
+      preLoaderRoute: typeof ClientesVeronicaFashionOperatorExecucaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preview/express-operations-b/$': {
@@ -966,7 +1108,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentesRoute: AgentesRoute,
   AulaZeroRoute: AulaZeroRoute,
+  ClientesVeronicaRoute: ClientesVeronicaRoute,
   ComandosRoute: ComandosRoute,
+  MembrosRoute: MembrosRoute,
   PortfolioRoute: PortfolioRoute,
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
@@ -980,11 +1124,14 @@ const rootRouteChildren: RootRouteChildren = {
   VideoIaRoute: VideoIaRoute,
   AdminArtigosRoute: AdminArtigosRoute,
   AdminImagensRoute: AdminImagensRoute,
+  AdminMembrosRoute: AdminMembrosRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   AdminWireRoute: AdminWireRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogExpedienteRoute: BlogExpedienteRoute,
   BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,
+  ClientesClientSlugRoute: ClientesClientSlugRoute,
+  ClientesAdminRoute: ClientesAdminRoute,
   PreviewExpressOperationsBRoute: PreviewExpressOperationsBRouteWithChildren,
   PropostaExpressEntulhoRoute: PropostaExpressEntulhoRoute,
   SeloSerialRoute: SeloSerialRoute,
@@ -997,6 +1144,10 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesExpressEntulhoOperacoesDemoRoute:
     ClientesExpressEntulhoOperacoesDemoRoute,
   ClientesExpressEntulhoPropostaRoute: ClientesExpressEntulhoPropostaRoute,
+  ClientesVeronicaFashionOperatorExecucaoRoute:
+    ClientesVeronicaFashionOperatorExecucaoRoute,
+  ClientesVeronicaFashionOperatorIndexRoute:
+    ClientesVeronicaFashionOperatorIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

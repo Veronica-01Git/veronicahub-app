@@ -151,11 +151,17 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/admin/imagens",
   "/admin/veronica-universe",
   "/admin/wire",
+  "/admin/membros", // editorial restrito, acessado pelo painel admin
   // Páginas de detalhe, alcançadas a partir de uma listagem.
   "/blog/$slug",
   "/blog/editoria/$beat",
   "/selo/$serial",
   // Material de cliente: link vai por mensagem, não pelo site.
+  "/clientes/",
+  "/clientes/$clientSlug",
+  "/clientes/admin",
+  "/clientes/veronica-fashion-operator/",
+  "/clientes/veronica-fashion-operator/execucao",
   "/clientes/express-entulho/operacoes-demo",
   // Redirect do endereço antigo da proposta.
   "/proposta/express-entulho",
@@ -224,18 +230,9 @@ test("todo produto público e interno tem porta de entrada na navegação", () =
   // A mesma armadilha vale para qualquer produto futuro. Vale a exceção de
   // quem tem lugar próprio: a escola é a raiz, e os três do PRIMARY_NAV e os
   // projetos especiais entram por outras listas.
-  const comCasaPropria = new Set([
-    "school",
-    "formations",
-    "packs",
-    "wire",
-    "zero",
-    "rede",
-    "rh",
-    // Entra pelo PRIMARY_NAV, como os três acima. Não é vitrine de produto,
-    // é a listagem de quem a Veronica atende.
-    "clientes",
-  ]);
+  // Deriva do PRIMARY_NAV em vez de repetir os ids à mão: acrescentar item ao
+  // menu passa a não exigir mexer neste teste.
+  const comCasaPropria = new Set(["school", "zero", "rede", "rh", ...PRIMARY_NAV.map((p) => p.id)]);
   const orfaos = PRODUCTS.filter(
     (p) =>
       p.public &&

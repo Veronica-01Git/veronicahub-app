@@ -1,178 +1,178 @@
-/**
- * Clientes Veronica — a listagem pública dos clientes atendidos.
- *
- * Por que ela existe: até 21/09 cada entrega de cliente vivia numa URL solta
- * que só quem tinha o link encontrava. A proposta da Express Entulho estava
- * em /clientes/express-entulho/proposta, a central de operações em
- * /preview/express-operations-b, e nada ligava uma coisa à outra. Quem
- * recebia um link não descobria o resto.
- *
- * A lista de clientes NÃO é escrita aqui. Ela sai de `sealRecords`, que é o
- * registro de procedência — a mesma fonte de /selos. Assim não existem duas
- * listas de clientes podendo divergir, e um cliente só aparece nesta página
- * se tiver selo emitido.
- *
- * `isDemonstration` separa cliente real de conceito visual. Conceito não
- * entra aqui: esta página diz "estes são clientes", e um protótipo que se
- * apresenta como cliente é mentira comercial. O teste em
- * tests/architecture.test.mjs já segura essa distinção.
- */
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { Clock, KeyRound, Loader2, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
+import { useState, type FormEvent } from "react";
 
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Building2, FileText, LayoutDashboard, ShieldCheck } from "lucide-react";
-import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
-import { SealAtmosphere } from "@/components/seals/SealAtmosphere";
-import { VeronicaSeal } from "@/components/VeronicaSeal";
-import { ENTREGAS_POR_SELO } from "@/lib/clientes";
-import { sealRecords } from "@/lib/seals";
+import {
+  AppleClientFrame,
+  AppleClientNav,
+  GlassCard,
+  HoloBadge,
+  HolographicField,
+  SectionLabel,
+} from "@/features/private-clients/components/apple-client-ui";
+import { validateSeal, type ValidateSealResult } from "@/features/private-clients/access.functions";
 
 export const Route = createFileRoute("/clientes/")({
-  component: ClientesVeronica,
+  component: PrivateClientsPortal,
   head: () => ({
     meta: [
-      { title: "Clientes Veronica | Veronica Hub" },
+      { title: "Veronica Private Clients | Acesso por selo" },
       {
         name: "description",
-        content:
-          "Clientes atendidos pela Veronica Hub e YO LAB & CO., com registro de procedência, escopo e as entregas de cada projeto.",
+        content: "Portal privado de clientes da Veronica Hub. Acesso pelo número de série do selo.",
       },
-      { property: "og:title", content: "Clientes Veronica" },
-      {
-        property: "og:description",
-        content:
-          "Quem a Veronica Hub atende, o que foi entregue e o selo que registra cada projeto.",
-      },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });
 
-const ICONE_ENTREGA: Record<string, typeof LayoutDashboard> = {
-  "Central de operações": LayoutDashboard,
-  Proposta: FileText,
-};
+function PrivateClientsPortal() {
+  const navigate = useNavigate();
+  const validate = useServerFn(validateSeal);
+  const [serial, setSerial] = useState("");
+  const [state, setState] = useState<"idle" | "validating">("idle");
+  const [result, setResult] = useState<ValidateSealResult | null>(null);
 
-const clientes = sealRecords.filter((r) => !r.isDemonstration);
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!serial.trim() || state === "validating") return;
 
-function CartaoCliente({ registro }: { registro: (typeof sealRecords)[number] }) {
-  const entregas = ENTREGAS_POR_SELO[registro.serial] ?? [];
+    setState("validating");
+    setResult(null);
+    try {
+      const response = await validate({ data: { serial } });
+      setResult(response);
+      if (response.status === "granted") {
+        setTimeout(() => {
+          void navigate({ to: "/clientes/$clientSlug", params: { clientSlug: response.slug } });
+        }, 550);
+      }
+    } catch {
+      setResult({ status: "invalid" });
+    } finally {
+      setState("idle");
+    }
+  }
 
   return (
-    <article className="relative overflow-hidden rounded-sm border border-border/60 bg-surface/60">
-      <div className="grid sm:grid-cols-[10rem_1fr]">
-        <div className="relative flex min-h-40 items-center justify-center overflow-hidden border-b border-border/50 bg-background/60 sm:border-b-0 sm:border-r">
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-50 [background-image:linear-gradient(oklch(0.85_0.22_155/.08)_1px,transparent_1px),linear-gradient(90deg,oklch(0.85_0.22_155/.08)_1px,transparent_1px)] [background-size:18px_18px]"
-          />
-          <VeronicaSeal
-            serialNumber={registro.serial}
-            issuedDate={registro.issuedAt}
-            productName="SOLUÇÃO IA"
-            size="sm"
-            className="relative"
-          />
-        </div>
+    <AppleClientFrame tone="aqua">
+      <AppleClientNav
+        eyebrow="Veronica Hub"
+        title="Private Clients"
+        right={<HoloBadge>acesso por selo</HoloBadge>}
+      />
 
-        <div className="flex flex-col p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Building2 className="h-4 w-4" />
-              <span className="text-xs">{registro.category}</span>
-            </div>
-            <span className="rounded-full border border-neon-green/50 bg-neon-green/[.07] px-2.5 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-neon-green">
-              {registro.statusLabel}
-            </span>
+      <main className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_.9fr] lg:py-20">
+        <div className="relative py-8">
+          <div className="pointer-events-none absolute -inset-10 overflow-hidden rounded-[64px]">
+            <HolographicField tone="aqua" intensity={0.85} />
           </div>
-
-          <h2 className="mt-4 font-display text-3xl leading-none">{registro.client}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{registro.solution}</p>
-
-          {entregas.length > 0 && (
-            <div className="mt-6 grid gap-2 sm:grid-cols-2">
-              {entregas.map((e) => {
-                const Icone = ICONE_ENTREGA[e.rotulo] ?? ArrowRight;
-                return (
-                  <Link
-                    key={e.to}
-                    to={e.to}
-                    className="group flex flex-col gap-1 rounded-sm border border-border/60 bg-background/40 p-4 transition duration-300 hover:-translate-y-0.5 hover:border-neon-green/60"
-                  >
-                    <span className="flex items-center gap-2 text-sm">
-                      <Icone className="h-4 w-4 text-neon-green" />
-                      {e.rotulo}
-                      <ArrowRight className="h-3 w-3 text-neon-green transition group-hover:translate-x-1" />
-                    </span>
-                    <span className="text-xs leading-relaxed text-muted-foreground">
-                      {e.descricao}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6 font-mono-tech text-[10px] uppercase tracking-widest">
-            <span className="text-muted-foreground">{registro.serial}</span>
-            <Link
-              to="/selo/$serial"
-              params={{ serial: registro.serial }}
-              className="flex items-center gap-1.5 text-neon-cyan transition hover:text-neon-green"
-            >
-              <ShieldCheck className="h-3 w-3" />
-              Verificar procedência
-            </Link>
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function ClientesVeronica() {
-  return (
-    <div className="home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
-      <SiteHeader />
-      <main>
-        <section className="relative isolate overflow-hidden border-b border-border/70 py-16 md:py-24">
-          <SealAtmosphere />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-80 [background:radial-gradient(circle_at_75%_20%,oklch(0.85_0.22_155/.14),transparent_30%),radial-gradient(circle_at_10%_0%,oklch(0.88_0.15_195/.10),transparent_30%)]"
-          />
-          <div className="relative mx-auto max-w-7xl px-6">
-            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-[.2em] text-neon-green">
-              <span className="h-px w-8 bg-neon-green" />
-              Clientes Veronica
-            </div>
-            <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[.92] tracking-[-.055em] sm:text-6xl md:text-7xl">
-              Quem a Veronica já atendeu{" "}
-              <span className="text-neon-green text-glow-green">e atende.</span>
+          <div className="relative">
+            <SectionLabel>Ambientes privados</SectionLabel>
+            <h1 className="mt-6 max-w-3xl text-balance text-5xl font-semibold leading-[.92] tracking-[-.065em] text-black/90 sm:text-7xl">
+              Cada cliente,
+              <span
+                className="block bg-clip-text text-transparent"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(92deg,#1d1d1f 2%,#008dc8 35%,#7957e8 66%,#1d1d1f 100%)",
+                }}
+              >
+                seu próprio sistema.
+              </span>
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Cada cliente tem selo de procedência, escopo registrado e um endereço oficial no Hub.
-              A lista sai do próprio registro de selos — nada aparece aqui sem número de série
-              emitido. O painel de cada cliente é fechado: só o dono do selo entra.
+            <p className="mt-6 max-w-xl text-[16px] leading-8 text-black/50">
+              Vitrine, execução e acompanhamento separados por cliente. O número de série do selo direciona para o ambiente correspondente.
+            </p>
+
+            <div className="mt-10 grid max-w-xl gap-3 sm:grid-cols-3">
+              {[
+                ["01", "Identidade"],
+                ["02", "Execução"],
+                ["03", "Evolução"],
+              ].map(([step, label]) => (
+                <div key={step} className="rounded-[22px] border border-white/80 bg-white/62 p-4 backdrop-blur-xl">
+                  <div className="text-[10px] font-semibold uppercase tracking-[.18em] text-black/30">{step}</div>
+                  <div className="mt-4 text-sm font-semibold text-black/62">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <GlassCard className="relative overflow-hidden p-7 sm:p-9">
+          <div className="pointer-events-none absolute inset-0">
+            <HolographicField tone="violet" intensity={0.46} />
+          </div>
+          <div className="relative">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1d1d1f] text-white shadow-[0_16px_44px_rgba(0,0,0,.15)]">
+              <KeyRound className="h-5 w-5" aria-hidden />
+            </div>
+
+            <SectionLabel>Acesso restrito</SectionLabel>
+            <h2 className="mt-4 text-3xl font-semibold tracking-[-.045em] text-black/86">
+              Entre com o número de série do selo.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-black/45">
+              A validação acontece no servidor. Seriais demonstrativos não liberam ambientes reais.
+            </p>
+
+            <form onSubmit={onSubmit} className="mt-8 grid gap-4" noValidate>
+              <label htmlFor="seal-serial" className="text-[11px] font-semibold uppercase tracking-[.15em] text-black/38">
+                Número de série
+              </label>
+              <div className="flex min-h-16 items-center gap-3 rounded-[20px] border border-black/[.08] bg-white/88 px-4 shadow-[0_10px_35px_rgba(0,0,0,.05)] focus-within:border-cyan-400">
+                <Sparkles className="h-4 w-4 shrink-0 text-cyan-500" aria-hidden />
+                <input
+                  id="seal-serial"
+                  value={serial}
+                  onChange={(event) => setSerial(event.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-describedby="seal-status"
+                  placeholder="VH-XXX-XX-AAAA-000000"
+                  className="w-full bg-transparent font-mono text-[13px] uppercase tracking-[.1em] text-black/70 outline-none placeholder:text-black/24"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={state === "validating" || !serial.trim()}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#1d1d1f] px-6 text-[13px] font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                {state === "validating" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ShieldCheck className="h-4 w-4" aria-hidden />}
+                {state === "validating" ? "Validando" : "Acessar ambiente"}
+              </button>
+            </form>
+
+            <div id="seal-status" role="status" aria-live="polite" className="mt-5 min-h-16">
+              {result?.status === "granted" ? (
+                <div className="flex items-center gap-3 rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                  <ShieldCheck className="h-4 w-4" aria-hidden />
+                  Acesso concedido · {result.displayName}
+                </div>
+              ) : null}
+              {result?.status === "awaiting-seal" ? (
+                <div className="flex items-center gap-3 rounded-[18px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <Clock className="h-4 w-4" aria-hidden />
+                  Selo aguardando ativação · {result.displayName}
+                </div>
+              ) : null}
+              {result?.status === "invalid" ? (
+                <div className="flex items-center gap-3 rounded-[18px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                  <ShieldAlert className="h-4 w-4" aria-hidden />
+                  Número de série inválido.
+                </div>
+              ) : null}
+            </div>
+
+            <p className="mt-4 text-xs leading-5 text-black/36">
+              Áreas reais não devem conter dados sensíveis protegidos apenas pelo serial público do selo. Camadas adicionais de acesso podem ser ativadas por cliente.
             </p>
           </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 py-14 md:py-20">
-          <div className="grid gap-6">
-            {clientes.map((registro) => (
-              <CartaoCliente key={registro.serial} registro={registro} />
-            ))}
-          </div>
-
-          <p className="mt-10 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Conceitos e demonstrações visuais não entram nesta página — eles ficam em{" "}
-            <Link to="/selos" className="text-neon-cyan underline-offset-4 hover:underline">
-              /selos
-            </Link>
-            , marcados como conceito. Cliente é quem tem relação comercial registrada.
-          </p>
-        </section>
+        </GlassCard>
       </main>
-      <SiteFooter />
-    </div>
+    </AppleClientFrame>
   );
 }

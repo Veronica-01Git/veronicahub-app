@@ -1,7 +1,8 @@
-export type SealStatus = "development" | "active" | "support" | "archived" | "concept";
+export type SealStatus = "development" | "active" | "support" | "archived" | "concept" | "member";
 
 export type SealRecord = {
   serial: string;
+  memberNumber?: number;
   client: string;
   solution: string;
   category: string;
@@ -26,6 +27,7 @@ export type SealRecord = {
 };
 
 export const SEAL_STATUS_COPY: Record<SealStatus, string> = {
+  member: "Vínculo de membro registrado na Veronica Hub. Este selo não atesta conclusão de projetos ou integrações.",
   development: "Projeto registrado e atualmente em desenvolvimento.",
   active: "Implantação concluída e registro ativo.",
   support: "Implantação concluída e em período de suporte.",
@@ -99,6 +101,36 @@ export const sealRecords: readonly SealRecord[] = [
       ],
       channels: ["WhatsApp", "Site", "Instagram", "Facebook", "Chat interno", "Voz", "Aplicativo"],
     },
+  },
+  {
+    serial: "VH-MEM-2026-000002",
+    memberNumber: 2,
+    client: "LZ Team",
+    solution: "Membro Veronica Hub · Cliente 02",
+    category: "Comunidade · selo de membro",
+    issuedAt: "21/09/2026",
+    status: "member",
+    statusLabel: "Membro registrado",
+    version: "1.0 · Registro de membro",
+    provider: "Veronica Hub",
+    summary: "Registro de membro do LZ Team, segundo cliente da Veronica Hub. O escopo de serviços e as integrações do time ainda serão definidos.",
+    scope: ["Identidade de membro do LZ Team", "Área de membros com login por e-mail", "Novidades antecipadas e prompts gratuitos publicados pela equipe", "Participação nas conversas com moderação"],
+    timeline: [{date: "21 SET 2026", label: "Selo de membro emitido · Cliente 02", state: "done"}],
+  },
+  {
+    serial: "VH-MEM-2026-000003",
+    memberNumber: 3,
+    client: "Veronica Fashion & Co.",
+    solution: "Membro Veronica Hub · Cliente 03",
+    category: "Moda e criação · selo de membro",
+    issuedAt: "21/09/2026",
+    status: "member",
+    statusLabel: "Membro registrado",
+    version: "1.0 · Registro de membro",
+    provider: "Veronica Hub",
+    summary: "Registro de membro da Veronica Fashion & Co., terceiro cliente da Veronica Hub. O Fashion Operator é o ambiente de demonstração associado; suas integrações operacionais permanecem em preparação.",
+    scope: ["Identidade de membro da Veronica Fashion & Co.", "Área de membros com login por e-mail", "Imagens, vídeos, ideias e prompts publicados pela equipe", "Ambiente Fashion Operator com dados demonstrativos identificados"],
+    timeline: [{date: "21 SET 2026", label: "Selo de membro emitido · Cliente 03", state: "done"}],
   },
   {
     serial: "VH-AUT-TX-DEMO-0001",
