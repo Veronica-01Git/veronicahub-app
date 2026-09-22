@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleMercadoPagoWebhook } from "./lib/mercadopago-webhook";
+import { handleViduLiveRelay } from "./lib/vidu-live-relay";
 import { handleWhatsAppVerify, handleWhatsAppWebhook } from "./lib/whatsapp-webhook";
 import { handleWhatsAppDiagnostico } from "./lib/whatsapp-diagnostico";
 import { handleTesteAgente } from "./lib/whatsapp-teste";
@@ -80,7 +81,13 @@ function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set("x-content-type-options", "nosniff");
   headers.set("referrer-policy", "strict-origin-when-cross-origin");
-  headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
+  // microphone=(self) — o avatar ao vivo da Veronica (Vidu) precisa de
+  // getUserMedia({ audio: true }) na própria origem. Antes disso era
+  // microphone=(), que bloqueava a permissão pro site inteiro antes mesmo
+  // do navegador perguntar — o avatar nunca teria conseguido pedir mic em
+  // produção. Câmera continua fechada de propósito: call_mode é sempre
+  // "audio", nunca pedimos webcam de quem visita o site.
+  headers.set("permissions-policy", "camera=(), microphone=(self), geolocation=()");
   headers.set("x-frame-options", "SAMEORIGIN");
   headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
 
@@ -113,6 +120,17 @@ const app = {
         return new Response("error", { status: 500 });
       }
     }
+    // Canal de controle (WebSocket) da sessão ao vivo da Veronica — proxy
+    // pro Vidu, ver src/lib/vidu-live-relay.ts (a chave nunca sai daqui).
+    if (url.pathname === "/api/vidu/live-relay") {
+      try {
+        return await handleViduLiveRelay(request);
+      } catch (error) {
+        console.error("Erro no relay do avatar ao vivo:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
     // Webhook do agente de WhatsApp (Cloud API da Meta). GET verifica o
     // endpoint no painel; POST recebe mensagem. O número é DEDICADO — o
     // número atual da Express Entulho não passa por aqui (ver AGENTS.md).

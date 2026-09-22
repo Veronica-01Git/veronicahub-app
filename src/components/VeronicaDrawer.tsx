@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { X, Send, Play } from "lucide-react";
+import { X, Send, Play, Mic } from "lucide-react";
 import { veronicaChat } from "@/lib/veronica-server";
 import { LazyImage } from "@/components/media/LazyImage";
+import { VeronicaLiveAvatar } from "@/components/VeronicaLiveAvatar";
 import {
   getVeronicaSkill,
   getVeronicaStep,
@@ -58,6 +59,8 @@ export function VeronicaDrawer({
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Avatar ao vivo (Vidu) — false = holograma/StepVideo estático de sempre.
+  const [liveActive, setLiveActive] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
   const lastGreetedStep = useRef<StudioCriativoStepId | null>(null);
 
@@ -82,6 +85,13 @@ export function VeronicaDrawer({
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, sending]);
+
+  // Sessão ao vivo é cobrada por segundo — fechar o drawer nunca pode deixar
+  // uma chamada tocando escondida atrás dele. O drawer só troca translate-x
+  // (fica no DOM mesmo fechado), então isso não é coberto por unmount.
+  useEffect(() => {
+    if (!open && liveActive) setLiveActive(false);
+  }, [open, liveActive]);
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
@@ -151,37 +161,63 @@ export function VeronicaDrawer({
           </button>
         </div>
 
-        {step ? (
-          <>
-            <div className="relative aspect-video w-full flex-shrink-0 border-b border-border/50 bg-black">
-              <StepVideo videoAsset={step.videoAsset} title={step.title} />
-              <span className="absolute bottom-2 left-3 font-mono-tech text-[9.5px] uppercase tracking-widest text-white/70">
-                Passo {String(step.order).padStart(2, "0")} · {step.title}
-              </span>
-            </div>
-            <div className="flex items-center gap-2.5 border-b border-border/50 px-4 py-2.5">
-              <span className="font-mono-tech text-[10px] text-neon-green">
-                {String(step.order).padStart(2, "0")} / 07
-              </span>
-              <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-neon-green/10">
-                <div
-                  className="h-full rounded-full bg-neon-green shadow-glow-green"
-                  style={{ width: `${(step.order / 7) * 100}%` }}
-                />
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="relative aspect-video w-full flex-shrink-0 overflow-hidden border-b border-border/50 bg-black">
-            <LazyImage
-              src="/images/assistente/avatar-hologram.webp"
-              alt="Avatar da assistente Veronica materializando em holograma"
-              className="h-full w-full object-cover"
+        <div className="relative aspect-video w-full flex-shrink-0 overflow-hidden border-b border-border/50 bg-black">
+          {liveActive ? (
+            <VeronicaLiveAvatar
+              skillId={skillId}
+              stepId={step?.id ?? null}
+              onEnded={(notice) => {
+                setLiveActive(false);
+                if (notice) {
+                  setMessages((prev) => [...prev, { role: "assistant", content: notice }]);
+                }
+              }}
             />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 scanlines opacity-20"
-            />
+          ) : step ? (
+            <StepVideo videoAsset={step.videoAsset} title={step.title} />
+          ) : (
+            <>
+              <LazyImage
+                src="/images/assistente/avatar-hologram.webp"
+                alt="Avatar da assistente Veronica materializando em holograma"
+                className="h-full w-full object-cover"
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 scanlines opacity-20"
+              />
+            </>
+          )}
+
+          {!liveActive && (
+            <button
+              type="button"
+              onClick={() => setLiveActive(true)}
+              className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-neon-green/40 bg-black/60 px-2.5 py-1 font-mono-tech text-[9.5px] uppercase tracking-widest text-neon-green backdrop-blur transition hover:border-neon-green"
+            >
+              <Mic className="h-3 w-3" />
+              Falar ao vivo
+            </button>
+          )}
+
+          {step && !liveActive && (
+            <span className="absolute bottom-2 left-3 font-mono-tech text-[9.5px] uppercase tracking-widest text-white/70">
+              Passo {String(step.order).padStart(2, "0")} · {step.title}
+            </span>
+          )}
+        </div>
+
+        {step && (
+          <div className="flex items-center gap-2.5 border-b border-border/50 px-4 py-2.5">
+            <span className="font-mono-tech text-[10px] text-neon-green">
+              {String(step.order).padStart(2, "0")} / 07
+            </span>
+            <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-neon-green/10">
+              <div
+                className="h-full rounded-full bg-neon-green shadow-glow-green"
+                style={{ width: `${(step.order / 7) * 100}%` }}
+              />
+            </div>
           </div>
         )}
 
