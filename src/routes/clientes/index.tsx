@@ -145,12 +145,13 @@ function ClientesVeronica() {
               Clientes Veronica
             </div>
             <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[.92] tracking-[-.055em] sm:text-6xl md:text-7xl">
-              Quem a Veronica <span className="text-neon-green text-glow-green">atende.</span>
+              Quem a Veronica já atendeu{" "}
+              <span className="text-neon-green text-glow-green">e atende.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Cada cliente tem selo de procedência, escopo registrado e as entregas abertas para
-              consulta. A lista sai do próprio registro de selos — nada aparece aqui sem número de
-              série emitido.
+              Cada cliente tem selo de procedência, escopo registrado e um endereço oficial no Hub.
+              A lista sai do próprio registro de selos — nada aparece aqui sem número de série
+              emitido. O painel de cada cliente é fechado: só o dono do selo entra.
             </p>
           </div>
         </section>

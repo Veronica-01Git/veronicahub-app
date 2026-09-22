@@ -239,6 +239,10 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
 export const PRIMARY_NAV = ["formations", "packs", "wire", "clientes"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
+  // A prova social do Hub: quem a Veronica já atendeu e atende. Fica na
+  // vitrine porque é a pergunta que todo visitante faz antes de contratar, e
+  // porque a listagem é pública mesmo quando o painel do cliente é fechado.
+  "clientes",
   // Primeiro da lista: é o produto que tem teste grátis e caminho de venda
   // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site
   // — nem na vitrine da home, nem no menu Ferramentas, que leem desta lista.

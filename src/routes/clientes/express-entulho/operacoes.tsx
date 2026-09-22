@@ -5,15 +5,24 @@
  * outras entregas do mesmo cliente. O endereço antigo redireciona para cá,
  * porque o dono já tem aquele link salvo.
  *
- * O QUE MUDOU DE POSTURA, e é o que importa aqui: a rota deixou de ser
- * escondida. Ela entra na listagem /clientes e é indexável. O que NÃO mudou é
- * a natureza dos dados — continuam fictícios, e a TarjaDemo continua no topo
- * de todas as telas dizendo isso. Página pública com número inventado só é
- * honesta enquanto o aviso estiver visível; se um dia entrar dado real de
- * cliente, esta rota volta a ser fechada.
+ * ACESSO FECHADO desde 22/09. Esta rota é o **endereço oficial** da Express
+ * Entulho no Hub, e só o dono do selo entra — mais quem dá suporte. A
+ * verificação é por identidade, em `acesso-cliente.server.ts`: login por
+ * e-mail, e o e-mail precisa estar liberado para o selo.
+ *
+ * A rota já foi pública por um dia (21/09), enquanto era vitrine de
+ * protótipo. Virou espaço de cliente e voltou a ser fechada, com `noindex`.
+ * Quem fica pública é a listagem /clientes, que mostra QUEM a Veronica
+ * atende sem abrir o painel de ninguém.
+ *
+ * A natureza dos dados não mudou: continuam fictícios, e a TarjaDemo segue no
+ * topo de todas as telas dizendo isso.
  */
 
-import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { Lock } from "lucide-react";
+import { autorizarAcessoCliente, type Autorizacao } from "@/lib/acesso-cliente-server";
 import {
   RodapeProcedencia,
   Sidebar,
@@ -28,20 +37,79 @@ export const Route = createFileRoute("/clientes/express-entulho/operacoes")({
   head: () => ({
     meta: [
       { title: "Express Operations · Express Entulho | Veronica Hub" },
+      // Espaço de cliente: fora do índice de busca. A vitrine é /clientes.
+      { name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+      { name: "googlebot", content: "noindex, nofollow" },
       {
         name: "description",
-        content:
-          "Central operacional da Express Entulho: atendimento por WhatsApp, aprovações humanas, frota e regras do agente. Demonstração visual com dados fictícios.",
-      },
-      { property: "og:title", content: "Express Operations · Express Entulho" },
-      {
-        property: "og:description",
-        content:
-          "Painel de operações e agente de WhatsApp. Projeto registrado VH-AUT-WA-2026-000001 · YO LAB & CO.",
+        content: "Endereço oficial da Express Entulho no Veronica Hub. Acesso restrito.",
       },
     ],
   }),
 });
+
+/** Enquanto o servidor decide. Sem piscar conteúdo do cliente. */
+function Verificando() {
+  return (
+    <div className="express-ops-b flex min-h-screen items-center justify-center p-6">
+      <p className="text-[13px] text-[var(--ops-ink-muted)]">Verificando seu acesso…</p>
+    </div>
+  );
+}
+
+/**
+ * Sem acesso.
+ *
+ * As duas causas recebem texto diferente porque a ação é diferente: quem não
+ * está logado tem o que fazer agora; quem está logado com outro e-mail não
+ * tem, e mandá-lo tentar de novo seria enrolação.
+ *
+ * O texto NÃO diz quem tem acesso, e não confirma nem nega que este selo
+ * exista para tal pessoa. Página de acesso negado que conta quem entra é uma
+ * lista de alvos.
+ */
+function PortaFechada({ motivo }: { motivo: "sem-sessao" | "sem-permissao" }) {
+  return (
+    <div className="express-ops-b flex min-h-screen items-center justify-center p-6">
+      <div className="ops-card max-w-md p-7">
+        <div className="flex items-center gap-2 text-[var(--ops-ink-muted)]">
+          <Lock className="h-4 w-4" />
+          <span className="text-[11px] uppercase tracking-[.14em]">Acesso restrito</span>
+        </div>
+        <h1 className="mt-3 text-[20px] font-semibold leading-tight text-[var(--ops-ink)]">
+          Este é o espaço da Express Entulho
+        </h1>
+        {motivo === "sem-sessao" ? (
+          <>
+            <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--ops-ink-muted)]">
+              Entre com o e-mail liberado para este cliente. O acesso é por identidade — não existe
+              link que abra sem login.
+            </p>
+            <Link
+              to="/clientes"
+              className="mt-5 inline-flex rounded-md bg-[var(--ops-accent)] px-4 py-2 text-[13px] font-medium text-white"
+            >
+              Ir para a lista de clientes
+            </Link>
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--ops-ink-muted)]">
+              Você está conectado, mas esta conta não está liberada para este cliente. Se deveria
+              estar, fale com a YO LAB &amp; CO.
+            </p>
+            <Link
+              to="/clientes"
+              className="mt-5 inline-flex rounded-md border border-[var(--ops-line)] px-4 py-2 text-[13px] text-[var(--ops-ink)]"
+            >
+              Ver os clientes da Veronica
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const APOIO: Record<string, string> = {
   "": "Sexta-feira, 14 de setembro · dados fictícios",
@@ -52,11 +120,26 @@ const APOIO: Record<string, string> = {
   "regras-do-agente": "Preços por material e conversa com o agente",
 };
 
+const SELO = "VH-AUT-WA-2026-000001";
+
 function ExpressOperationsLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const resto = pathname.replace(/\/$/, "").slice(BASE.length).replace(/^\//, "");
   const item = NAV_POR_SLUG.get(resto);
   const titulo = item?.rotulo ?? "Seção";
+
+  const [acesso, setAcesso] = useState<Autorizacao | null>(null);
+  useEffect(() => {
+    autorizarAcessoCliente({ data: SELO })
+      .then(setAcesso)
+      .catch(() => setAcesso({ ok: false, motivo: "sem-sessao" }));
+  }, []);
+
+  // Enquanto o servidor não responde, nada do painel é montado. Mostrar o
+  // conteúdo e esconder depois seria pior que não mostrar: daria um piscar
+  // com o painel do cliente visível.
+  if (acesso === null) return <Verificando />;
+  if (!acesso.ok) return <PortaFechada motivo={acesso.motivo} />;
 
   return (
     <div className="express-ops-b min-h-screen">
