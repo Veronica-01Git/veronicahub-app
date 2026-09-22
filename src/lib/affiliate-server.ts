@@ -1,11 +1,7 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "./db";
-import {
-  affiliateProducts,
-  buildAffiliateUrl,
-  normalizeHandle,
-  type AffiliateProduct,
-} from "./affiliate-products";
+import { buildAffiliateUrl, normalizeHandle } from "./affiliate-products";
+import { findPublicAffiliateProduct } from "./affiliate-catalog-server";
 
 // Redirect rastreado dos produtos de afiliado (/r/afiliado) — mesmo desenho
 // do /r/wire: registra a intenção comercial e manda a pessoa pro destino.
@@ -54,10 +50,6 @@ const ALLOWED_PLACEMENTS = new Set([
   "link_divulgador",
 ]);
 
-function findProduct(id: string): AffiliateProduct | undefined {
-  return affiliateProducts.find((p) => p.id === id);
-}
-
 export async function handleAffiliateRedirect(request: Request): Promise<Response> {
   if (request.method !== "GET") return new Response("method not allowed", { status: 405 });
 
@@ -67,7 +59,7 @@ export async function handleAffiliateRedirect(request: Request): Promise<Respons
   const placement = ALLOWED_PLACEMENTS.has(rawPlacement) ? rawPlacement : "analytics_catalogo";
   const handle = normalizeHandle(url.searchParams.get("div") ?? "");
 
-  const product = findProduct(productId);
+  const product = await findPublicAffiliateProduct(productId);
   if (!product) return new Response("produto não encontrado", { status: 404 });
 
   const destination = buildAffiliateUrl(product, { handle, placement });
