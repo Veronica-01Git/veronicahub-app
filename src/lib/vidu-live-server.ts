@@ -32,15 +32,8 @@ import { VERONICA_SKILLS, getVeronicaStep, type VeronicaSkillId } from "@/veroni
 
 // ===== Config (fixo no servidor — nunca vem do cliente) =====
 
-// Lido DENTRO dos handlers, nunca no escopo do módulo. Este arquivo é
-// importado por VeronicaLiveAvatar, que roda no navegador: `createServerFn`
-// tira o corpo do handler do bundle do cliente, mas uma const de topo é
-// avaliada no import — e lá não existe `process`. É o padrão do resto do
-// projeto (veronica-server.ts, wallet-server.ts e os outros leem env só
-// dentro do handler). Não mover isto pra cima.
-function viduHost(): string {
-  return process.env.VIDU_ENVIRONMENT === "china" ? "api.vidu.cn" : "api.vidu.com";
-}
+const VIDU_ENVIRONMENT = process.env.VIDU_ENVIRONMENT === "china" ? "china" : "global";
+const VIDU_HOST = VIDU_ENVIRONMENT === "china" ? "api.vidu.cn" : "api.vidu.com";
 
 // TODO(Verônica): trocar pelo preço real depois de ver quanto o Vidu cobra
 // por billed_seconds no seu plano. Esse valor é só um teto conservador.
@@ -56,19 +49,14 @@ const MAX_SESSION_MINUTES = 6;
 // TODO(Verônica): confirmar direitos de uso comercial da imagem antes de
 // trocar isso — ver conversa. Até lá, mantém o holograma atual como imagem
 // de referência do avatar (não é a imagem final).
-function veronicaAvatarImageUri(): string {
-  return (
-    process.env.VIDU_AVATAR_IMAGE_URI ??
-    "https://veronicahub.com/images/assistente/avatar-hologram.webp"
-  );
-}
+const VERONICA_AVATAR_IMAGE_URI =
+  process.env.VIDU_AVATAR_IMAGE_URI ??
+  "https://veronicahub.com/images/assistente/avatar-hologram.webp";
 
 // TODO(Verônica): depois de rodar POST /live/v1/voices/clone com uma amostra
 // da voz ElevenLabs (ELEVENLABS_VOICE_ID) já em produção, trocar "Tina"
 // (voz default do Vidu) pelo id clonado, via env var.
-function veronicaViduVoice(): string {
-  return process.env.VIDU_VOICE_ID ?? "Tina";
-}
+const VERONICA_VIDU_VOICE = process.env.VIDU_VOICE_ID ?? "Tina";
 
 // Razões do ledger. O hold nasce "pending" (ainda não temos a liveId do
 // Vidu) e vira `...:hold:<liveId>` assim que a sessão abre — é essa linha
@@ -147,7 +135,7 @@ export const startVeronicaLiveSession = createServerFn({ method: "POST" })
       .returning({ id: ledgerEntries.id });
 
     try {
-      const res = await fetch(`https://${viduHost()}/live/s_avatar/realtime`, {
+      const res = await fetch(`https://${VIDU_HOST}/live/s_avatar/realtime`, {
         method: "POST",
         headers: {
           Authorization: `Token ${apiKey}`,
@@ -158,10 +146,10 @@ export const startVeronicaLiveSession = createServerFn({ method: "POST" })
           // pedimos câmera de quem visita o site.
           call_mode: "audio",
           avatar: {
-            image_uri: veronicaAvatarImageUri(),
+            image_uri: VERONICA_AVATAR_IMAGE_URI,
             persona: buildPersona(data.skillId, data.stepId),
             name: "Veronica",
-            voice: veronicaViduVoice(),
+            voice: VERONICA_VIDU_VOICE,
             persona_enhance: false,
           },
         }),
@@ -257,7 +245,7 @@ export const endVeronicaLiveSession = createServerFn({ method: "POST" })
 
     try {
       const res = await fetch(
-        `https://${viduHost()}/live/v1/lives/${encodeURIComponent(data.liveId)}`,
+        `https://${VIDU_HOST}/live/v1/lives/${encodeURIComponent(data.liveId)}`,
         {
           headers: { Authorization: `Token ${apiKey}` },
         },
