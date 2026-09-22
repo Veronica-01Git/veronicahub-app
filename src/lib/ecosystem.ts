@@ -54,6 +54,13 @@ export const PRODUCTS: Product[] = [
     external: false, public: true,
   },
   {
+    id: "fashion", name: "Fashion & Co.", category: "Ferramentas",
+    to: "/clientes/veronica-fashion-operator",
+    status: "Disponível",
+    description: "Fashion intelligence para criar, lançar e operar marcas de roupa",
+    external: false, public: true,
+  },
+  {
     id: "school",
     name: "Veronica Hub",
     category: "Escola",
@@ -236,7 +243,7 @@ export const INTENT_LINKS = INTENTS.map((intent) => ({
   tag: product(intent.productId).description,
   to: product(intent.productId).to,
 }));
-export const PRIMARY_NAV = ["formations", "packs", "wire", "members"].map(product);
+export const PRIMARY_NAV = ["formations", "fashion", "packs", "wire", "members"].map(product);
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [
   // Primeiro da lista: é o produto que tem teste grátis e caminho de venda
