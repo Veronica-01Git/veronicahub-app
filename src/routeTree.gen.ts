@@ -30,6 +30,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminMembrosRouteImport } from './routes/admin/membros'
+import { Route as AdminProdutosShopeeRouteImport } from './routes/admin/produtos-shopee'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as AdminWireRouteImport } from './routes/admin/wire'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
@@ -164,6 +165,11 @@ const AdminImagensRoute = AdminImagensRouteImport.update({
 const AdminMembrosRoute = AdminMembrosRouteImport.update({
   id: '/admin/membros',
   path: '/admin/membros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProdutosShopeeRoute = AdminProdutosShopeeRouteImport.update({
+  id: '/admin/produtos-shopee',
+  path: '/admin/produtos-shopee',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
@@ -350,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
+  '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -402,6 +409,7 @@ export interface FileRoutesByTo {
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
+  '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -454,6 +462,7 @@ export interface FileRoutesById {
   '/admin/artigos': typeof AdminArtigosRoute
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
+  '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -664,6 +673,7 @@ export interface RootRouteChildren {
   AdminArtigosRoute: typeof AdminArtigosRoute
   AdminImagensRoute: typeof AdminImagensRoute
   AdminMembrosRoute: typeof AdminMembrosRoute
+  AdminProdutosShopeeRoute: typeof AdminProdutosShopeeRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   AdminWireRoute: typeof AdminWireRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -832,6 +842,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/membros'
       fullPath: '/admin/membros'
       preLoaderRoute: typeof AdminMembrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/produtos-shopee': {
+      id: '/admin/produtos-shopee'
+      path: '/admin/produtos-shopee'
+      fullPath: '/admin/produtos-shopee'
+      preLoaderRoute: typeof AdminProdutosShopeeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/veronica-universe': {
@@ -1125,6 +1142,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminArtigosRoute: AdminArtigosRoute,
   AdminImagensRoute: AdminImagensRoute,
   AdminMembrosRoute: AdminMembrosRoute,
+  AdminProdutosShopeeRoute: AdminProdutosShopeeRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   AdminWireRoute: AdminWireRoute,
   BlogSlugRoute: BlogSlugRoute,
