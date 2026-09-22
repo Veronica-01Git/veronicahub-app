@@ -213,10 +213,10 @@ function ProductCard({
                 className="font-mono-tech text-[8.5px] uppercase tracking-[0.15em]"
                 style={{ color: "var(--va-faint)" }}
               >
-                Comissão
+                {product.commissionLabel ? "Comissão" : "Vínculo afiliado"}
               </span>
               <p className="mt-2 text-[12.5px] font-medium">
-                {product.commissionLabel ?? "Confirmada pela Shopee"}
+                {product.commissionLabel ?? "Link oficial Shopee"}
               </p>
             </div>
             <div
