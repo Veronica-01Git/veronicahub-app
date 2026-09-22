@@ -152,6 +152,7 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/admin/veronica-universe",
   "/admin/wire",
   "/admin/membros", // editorial restrito, acessado pelo painel admin
+  "/admin/produtos-shopee", // catálogo comercial restrito, acessado pelo painel admin
   // Páginas de detalhe, alcançadas a partir de uma listagem.
   "/blog/$slug",
   "/blog/editoria/$beat",
