@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { registerHooks } from "node:module";
+import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
 // src/lib importa sem extensão ("./whatsapp-rules"), que é a convenção do
@@ -26,6 +27,7 @@ const {
   sendText,
   EXPLICACAO_BLOQUEIO,
 } = await import("../src/lib/whatsapp-cloud.ts");
+const { handleTesteAgente } = await import("../src/lib/whatsapp-teste.ts");
 const {
   precisaDeHumano,
   decidirResposta,
@@ -709,5 +711,61 @@ test("sem credencial nenhuma, o motivo é outro — e a frase também", () => {
   } finally {
     if (antes.id !== undefined) process.env.WHATSAPP_PHONE_NUMBER_ID = antes.id;
     if (antes.token !== undefined) process.env.WHATSAPP_ACCESS_TOKEN = antes.token;
+  }
+});
+
+/* ------------------------------------------------- sala de teste da agente */
+
+/**
+ * A sala de teste existe para o dono conversar com a agente sem risco. Estes
+ * testes travam as duas propriedades que fazem dela "sem risco":
+ *
+ * 1. Ela não tem caminho para a Meta. Não é configuração — é ausência de
+ *    código. Se alguém um dia importar `sendText` ali, o teste fica vermelho.
+ * 2. Sem segredo configurado ela fica DESLIGADA, não aberta. A página vive
+ *    numa rota pública e o endpoint chama modelo de linguagem: aberto é cota
+ *    de terceiro à disposição de quem achar a URL.
+ */
+test("a sala de teste não tem como enviar nada para o WhatsApp", async () => {
+  const fonte = await readFile(new URL("../src/lib/whatsapp-teste.ts", import.meta.url), "utf8");
+  // Separa o corpo do arquivo do comentário de cabeçalho: o cabeçalho explica
+  // justamente que não envia, e citar os nomes lá não pode reprovar o teste.
+  const corpo = fonte.slice(fonte.indexOf("import "));
+  for (const proibido of ["sendText", "sendAudio", "graph.facebook", "uploadAudio"]) {
+    assert.ok(
+      !corpo.includes(proibido),
+      `whatsapp-teste.ts passou a referenciar ${proibido} — a sala deixou de ser sem risco`,
+    );
+  }
+});
+
+test("sem TESTE_AGENTE_TOKEN a sala recusa, em vez de ficar aberta", async () => {
+  const antes = process.env.TESTE_AGENTE_TOKEN;
+  try {
+    delete process.env.TESTE_AGENTE_TOKEN;
+    const r = await handleTesteAgente(
+      new Request("https://exemplo.test/api/whatsapp/testar", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ texto: "quanto custa?" }),
+      }),
+    );
+    assert.equal(r.status, 401);
+    const corpo = await r.json();
+    assert.match(corpo.erro, /desligada/i);
+
+    // Com o segredo configurado, um token errado também não passa.
+    process.env.TESTE_AGENTE_TOKEN = "segredo-certo";
+    const r2 = await handleTesteAgente(
+      new Request("https://exemplo.test/api/whatsapp/testar?t=segredo-errado", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ texto: "quanto custa?" }),
+      }),
+    );
+    assert.equal(r2.status, 401);
+  } finally {
+    if (antes === undefined) delete process.env.TESTE_AGENTE_TOKEN;
+    else process.env.TESTE_AGENTE_TOKEN = antes;
   }
 });

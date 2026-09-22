@@ -174,6 +174,7 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/clientes/express-entulho/operacoes/despacho",
   "/clientes/express-entulho/operacoes/operacoes-hoje",
   "/clientes/express-entulho/operacoes/regras-do-agente",
+  "/clientes/express-entulho/operacoes/testar",
   // Rodapé e páginas de apoio do Wire, alcançadas de dentro dele.
   "/blog/expediente",
   "/blog/rede-de-fontes",

@@ -51,6 +51,7 @@ import { Route as ClientesExpressEntulhoOperacoesCacambasRouteImport } from './r
 import { Route as ClientesExpressEntulhoOperacoesDespachoRouteImport } from './routes/clientes/express-entulho/operacoes/despacho'
 import { Route as ClientesExpressEntulhoOperacoesOperacoesHojeRouteImport } from './routes/clientes/express-entulho/operacoes/operacoes-hoje'
 import { Route as ClientesExpressEntulhoOperacoesRegrasDoAgenteRouteImport } from './routes/clientes/express-entulho/operacoes/regras-do-agente'
+import { Route as ClientesExpressEntulhoOperacoesTestarRouteImport } from './routes/clientes/express-entulho/operacoes/testar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -277,6 +278,12 @@ const ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute =
     path: '/regras-do-agente',
     getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
   } as any)
+const ClientesExpressEntulhoOperacoesTestarRoute =
+  ClientesExpressEntulhoOperacoesTestarRouteImport.update({
+    id: '/testar',
+    path: '/testar',
+    getParentRoute: () => ClientesExpressEntulhoOperacoesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/clientes/express-entulho/operacoes/despacho': typeof ClientesExpressEntulhoOperacoesDespachoRoute
   '/clientes/express-entulho/operacoes/operacoes-hoje': typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
   '/clientes/express-entulho/operacoes/regras-do-agente': typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  '/clientes/express-entulho/operacoes/testar': typeof ClientesExpressEntulhoOperacoesTestarRoute
   '/clientes/express-entulho/operacoes/': typeof ClientesExpressEntulhoOperacoesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -363,6 +371,7 @@ export interface FileRoutesByTo {
   '/clientes/express-entulho/operacoes/despacho': typeof ClientesExpressEntulhoOperacoesDespachoRoute
   '/clientes/express-entulho/operacoes/operacoes-hoje': typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
   '/clientes/express-entulho/operacoes/regras-do-agente': typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  '/clientes/express-entulho/operacoes/testar': typeof ClientesExpressEntulhoOperacoesTestarRoute
   '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesIndexRoute
 }
 export interface FileRoutesById {
@@ -408,6 +417,7 @@ export interface FileRoutesById {
   '/clientes/express-entulho/operacoes/despacho': typeof ClientesExpressEntulhoOperacoesDespachoRoute
   '/clientes/express-entulho/operacoes/operacoes-hoje': typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
   '/clientes/express-entulho/operacoes/regras-do-agente': typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  '/clientes/express-entulho/operacoes/testar': typeof ClientesExpressEntulhoOperacoesTestarRoute
   '/clientes/express-entulho/operacoes/': typeof ClientesExpressEntulhoOperacoesIndexRoute
 }
 export interface FileRouteTypes {
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes/despacho'
     | '/clientes/express-entulho/operacoes/operacoes-hoje'
     | '/clientes/express-entulho/operacoes/regras-do-agente'
+    | '/clientes/express-entulho/operacoes/testar'
     | '/clientes/express-entulho/operacoes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -497,6 +508,7 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes/despacho'
     | '/clientes/express-entulho/operacoes/operacoes-hoje'
     | '/clientes/express-entulho/operacoes/regras-do-agente'
+    | '/clientes/express-entulho/operacoes/testar'
     | '/clientes/express-entulho/operacoes'
   id:
     | '__root__'
@@ -541,6 +553,7 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes/despacho'
     | '/clientes/express-entulho/operacoes/operacoes-hoje'
     | '/clientes/express-entulho/operacoes/regras-do-agente'
+    | '/clientes/express-entulho/operacoes/testar'
     | '/clientes/express-entulho/operacoes/'
   fileRoutesById: FileRoutesById
 }
@@ -875,6 +888,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRouteImport
       parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
     }
+    '/clientes/express-entulho/operacoes/testar': {
+      id: '/clientes/express-entulho/operacoes/testar'
+      path: '/testar'
+      fullPath: '/clientes/express-entulho/operacoes/testar'
+      preLoaderRoute: typeof ClientesExpressEntulhoOperacoesTestarRouteImport
+      parentRoute: typeof ClientesExpressEntulhoOperacoesRoute
+    }
   }
 }
 
@@ -911,6 +931,7 @@ interface ClientesExpressEntulhoOperacoesRouteChildren {
   ClientesExpressEntulhoOperacoesDespachoRoute: typeof ClientesExpressEntulhoOperacoesDespachoRoute
   ClientesExpressEntulhoOperacoesOperacoesHojeRoute: typeof ClientesExpressEntulhoOperacoesOperacoesHojeRoute
   ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute: typeof ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute
+  ClientesExpressEntulhoOperacoesTestarRoute: typeof ClientesExpressEntulhoOperacoesTestarRoute
   ClientesExpressEntulhoOperacoesIndexRoute: typeof ClientesExpressEntulhoOperacoesIndexRoute
 }
 
@@ -930,6 +951,8 @@ const ClientesExpressEntulhoOperacoesRouteChildren: ClientesExpressEntulhoOperac
       ClientesExpressEntulhoOperacoesOperacoesHojeRoute,
     ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute:
       ClientesExpressEntulhoOperacoesRegrasDoAgenteRoute,
+    ClientesExpressEntulhoOperacoesTestarRoute:
+      ClientesExpressEntulhoOperacoesTestarRoute,
     ClientesExpressEntulhoOperacoesIndexRoute:
       ClientesExpressEntulhoOperacoesIndexRoute,
   }
