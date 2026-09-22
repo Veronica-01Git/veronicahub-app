@@ -104,9 +104,14 @@ export function buildAffiliateUrl(
 ): string {
   const { param, separator, slots, order } = affiliateCatalog.subId;
   const url = new URL(product.affiliateUrl);
+  const existingSlots = (url.searchParams.get(param) ?? "").split(separator);
 
   const values: Record<string, string> = {
-    affiliate: normalizeHandle(handle),
+    // Na vitrine Analytics, `handle` fica vazio de propósito: todo clique
+    // deve continuar usando o identificador oficial já gravado no link da
+    // Veronica. Um identificador explícito ainda pode ser usado nas áreas da
+    // Rede, mas ausência nunca mais apaga o Sub_id que gera a comissão.
+    affiliate: normalizeHandle(handle) || normalizeHandle(existingSlots[0] ?? ""),
     placement: normalizeHandle(placement),
     category: normalizeHandle(product.category),
   };

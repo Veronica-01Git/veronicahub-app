@@ -1,709 +1,822 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Sparkles, ShoppingBag, RotateCcw, ArrowRight, Flame, Play } from "lucide-react";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
-import { calcEngagement, TIER_META, type EngagementResult, type Tier } from "@/lib/tiktok-engagement";
 import {
-  trendingFeed,
-  formatRefreshedLabel,
+  ArrowRight,
+  BarChart3,
+  Check,
+  ChevronDown,
+  Copy,
+  ExternalLink,
+  Flame,
+  LineChart,
+  MousePointerClick,
+  Play,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Wand2,
+} from "lucide-react";
+import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
+import {
+  affiliateProducts,
+  buildTrackedPath,
+  hasAffiliateProducts,
+  type AffiliateProduct,
+} from "@/lib/affiliate-products";
+import {
   formatNextRefreshLabel,
+  formatRefreshedLabel,
+  trendingFeed,
   type FeedCategory,
   type TrendingVideo,
 } from "@/lib/trending-videos";
-import {
-  affiliateProducts,
-  hasAffiliateProducts,
-  buildTrackedPath,
-  normalizeHandle,
-} from "@/lib/affiliate-products";
-import { getMyAffiliate, getMyAffiliateStats } from "@/lib/affiliate-account-server";
 
 export const Route = createFileRoute("/veronica-analytics")({
   component: VeronicaAnalytics,
   head: () => ({
     meta: [
-      { title: "Veronica Analytics — Calculadora de Engajamento TikTok | Veronica Hub" },
+      { title: "Veronica Analytics — Inteligência de Produtos Shopee" },
       {
         name: "description",
-        content: "Calcule sua taxa de engajamento no TikTok gratuitamente e receba dicas práticas pra vender mais no TikTok Shop.",
+        content:
+          "Descubra produtos Shopee, entenda o melhor ângulo de venda e transforme cada oportunidade em conteúdo pronto para publicar.",
       },
-      { property: "og:title", content: "Veronica Analytics — Calculadora de Engajamento TikTok" },
-      { property: "og:description", content: "Descubra seu potencial no TikTok Shop com dados reais do seu próprio perfil." },
+      {
+        property: "og:title",
+        content: "Veronica Analytics — Produtos Shopee que merecem um teste",
+      },
+      {
+        property: "og:description",
+        content:
+          "Radar de produtos, inteligência criativa e links oficiais de afiliado em uma única jornada.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
 
-// Paleta clara e viva, inspirada no duotone do TikTok (rosa/ciano/dourado)
-// — mesma técnica de variáveis escopadas que a home usa, só que via
-// inline style em vez de classe, porque essa página já nasceu assim.
-const tt = {
-  "--tt-bg": "#ffffff",
-  "--tt-surface": "#fafafa",
-  "--tt-surface-raised": "#ffffff",
-  "--tt-cyan": "#0a9490",
-  "--tt-pink": "#e11d5e",
-  "--tt-gold": "#b8860b",
-  "--tt-ink": "#0e0e10",
-  "--tt-ink-soft": "#55555c",
-  "--tt-ink-faint": "#8a8a93",
-  "--tt-line": "#ececee",
+const theme = {
+  "--va-bg": "#f5f6f7",
+  "--va-card": "#ffffff",
+  "--va-soft": "#eef0f2",
+  "--va-ink": "#111214",
+  "--va-muted": "#62666d",
+  "--va-faint": "#8d9299",
+  "--va-line": "#e1e4e7",
+  "--va-green": "#0b8f78",
+  "--va-pink": "#e11d5e",
+  "--va-gold": "#a87000",
 } as CSSProperties;
 
-const TIER_COLOR: Record<Tier, string> = {
-  baixa: "var(--tt-pink)",
-  boa: "var(--tt-gold)",
-  otima: "var(--tt-cyan)",
-  excelente: "var(--tt-cyan)",
+const categoryMeta: Record<FeedCategory, { label: string; color: string }> = {
+  beleza: { label: "Beleza", color: "var(--va-pink)" },
+  casa: { label: "Casa", color: "var(--va-green)" },
+  saude: { label: "Saúde", color: "var(--va-gold)" },
+  moda: { label: "Moda", color: "var(--va-pink)" },
+  pet: { label: "Pet", color: "var(--va-green)" },
+  eletronicos: { label: "Eletrônicos", color: "var(--va-gold)" },
 };
 
-// Ticker derivado do próprio feed curado — evita duas fontes de verdade
-// desalinhadas quando a rotina de 48h reescreve trending-videos.json.
-const trendingTicker = trendingFeed.videos.map((v) => ({
-  label: v.title.split("—")[0].trim().toLowerCase(),
-  delta: v.growthLabel,
-}));
-
-const FILTER_CATEGORIES: { key: "todos" | FeedCategory; label: string }[] = [
-  { key: "todos", label: "todos" },
-  { key: "beleza", label: "beleza" },
-  { key: "casa", label: "casa" },
-  { key: "saude", label: "saúde" },
-  { key: "moda", label: "moda" },
-  { key: "pet", label: "pet" },
-  { key: "eletronicos", label: "eletrônicos" },
+const filters: { key: "todos" | FeedCategory; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "beleza", label: "Beleza" },
+  { key: "casa", label: "Casa" },
+  { key: "saude", label: "Saúde" },
+  { key: "moda", label: "Moda" },
+  { key: "pet", label: "Pet" },
+  { key: "eletronicos", label: "Eletrônicos" },
 ];
 
-const CATEGORY_META: Record<FeedCategory, { label: string; color: string }> = {
-  beleza: { label: "beleza", color: "var(--tt-pink)" },
-  casa: { label: "casa", color: "var(--tt-cyan)" },
-  saude: { label: "saúde", color: "var(--tt-gold)" },
-  moda: { label: "moda", color: "var(--tt-pink)" },
-  pet: { label: "pet", color: "var(--tt-cyan)" },
-  eletronicos: { label: "eletrônicos", color: "var(--tt-gold)" },
-};
-
-type SortKey = "gmv" | "recente" | "crescimento";
-
-function Sparkles8() {
-  return (
-    <>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <span
-          key={i}
-          aria-hidden
-          className="absolute rounded-full animate-sparkle"
-          style={{
-            left: `${(i * 37) % 100}%`,
-            top: `${(i * 53) % 100}%`,
-            width: i % 2 === 0 ? 6 : 4,
-            height: i % 2 === 0 ? 6 : 4,
-            background: i % 2 === 0 ? "var(--tt-cyan)" : "var(--tt-pink)",
-            animationDelay: `${i * 0.3}s`,
-          }}
-        />
-      ))}
-    </>
-  );
+function scriptFor(product: AffiliateProduct) {
+  return [
+    `Gancho: mostre o problema que ${product.name.toLowerCase()} resolve antes de revelar o produto.`,
+    `Demonstração: ${product.angle}`,
+    "Prova: mostre o produto funcionando em plano fechado, sem esconder o processo.",
+    "Oferta: destaque o benefício principal e informe que preço e disponibilidade são conferidos na Shopee.",
+    "CTA: toque no link para conferir a oferta completa na Shopee.",
+  ];
 }
 
-function NumberField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  size = "md",
+function ProductCard({
+  product,
+  isCategoryTrending,
 }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  size?: "md" | "lg";
+  product: AffiliateProduct;
+  isCategoryTrending: boolean;
 }) {
-  const formatted = value ? Number(value).toLocaleString("pt-BR") : "";
+  const [scriptOpen, setScriptOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const meta = categoryMeta[product.category];
+  const trackedPath = buildTrackedPath(product, { handle: "", placement: "analytics_catalogo" });
+  const script = scriptFor(product);
+
+  async function copyScript() {
+    try {
+      await navigator.clipboard.writeText(
+        script.map((line, index) => `${index + 1}. ${line}`).join("\n"),
+      );
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   return (
-    <label className="flex flex-col gap-2">
-      <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
-        {label}
-      </span>
-      <input
-        type="text"
-        inputMode="numeric"
-        value={formatted}
-        onChange={(e) => onChange(e.target.value.replace(/[^\d]/g, ""))}
-        placeholder={placeholder}
-        className={`rounded-xl border outline-none transition focus:ring-2 focus:ring-offset-0 ${
-          size === "lg" ? "px-5 py-4 text-[19px]" : "px-4 py-3 text-[15px]"
-        }`}
-        style={
-          {
-            borderColor: "var(--tt-line)",
-            background: "var(--tt-surface)",
-            color: "var(--tt-ink)",
-            "--tw-ring-color": "var(--tt-cyan)",
-          } as CSSProperties
-        }
-      />
-    </label>
+    <article
+      className="overflow-hidden rounded-[28px] border bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_80px_rgba(17,18,20,0.09)]"
+      style={{ borderColor: "var(--va-line)" }}
+    >
+      <div className="grid lg:grid-cols-[0.38fr_1fr]">
+        <div
+          className="relative min-h-64 overflow-hidden p-6 text-white"
+          style={{ background: "linear-gradient(150deg, #111315 0%, #23272b 100%)" }}
+        >
+          <div
+            aria-hidden
+            className="absolute -right-14 -top-16 h-48 w-48 rounded-full border border-white/10"
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-24 -left-14 h-64 w-64 rounded-full opacity-70 blur-3xl"
+            style={{ background: meta.color }}
+          />
+          <div className="relative flex h-full flex-col">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-mono-tech text-[9px] uppercase tracking-[0.18em] text-white/50">
+                Shopee Radar
+              </span>
+              <span className="rounded-full bg-white/10 px-2.5 py-1 font-mono-tech text-[9px] uppercase tracking-[0.12em]">
+                {meta.label}
+              </span>
+            </div>
+            <ShoppingBag className="mt-10 h-12 w-12" strokeWidth={1.2} />
+            <div className="mt-auto pt-12">
+              <span className="font-mono-tech text-[9px] uppercase tracking-[0.16em] text-white/45">
+                Oferta atual
+              </span>
+              <p className="mt-2 font-display text-3xl leading-none">{product.priceLabel}</p>
+              {isCategoryTrending && (
+                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--va-pink)] px-3 py-1.5 font-mono-tech text-[9px] font-semibold uppercase tracking-[0.1em]">
+                  <Flame className="h-3 w-3" /> categoria em observação
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col p-6 sm:p-8">
+          <div
+            className="flex flex-wrap items-center gap-2 font-mono-tech text-[9.5px] uppercase tracking-[0.14em]"
+            style={{ color: "var(--va-faint)" }}
+          >
+            <span className="flex items-center gap-1.5 text-[var(--va-green)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--va-green)]" /> link oficial ativo
+            </span>
+            <span>·</span>
+            <span>produto de terceiro</span>
+            <span>·</span>
+            <span>catálogo Shopee</span>
+          </div>
+          <h3 className="mt-4 max-w-2xl text-xl font-semibold leading-[1.3] sm:text-2xl">
+            {product.name}
+          </h3>
+          <p
+            className="mt-4 max-w-2xl text-[13.5px] leading-[1.7]"
+            style={{ color: "var(--va-muted)" }}
+          >
+            <strong style={{ color: "var(--va-ink)" }}>Ângulo sugerido:</strong> {product.angle}
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div
+              className="rounded-2xl border p-4"
+              style={{ borderColor: "var(--va-line)", background: "var(--va-bg)" }}
+            >
+              <span
+                className="font-mono-tech text-[8.5px] uppercase tracking-[0.15em]"
+                style={{ color: "var(--va-faint)" }}
+              >
+                Fonte
+              </span>
+              <p className="mt-2 text-[12.5px] font-medium">Shopee Brasil</p>
+            </div>
+            <div
+              className="rounded-2xl border p-4"
+              style={{ borderColor: "var(--va-line)", background: "var(--va-bg)" }}
+            >
+              <span
+                className="font-mono-tech text-[8.5px] uppercase tracking-[0.15em]"
+                style={{ color: "var(--va-faint)" }}
+              >
+                Comissão
+              </span>
+              <p className="mt-2 text-[12.5px] font-medium">
+                {product.commissionLabel ?? "Confirmada pela Shopee"}
+              </p>
+            </div>
+            <div
+              className="rounded-2xl border p-4"
+              style={{ borderColor: "var(--va-line)", background: "var(--va-bg)" }}
+            >
+              <span
+                className="font-mono-tech text-[8.5px] uppercase tracking-[0.15em]"
+                style={{ color: "var(--va-faint)" }}
+              >
+                Status
+              </span>
+              <p className="mt-2 text-[12.5px] font-medium text-[var(--va-green)]">
+                Pronto para divulgar
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-2 sm:grid-cols-3">
+            <a
+              href={trackedPath}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-black px-4 py-3 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] text-white transition hover:-translate-y-0.5 hover:bg-[var(--va-pink)]"
+            >
+              Ver na Shopee{" "}
+              <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </a>
+            <button
+              type="button"
+              onClick={() => setScriptOpen((value) => !value)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] transition hover:-translate-y-0.5"
+              style={{ borderColor: "var(--va-line)" }}
+            >
+              <Wand2 className="h-3.5 w-3.5" /> Roteiro de venda{" "}
+              <ChevronDown className={`h-3.5 w-3.5 transition ${scriptOpen ? "rotate-180" : ""}`} />
+            </button>
+            <Link
+              to="/video-ia"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] transition hover:-translate-y-0.5"
+              style={{ borderColor: "var(--va-line)" }}
+            >
+              Produzir no Studio <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          {scriptOpen && (
+            <div
+              className="mt-4 rounded-2xl border p-5"
+              style={{ borderColor: "var(--va-line)", background: "var(--va-bg)" }}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <span className="font-mono-tech text-[9px] uppercase tracking-[0.16em] text-[var(--va-pink)]">
+                    Roteiro curto · 20–30s
+                  </span>
+                  <p className="mt-1 text-[12px]" style={{ color: "var(--va-muted)" }}>
+                    Estrutura pronta para adaptar ao seu vídeo.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={copyScript}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 font-mono-tech text-[9px] font-semibold uppercase tracking-[0.1em]"
+                >
+                  {copied ? (
+                    <Check className="h-3 w-3 text-[var(--va-green)]" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                  {copied ? "Copiado" : "Copiar roteiro"}
+                </button>
+              </div>
+              <ol className="mt-5 space-y-3">
+                {script.map((line, index) => (
+                  <li
+                    key={line}
+                    className="flex gap-3 text-[12.5px] leading-[1.6]"
+                    style={{ color: "var(--va-muted)" }}
+                  >
+                    <span className="font-mono-tech text-[9px] text-[var(--va-faint)]">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ol>
+              <span className="sr-only" aria-live="polite">
+                {copied ? "Roteiro copiado." : ""}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
 
-function ViralCard({ video }: { video: TrendingVideo }) {
-  const meta = CATEGORY_META[video.category];
+function CreativeCard({ video }: { video: TrendingVideo }) {
+  const meta = categoryMeta[video.category];
   return (
-    <Link
-      to="/video-ia"
-      className="group flex flex-col overflow-hidden rounded-2xl border transition hover:-translate-y-1"
-      style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}
+    <article
+      className="group overflow-hidden rounded-[24px] border bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(17,18,20,0.08)]"
+      style={{ borderColor: "var(--va-line)" }}
     >
-      <div className="relative flex aspect-[9/16] max-h-[250px] items-center justify-center" style={{ backgroundImage: video.gradient }}>
+      <div
+        className="relative flex aspect-[16/10] items-center justify-center overflow-hidden"
+        style={{ backgroundImage: video.gradient }}
+      >
         {video.thumbnailUrl && (
           <img
             src={video.thumbnailUrl}
             alt=""
             aria-hidden
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         )}
-        <span
-          className="absolute left-2.5 top-2.5 rounded-full px-2 py-1 font-mono-tech text-[10px] font-semibold text-white"
-          style={{ background: "var(--tt-ink)" }}
-        >
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"
+        />
+        <span className="absolute left-3 top-3 rounded-full bg-black/70 px-2.5 py-1 font-mono-tech text-[9px] text-white backdrop-blur">
           {video.gmvLabel}
         </span>
-        <span
-          className="absolute right-2.5 top-2.5 flex h-[22px] w-[22px] items-center justify-center rounded-full font-mono-tech text-[10.5px] font-bold text-white"
-          style={{ background: "var(--tt-pink)" }}
-        >
-          {video.rank}
+        <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-[var(--va-pink)] px-2.5 py-1 font-mono-tech text-[9px] font-semibold text-white">
+          <TrendingUp className="h-3 w-3" /> {video.growthLabel}
         </span>
-        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/85 shadow-md">
-          <Play className="ml-0.5 h-3.5 w-3.5" style={{ color: "var(--tt-ink)", fill: "var(--tt-ink)" }} />
-        </span>
-        <span
-          className="absolute bottom-2.5 left-2.5 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 font-mono-tech text-[9.5px] font-semibold"
-          style={{ color: "var(--tt-pink)" }}
-        >
-          <Flame className="h-2.5 w-2.5" /> {video.growthLabel}
+        <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/90 shadow-lg">
+          <Play className="ml-0.5 h-4 w-4 fill-black text-black" />
         </span>
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <p className="text-[13.5px] font-semibold leading-[1.35]" style={{ color: "var(--tt-ink)" }}>{video.title}</p>
-        <div className="mt-1.5 flex items-center justify-between font-mono-tech text-[10.5px]" style={{ color: "var(--tt-ink-faint)" }}>
-          <span className="rounded-full px-2 py-0.5 font-semibold" style={{ background: `color-mix(in oklab, ${meta.color} 14%, white)`, color: meta.color }}>
-            {meta.label}
-          </span>
+      <div className="p-5">
+        <div
+          className="flex items-center justify-between gap-3 font-mono-tech text-[9.5px] uppercase tracking-[0.12em]"
+          style={{ color: "var(--va-faint)" }}
+        >
+          <span style={{ color: meta.color }}>{meta.label}</span>
           <span>{video.views}</span>
         </div>
-        <p className="mt-2.5 text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-soft)" }}>
+        <h3 className="mt-3 text-[15px] font-semibold leading-[1.4]">{video.title}</h3>
+        <p className="mt-2 text-[12.5px] leading-[1.6]" style={{ color: "var(--va-muted)" }}>
           {video.hook}
         </p>
-        <div
-          className="mt-auto flex items-center gap-1.5 border-t pt-2.5 font-mono-tech text-[11px] font-semibold transition group-hover:text-[var(--tt-pink)]"
-          style={{ borderColor: "var(--tt-line)", color: "var(--tt-ink)", marginTop: "10px" }}
+        <Link
+          to="/video-ia"
+          className="mt-5 flex items-center justify-between border-t pt-4 font-mono-tech text-[9.5px] font-semibold uppercase tracking-[0.11em] transition group-hover:text-[var(--va-pink)]"
+          style={{ borderColor: "var(--va-line)" }}
         >
-          refazer esse estilo no studio <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-        </div>
+          Adaptar no Studio{" "}
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+        </Link>
       </div>
-    </Link>
-  );
-}
-
-// Catálogo de afiliado: a pessoa escolhe o produto, carimba o próprio
-// apelido e sai com um link rastreado. A venda acontece na Shopee, com o
-// Sub_id identificando quem divulgou — é o Sub_id que faz a comissão do
-// divulgador ser rastreável no relatório, não um contador nosso.
-//
-// A seção inteira some quando o catálogo está vazio: melhor não existir do
-// que existir prometendo produto que ainda não foi cadastrado.
-function AffiliateCatalogSection({ feedCategories }: { feedCategories: FeedCategory[] }) {
-  const [handle, setHandle] = useState("");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [code, setCode] = useState<string | null>(null);
-  const [clicksByProduct, setClicksByProduct] = useState<Record<string, number>>({});
-
-  // Quem está logado tem código fixo e não precisa digitar nada — é o
-  // identificador da conta que vai pro Sub_id. Quem não está segue no @
-  // digitado da Fase 1: funciona, mas não é dele de direito.
-  useEffect(() => {
-    let active = true;
-    getMyAffiliate()
-      .then((res) => {
-        if (!active || !res.ok) return;
-        setCode(res.code);
-        return getMyAffiliateStats().then((stats) => {
-          if (!active || !stats.ok) return;
-          setClicksByProduct(
-            Object.fromEntries(stats.byProduct.map((r) => [r.productId, r.clicks])),
-          );
-        });
-      })
-      .catch(() => {
-        // Sem conta ou sem rede: o caminho do @ digitado continua valendo.
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const effectiveHandle = code ?? handle;
-  const normalized = normalizeHandle(effectiveHandle);
-
-  // Produto que casa com uma categoria em alta agora sobe na lista — é o
-  // elo entre o feed de tendências e o que dá pra vender hoje.
-  const products = useMemo(() => {
-    const inFeed = new Set(feedCategories);
-    return [...affiliateProducts].sort((a, b) => {
-      const aHot = inFeed.has(a.category) ? 0 : 1;
-      const bHot = inFeed.has(b.category) ? 0 : 1;
-      return aHot - bHot;
-    });
-  }, [feedCategories]);
-
-  async function handleCopy(productId: string, path: string) {
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}${path}`);
-      setCopiedId(productId);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      // Clipboard bloqueado (permissão ou contexto inseguro): o link continua
-      // clicável no botão ao lado, então não vale interromper a pessoa.
-      setCopiedId(null);
-    }
-  }
-
-  return (
-    <section id="afiliar" className="border-b px-6 py-12 md:py-16" style={{ borderColor: "var(--tt-line)" }}>
-      <div className="mx-auto max-w-5xl">
-        <div className="flex items-center gap-2 text-[16px] font-bold" style={{ color: "var(--tt-ink)" }}>
-          <ShoppingBag className="h-4 w-4" style={{ color: "var(--tt-cyan)" }} /> Escolha o produto que você vai vender
-        </div>
-        <p className="mt-1.5 max-w-2xl text-[13.5px] leading-[1.6]" style={{ color: "var(--tt-ink-soft)" }}>
-          Produtos que a Veronica já é afiliada na Shopee.{" "}
-          {code
-            ? "Copia o link com o seu código e divulga no TikTok ou onde quiser"
-            : "Você põe seu @, copia o link com a sua marca e divulga no TikTok ou onde quiser"}{" "}
-          — a venda acontece na Shopee e o seu identificador vai carimbado no link, que é como a comissão da sua
-          divulgação é reconhecida.
-        </p>
-
-        {code ? (
-          <div className="mt-6 max-w-sm rounded-xl border p-4" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface)" }}>
-            <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
-              Seu código de divulgador
-            </span>
-            <p className="mt-1.5 font-mono-tech text-[18px] font-bold" style={{ color: "var(--tt-ink)" }}>
-              {code}
-            </p>
-            <p className="mt-2 text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-soft)" }}>
-              É esse código que vai em todo link que você copiar aqui, e é por ele que a Shopee separa o que veio de
-              você. Ele não muda — link que você já postou continua valendo.
-            </p>
-          </div>
-        ) : (
-          <label className="mt-6 flex max-w-sm flex-col gap-2">
-            <span className="font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
-              Seu @ (vira sua marca no link)
-            </span>
-            <input
-              type="text"
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              placeholder="@seuusuario"
-              className="rounded-xl border px-4 py-3 text-[15px] outline-none transition focus:ring-2"
-              style={
-                {
-                  borderColor: "var(--tt-line)",
-                  background: "var(--tt-surface)",
-                  color: "var(--tt-ink)",
-                  "--tw-ring-color": "var(--tt-cyan)",
-                } as CSSProperties
-              }
-            />
-            <span className="font-mono-tech text-[10.5px]" style={{ color: "var(--tt-ink-faint)" }}>
-              {normalized
-                ? `no link você aparece como: ${normalized} — entre na sua conta pra ter um código fixo e só seu`
-                : "sem o @ o link funciona, mas a venda não fica ligada a você"}
-            </span>
-          </label>
-        )}
-
-        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => {
-            const meta = CATEGORY_META[product.category];
-            const path = buildTrackedPath(product, { handle: effectiveHandle, placement: "analytics_catalogo" });
-            const clicks = clicksByProduct[product.id] ?? 0;
-            const hot = feedCategories.includes(product.category);
-            return (
-              <div
-                key={product.id}
-                className="flex flex-col rounded-2xl border p-4"
-                style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className="rounded-full px-2 py-0.5 font-mono-tech text-[10.5px] font-semibold"
-                    style={{ background: `color-mix(in oklab, ${meta.color} 14%, white)`, color: meta.color }}
-                  >
-                    {meta.label}
-                  </span>
-                  {hot && (
-                    <span className="flex items-center gap-1 font-mono-tech text-[10px] font-semibold" style={{ color: "var(--tt-pink)" }}>
-                      <Flame className="h-2.5 w-2.5" /> em alta agora
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2.5 text-[14px] font-semibold leading-[1.35]" style={{ color: "var(--tt-ink)" }}>
-                  {product.name}
-                </p>
-                <p className="mt-1.5 text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-soft)" }}>
-                  {product.angle}
-                </p>
-                <div className="mt-3 flex items-center justify-between font-mono-tech text-[11px]" style={{ color: "var(--tt-ink-faint)" }}>
-                  <span style={{ color: "var(--tt-ink)" }}>{product.priceLabel}</span>
-                  {product.commissionLabel && <span>comissão {product.commissionLabel}</span>}
-                </div>
-                {code && clicks > 0 && (
-                  <p className="mt-1.5 font-mono-tech text-[10.5px]" style={{ color: "var(--tt-cyan)" }}>
-                    {clicks} {clicks === 1 ? "clique seu" : "cliques seus"} em 30 dias
-                  </p>
-                )}
-                <div className="mt-auto flex items-center gap-2 pt-3.5">
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(product.id, path)}
-                    className="flex-1 rounded-xl border px-3 py-2 font-mono-tech text-[11px] font-semibold transition hover:-translate-y-0.5"
-                    style={{ borderColor: "var(--tt-line)", color: "var(--tt-ink)" }}
-                  >
-                    {copiedId === product.id ? "link copiado" : "copiar meu link"}
-                  </button>
-                  <a
-                    href={path}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-xl px-3 py-2 font-mono-tech text-[11px] font-semibold text-white transition hover:-translate-y-0.5"
-                    style={{ background: "var(--tt-ink)" }}
-                  >
-                    ver na Shopee
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <p className="mt-6 max-w-2xl text-[12px] leading-[1.6]" style={{ color: "var(--tt-ink-faint)" }}>
-          A compra é feita na Shopee, sob as regras dela — preço e disponibilidade podem mudar lá a qualquer momento.
-          O Veronica Hub registra o encaminhamento pra medir quais produtos a rede está conseguindo girar:{" "}
-          <strong>clique não é venda</strong> — quem confirma venda e comissão é o relatório da Shopee, separado pelo
-          seu código.{" "}
-          <Link to="/veronica-rede" className="underline">
-            Como funciona a Veronica Rede
-          </Link>
-        </p>
-      </div>
-    </section>
+    </article>
   );
 }
 
 function VeronicaAnalytics() {
+  const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"todos" | FeedCategory>("todos");
-  const [sortBy, setSortBy] = useState<SortKey>("gmv");
+  const [, forceClock] = useState(0);
 
-  const feed = trendingFeed.videos;
-
-  const sortedFeed = useMemo(() => {
-    const filtered = activeCategory === "todos" ? feed : feed.filter((v) => v.category === activeCategory);
-    const copy = [...filtered];
-    if (sortBy === "gmv") copy.sort((a, b) => b.gmvValue - a.gmvValue);
-    if (sortBy === "crescimento") copy.sort((a, b) => b.growthValue - a.growthValue);
-    if (sortBy === "recente") copy.sort((a, b) => a.rank - b.rank);
-    return copy;
-  }, [feed, activeCategory, sortBy]);
-
-  // Re-renderiza a cada minuto só pra manter "atualizado há Xh" / "nova leva
-  // em Yh" honestos sem precisar recarregar a página.
-  const [, forceTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => forceTick((n) => n + 1), 60_000);
-    return () => clearInterval(id);
+    const timer = window.setInterval(() => forceClock((value) => value + 1), 60_000);
+    return () => window.clearInterval(timer);
   }, []);
-  const refreshedLabel = formatRefreshedLabel(trendingFeed.refreshedAt);
-  const nextRefreshLabel = formatNextRefreshLabel(trendingFeed.refreshedAt, trendingFeed.cycleHours);
 
-  const [followers, setFollowers] = useState("");
-  const [avgLikes, setAvgLikes] = useState("");
-  const [avgComments, setAvgComments] = useState("");
-  const [avgShares, setAvgShares] = useState("");
-  const [avgViews, setAvgViews] = useState("");
-
-  const hasFollowers = Number(followers) > 0;
-
-  // Recalcula na hora, a cada tecla — sem precisar clicar em nada.
-  const result: EngagementResult | null = useMemo(() => {
-    if (!hasFollowers) return null;
-    return calcEngagement({
-      followers: Number(followers) || 0,
-      avgLikes: Number(avgLikes) || 0,
-      avgComments: Number(avgComments) || 0,
-      avgShares: Number(avgShares) || 0,
-      avgViews: Number(avgViews) || 0,
+  const productResults = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
+    return affiliateProducts.filter((product) => {
+      const matchesCategory = activeCategory === "todos" || product.category === activeCategory;
+      const matchesQuery =
+        !normalizedQuery ||
+        product.name.toLocaleLowerCase("pt-BR").includes(normalizedQuery) ||
+        product.angle.toLocaleLowerCase("pt-BR").includes(normalizedQuery) ||
+        categoryMeta[product.category].label.toLocaleLowerCase("pt-BR").includes(normalizedQuery);
+      return matchesCategory && matchesQuery;
     });
-  }, [followers, avgLikes, avgComments, avgShares, avgViews, hasFollowers]);
+  }, [activeCategory, query]);
 
-  function handleReset() {
-    setFollowers("");
-    setAvgLikes("");
-    setAvgComments("");
-    setAvgShares("");
-    setAvgViews("");
-  }
+  const feedCategories = useMemo(
+    () => new Set(trendingFeed.videos.map((video) => video.category)),
+    [],
+  );
+  const refreshedLabel = formatRefreshedLabel(trendingFeed.refreshedAt);
+  const nextRefreshLabel = formatNextRefreshLabel(
+    trendingFeed.refreshedAt,
+    trendingFeed.cycleHours,
+  );
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ ...tt, background: "var(--tt-bg)", color: "var(--tt-ink)" }}>
+    <div
+      className="min-h-screen overflow-x-hidden"
+      style={{ ...theme, background: "var(--va-bg)", color: "var(--va-ink)" }}
+    >
       <SiteHeader />
 
-      {/* Ticker de tendências — mesmo tom "wire" do resto do site redesenhado */}
-      <div className="overflow-hidden border-b" style={{ background: "var(--tt-ink)", borderColor: "var(--tt-line)" }}>
-        <div className="flex animate-marquee gap-9 whitespace-nowrap py-2 font-mono-tech text-[11px]" style={{ animationDuration: "28s" }}>
-          {[...trendingTicker, ...trendingTicker].map((t, i) => (
-            <span key={i} className="flex items-center gap-2 text-white/80">
-              <Flame className="h-3 w-3" style={{ color: "var(--tt-gold)" }} />
-              {t.label} {t.delta && <span style={{ color: "var(--tt-cyan)" }}>{t.delta}</span>}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Hero — feed viral curado a cada 48h, "o que está bombando agora" */}
-      <section className="relative overflow-hidden border-b px-6 py-14 md:py-20" style={{ borderColor: "var(--tt-line)" }}>
-        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--tt-cyan) 10%, transparent), transparent 55%), radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--tt-pink) 10%, transparent), transparent 55%)" }} />
-        <div className="relative mx-auto max-w-5xl">
-          <Sparkles8 />
-          <div className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest" style={{ borderColor: "var(--tt-line)", color: "var(--tt-pink)" }}>
-            <Sparkles className="h-3 w-3" />
-            Veronica Analytics · TikTok Shop
-          </div>
-          <div className="mt-5 flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--tt-pink)" }}>
-            <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full" style={{ background: "var(--tt-pink)" }} />
-            Curadoria de tendências · {refreshedLabel} · {nextRefreshLabel}
-          </div>
-          <h1
-            className="mt-4 font-display text-4xl sm:text-5xl md:text-6xl"
-            style={{ letterSpacing: "-0.03em", lineHeight: "0.98" }}
-          >
-            O que está bombando em{" "}
-            <span
-              style={{
-                backgroundImage: "linear-gradient(90deg, var(--tt-pink), var(--tt-gold))",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              vídeo
-            </span>{" "}
-            agora.
-          </h1>
-          <p className="mt-5 max-w-xl text-[15px] leading-[1.65] sm:text-[16px]" style={{ color: "var(--tt-ink-soft)" }}>
-            Os formatos de vídeo em alta no TikTok Shop, curados por pesquisa pública e trocados a cada 48h. As
-            views e o GMV são estimativas de curadoria, não telemetria auditada da plataforma. Pega o formato e
-            refaz igual no Studio Criativo.
-          </p>
-
-          <div className="mt-7 flex flex-wrap items-center gap-2">
-            {FILTER_CATEGORIES.map((c) => {
-              const active = activeCategory === c.key;
-              return (
-                <button
-                  key={c.key}
-                  type="button"
-                  onClick={() => setActiveCategory(c.key)}
-                  className="rounded-full border px-4 py-2 font-mono-tech text-[11.5px] font-medium transition"
-                  style={
-                    active
-                      ? { borderColor: "var(--tt-pink)", color: "var(--tt-pink)", background: "color-mix(in oklab, var(--tt-pink) 10%, white)" }
-                      : { borderColor: "var(--tt-line)", color: "var(--tt-ink-soft)" }
-                  }
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-            <span className="mx-1 h-4.5 w-px" style={{ background: "var(--tt-line)" }} />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="rounded-full border px-4 py-2 font-mono-tech text-[11.5px]"
-              style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface)", color: "var(--tt-ink-soft)" }}
-            >
-              <option value="gmv">GMV estimado ↓</option>
-              <option value="recente">Mais recentes</option>
-              <option value="crescimento">Crescimento %</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      {/* Feed viral */}
-      <section className="border-b px-6 py-12 md:py-16" style={{ borderColor: "var(--tt-line)" }}>
-        <div className="mx-auto max-w-5xl">
-          <div className="flex items-center gap-2 text-[16px] font-bold" style={{ color: "var(--tt-ink)" }}>
-            <Flame className="h-4 w-4" style={{ color: "var(--tt-pink)" }} /> Vídeos virais do momento
-          </div>
-          <p className="mb-5 mt-1.5 font-mono-tech text-[11px]" style={{ color: "var(--tt-ink-faint)" }}>
-            {trendingFeed.sourceLabel} · {refreshedLabel} · {nextRefreshLabel}
-          </p>
-          {sortedFeed.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {sortedFeed.map((video) => (
-                <ViralCard key={video.id} video={video} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-[13.5px]" style={{ color: "var(--tt-ink-faint)" }}>
-              Nenhum vídeo viral nessa categoria ainda — volta em breve.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {hasAffiliateProducts && (
-        <AffiliateCatalogSection feedCategories={feed.map((v) => v.category)} />
-      )}
-
-      {/* Calculator */}
-      <section id="calculadora" className="border-b px-6 py-16 md:py-20" style={{ borderColor: "var(--tt-line)" }}>
-        <div className="mx-auto max-w-5xl">
-          <h2 className="font-display text-2xl sm:text-3xl" style={{ letterSpacing: "-0.02em", color: "var(--tt-ink)" }}>
-            Descubra seu potencial pessoal no TikTok Shop.
-          </h2>
-          <p className="mt-3 max-w-xl text-[14px] leading-[1.6]" style={{ color: "var(--tt-ink-soft)" }}>
-            Cole os números do seu próprio perfil e receba sua taxa de engajamento na hora — o resultado atualiza
-            enquanto você digita, sem cadastro, sem enrolação.
-          </p>
-          <div className="mb-8 mt-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--tt-pink)" }}>
-            <span className="h-px w-8" style={{ background: "var(--tt-pink)" }} />
-            Calculadora de engajamento
-          </div>
-          <div className="rounded-2xl border p-6 sm:p-8" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}>
-            <NumberField label="Seguidores" value={followers} onChange={setFollowers} placeholder="Ex.: 12000" size="lg" />
-
-            <div className="mb-3 mt-7 font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
-              Métricas médias por vídeo · opcional, deixa o plano de ação mais preciso
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <NumberField label="Visualizações" value={avgViews} onChange={setAvgViews} placeholder="Ex.: 5000" />
-              <NumberField label="Curtidas" value={avgLikes} onChange={setAvgLikes} placeholder="Ex.: 800" />
-              <NumberField label="Comentários" value={avgComments} onChange={setAvgComments} placeholder="Ex.: 40" />
-              <NumberField label="Compartilhamentos" value={avgShares} onChange={setAvgShares} placeholder="Ex.: 20" />
-            </div>
-
-            <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t pt-5" style={{ borderColor: "var(--tt-line)" }}>
-              <p className="max-w-sm text-[12px] leading-[1.5]" style={{ color: "var(--tt-ink-faint)" }}>
-                {hasFollowers
-                  ? "Cálculo feito no seu navegador — nada é enviado a servidor nenhum."
-                  : "Informe ao menos os seguidores pra ver o resultado."}
-              </p>
-              <button
-                type="button"
-                onClick={handleReset}
-                disabled={!followers && !avgLikes && !avgComments && !avgShares && !avgViews}
-                className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 font-mono-tech text-[10.5px] uppercase tracking-widest transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:translate-y-0"
-                style={{ borderColor: "var(--tt-line)", color: "var(--tt-ink-soft)" }}
+      <main>
+        <section
+          className="relative overflow-hidden border-b bg-white px-6 py-14 md:py-20 lg:py-24"
+          style={{ borderColor: "var(--va-line)" }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(circle at 12% 12%, color-mix(in oklab, var(--va-green) 10%, transparent), transparent 36%), radial-gradient(circle at 85% 72%, color-mix(in oklab, var(--va-pink) 9%, transparent), transparent 38%)",
+            }}
+          />
+          <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.12fr_0.88fr] lg:items-center">
+            <div>
+              <div
+                className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-mono-tech text-[9.5px] uppercase tracking-[0.18em] text-[var(--va-pink)]"
+                style={{ borderColor: "var(--va-line)" }}
               >
-                <RotateCcw className="h-3 w-3" />
-                Limpar
-              </button>
-            </div>
-          </div>
-
-          {result && (
-            <div className="mt-8 rounded-2xl border p-6 sm:p-8" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface-raised)" }}>
-              <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:flex-wrap sm:items-center sm:gap-8 sm:text-left">
-                <div className="flex flex-col items-center">
-                  <span className="font-display text-6xl tabular-nums" style={{ color: TIER_COLOR[result.tier] }}>{result.erByFollowers.toFixed(1)}%</span>
-                  <span className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>Por seguidor</span>
-                </div>
-                {result.erByViews !== null && (
-                  <div className="flex flex-col items-center">
-                    <span className="font-display text-4xl tabular-nums" style={{ color: "var(--tt-ink)" }}>{result.erByViews.toFixed(1)}%</span>
-                    <span className="mt-1 font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>Por visualização</span>
-                  </div>
-                )}
-                <span className="rounded-full px-4 py-1.5 font-mono-tech text-[11px] uppercase tracking-widest" style={{ background: TIER_COLOR[result.tier], color: "#ffffff" }}>
-                  {result.tierLabel} · {TIER_META[result.tier].range}
+                <Sparkles className="h-3 w-3" /> Veronica Analytics · Shopee Intelligence
+              </div>
+              <div
+                className="mt-5 flex flex-wrap items-center gap-2 font-mono-tech text-[9px] uppercase tracking-[0.16em]"
+                style={{ color: "var(--va-faint)" }}
+              >
+                <span className="flex items-center gap-1.5 text-[var(--va-green)]">
+                  <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-[var(--va-green)]" />{" "}
+                  radar ativo
+                </span>
+                <span>·</span>
+                <span>{refreshedLabel}</span>
+                <span>·</span>
+                <span>{nextRefreshLabel}</span>
+              </div>
+              <h1
+                className="mt-5 max-w-3xl font-display text-[42px] leading-[0.96] sm:text-6xl lg:text-7xl"
+                style={{ letterSpacing: "-0.045em" }}
+              >
+                Produtos para vender. Conteúdo para converter.
+              </h1>
+              <p
+                className="mt-6 max-w-2xl text-[15px] leading-[1.75] sm:text-[16px]"
+                style={{ color: "var(--va-muted)" }}
+              >
+                Uma inteligência comercial inspirada no Kalodata, redesenhada para a Shopee:
+                encontre ofertas, entenda o ângulo vencedor e execute a campanha sem sair do
+                ecossistema Veronica.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href="#produtos"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3.5 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.13em] text-white transition hover:-translate-y-0.5 hover:bg-[var(--va-pink)]"
+                >
+                  Explorar produtos Shopee{" "}
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                </a>
+                <a
+                  href="#criativos"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border bg-white px-6 py-3.5 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.13em] transition hover:-translate-y-0.5"
+                  style={{ borderColor: "var(--va-line)" }}
+                >
+                  Ver criativos em alta
+                </a>
+              </div>
+              <div
+                className="mt-6 flex flex-wrap gap-x-5 gap-y-2 font-mono-tech text-[9px] uppercase tracking-[0.12em]"
+                style={{ color: "var(--va-faint)" }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-[var(--va-green)]" /> somente Shopee nesta fase
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-[var(--va-green)]" /> links oficiais do
+                  catálogo
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-[var(--va-green)]" /> roteiro com IA
                 </span>
               </div>
+            </div>
 
-              <div className="mt-8 flex items-center gap-2 font-mono-tech text-[10.5px] uppercase tracking-widest" style={{ color: "var(--tt-ink-faint)" }}>
-                <ShoppingBag className="h-3.5 w-3.5" style={{ color: "var(--tt-pink)" }} />
-                Seu plano de ação
-              </div>
-              <div className="mt-4 flex flex-col gap-3">
-                {result.tips.map((tip, i) => (
-                  <div key={i} className="rounded-xl border p-4" style={{ borderColor: "var(--tt-line)", background: "var(--tt-surface)" }}>
-                    <div className="flex items-center gap-2 font-medium" style={{ color: "var(--tt-ink)" }}>
-                      <Sparkles className="h-4 w-4 flex-shrink-0" style={{ color: i % 2 === 0 ? "var(--tt-cyan)" : "var(--tt-pink)" }} />
-                      {tip.title}
-                    </div>
-                    <p className="mt-1.5 text-[13.5px] leading-[1.55]" style={{ color: "var(--tt-ink-soft)" }}>{tip.detail}</p>
+            <aside
+              className="mx-auto w-full max-w-md rounded-[30px] border bg-[#111315] p-3 text-white shadow-[0_34px_100px_rgba(17,18,20,0.22)] lg:justify-self-end"
+              style={{ borderColor: "rgba(255,255,255,.08)" }}
+            >
+              <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-5">
+                <div className="flex items-center justify-between font-mono-tech text-[9px] uppercase tracking-[0.16em] text-white/45">
+                  <span>Painel comercial</span>
+                  <span className="text-emerald-300">beta · ao vivo</span>
+                </div>
+                <h2 className="mt-8 font-display text-3xl leading-none">Decisão em uma tela.</h2>
+                <p className="mt-3 text-[12.5px] leading-[1.65] text-white/55">
+                  Produto, ângulo, roteiro, link e execução conectados na mesma jornada.
+                </p>
+                <div className="mt-7 grid grid-cols-2 gap-2">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <span className="font-mono-tech text-[8px] uppercase tracking-[0.14em] text-white/35">
+                      Ofertas ativas
+                    </span>
+                    <p className="mt-2 font-display text-3xl">{affiliateProducts.length}</p>
                   </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <span className="font-mono-tech text-[8px] uppercase tracking-[0.14em] text-white/35">
+                      Sinais criativos
+                    </span>
+                    <p className="mt-2 font-display text-3xl">{trendingFeed.videos.length}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <span className="font-mono-tech text-[8px] uppercase tracking-[0.14em] text-white/35">
+                      Marketplace
+                    </span>
+                    <p className="mt-2 text-[13px] font-semibold">Shopee Brasil</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <span className="font-mono-tech text-[8px] uppercase tracking-[0.14em] text-white/35">
+                      Atualização
+                    </span>
+                    <p className="mt-2 text-[13px] font-semibold">
+                      {trendingFeed.cycleHours} horas
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href="#produtos"
+                  className="mt-2 flex items-center justify-between rounded-2xl border border-white/10 bg-white px-4 py-3 text-black transition hover:bg-emerald-300"
+                >
+                  <span className="font-mono-tech text-[9.5px] font-semibold uppercase tracking-[0.12em]">
+                    Abrir radar de produtos
+                  </span>
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section className="border-b bg-white px-6 py-10" style={{ borderColor: "var(--va-line)" }}>
+          <div
+            className="mx-auto grid max-w-6xl gap-px overflow-hidden rounded-[24px] border md:grid-cols-4"
+            style={{ borderColor: "var(--va-line)", background: "var(--va-line)" }}
+          >
+            {[
+              { icon: Search, label: "Descobrir", text: "produto com link ativo" },
+              { icon: BarChart3, label: "Analisar", text: "ângulo e sinal de demanda" },
+              { icon: Wand2, label: "Criar", text: "roteiro e conteúdo" },
+              { icon: MousePointerClick, label: "Monetizar", text: "clique no link Shopee" },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="flex items-center gap-3 bg-white p-5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-black text-white">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-[13px] font-semibold">{item.label}</p>
+                    <p className="mt-0.5 text-[10.5px]" style={{ color: "var(--va-faint)" }}>
+                      {item.text}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section
+          id="produtos"
+          className="scroll-mt-20 border-b px-6 py-16 md:py-24"
+          style={{ borderColor: "var(--va-line)" }}
+        >
+          <div className="mx-auto max-w-6xl">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <span className="font-mono-tech text-[9.5px] uppercase tracking-[0.18em] text-[var(--va-pink)]">
+                  Product intelligence
+                </span>
+                <h2
+                  className="mt-3 font-display text-4xl sm:text-5xl"
+                  style={{ letterSpacing: "-0.035em" }}
+                >
+                  Radar de produtos Shopee.
+                </h2>
+                <p
+                  className="mt-3 max-w-2xl text-[13.5px] leading-[1.65]"
+                  style={{ color: "var(--va-muted)" }}
+                >
+                  O catálogo começa enxuto e verificável. Cada oferta precisa ter link oficial
+                  ativo, ângulo de conteúdo e destino rastreado antes de aparecer aqui.
+                </p>
+              </div>
+              <div className="relative w-full max-w-sm">
+                <Search
+                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2"
+                  style={{ color: "var(--va-faint)" }}
+                />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Buscar produto ou categoria"
+                  className="w-full rounded-full border bg-white py-3 pl-11 pr-4 text-[13px] outline-none focus:ring-2"
+                  style={
+                    {
+                      borderColor: "var(--va-line)",
+                      "--tw-ring-color": "var(--va-green)",
+                    } as CSSProperties
+                  }
+                />
+              </div>
+            </div>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {filters.map((filter) => {
+                const active = activeCategory === filter.key;
+                return (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => setActiveCategory(filter.key)}
+                    className="rounded-full border px-3.5 py-2 font-mono-tech text-[9.5px] font-medium transition"
+                    style={
+                      active
+                        ? {
+                            borderColor: "var(--va-ink)",
+                            background: "var(--va-ink)",
+                            color: "white",
+                          }
+                        : {
+                            borderColor: "var(--va-line)",
+                            background: "white",
+                            color: "var(--va-muted)",
+                          }
+                    }
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {!hasAffiliateProducts ? (
+              <div
+                className="mt-8 rounded-[24px] border bg-white p-8 text-center"
+                style={{ borderColor: "var(--va-line)" }}
+              >
+                <p className="text-[13px]" style={{ color: "var(--va-muted)" }}>
+                  Nenhum produto com link oficial validado está ativo no momento.
+                </p>
+              </div>
+            ) : productResults.length > 0 ? (
+              <div className="mt-8 space-y-5">
+                {productResults.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    isCategoryTrending={feedCategories.has(product.category)}
+                  />
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Benchmark reference */}
-      <section className="px-6 py-16 md:py-20">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest" style={{ color: "var(--tt-cyan)" }}>
-            <span className="h-px w-8" style={{ background: "var(--tt-cyan)" }} />
-            Como interpretamos sua taxa
-          </div>
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border sm:grid-cols-2 lg:grid-cols-4" style={{ borderColor: "var(--tt-line)", background: "var(--tt-line)" }}>
-            {(Object.keys(TIER_META) as Tier[]).map((t) => (
-              <div key={t} className="flex flex-col gap-1 p-5" style={{ background: "var(--tt-surface-raised)" }}>
-                <span className="font-mono-tech text-[10px] uppercase tracking-widest" style={{ color: TIER_COLOR[t] }}>{TIER_META[t].range}</span>
-                <span className="text-[14px]" style={{ color: "var(--tt-ink)" }}>{TIER_META[t].label}</span>
+            ) : (
+              <div
+                className="mt-8 rounded-[24px] border bg-white p-8 text-center"
+                style={{ borderColor: "var(--va-line)" }}
+              >
+                <p className="text-[13px]" style={{ color: "var(--va-muted)" }}>
+                  Nenhum produto ativo corresponde a esse filtro.
+                </p>
               </div>
-            ))}
-          </div>
-          <p className="mt-6 max-w-2xl text-[13.5px] leading-[1.6]" style={{ color: "var(--tt-ink-faint)" }}>
-            Faixas de referência gerais de mercado pra taxa de engajamento (curtidas + comentários + compartilhamentos ÷ seguidores). Servem como bússola, não como nota oficial da plataforma.
-          </p>
-        </div>
-      </section>
+            )}
 
-      {/* Ponte pro Studio Criativo — escurece de propósito, sinalizando a
-          transição pra experiência de produção do Hub (mesmo padrão da
-          faixa final do Veronica Wire). */}
-      <section className="px-6 py-14" style={{ background: "var(--tt-ink)" }}>
-        <div className="mx-auto flex max-w-5xl flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" /> Método
+            <div
+              className="mt-5 flex gap-3 rounded-[20px] border bg-white p-4"
+              style={{ borderColor: "var(--va-line)" }}
+            >
+              <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--va-green)]" />
+              <p className="text-[11.5px] leading-[1.65]" style={{ color: "var(--va-muted)" }}>
+                Os botões desta vitrine usam os links afiliados oficiais cadastrados pela Veronica.
+                Preço, disponibilidade, pedido e comissão são definidos e confirmados pela Shopee.
+                Clique não equivale a venda.
+              </p>
             </div>
-            <h2 className="mt-3 font-display text-2xl text-white sm:text-3xl" style={{ letterSpacing: "-0.02em" }}>
-              Sabe seu potencial. <span className="text-neon-green">Agora execute.</span>
-            </h2>
-            <p className="mt-2 max-w-lg text-[14px] leading-[1.6] text-white/60">
-              Produto validado, nome certo, copy de dor pra solução, narrador, takes, som, montagem — os 7 passos
-              guiados pela Veronica dentro do Studio Criativo.
-            </p>
           </div>
-          <Link
-            to="/video-ia"
-            className="group inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-neon-green px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-glow-green transition duration-200 hover:-translate-y-0.5 hover:brightness-110"
-          >
-            Ir pro Studio Criativo <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-      </section>
+        </section>
+
+        <section
+          id="criativos"
+          className="scroll-mt-20 border-b bg-white px-6 py-16 md:py-24"
+          style={{ borderColor: "var(--va-line)" }}
+        >
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-6 md:grid-cols-[1fr_0.7fr] md:items-end">
+              <div>
+                <span className="font-mono-tech text-[9.5px] uppercase tracking-[0.18em] text-[var(--va-green)]">
+                  Creative intelligence
+                </span>
+                <h2
+                  className="mt-3 font-display text-4xl sm:text-5xl"
+                  style={{ letterSpacing: "-0.035em" }}
+                >
+                  Formatos que prendem atenção.
+                </h2>
+              </div>
+              <p
+                className="text-[13px] leading-[1.65] md:justify-self-end"
+                style={{ color: "var(--va-muted)" }}
+              >
+                Use estes sinais editoriais como inspiração para divulgar produtos Shopee. GMV,
+                views e crescimento são estimativas de curadoria, não dados oficiais da Shopee.
+              </p>
+            </div>
+            <div
+              className="mt-5 flex items-center gap-2 font-mono-tech text-[9px] uppercase tracking-[0.14em]"
+              style={{ color: "var(--va-faint)" }}
+            >
+              <LineChart className="h-3.5 w-3.5" /> {trendingFeed.sourceLabel} · {refreshedLabel} ·{" "}
+              {nextRefreshLabel}
+            </div>
+            <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {trendingFeed.videos.map((video) => (
+                <CreativeCard key={video.id} video={video} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-6 py-16 md:py-20">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  icon: Target,
+                  eyebrow: "Estimativa",
+                  title: "Radar editorial",
+                  text: "Serve para escolher o que testar primeiro; não promete faturamento.",
+                },
+                {
+                  icon: MousePointerClick,
+                  eyebrow: "Telemetria",
+                  title: "Clique rastreado",
+                  text: "Mede o encaminhamento do Hub até a oferta cadastrada.",
+                },
+                {
+                  icon: ShieldCheck,
+                  eyebrow: "Confirmação",
+                  title: "Venda na Shopee",
+                  text: "A plataforma valida pedido, atribuição e comissão conforme suas regras.",
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <article
+                    key={item.title}
+                    className="rounded-[22px] border bg-white p-6"
+                    style={{ borderColor: "var(--va-line)" }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <Icon className="h-5 w-5 text-[var(--va-green)]" />
+                      <span
+                        className="font-mono-tech text-[8.5px] uppercase tracking-[0.15em]"
+                        style={{ color: "var(--va-faint)" }}
+                      >
+                        {item.eyebrow}
+                      </span>
+                    </div>
+                    <h3 className="mt-6 text-[16px] font-semibold">{item.title}</h3>
+                    <p
+                      className="mt-2 text-[12.5px] leading-[1.6]"
+                      style={{ color: "var(--va-muted)" }}
+                    >
+                      {item.text}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#111315] px-6 py-16 text-white md:py-20">
+          <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <span className="font-mono-tech text-[9px] uppercase tracking-[0.18em] text-emerald-300">
+                Execução conectada
+              </span>
+              <h2
+                className="mt-4 max-w-3xl font-display text-4xl leading-none sm:text-5xl"
+                style={{ letterSpacing: "-0.035em" }}
+              >
+                Descobriu o produto. Agora crie o anúncio.
+              </h2>
+              <p className="mt-4 max-w-2xl text-[14px] leading-[1.7] text-white/55">
+                Leve o ângulo e o roteiro para o Studio Criativo. A Veronica organiza imagem, voz,
+                avatar e vídeo numa única produção.
+              </p>
+            </div>
+            <Link
+              to="/video-ia"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.13em] text-black transition hover:-translate-y-0.5 hover:bg-emerald-300"
+            >
+              Abrir Studio Criativo{" "}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </section>
+      </main>
 
       <SiteFooter />
     </div>
