@@ -274,6 +274,31 @@ export const affiliateLinkClicks = pgTable(
   ],
 );
 
+// Catálogo comercial da Veronica Analytics. Esta tabela permite publicar e
+// arquivar produtos Shopee sem novo deploy.
+export const affiliateCatalogProducts = pgTable(
+  "AffiliateProduct",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    category: text("category").notNull(),
+    affiliateUrl: text("affiliateUrl").notNull(),
+    priceLabel: text("priceLabel").notNull(),
+    commissionLabel: text("commissionLabel"),
+    angle: text("angle").notNull(),
+    active: boolean("active").notNull().default(true),
+    priority: integer("priority").notNull().default(0),
+    createdBy: text("createdBy").references(() => users.id),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("AffiliateProduct_affiliateUrl_key").on(table.affiliateUrl),
+    index("AffiliateProduct_active_priority_idx").on(table.active, table.priority),
+    index("AffiliateProduct_category_active_idx").on(table.category, table.active),
+  ],
+);
+
 /* ------------------------------------------------------------------ *
  * Agente de WhatsApp — Express Entulho (VH-AUT-WA-2026-000001)
  *
