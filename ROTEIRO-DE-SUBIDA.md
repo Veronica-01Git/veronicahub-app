@@ -259,4 +259,10 @@ fonte única._
   `tests/whatsapp-webhook.test.mjs`.
 - A checagem do passo 6 é `GET /api/whatsapp/diagnostico`, protegida pelo
   `CRON_SECRET`.
-- O teste do passo 2 roda com `npm run agente`.
+- O teste do passo 2 roda com `npm run agente` (terminal) ou pela sala de
+  teste em `/clientes/express-entulho/operacoes/testar`, que é a que o dono
+  usa.
+- **O PDF deste documento sai de `npm run roteiro-pdf`.** Ele corta esta
+  seção antes de gerar, e se recusa a gerar se não achar o título dela — não
+  renomeie "Notas para a equipe técnica" sem ajustar
+  `scripts/roteiro-pdf.mjs`.

@@ -40,3 +40,8 @@ assets/processed/
 
 # Material de publicação gerado por scripts/render-instagram-card.mjs
 out/
+
+# Saída de scripts/roteiro-pdf.mjs. O PDF é derivado do
+# ROTEIRO-DE-SUBIDA.md — versionar o derivado significa duas versões do mesmo
+# documento podendo divergir, e é o markdown que manda.
+tmp/
