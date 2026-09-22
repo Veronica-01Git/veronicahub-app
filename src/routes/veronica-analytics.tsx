@@ -6,6 +6,7 @@ import {
   Check,
   ChevronDown,
   Copy,
+  Download,
   ExternalLink,
   Flame,
   LineChart,
@@ -20,8 +21,14 @@ import {
   Wand2,
 } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
-import { buildTrackedPath, type AffiliateProduct } from "@/lib/affiliate-products";
+import {
+  buildShareableLink,
+  buildTrackedPath,
+  type AffiliateAudience,
+  type AffiliateProduct,
+} from "@/lib/affiliate-products";
 import { getPublicAffiliateCatalog } from "@/lib/affiliate-catalog-server";
+import { getMyAffiliate } from "@/lib/affiliate-account-server";
 import {
   formatNextRefreshLabel,
   formatRefreshedLabel,
@@ -88,6 +95,12 @@ const filters: { key: "todos" | FeedCategory; label: string }[] = [
   { key: "eletronicos", label: "Eletrônicos" },
 ];
 
+const audienceFilters: { key: "todos" | AffiliateAudience; label: string }[] = [
+  { key: "todos", label: "Todos os públicos" },
+  { key: "feminino", label: "Para elas" },
+  { key: "masculino", label: "Para eles" },
+];
+
 function scriptFor(product: AffiliateProduct) {
   return [
     `Gancho: mostre o problema que ${product.name.toLowerCase()} resolve antes de revelar o produto.`,
@@ -101,12 +114,35 @@ function scriptFor(product: AffiliateProduct) {
 function ProductCard({
   product,
   isCategoryTrending,
+  affiliateCode,
 }: {
   product: AffiliateProduct;
   isCategoryTrending: boolean;
+  /** undefined = verificando conta · null = visitante sem conta na Rede */
+  affiliateCode: string | null | undefined;
 }) {
   const [scriptOpen, setScriptOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const shareLink = affiliateCode
+    ? buildShareableLink(
+        product,
+        affiliateCode,
+        typeof window === "undefined" ? undefined : window.location.origin,
+      )
+    : null;
+
+  async function copyMyLink() {
+    if (!shareLink) return;
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      setLinkCopied(false);
+    }
+  }
   const meta = categoryMeta[product.category];
   const trackedPath = buildTrackedPath(product, { handle: "", placement: "analytics_catalogo" });
   const script = scriptFor(product);
@@ -133,6 +169,20 @@ function ProductCard({
           className="relative min-h-64 overflow-hidden p-6 text-white"
           style={{ background: "linear-gradient(150deg, #111315 0%, #23272b 100%)" }}
         >
+          {product.coverUrl && (
+            <>
+              <img
+                src={product.coverUrl}
+                alt={product.name}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/40"
+              />
+            </>
+          )}
           <div
             aria-hidden
             className="absolute -right-14 -top-16 h-48 w-48 rounded-full border border-white/10"
@@ -151,7 +201,7 @@ function ProductCard({
                 {meta.label}
               </span>
             </div>
-            <ShoppingBag className="mt-10 h-12 w-12" strokeWidth={1.2} />
+            {!product.coverUrl && <ShoppingBag className="mt-10 h-12 w-12" strokeWidth={1.2} />}
             <div className="mt-auto pt-12">
               <span className="font-mono-tech text-[9px] uppercase tracking-[0.16em] text-white/45">
                 Oferta atual
@@ -232,7 +282,55 @@ function ProductCard({
             </div>
           </div>
 
-          <div className="mt-6 grid gap-2 sm:grid-cols-3">
+          <div
+            className="mt-6 rounded-2xl border p-4"
+            style={{ borderColor: "var(--va-line)", background: "var(--va-bg)" }}
+          >
+            <span className="font-mono-tech text-[8.5px] uppercase tracking-[0.15em] text-[var(--va-pink)]">
+              Seu link de divulgador · TikTok, Instagram, WhatsApp
+            </span>
+            {shareLink ? (
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input
+                  readOnly
+                  value={shareLink}
+                  onFocus={(event) => event.currentTarget.select()}
+                  aria-label="Seu link de divulgador"
+                  className="min-w-0 flex-1 rounded-xl border bg-white px-3 py-2.5 font-mono text-[11px]"
+                  style={{ borderColor: "var(--va-line)" }}
+                />
+                <button
+                  type="button"
+                  onClick={copyMyLink}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--va-pink)] px-4 py-2.5 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] text-white"
+                >
+                  {linkCopied ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {linkCopied ? "Copiado" : "Copiar meu link"}
+                </button>
+              </div>
+            ) : affiliateCode === undefined ? (
+              <p className="mt-2 text-[12px]" style={{ color: "var(--va-muted)" }}>
+                Verificando sua conta…
+              </p>
+            ) : (
+              <Link
+                to="/veronica-rede"
+                className="mt-2 inline-flex items-center gap-2 text-[12.5px] font-semibold text-[var(--va-ink)] underline-offset-4 hover:underline"
+              >
+                Entre na Veronica Rede para gerar seu link com comissão{" "}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
+            <span className="sr-only" aria-live="polite">
+              {linkCopied ? "Link copiado." : ""}
+            </span>
+          </div>
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
             <a
               href={trackedPath}
               target="_blank"
@@ -251,14 +349,59 @@ function ProductCard({
               <Wand2 className="h-3.5 w-3.5" /> Roteiro de venda{" "}
               <ChevronDown className={`h-3.5 w-3.5 transition ${scriptOpen ? "rotate-180" : ""}`} />
             </button>
-            <Link
-              to="/video-ia"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] transition hover:-translate-y-0.5"
-              style={{ borderColor: "var(--va-line)" }}
-            >
-              Produzir no Studio <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            {product.videoUrl ? (
+              <button
+                type="button"
+                onClick={() => setVideoOpen((value) => !value)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] transition hover:-translate-y-0.5"
+                style={{ borderColor: "var(--va-line)" }}
+              >
+                <Play className="h-3.5 w-3.5" /> {videoOpen ? "Fechar criativo" : "Ver criativo"}
+              </button>
+            ) : (
+              <Link
+                to="/video-ia"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] transition hover:-translate-y-0.5"
+                style={{ borderColor: "var(--va-line)" }}
+              >
+                Produzir no Studio <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
           </div>
+
+          {videoOpen && product.videoUrl && (
+            <div
+              className="mt-4 flex flex-col items-center gap-3 rounded-2xl border p-4 sm:flex-row sm:items-end"
+              style={{ borderColor: "var(--va-line)", background: "var(--va-bg)" }}
+            >
+              <video
+                src={product.videoUrl}
+                poster={product.coverUrl}
+                controls
+                playsInline
+                preload="metadata"
+                className="aspect-[9/16] w-full max-w-[220px] rounded-xl bg-black object-cover"
+              />
+              <div
+                className="flex-1 text-[12px] leading-[1.6]"
+                style={{ color: "var(--va-muted)" }}
+              >
+                <p>
+                  Criativo original pronto para publicar. Baixe, poste com o seu link e marque o
+                  produto na legenda.
+                </p>
+                <a
+                  href={product.videoUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-full bg-black px-4 py-2.5 font-mono-tech text-[9.5px] font-semibold uppercase tracking-[0.1em] text-white"
+                >
+                  <Download className="h-3.5 w-3.5" /> Baixar vídeo
+                </a>
+              </div>
+            </div>
+          )}
 
           {scriptOpen && (
             <div
@@ -376,6 +519,14 @@ function VeronicaAnalytics() {
   const hasAffiliateProducts = affiliateProducts.length > 0;
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"todos" | FeedCategory>("todos");
+  const [activeAudience, setActiveAudience] = useState<"todos" | AffiliateAudience>("todos");
+  const [affiliateCode, setAffiliateCode] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    getMyAffiliate()
+      .then((result) => setAffiliateCode(result.ok ? result.code : null))
+      .catch(() => setAffiliateCode(null));
+  }, []);
   const [, forceClock] = useState(0);
 
   useEffect(() => {
@@ -387,14 +538,18 @@ function VeronicaAnalytics() {
     const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
     return affiliateProducts.filter((product) => {
       const matchesCategory = activeCategory === "todos" || product.category === activeCategory;
+      const matchesAudience =
+        activeAudience === "todos" ||
+        product.audience === activeAudience ||
+        product.audience === "unissex";
       const matchesQuery =
         !normalizedQuery ||
         product.name.toLocaleLowerCase("pt-BR").includes(normalizedQuery) ||
         product.angle.toLocaleLowerCase("pt-BR").includes(normalizedQuery) ||
         categoryMeta[product.category].label.toLocaleLowerCase("pt-BR").includes(normalizedQuery);
-      return matchesCategory && matchesQuery;
+      return matchesCategory && matchesAudience && matchesQuery;
     });
-  }, [activeCategory, affiliateProducts, query]);
+  }, [activeAudience, activeCategory, affiliateProducts, query]);
 
   const feedCategories = useMemo(
     () => new Set(trendingFeed.videos.map((video) => video.category)),
@@ -623,6 +778,34 @@ function VeronicaAnalytics() {
               </div>
             </div>
             <div className="mt-7 flex flex-wrap gap-2">
+              {audienceFilters.map((filter) => {
+                const active = activeAudience === filter.key;
+                return (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => setActiveAudience(filter.key)}
+                    className="rounded-full border px-3.5 py-2 font-mono-tech text-[9.5px] font-semibold transition"
+                    style={
+                      active
+                        ? {
+                            borderColor: "var(--va-pink)",
+                            background: "var(--va-pink)",
+                            color: "white",
+                          }
+                        : {
+                            borderColor: "var(--va-line)",
+                            background: "white",
+                            color: "var(--va-muted)",
+                          }
+                    }
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
               {filters.map((filter) => {
                 const active = activeCategory === filter.key;
                 return (
@@ -667,6 +850,7 @@ function VeronicaAnalytics() {
                     key={product.id}
                     product={product}
                     isCategoryTrending={feedCategories.has(product.category)}
+                    affiliateCode={affiliateCode}
                   />
                 ))}
               </div>

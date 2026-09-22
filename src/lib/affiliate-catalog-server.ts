@@ -5,8 +5,11 @@ import { requireAdmin } from "./admin-server";
 import { affiliateCatalogProducts, affiliateLinkClicks } from "./schema";
 import {
   affiliateProducts as seedProducts,
+  isAffiliateAudience,
   isAffiliateCategory,
+  sanitizeMediaUrl,
   validateShopeeAffiliateUrl,
+  type AffiliateAudience,
   type AffiliateProduct,
 } from "./affiliate-products";
 import type { FeedCategory } from "./trending-videos";
@@ -32,6 +35,13 @@ async function ensureAffiliateCatalogStorage() {
       "updatedAt" timestamp DEFAULT now() NOT NULL
     )
   `);
+  // 0015 — mídia e público. ADD COLUMN IF NOT EXISTS é idempotente, então
+  // roda em todo cold start sem custo relevante e dispensa migração manual.
+  await db.execute(sql`ALTER TABLE "AffiliateProduct" ADD COLUMN IF NOT EXISTS "coverUrl" text`);
+  await db.execute(sql`ALTER TABLE "AffiliateProduct" ADD COLUMN IF NOT EXISTS "videoUrl" text`);
+  await db.execute(
+    sql`ALTER TABLE "AffiliateProduct" ADD COLUMN IF NOT EXISTS "audience" text DEFAULT 'unissex' NOT NULL`,
+  );
   await db.execute(sql`
     CREATE UNIQUE INDEX IF NOT EXISTS "AffiliateProduct_affiliateUrl_key"
     ON "AffiliateProduct" ("affiliateUrl")
@@ -59,6 +69,9 @@ function mapProduct(row: typeof affiliateCatalogProducts.$inferSelect): Affiliat
     priceLabel: row.priceLabel,
     commissionLabel: row.commissionLabel ?? undefined,
     angle: row.angle,
+    coverUrl: row.coverUrl ?? undefined,
+    videoUrl: row.videoUrl ?? undefined,
+    audience: isAffiliateAudience(row.audience) ? row.audience : "unissex",
   };
 }
 
@@ -81,9 +94,46 @@ type ProductInput = {
   commissionLabel: string | null;
   angle: string;
   priority: number;
+  coverUrl: string | null;
+  videoUrl: string | null;
+  audience: AffiliateAudience;
 };
 
-function validateProduct(raw: unknown): ProductInput {
+const SHORT_LINK_HOSTS = new Set(["s.shopee.com.br", "shope.ee"]);
+
+// Link curto do painel (s.shopee.com.br/XXXX) → link completo. O painel de
+// afiliados entrega link curto por padrão; expandir aqui poupa a Veronica de
+// abrir um por um no navegador. Segue no máximo 5 saltos e para assim que
+// chega em shopee.com.br — o destino final já traz mmp_pid/utm_content.
+export async function expandShopeeShortLink(value: string): Promise<string> {
+  let current = value.trim();
+  for (let hop = 0; hop < 5; hop += 1) {
+    let url: URL;
+    try {
+      url = new URL(current);
+    } catch {
+      return value;
+    }
+    if (!SHORT_LINK_HOSTS.has(url.hostname.toLowerCase())) return url.toString();
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      redirect: "manual",
+      headers: { "user-agent": "Mozilla/5.0 (VeronicaHub link-expander)" },
+    });
+    const location = response.headers.get("location");
+    if (!location)
+      throw new Error("Link curto não redirecionou — confira se ele abre no navegador.");
+    current = new URL(location, url).toString();
+  }
+  return current;
+}
+
+type RawProductInput = Omit<ProductInput, "affiliateUrl" | "id"> & {
+  id: string;
+  rawUrl: string;
+};
+
+function validateProduct(raw: unknown): RawProductInput {
   const data = raw as Record<string, unknown>;
   const name = typeof data?.name === "string" ? data.name.trim() : "";
   const category = typeof data?.category === "string" ? data.category.trim().toLowerCase() : "";
@@ -93,20 +143,16 @@ function validateProduct(raw: unknown): ProductInput {
     typeof data?.commissionLabel === "string" && data.commissionLabel.trim()
       ? data.commissionLabel.trim().slice(0, 80)
       : null;
-  const checkedUrl = validateShopeeAffiliateUrl(
-    typeof data?.affiliateUrl === "string" ? data.affiliateUrl : "",
-  );
+  const rawUrl = typeof data?.affiliateUrl === "string" ? data.affiliateUrl.trim() : "";
+  const audienceRaw =
+    typeof data?.audience === "string" ? data.audience.trim().toLowerCase() : "unissex";
+  const audience: AffiliateAudience = isAffiliateAudience(audienceRaw) ? audienceRaw : "unissex";
 
   if (name.length < 3) throw new Error("Nome do produto obrigatório.");
   if (!isAffiliateCategory(category)) throw new Error(`Categoria inválida para "${name}".`);
   if (!priceLabel) throw new Error(`Preço obrigatório para "${name}".`);
   if (angle.length < 10) throw new Error(`Informe um ângulo de venda para "${name}".`);
-  if (!checkedUrl.ok) throw new Error(`${name}: ${checkedUrl.error}`);
-
-  const pathId = new URL(checkedUrl.url).pathname.split("/").filter(Boolean).at(-1) ?? "";
-  const requestedId = typeof data?.id === "string" ? normalizeProductId(data.id) : "";
-  const id = requestedId || normalizeProductId(`${name}-${pathId}`);
-  if (!id) throw new Error(`Não foi possível gerar o identificador de "${name}".`);
+  if (!rawUrl) throw new Error(`Link de afiliado obrigatório para "${name}".`);
 
   const priorityValue =
     typeof data?.priority === "number" ? data.priority : Number(data?.priority ?? 0);
@@ -115,15 +161,33 @@ function validateProduct(raw: unknown): ProductInput {
     : 0;
 
   return {
-    id,
+    id: typeof data?.id === "string" ? normalizeProductId(data.id) : "",
     name: name.slice(0, 180),
     category,
-    affiliateUrl: checkedUrl.url,
+    rawUrl,
     priceLabel: priceLabel.slice(0, 80),
     commissionLabel,
     angle: angle.slice(0, 500),
     priority,
+    coverUrl: sanitizeMediaUrl(data?.coverUrl),
+    videoUrl: sanitizeMediaUrl(data?.videoUrl),
+    audience,
   };
+}
+
+// Parte assíncrona da validação: expande link curto e só então confere
+// afiliado/Sub_id. Fica fora do validator porque envolve rede.
+async function finalizeProduct(input: RawProductInput): Promise<ProductInput> {
+  const expanded = await expandShopeeShortLink(input.rawUrl);
+  const checkedUrl = validateShopeeAffiliateUrl(expanded);
+  if (!checkedUrl.ok) throw new Error(`${input.name}: ${checkedUrl.error}`);
+
+  const pathId = new URL(checkedUrl.url).pathname.split("/").filter(Boolean).at(-1) ?? "";
+  const id = input.id || normalizeProductId(`${input.name}-${pathId}`);
+  if (!id) throw new Error(`Não foi possível gerar o identificador de "${input.name}".`);
+
+  const { rawUrl: _rawUrl, ...rest } = input;
+  return { ...rest, id, affiliateUrl: checkedUrl.url };
 }
 
 async function upsertProduct(data: ProductInput, adminId: string) {
@@ -153,6 +217,9 @@ async function upsertProduct(data: ProductInput, adminId: string) {
         commissionLabel: data.commissionLabel,
         angle: data.angle,
         priority: data.priority,
+        coverUrl: data.coverUrl,
+        videoUrl: data.videoUrl,
+        audience: data.audience,
         active: true,
         updatedAt: new Date(),
       },
@@ -177,7 +244,9 @@ export const getPublicAffiliateCatalog = createServerFn({ method: "GET" }).handl
   }
 });
 
-export async function findPublicAffiliateProduct(id: string): Promise<AffiliateProduct | undefined> {
+export async function findPublicAffiliateProduct(
+  id: string,
+): Promise<AffiliateProduct | undefined> {
   try {
     await ensureAffiliateCatalogStorage();
     const [row] = await getDb()
@@ -236,7 +305,7 @@ export const saveAffiliateProductAdmin = createServerFn({ method: "POST" })
 
     await ensureAffiliateCatalogStorage();
     try {
-      const row = await upsertProduct(data, admin.id);
+      const row = await upsertProduct(await finalizeProduct(data), admin.id);
       return { ok: true as const, product: mapProduct(row) };
     } catch (error) {
       return {
@@ -246,7 +315,7 @@ export const saveAffiliateProductAdmin = createServerFn({ method: "POST" })
     }
   });
 
-function parseBulkInput(input: unknown): { items: ProductInput[] } {
+function parseBulkInput(input: unknown): { items: RawProductInput[] } {
   const raw = (input as { raw?: unknown })?.raw;
   if (typeof raw !== "string" || !raw.trim()) throw new Error("Cole os produtos para importar.");
 
@@ -263,9 +332,32 @@ function parseBulkInput(input: unknown): { items: ProductInput[] } {
     values = lines
       .filter((line, index) => !(index === 0 && /^(nome|name)\t/i.test(line)))
       .map((line) => {
-        const [name, category, priceLabel, commissionLabel, angle, affiliateUrl, priority] =
-          line.split("\t");
-        return { name, category, priceLabel, commissionLabel, angle, affiliateUrl, priority };
+        // Colunas: nome, categoria, preço, comissão, ângulo, link, prioridade,
+        // público, capa, vídeo. As três últimas são opcionais.
+        const [
+          name,
+          category,
+          priceLabel,
+          commissionLabel,
+          angle,
+          affiliateUrl,
+          priority,
+          audience,
+          coverUrl,
+          videoUrl,
+        ] = line.split("\t");
+        return {
+          name,
+          category,
+          priceLabel,
+          commissionLabel,
+          angle,
+          affiliateUrl,
+          priority,
+          audience,
+          coverUrl,
+          videoUrl,
+        };
       });
   }
 
@@ -286,7 +378,7 @@ export const importAffiliateProductsAdmin = createServerFn({ method: "POST" })
     let imported = 0;
     for (const item of data.items) {
       try {
-        await upsertProduct(item, admin.id);
+        await upsertProduct(await finalizeProduct(item), admin.id);
         imported += 1;
       } catch (error) {
         errors.push(`${item.name}: ${error instanceof Error ? error.message : "falha"}`);

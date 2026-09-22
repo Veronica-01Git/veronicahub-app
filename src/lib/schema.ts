@@ -286,6 +286,12 @@ export const affiliateCatalogProducts = pgTable(
     priceLabel: text("priceLabel").notNull(),
     commissionLabel: text("commissionLabel"),
     angle: text("angle").notNull(),
+    // Mídia do card: capa (imagem oficial do anúncio) e criativo original em
+    // vídeo (R2 ou URL pública). Ambos opcionais — o card tem fallback.
+    coverUrl: text("coverUrl"),
+    videoUrl: text("videoUrl"),
+    // Público-alvo do produto: "feminino" | "masculino" | "unissex".
+    audience: text("audience").notNull().default("unissex"),
     active: boolean("active").notNull().default(true),
     priority: integer("priority").notNull().default(0),
     createdBy: text("createdBy").references(() => users.id),
@@ -296,6 +302,7 @@ export const affiliateCatalogProducts = pgTable(
     uniqueIndex("AffiliateProduct_affiliateUrl_key").on(table.affiliateUrl),
     index("AffiliateProduct_active_priority_idx").on(table.active, table.priority),
     index("AffiliateProduct_category_active_idx").on(table.category, table.active),
+    index("AffiliateProduct_audience_active_idx").on(table.audience, table.active),
   ],
 );
 

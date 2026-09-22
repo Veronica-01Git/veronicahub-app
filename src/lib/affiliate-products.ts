@@ -32,7 +32,33 @@ export type AffiliateProduct = {
   commissionLabel?: string;
   /** Por que esse produto casa com vídeo curto — aparece no card. */
   angle: string;
+  /** Imagem de capa (foto oficial do anúncio). */
+  coverUrl?: string;
+  /** Criativo original em vídeo (9:16) pronto pra repostar. */
+  videoUrl?: string;
+  /** Público principal do produto. Ausente = unissex. */
+  audience?: AffiliateAudience;
 };
+
+export const AFFILIATE_AUDIENCES = ["feminino", "masculino", "unissex"] as const;
+export type AffiliateAudience = (typeof AFFILIATE_AUDIENCES)[number];
+
+export function isAffiliateAudience(value: string): value is AffiliateAudience {
+  return (AFFILIATE_AUDIENCES as readonly string[]).includes(value);
+}
+
+// Mídia só entra por HTTPS. Aceita qualquer host porque a capa pode vir da
+// CDN da Shopee e o vídeo do R2 do Hub; o que importa é não permitir
+// javascript:/data: dentro de <img>/<video>.
+export function sanitizeMediaUrl(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
 
 export type AffiliateCatalog = {
   subId: {
@@ -51,6 +77,9 @@ export type AffiliateCatalog = {
 };
 
 export const affiliateCatalog = raw as AffiliateCatalog;
+
+/** Sub_id da própria Veronica — usado quando ninguém da Rede está carimbando. */
+export const HOUSE_SUB_ID = "veronica";
 
 // Link encurtado (s.shopee.com.br/XXXX) redireciona pra um destino fixo e
 // descarta o que a gente colar por fora — o divulgador copiaria um link que
@@ -98,7 +127,7 @@ export function validateShopeeAffiliateUrl(
     return { ok: false, error: "URL inválida." };
   }
 
-  const hostname = url.hostname.toLowerCase().replace(/^www\\./, "");
+  const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
   if (url.protocol !== "https:" || hostname !== "shopee.com.br") {
     return { ok: false, error: "Use um link HTTPS oficial de shopee.com.br." };
   }
@@ -107,14 +136,19 @@ export function validateShopeeAffiliateUrl(
   }
 
   const affiliateSource = url.searchParams.get("mmp_pid") || url.searchParams.get("utm_source");
-  const subId = url.searchParams
-    .get(affiliateCatalog.subId.param)
-    ?.split(affiliateCatalog.subId.separator)[0];
-  if (!affiliateSource || !subId) {
+  if (!affiliateSource || !/^an_\d+$/.test(affiliateSource)) {
     return {
       ok: false,
-      error: "O link não contém identificação de afiliado e Sub_id da Veronica.",
+      error: "O link não contém a identificação de afiliado (an_…). Gere no painel de afiliados.",
     };
+  }
+  // Link gerado sem Sub_id no painel: carimba o Sub_id da casa. É o mesmo
+  // parâmetro que o /r/afiliado já reescreve por divulgador, então não muda
+  // a atribuição da Shopee — só garante que o primeiro compartimento existe.
+  const { param, separator, slots } = affiliateCatalog.subId;
+  const subId = url.searchParams.get(param)?.split(separator)[0];
+  if (!subId) {
+    url.searchParams.set(param, [HOUSE_SUB_ID, ...Array(slots - 1).fill("")].join(separator));
   }
 
   return { ok: true, url: url.toString() };
@@ -189,6 +223,19 @@ export function splitCommissionCents(commissionCents: number): {
   // partes sempre somam exatamente o total, sem centavo criado do nada.
   const affiliateCents = Math.floor((total * affiliateCatalog.revenueShare.affiliatePct) / 100);
   return { affiliateCents, houseCents: total - affiliateCents };
+}
+
+/**
+ * Link que o divulgador copia e cola no perfil/vídeo/live dele. Absoluto,
+ * passando pelo /r/afiliado com o @ dele no Sub_id — é isso que faz a venda
+ * cair no relatório da Shopee com o nome dele e virar repasse no ledger.
+ */
+export function buildShareableLink(
+  product: AffiliateProduct,
+  handle: string,
+  origin = "https://veronicahub.com",
+): string {
+  return `${origin}${buildTrackedPath(product, { handle, placement: "link_divulgador" })}`;
 }
 
 /** Link interno rastreado — passa pelo /r/afiliado antes de ir pra Shopee. */
