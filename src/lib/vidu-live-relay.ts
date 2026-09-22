@@ -48,9 +48,13 @@ export async function handleViduLiveRelay(request: Request): Promise<Response> {
     return new Response("Avatar ao vivo indisponível.", { status: 503 });
   }
 
-  const liveId = new URL(request.url).searchParams.get("live_id");
-  if (!liveId) {
-    return new Response("live_id obrigatório", { status: 400 });
+  const params = new URL(request.url).searchParams;
+  const liveId = params.get("live_id");
+  // O conn_id é gerado pelo cliente e a spec exige ele na URL do WS, além
+  // de dentro do próprio conn_init. Sem repassar, o Vidu não casa a conexão.
+  const connId = params.get("conn_id");
+  if (!liveId || !connId) {
+    return new Response("live_id e conn_id obrigatórios", { status: 400 });
   }
 
   let upstreamSocket: WebSocket;
@@ -62,7 +66,8 @@ export async function handleViduLiveRelay(request: Request): Promise<Response> {
     // Doc: developers.cloudflare.com/workers/configuration/compatibility-flags
     // ("you should still use http: or https: as the protocol, not ws: nor wss:").
     const upstream = await fetch(
-      `https://${VIDU_HOST}/live/ws/live/connect?live_id=${encodeURIComponent(liveId)}`,
+      `https://${VIDU_HOST}/live/ws/live/connect` +
+        `?live_id=${encodeURIComponent(liveId)}&conn_id=${encodeURIComponent(connId)}`,
       { headers: { Authorization: `Token ${apiKey}`, Upgrade: "websocket" } },
     );
     if (!upstream.webSocket) {

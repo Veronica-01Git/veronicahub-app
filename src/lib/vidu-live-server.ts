@@ -1,21 +1,27 @@
-// Sessão ao vivo da Veronica via Vidu S2 Realtime Avatar (WebRTC/AliRTC).
+// Sessão ao vivo da Veronica via Vidu S2-Avatar Realtime (WebRTC/AliRTC).
 //
-// Contrato real da API (platform.vidu.com/docs/vidu-s1), não inventado:
-//   POST /live/v1/lives          -> abre sessão, devolve rtc.token/channel/user_id
-//   GET  /live/v1/lives/{id}     -> billed_seconds + credits_cost pra reconciliar
+// Contrato conferido contra a spec oficial da ShengShu
+// (github.com/shengshu-ai/vidu-s-api, skills/vidu-s-api/), que é o que o
+// README do github.com/shengshu-ai/Vidu-S aponta como fonte do S2:
+//   POST /live/s_avatar/realtime  -> abre sessão, devolve live.id + rtc.*
+//   GET  /live/v1/lives/{live_id} -> status, billed_seconds, credits_cost
 // Auth: header `Authorization: Token vda_xxx` — a chave NUNCA sai daqui.
 //
-// Canal de controle: a doc mostra `wss://{host}/live/ws/live/connect?live_id=...`
-// também exigindo `Authorization: Token vda_xxx` no handshake, e navegador
-// não manda header customizado ao abrir WebSocket. Resolvido pela opção (b),
-// relay server-side: src/lib/vidu-live-relay.ts, rota /api/vidu/live-relay.
-// O navegador nunca fala direto com o Vidu — NUNCA embutir VIDU_API_KEY em
-// código que roda no cliente.
+// CUIDADO AO MEXER: o S1 e o S2 são produtos diferentes, com doc separada.
+// A primeira versão disto usava `POST /live/v1/lives`, que é o endpoint do
+// S1 (platform.vidu.com/docs/vidu-s1) — o produto pedido é o S2-Avatar e o
+// path de criação é outro. Só o GET de status é compartilhado. Não troque
+// nenhum destes dois por um path "parecido" sem reler a spec.
 //
-// Preço, teto de minutos e a imagem do avatar são placeholders explícitos
-// (ver TODOs) — não são preço/asset aprovados, só valores seguros pra não
-// deixar sessão rodando de graça ou por tempo indefinido enquanto isso não
-// é confirmado.
+// Canal de controle: `/live/ws/live/connect?live_id=...&conn_id=...`, com o
+// mesmo header de auth, o que navegador não consegue mandar ao abrir um
+// WebSocket. Resolvido por relay server-side: src/lib/vidu-live-relay.ts,
+// rota /api/vidu/live-relay. A spec é explícita que a chave é server-side
+// e nunca vai pro browser.
+//
+// Preço e imagem do avatar seguem placeholders explícitos (ver TODOs) —
+// não são preço/asset aprovados, só valores seguros pra não deixar sessão
+// rodando de graça ou por tempo indefinido enquanto isso não é confirmado.
 
 import { createServerFn } from "@tanstack/react-start";
 import { eq, sql, and, gte } from "drizzle-orm";
@@ -32,8 +38,13 @@ const VIDU_HOST = VIDU_ENVIRONMENT === "china" ? "api.vidu.cn" : "api.vidu.com";
 // TODO(Verônica): trocar pelo preço real depois de ver quanto o Vidu cobra
 // por billed_seconds no seu plano. Esse valor é só um teto conservador.
 const LIVE_SESSION_PRICE_CENTS_PER_MINUTE = 490; // R$4,90/min — CONFIRMAR
-const MAX_SESSION_MINUTES = 6; // teto de segurança — idle_timeout_seconds do Vidu tem default de 7200s (2h), nunca usar o default
-const IDLE_TIMEOUT_SECONDS = MAX_SESSION_MINUTES * 60;
+// Teto de tempo da sessão. A seção Avatar da spec NÃO documenta
+// idle_timeout_seconds, então não mandamos o campo (mandar campo não
+// documentado é chute). O teto vira duas coisas reais: o tamanho do hold
+// aqui, e um timer no cliente que encerra a chamada — ver
+// VeronicaLiveAvatar. maxSessionMinutes vai na resposta pra os dois nunca
+// saírem de sincronia.
+const MAX_SESSION_MINUTES = 6;
 
 // TODO(Verônica): confirmar direitos de uso comercial da imagem antes de
 // trocar isso — ver conversa. Até lá, mantém o holograma atual como imagem
@@ -124,20 +135,23 @@ export const startVeronicaLiveSession = createServerFn({ method: "POST" })
       .returning({ id: ledgerEntries.id });
 
     try {
-      const res = await fetch(`https://${VIDU_HOST}/live/v1/lives`, {
+      const res = await fetch(`https://${VIDU_HOST}/live/s_avatar/realtime`, {
         method: "POST",
         headers: {
           Authorization: `Token ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          call_mode: "audio", // nunca "video": não pedimos câmera de quem visita o site
+          // "audio", nunca "video": o avatar responde em vídeo, mas não
+          // pedimos câmera de quem visita o site.
+          call_mode: "audio",
           avatar: {
-            persona: buildPersona(data.skillId, data.stepId),
             image_uri: VERONICA_AVATAR_IMAGE_URI,
+            persona: buildPersona(data.skillId, data.stepId),
+            name: "Veronica",
             voice: VERONICA_VIDU_VOICE,
+            persona_enhance: false,
           },
-          idle_timeout_seconds: IDLE_TIMEOUT_SECONDS,
         }),
       });
 
@@ -163,6 +177,7 @@ export const startVeronicaLiveSession = createServerFn({ method: "POST" })
         liveId: json.live.id,
         rtc: json.rtc,
         estimateCents,
+        maxSessionMinutes: MAX_SESSION_MINUTES,
       };
     } catch (error) {
       // Sessão não abriu — estorna o hold integral, não faz sentido cobrar.
@@ -229,9 +244,12 @@ export const endVeronicaLiveSession = createServerFn({ method: "POST" })
     const holdCents = Math.abs(hold.deltaCents);
 
     try {
-      const res = await fetch(`https://${VIDU_HOST}/live/v1/lives/${data.liveId}`, {
-        headers: { Authorization: `Token ${apiKey}` },
-      });
+      const res = await fetch(
+        `https://${VIDU_HOST}/live/v1/lives/${encodeURIComponent(data.liveId)}`,
+        {
+          headers: { Authorization: `Token ${apiKey}` },
+        },
+      );
       if (!res.ok) {
         throw new Error(`Vidu respondeu ${res.status}`);
       }
