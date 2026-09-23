@@ -19,6 +19,8 @@ export type PrivateClient = {
   accessState: PrivateClientAccessState;
   /** Campo reservado: PIN por cliente pode ser exigido no futuro sem quebrar o fluxo. */
   requiresPin: false;
+  /** Selo público não basta quando o ambiente puder exibir dados operacionais reais. */
+  requiresVerifiedAccount: boolean;
   modules: readonly PrivateClientModule[];
 };
 
@@ -36,6 +38,7 @@ export const privateClients: readonly PrivateClient[] = [
     sealSerial: "VH-AUT-WA-2026-000001",
     accessState: "active",
     requiresPin: false,
+    requiresVerifiedAccount: true,
     modules: [
       {
         id: "acompanhamento",
@@ -65,6 +68,7 @@ export const privateClients: readonly PrivateClient[] = [
     sealSerial: "VH-MEM-2026-000002",
     accessState: "active",
     requiresPin: false,
+    requiresVerifiedAccount: false,
     modules: [
       {
         id: "visao-geral",
@@ -88,6 +92,7 @@ export const privateClients: readonly PrivateClient[] = [
     sealSerial: "VH-MEM-2026-000003",
     accessState: "active",
     requiresPin: false,
+    requiresVerifiedAccount: false,
     modules: [
       { id: "live", label: "Veronica Live", description: "Conversa com a Veronica.", state: "demo" },
       { id: "dinheiro", label: "Mapa de Dinheiro", description: "Estoque, margem e giro.", state: "demo" },

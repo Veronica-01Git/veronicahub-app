@@ -27,13 +27,14 @@
  * topo de todas as telas dizendo isso.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import {
   getWorkspaceAccess,
   type WorkspaceAccess,
 } from "@/features/private-clients/access.functions";
+import { PrivateClientAccountGate } from "@/features/private-clients/components/account-gate";
 import {
   RodapeProcedencia,
   Sidebar,
@@ -79,7 +80,17 @@ function Verificando() {
  * exista para tal pessoa. Página de acesso negado que conta quem entra é uma
  * lista de alvos.
  */
-function PortaFechada({ motivo }: { motivo: "unauthenticated" | "forbidden" }) {
+type AccessDeniedReason = Extract<WorkspaceAccess, { ok: false }>["reason"];
+
+function PortaFechada({
+  motivo,
+  onAccessChanged,
+}: {
+  motivo: AccessDeniedReason;
+  onAccessChanged: () => void | Promise<void>;
+}) {
+  const accountGateReason = motivo !== "unauthenticated" && motivo !== "forbidden" ? motivo : null;
+
   return (
     <div className="express-ops-b flex min-h-screen items-center justify-center p-6">
       <div className="ops-card max-w-md p-7">
@@ -90,7 +101,11 @@ function PortaFechada({ motivo }: { motivo: "unauthenticated" | "forbidden" }) {
         <h1 className="mt-3 text-[20px] font-semibold leading-tight text-[var(--ops-ink)]">
           Este é o espaço da Express Entulho
         </h1>
-        {motivo === "unauthenticated" ? (
+        {accountGateReason ? (
+          <div className="mt-5">
+            <PrivateClientAccountGate mode={accountGateReason} onAccessChanged={onAccessChanged} />
+          </div>
+        ) : motivo === "unauthenticated" ? (
           <>
             <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--ops-ink-muted)]">
               Entre no portal de clientes com o número do seu selo. O acesso é por credencial — não
@@ -141,17 +156,26 @@ function ExpressOperationsLayout() {
   const titulo = item?.rotulo ?? "Seção";
 
   const [acesso, setAcesso] = useState<WorkspaceAccess | null>(null);
-  useEffect(() => {
-    getWorkspaceAccess({ data: { slug: SLUG } })
-      .then(setAcesso)
-      .catch(() => setAcesso({ ok: false, reason: "unauthenticated" }));
+  const verificarAcesso = useCallback(async () => {
+    setAcesso(null);
+    try {
+      setAcesso(await getWorkspaceAccess({ data: { slug: SLUG } }));
+    } catch {
+      setAcesso({ ok: false, reason: "unauthenticated" });
+    }
   }, []);
+
+  useEffect(() => {
+    void verificarAcesso();
+  }, [verificarAcesso]);
 
   // Enquanto o servidor não responde, nada do painel é montado. Mostrar o
   // conteúdo e esconder depois seria pior que não mostrar: daria um piscar
   // com o painel do cliente visível.
   if (acesso === null) return <Verificando />;
-  if (!acesso.ok) return <PortaFechada motivo={acesso.reason} />;
+  if (!acesso.ok) {
+    return <PortaFechada motivo={acesso.reason} onAccessChanged={verificarAcesso} />;
+  }
 
   return (
     <div className="express-ops-b min-h-screen">

@@ -1,3 +1,23 @@
+## Express Operations — segunda barreira de acesso (2026-09-22, local)
+
+- O selo público deixou de ser suficiente para abrir o ambiente operacional da
+  Express. O acesso agora exige também uma conta confirmada pelo OTP de e-mail
+  já existente no Hub e presente na allowlist privada do servidor.
+- A política falha fechada: sem `EXPRESS_OPERATIONS_ALLOWED_EMAILS`, o painel
+  permanece bloqueado; conta não listada também não entra. Nenhum endereço de
+  e-mail foi colocado no código ou no histórico Git.
+- O mesmo componente de confirmação protege tanto o workspace privado quanto a
+  rota `/clientes/express-entulho/operacoes`. Outros clientes preservam o fluxo
+  atual até que dados privados justifiquem ativar a segunda barreira para eles.
+- Nenhuma conversa real foi ligada ao painel, nenhuma integração externa foi
+  ativada e nenhuma mensagem de WhatsApp foi enviada. O número atual da empresa
+  continua intocado e a trava de envio permanece desligada.
+- Validação local concluída: **156 testes aprovados**, typecheck aprovado, lint
+  dos arquivos alterados aprovado e build Cloudflare/Nitro aprovado.
+- Próximo passo: cadastrar os e-mails responsáveis somente no ambiente seguro;
+  depois criar a consulta das conversas por `tenant = express-entulho`, em modo
+  somente leitura e sem qualquer função de resposta.
+
 ## Express Operations — observação e leitura operacional (2026-09-22, local)
 
 - A área de atendimento da Express foi ajustada para o modo **somente

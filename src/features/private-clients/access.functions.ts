@@ -36,12 +36,19 @@ export const validateSeal = createServerFn({ method: "POST" })
     if (seal) return { status: "awaiting-seal", displayName: seal.client };
 
     return { status: "invalid" };
-
   });
 
 export type WorkspaceAccess =
   | { ok: true; slug: string }
-  | { ok: false; reason: "unauthenticated" | "forbidden" };
+  | {
+      ok: false;
+      reason:
+        | "unauthenticated"
+        | "forbidden"
+        | "account-required"
+        | "account-not-authorized"
+        | "configuration-missing";
+    };
 
 /** Um cliente autenticado só enxerga o próprio workspace. */
 export const getWorkspaceAccess = createServerFn({ method: "POST" })
@@ -55,6 +62,34 @@ export const getWorkspaceAccess = createServerFn({ method: "POST" })
 
     const client = getPrivateClientBySlug(data.slug);
     if (!client || client.id !== session.clientId) return { ok: false, reason: "forbidden" };
+
+    if (client.requiresVerifiedAccount) {
+      const { evaluatePrivateClientAccountAccess } = await import("./access-policy");
+      const { getSessionUserId } = await import("@/lib/session");
+      const userId = await getSessionUserId();
+
+      let email: string | null = null;
+      if (userId) {
+        const [{ getDb }, { users }, { eq }] = await Promise.all([
+          import("@/lib/db"),
+          import("@/lib/schema"),
+          import("drizzle-orm"),
+        ]);
+        const [user] = await getDb()
+          .select({ email: users.email })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+        email = user?.email ?? null;
+      }
+
+      const accountAccess = evaluatePrivateClientAccountAccess({
+        clientId: client.id,
+        email,
+        environment: process.env,
+      });
+      if (accountAccess !== "allowed") return { ok: false, reason: accountAccess };
+    }
 
     return { ok: true, slug: client.slug };
   });

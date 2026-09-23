@@ -15,14 +15,16 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
 import {
   endPrivateClientSession,
   getWorkspaceAccess,
+  type WorkspaceAccess,
 } from "@/features/private-clients/access.functions";
+import { PrivateClientAccountGate } from "@/features/private-clients/components/account-gate";
 import { DemoBadge, Panel, WorkspaceShell } from "@/features/private-clients/components/shell";
 import { expressWorkspace } from "@/features/private-clients/data/express";
 import {
@@ -48,34 +50,28 @@ export const Route = createFileRoute("/clientes/$clientSlug")({
   }),
 });
 
-type AccessState = "checking" | "allowed" | "denied";
-
 function PrivateClientWorkspace() {
   const { clientSlug } = Route.useParams();
   const navigate = useNavigate();
   const checkAccess = useServerFn(getWorkspaceAccess);
   const signOut = useServerFn(endPrivateClientSession);
-  const [accessState, setAccessState] = useState<AccessState>("checking");
+  const [access, setAccess] = useState<WorkspaceAccess | null>(null);
   const [veronicaOpen, setVeronicaOpen] = useState(false);
 
   const client = useMemo(() => getPrivateClientBySlug(clientSlug), [clientSlug]);
 
-  useEffect(() => {
-    let active = true;
-
-    void checkAccess({ data: { slug: clientSlug } })
-      .then((result) => {
-        if (!active) return;
-        setAccessState(result.ok ? "allowed" : "denied");
-      })
-      .catch(() => {
-        if (active) setAccessState("denied");
-      });
-
-    return () => {
-      active = false;
-    };
+  const refreshAccess = useCallback(async () => {
+    setAccess(null);
+    try {
+      setAccess(await checkAccess({ data: { slug: clientSlug } }));
+    } catch {
+      setAccess({ ok: false, reason: "unauthenticated" });
+    }
   }, [checkAccess, clientSlug]);
+
+  useEffect(() => {
+    void refreshAccess();
+  }, [refreshAccess]);
 
   async function handleSignOut() {
     try {
@@ -85,15 +81,20 @@ function PrivateClientWorkspace() {
     }
   }
 
-  if (accessState === "checking") {
+  if (access === null) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <SiteHeader />
         <main className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center px-6 text-center">
           <div>
-            <RefreshCw className="mx-auto h-6 w-6 motion-safe:animate-spin text-neon-green" aria-hidden />
+            <RefreshCw
+              className="mx-auto h-6 w-6 motion-safe:animate-spin text-neon-green"
+              aria-hidden
+            />
             <h1 className="mt-5 font-display text-3xl tracking-[-.04em]">Validando seu ambiente</h1>
-            <p className="mt-3 text-sm text-muted-foreground">Conferindo a sessão privada deste selo.</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Conferindo a sessão privada deste selo.
+            </p>
           </div>
         </main>
         <SiteFooter />
@@ -101,7 +102,35 @@ function PrivateClientWorkspace() {
     );
   }
 
-  if (accessState === "denied" || !client) {
+  const accountGateReason =
+    !access.ok && access.reason !== "unauthenticated" && access.reason !== "forbidden"
+      ? access.reason
+      : null;
+
+  if (accountGateReason && client) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <SiteHeader />
+        <main className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center px-6 py-12">
+          <div className="w-full rounded-[28px] border border-border/70 bg-surface/40 p-6 sm:p-8">
+            <ShieldCheck className="h-7 w-7 text-neon-cyan" aria-hidden />
+            <h1 className="mt-5 font-display text-3xl tracking-[-.04em]">
+              Confirme o acesso da equipe
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {client.displayName} possui uma camada adicional antes de qualquer dado operacional.
+            </p>
+            <div className="mt-6">
+              <PrivateClientAccountGate mode={accountGateReason} onAccessChanged={refreshAccess} />
+            </div>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  if (!access.ok || !client) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <SiteHeader />
@@ -110,7 +139,8 @@ function PrivateClientWorkspace() {
             <ShieldCheck className="mx-auto h-7 w-7 text-neon-cyan" aria-hidden />
             <h1 className="mt-5 font-display text-3xl tracking-[-.04em]">Acesso não autorizado</h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Esta sessão não possui acesso a este ambiente. Entre novamente usando o número de série do selo correspondente.
+              Esta sessão não possui acesso a este ambiente. Entre novamente usando o número de
+              série do selo correspondente.
             </p>
             <Link
               to="/clientes"
@@ -168,7 +198,9 @@ function ExpressWorkspaceExtra() {
             Somente acompanhamento
           </div>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Este ambiente não envia mensagens, não responde clientes e não executa ações no WhatsApp. Ele serve apenas para acompanhar implantação, eventos e evolução do trabalho da Veronica.
+            Este ambiente não envia mensagens, não responde clientes e não executa ações no
+            WhatsApp. Ele serve apenas para acompanhar implantação, eventos e evolução do trabalho
+            da Veronica.
           </p>
         </div>
         <div className="mt-4 flex flex-wrap gap-3">
@@ -212,7 +244,8 @@ function LzWorkspaceExtra() {
     <div className="mt-5">
       <Panel title="Ambiente reservado">
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          O LZ Team possui o selo de membro VH-MEM-2026-000002, emitido em 21/09/2026. O escopo e as integrações ainda estão em definição.
+          O LZ Team possui o selo de membro VH-MEM-2026-000002, emitido em 21/09/2026. O escopo e as
+          integrações ainda estão em definição.
         </p>
       </Panel>
     </div>
@@ -310,7 +343,9 @@ function FashionWorkspaceDemo() {
             {moneyMap.cards.map((card) => (
               <div key={card.label} className="rounded-sm border border-border/60 p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">{card.label}</div>
+                  <div className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                    {card.label}
+                  </div>
                   <DemoBadge />
                 </div>
                 <div className="mt-3 font-display text-3xl tracking-[-.04em]">{card.value}</div>
@@ -320,7 +355,10 @@ function FashionWorkspaceDemo() {
           </div>
           <div className="mt-4 grid gap-3">
             {moneyMap.risky.map((item) => (
-              <div key={item.sku} className="grid gap-2 rounded-sm border border-border/60 p-4 sm:grid-cols-[1fr_auto]">
+              <div
+                key={item.sku}
+                className="grid gap-2 rounded-sm border border-border/60 p-4 sm:grid-cols-[1fr_auto]"
+              >
                 <div>
                   <div className="font-medium">{item.sku}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{item.issue}</div>
@@ -365,7 +403,9 @@ function FashionWorkspaceDemo() {
         <Panel title="Leads" demo>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <div className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">Base potencial informada</div>
+              <div className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                Base potencial informada
+              </div>
               <div className="mt-2 font-display text-4xl tracking-[-.04em]">~{leads.base}</div>
             </div>
             <Users className="h-7 w-7 text-neon-cyan" aria-hidden />
@@ -382,7 +422,9 @@ function FashionWorkspaceDemo() {
               <div key={idea.name} className="rounded-sm border border-border/60 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="font-medium">{idea.name}</div>
-                  <span className="font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">{idea.status}</span>
+                  <span className="font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
+                    {idea.status}
+                  </span>
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground">
                   {idea.pieces} peças · {idea.variations} variações
@@ -391,8 +433,12 @@ function FashionWorkspaceDemo() {
             ))}
           </div>
           <div className="mt-4 rounded-sm border border-border/60 bg-background/40 p-4">
-            <div className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">Briefing DEMO</div>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{collections.briefing}</p>
+            <div className="font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+              Briefing DEMO
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {collections.briefing}
+            </p>
           </div>
         </Panel>
       </div>
@@ -404,9 +450,15 @@ function FashionWorkspaceDemo() {
               <div key={item.action} className="rounded-sm border border-border/60 p-4">
                 <div className="font-medium">{item.action}</div>
                 <div className="mt-3 flex flex-wrap gap-2 font-mono-tech text-[9px] uppercase tracking-widest">
-                  <span className="rounded-full border border-neon-green/30 px-2.5 py-1 text-neon-green">Impacto {item.impact}</span>
-                  <span className="rounded-full border border-neon-cyan/30 px-2.5 py-1 text-neon-cyan">Esforço {item.effort}</span>
-                  <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{item.status}</span>
+                  <span className="rounded-full border border-neon-green/30 px-2.5 py-1 text-neon-green">
+                    Impacto {item.impact}
+                  </span>
+                  <span className="rounded-full border border-neon-cyan/30 px-2.5 py-1 text-neon-cyan">
+                    Esforço {item.effort}
+                  </span>
+                  <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">
+                    {item.status}
+                  </span>
                 </div>
               </div>
             ))}
@@ -428,7 +480,8 @@ function FashionWorkspaceDemo() {
             })}
           </div>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            Este bloco demonstra o valor de acompanhamento mensal. Não existe cobrança ou checkout conectado nesta fase.
+            Este bloco demonstra o valor de acompanhamento mensal. Não existe cobrança ou checkout
+            conectado nesta fase.
           </p>
         </Panel>
       </div>
@@ -445,7 +498,9 @@ function Funnel({
 }) {
   return (
     <div className="rounded-sm border border-border/60 p-4">
-      <div className="font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">{title}</div>
+      <div className="font-mono-tech text-[9px] uppercase tracking-widest text-neon-cyan">
+        {title}
+      </div>
       <div className="mt-4 grid gap-3">
         {items.map((item, index) => (
           <div key={item.stage}>
