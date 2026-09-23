@@ -245,7 +245,7 @@ export const getPrivateClientsAdminDashboard = createServerFn({ method: "GET" })
         client.slug === "veronica-fashion-operator"
           ? "/clientes/veronica-fashion-operator/execucao"
           : client.slug === "express-entulho"
-            ? "/clientes/express-entulho/operacoes-demo"
+            ? "/clientes/express-entulho/operacoes"
             : null,
     })),
   };

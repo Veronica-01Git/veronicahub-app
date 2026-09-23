@@ -1,22 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ExpressOperationsDemo } from "@/components/express-operations/ExpressOperationsDemo";
+/**
+ * Compatibilidade com o endereço da primeira demonstração.
+ *
+ * A Express Operations passou a ter uma única central canônica em
+ * `/clientes/express-entulho/operacoes`. Mantemos este endereço apenas para
+ * não quebrar favoritos e links já enviados ao cliente.
+ */
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/clientes/express-entulho/operacoes-demo")({
-  component: ExpressOperationsDemo,
-  head: () => ({
-    meta: [
-      { title: "Express Operations · Demonstração | YO LAB & CO." },
-      {
-        name: "description",
-        content:
-          "Demonstração visual da central operacional e do agente de atendimento da Express Entulho.",
-      },
-      { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "Express Operations · Demonstração operacional" },
-      {
-        property: "og:description",
-        content: "Projeto registrado VH-AUT-WA-2026-000001 · YO LAB & CO. e Inteligências Veronica.",
-      },
-    ],
-  }),
+  beforeLoad: () => {
+    throw redirect({ to: "/clientes/express-entulho/operacoes", replace: true });
+  },
 });

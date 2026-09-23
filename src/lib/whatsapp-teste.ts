@@ -20,12 +20,11 @@
  * construção, não por configuração.
  *
  * POR QUE PEDE UM TOKEN. A página que consome isto vive dentro de
- * /clientes/express-entulho/operacoes, que é pública e indexável desde 21/09.
- * Endpoint público que chama modelo de linguagem é conta de terceiro aberta:
- * qualquer um que ache a URL gasta a cota da Anthropic e da Groq. Então o
- * acesso é por um segredo no link — o dono recebe um endereço com `?t=...` e
- * usa sem login. Sem `TESTE_AGENTE_TOKEN` configurado, o endpoint fica
- * desligado em vez de aberto.
+ * /clientes/express-entulho/operacoes e já exige selo, conta confirmada e
+ * allowlist. Ainda assim, proteção de interface e proteção de custo são
+ * responsabilidades diferentes: o endpoint que chama modelo não fica aberto
+ * sem um segredo próprio. Sem `TESTE_AGENTE_TOKEN` configurado, ele permanece
+ * desligado.
  */
 
 import { decidirResposta, motivoDaGuarda, type Turno } from "./whatsapp-agent";

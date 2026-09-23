@@ -1,3 +1,20 @@
+## Express Operations — rota operacional unificada (2026-09-23)
+
+- A central completa com navegação lateral em
+  `/clientes/express-entulho/operacoes` passou a ser a única interface
+  operacional canônica da Express Entulho.
+- A antiga demonstração em `/clientes/express-entulho/operacoes-demo` deixou
+  de renderizar uma segunda interface e agora redireciona para a central
+  canônica, preservando favoritos e links já enviados.
+- O botão da área privada e o atalho administrativo foram corrigidos para
+  apontar diretamente para `/operacoes`. A interface duplicada foi removida,
+  sem alterar autenticação, backend, WhatsApp ou dados.
+- A allowlist do ambiente foi informada pelo responsável como salva no
+  Cloudflare; a validação final do recebimento e confirmação do OTP em produção
+  ainda precisa ser concluída.
+- Validação local concluída: **159 testes aprovados**, typecheck aprovado e
+  build Cloudflare/Nitro aprovado.
+
 ## Express Operations — segunda barreira de acesso (2026-09-23, publicada)
 
 - O selo público deixou de ser suficiente para abrir o ambiente operacional da
@@ -15,12 +32,11 @@
 - Publicado na `main` e confirmado em produção: a rota operacional responde com
   a barreira de acesso fechada para visitantes sem credencial. Validação final:
   **158 testes aprovados**, typecheck e build Cloudflare/Nitro aprovados.
-- Pendente de configuração operacional: cadastrar a allowlist no ambiente
-  seguro do Cloudflare. O painel permanece fechado enquanto a variável não for
-  gravada; o endereço autorizado não foi versionado no Git.
-- Próximo passo: concluir a allowlist e validar o OTP diretamente no painel;
-  depois criar a consulta das conversas por `tenant = express-entulho`, em modo
-  somente leitura e sem qualquer função de resposta.
+- A allowlist foi informada pelo responsável como cadastrada no ambiente
+  seguro do Cloudflare; o endereço autorizado não foi versionado no Git.
+- Próximo passo: validar o OTP diretamente no painel; depois criar a consulta
+  das conversas por `tenant = express-entulho`, em modo somente leitura e sem
+  qualquer função de resposta.
 
 ## Express Operations — observação e leitura operacional (2026-09-23, publicada)
 

@@ -76,3 +76,20 @@ test("a decisão de acesso usa sessão do servidor e variável privada", async (
   assert.match(source, /process\.env/);
   assert.match(source, /requiresVerifiedAccount/);
 });
+
+test("a Express possui uma única central operacional canônica", async () => {
+  const [workspace, admin, legado] = await Promise.all([
+    readFile(new URL("../src/routes/clientes/$clientSlug.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/features/private-clients/admin.functions.ts", import.meta.url), "utf8"),
+    readFile(
+      new URL("../src/routes/clientes/express-entulho/operacoes-demo.tsx", import.meta.url),
+      "utf8",
+    ),
+  ]);
+
+  assert.match(workspace, /to="\/clientes\/express-entulho\/operacoes"/);
+  assert.doesNotMatch(workspace, /to="\/clientes\/express-entulho\/operacoes-demo"/);
+  assert.match(admin, /"\/clientes\/express-entulho\/operacoes"/);
+  assert.match(legado, /redirect\(\{ to: "\/clientes\/express-entulho\/operacoes"/);
+  assert.doesNotMatch(legado, /ExpressOperationsDemo/);
+});

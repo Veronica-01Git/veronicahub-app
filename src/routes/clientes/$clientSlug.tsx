@@ -205,10 +205,10 @@ function ExpressWorkspaceExtra() {
         </div>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
-            to="/clientes/express-entulho/operacoes-demo"
+            to="/clientes/express-entulho/operacoes"
             className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-border/70 px-4 font-mono-tech text-[10px] uppercase tracking-widest text-foreground transition hover:border-neon-cyan/60 hover:text-neon-cyan"
           >
-            Abrir central demonstrativa <ArrowRight className="h-4 w-4" aria-hidden />
+            Abrir central operacional <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
           <Link
             to="/selo/$serial"
