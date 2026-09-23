@@ -2,9 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Bot, Clock, Info, Send, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bot, Clock, Eye, Info, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  analisarConversa,
+  ROTULO_CAMPO_OPERACIONAL,
+  type LeituraOperacional,
+} from "@/lib/whatsapp-analysis";
 import { usePainelOps } from "@/features/express-ops-b/data/queries";
 import { EsqueletoLista } from "@/features/express-ops-b/components/esqueleto";
 import {
@@ -226,30 +230,17 @@ function Thread({ conversa }: { conversa: Conversa }) {
             Janela de 24 h da Meta encerrada. Só é possível reabrir com modelo de mensagem aprovado.
           </p>
         )}
-        <div className="flex items-end gap-2">
-          <label htmlFor="resposta" className="sr-only">
-            Escrever resposta
-          </label>
-          <textarea
-            id="resposta"
-            rows={2}
-            disabled={!conversa.janela24hAberta}
-            placeholder={
-              conversa.janela24hAberta
-                ? "Escreva a resposta ou assuma a conversa…"
-                : "Requer modelo aprovado pela Meta"
-            }
-            className="ops-motion min-h-[44px] w-full resize-none rounded-[10px] border border-[var(--ops-line-strong)] bg-[var(--ops-card)] px-3 py-2.5 text-[13.5px] text-[var(--ops-ink)] placeholder:text-[var(--ops-ink-muted)] disabled:bg-[var(--ops-surface)] disabled:text-[var(--ops-ink-muted)]"
-          />
-          <Button
-            type="button"
-            size="sm"
-            disabled={!conversa.janela24hAberta}
-            className="h-11 shrink-0 px-3"
-          >
-            <Send aria-hidden className="h-4 w-4" />
-            <span className="sr-only">Enviar resposta</span>
-          </Button>
+        <div className="flex items-start gap-2 rounded-[10px] border border-[var(--ops-line)] bg-[var(--ops-surface)] px-3 py-2.5">
+          <Eye aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ops-accent)]" />
+          <div>
+            <p className="text-[12.5px] font-medium text-[var(--ops-ink)]">
+              Somente acompanhamento
+            </p>
+            <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--ops-ink-muted)]">
+              Respostas e ações estão desativadas nesta etapa. Esta tela apenas organiza o que o
+              agente compreendeu para revisão da equipe.
+            </p>
+          </div>
         </div>
       </footer>
     </section>
@@ -258,8 +249,14 @@ function Thread({ conversa }: { conversa: Conversa }) {
 
 function ContextoCliente({ conversa }: { conversa: Conversa }) {
   const ctx = conversa.contexto;
+  const leitura = analisarConversa(
+    conversa.mensagens
+      .filter((mensagem) => mensagem.autor === "cliente")
+      .map((mensagem) => mensagem.texto),
+  );
   return (
     <aside className="grid content-start gap-4" aria-label="Contexto do cliente">
+      <LeituraDoAgente leitura={leitura} />
       <OpsCard as="div">
         <h2 className="ops-label mb-3">Cliente</h2>
         <p className="text-[13.5px] leading-relaxed text-[var(--ops-ink)]">{ctx.endereco}</p>
@@ -338,5 +335,62 @@ function ContextoCliente({ conversa }: { conversa: Conversa }) {
         </OpsCard>
       ) : null}
     </aside>
+  );
+}
+
+function LeituraDoAgente({ leitura }: { leitura: LeituraOperacional }) {
+  return (
+    <OpsCard as="div" className="border-[oklch(0.82_0.06_255)] bg-[var(--ops-accent-soft)]">
+      <h2 className="ops-label flex items-center gap-1.5 text-[var(--ops-accent-ink)]">
+        <Eye aria-hidden className="h-3.5 w-3.5" />
+        Leitura operacional
+      </h2>
+      <p className="mt-2 text-[14px] font-semibold text-[var(--ops-ink)]">
+        {leitura.rotuloIntencao}
+      </p>
+      <p className="mt-1 text-[11.5px] text-[var(--ops-ink-muted)]">
+        Confiança {leitura.confianca} · análise interna, sem envio
+      </p>
+
+      {leitura.dados.length > 0 ? (
+        <dl className="mt-4 grid gap-2">
+          {leitura.dados.map((dado) => (
+            <div
+              key={dado.campo}
+              className="flex items-baseline justify-between gap-3 text-[12.5px]"
+            >
+              <dt className="text-[var(--ops-ink-muted)]">{dado.rotulo}</dt>
+              <dd className="text-right font-medium text-[var(--ops-ink)]">{dado.valor}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="mt-4 text-[12.5px] leading-relaxed text-[var(--ops-ink-muted)]">
+          Nenhum dado operacional firme foi identificado ainda.
+        </p>
+      )}
+
+      {leitura.faltantes.length > 0 ? (
+        <div className="mt-4 border-t border-[var(--ops-line)] pt-3">
+          <h3 className="ops-label mb-2">Ainda falta confirmar</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {leitura.faltantes.map((campo) => (
+              <span
+                key={campo}
+                className="rounded-full border border-[var(--ops-line-strong)] bg-[var(--ops-card)] px-2 py-1 text-[11.5px] text-[var(--ops-ink-soft)]"
+              >
+                {ROTULO_CAMPO_OPERACIONAL[campo]}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {leitura.exigeHumano ? (
+        <p className="mt-4 rounded-[9px] bg-[var(--ops-warn-soft)] px-3 py-2 text-[12px] leading-relaxed text-[oklch(0.36_0.08_75)]">
+          <strong>Revisão humana:</strong> {leitura.motivoHumano}
+        </p>
+      ) : null}
+    </OpsCard>
   );
 }

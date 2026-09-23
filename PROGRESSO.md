@@ -1,3 +1,33 @@
+## Express Operations — observação e leitura operacional (2026-09-22, local)
+
+- A área de atendimento da Express foi ajustada para o modo **somente
+  acompanhamento**: o campo de resposta e o botão de envio foram removidos da
+  interface. Esta etapa não permite responder clientes.
+- Criado um analisador operacional determinístico para classificar intenção,
+  extrair somente dados explícitos da conversa, apontar informações que faltam
+  e sinalizar casos que exigem revisão humana. O módulo não chama LLM, Meta ou
+  qualquer função de envio.
+- A leitura cobre orçamento, agendamento, troca, retirada, prorrogação,
+  alteração/cancelamento, atraso/problema, pagamento/documentação e pedidos de
+  informação. Combinações de preço desconhecidas, negociação, atraso,
+  cancelamento e assuntos financeiros permanecem sob aprovação humana.
+- A trava `WHATSAPP_ENVIO_LIBERADO` foi preservada e nenhuma credencial,
+  conexão externa ou mensagem real foi utilizada. O número atual da Express
+  não foi tocado.
+- As conversas reais ainda não foram ligadas ao painel. A sessão atual da área
+  do cliente pode ser aberta a partir do selo público e, portanto, não oferece
+  proteção suficiente para dados privados. O painel permanece com dados de
+  demonstração até existir autenticação exclusiva do proprietário/equipe.
+- Validação local concluída: **150 testes aprovados**, typecheck aprovado, lint
+  dos arquivos alterados aprovado e build Cloudflare/Nitro aprovado. A
+  verificação visual automatizada ficou bloqueada neste ambiente por ausência
+  de um Chrome instalável e indisponibilidade do CDN do navegador; não houve
+  erro de compilação da aplicação.
+- Próximo passo recomendado: adicionar autenticação privada com papéis e
+  auditoria; depois conectar uma consulta somente leitura às conversas
+  persistidas. Envio de mensagens deve permanecer desativado até homologação e
+  autorização explícita em etapa separada.
+
 ## Automação, deploy e ciclo de conteúdo — 2026-09-21
 
 ### Routine agendada não consegue publicar neste projeto
