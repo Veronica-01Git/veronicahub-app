@@ -14,6 +14,7 @@ import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
 import { Route as ClientesVeronicaRouteImport } from './routes/clientes-veronica'
 import { Route as ComandosRouteImport } from './routes/comandos'
+import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
@@ -85,6 +86,11 @@ const ClientesVeronicaRoute = ClientesVeronicaRouteImport.update({
 const ComandosRoute = ComandosRouteImport.update({
   id: '/comandos',
   path: '/comandos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EscolaRoute = EscolaRouteImport.update({
+  id: '/escola',
+  path: '/escola',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembrosRoute = MembrosRouteImport.update({
@@ -347,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/escola': typeof EscolaRoute
   '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
@@ -401,6 +408,7 @@ export interface FileRoutesByTo {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/escola': typeof EscolaRoute
   '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
@@ -455,6 +463,7 @@ export interface FileRoutesById {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/escola': typeof EscolaRoute
   '/membros': typeof MembrosRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
@@ -511,6 +520,7 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
+    | '/escola'
     | '/membros'
     | '/portfolio'
     | '/prompt-packs'
@@ -565,6 +575,7 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
+    | '/escola'
     | '/membros'
     | '/portfolio'
     | '/prompt-packs'
@@ -618,6 +629,7 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
+    | '/escola'
     | '/membros'
     | '/portfolio'
     | '/prompt-packs'
@@ -673,6 +685,7 @@ export interface RootRouteChildren {
   AulaZeroRoute: typeof AulaZeroRoute
   ClientesVeronicaRoute: typeof ClientesVeronicaRoute
   ComandosRoute: typeof ComandosRoute
+  EscolaRoute: typeof EscolaRoute
   MembrosRoute: typeof MembrosRoute
   PortfolioRoute: typeof PortfolioRoute
   PromptPacksRoute: typeof PromptPacksRoute
@@ -746,6 +759,13 @@ declare module '@tanstack/react-router' {
       path: '/comandos'
       fullPath: '/comandos'
       preLoaderRoute: typeof ComandosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/escola': {
+      id: '/escola'
+      path: '/escola'
+      fullPath: '/escola'
+      preLoaderRoute: typeof EscolaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/membros': {
@@ -1150,6 +1170,7 @@ const rootRouteChildren: RootRouteChildren = {
   AulaZeroRoute: AulaZeroRoute,
   ClientesVeronicaRoute: ClientesVeronicaRoute,
   ComandosRoute: ComandosRoute,
+  EscolaRoute: EscolaRoute,
   MembrosRoute: MembrosRoute,
   PortfolioRoute: PortfolioRoute,
   PromptPacksRoute: PromptPacksRoute,

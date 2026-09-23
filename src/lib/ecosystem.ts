@@ -65,9 +65,9 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "school",
-    name: "Veronica Hub",
+    name: "Escola Veronica",
     category: "Escola",
-    to: "/",
+    to: "/escola",
     status: "Disponível",
     description: "Escola de Inteligência Artificial",
     external: false,

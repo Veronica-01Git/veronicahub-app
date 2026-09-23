@@ -1,3 +1,25 @@
+## Nova entrada YO LAB & CO / Escola Veronica (2026-09-23, branch de revisão)
+
+- A Home institucional do ecossistema foi criada em `/` com jornadas para aprender,
+  utilizar plataformas e explorar soluções empresariais. O navegador de plataformas
+  lê nomes, links e disponibilidade de `src/lib/ecosystem.ts`; mídias ausentes
+  recebem uma composição identificada, sem simular um produto funcional.
+- A Home educacional anterior foi preservada em `/escola`, com tema, efeitos,
+  imagem, componentes e conteúdo originais. O catálogo canônico agora aponta
+  a Escola para esta rota; o rodapé também oferece um link direto.
+- O logotipo oficial YO fornecido pelo responsável foi incorporado à entrada
+  institucional e convertido em favicon, ícones de instalação e imagem
+  otimizada. A identidade Veronica permanece nas páginas da Escola.
+- A oferta de arquitetura/white-label é apresentada como conversa comercial
+  por e-mail; não há checkout, preço ou licenciamento automatizado.
+- O código está na branch `feat/yolab-ecosystem-home`; produção não foi
+  alterada. A checagem visual em navegador externo não foi concluída porque
+  o navegador remoto bloqueou o servidor local. As duas rotas foram
+  verificadas por resposta SSR local.
+- Validação de código: **159 testes aprovados**, typecheck e build
+  Cloudflare/Nitro aprovados, lint direcionado sem erros (um aviso
+  preexistente de Fast Refresh em `SiteChrome.tsx`).
+
 ## Express Operations — rota operacional unificada (2026-09-23)
 
 - A central completa com navegação lateral em
