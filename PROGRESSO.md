@@ -1,4 +1,4 @@
-## Express Operations — segunda barreira de acesso (2026-09-22, local)
+## Express Operations — segunda barreira de acesso (2026-09-23, publicada)
 
 - O selo público deixou de ser suficiente para abrir o ambiente operacional da
   Express. O acesso agora exige também uma conta confirmada pelo OTP de e-mail
@@ -12,13 +12,17 @@
 - Nenhuma conversa real foi ligada ao painel, nenhuma integração externa foi
   ativada e nenhuma mensagem de WhatsApp foi enviada. O número atual da empresa
   continua intocado e a trava de envio permanece desligada.
-- Validação local concluída: **156 testes aprovados**, typecheck aprovado, lint
-  dos arquivos alterados aprovado e build Cloudflare/Nitro aprovado.
-- Próximo passo: cadastrar os e-mails responsáveis somente no ambiente seguro;
+- Publicado na `main` e confirmado em produção: a rota operacional responde com
+  a barreira de acesso fechada para visitantes sem credencial. Validação final:
+  **158 testes aprovados**, typecheck e build Cloudflare/Nitro aprovados.
+- Pendente de configuração operacional: cadastrar a allowlist no ambiente
+  seguro do Cloudflare. O painel permanece fechado enquanto a variável não for
+  gravada; o endereço autorizado não foi versionado no Git.
+- Próximo passo: concluir a allowlist e validar o OTP diretamente no painel;
   depois criar a consulta das conversas por `tenant = express-entulho`, em modo
   somente leitura e sem qualquer função de resposta.
 
-## Express Operations — observação e leitura operacional (2026-09-22, local)
+## Express Operations — observação e leitura operacional (2026-09-23, publicada)
 
 - A área de atendimento da Express foi ajustada para o modo **somente
   acompanhamento**: o campo de resposta e o botão de envio foram removidos da
