@@ -20,6 +20,7 @@ import { Route as SelosRouteImport } from './routes/selos'
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as NoticiasRouteImport } from './routes/noticias'
 import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as ComandosRouteImport } from './routes/comandos'
@@ -117,6 +118,11 @@ const PromptPacksRoute = PromptPacksRouteImport.update({
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoticiasRoute = NoticiasRouteImport.update({
+  id: '/noticias',
+  path: '/noticias',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembrosRoute = MembrosRouteImport.update({
@@ -355,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/comandos': typeof ComandosRoute
   '/escola': typeof EscolaRoute
   '/membros': typeof MembrosRoute
+  '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -410,6 +417,7 @@ export interface FileRoutesByTo {
   '/comandos': typeof ComandosRoute
   '/escola': typeof EscolaRoute
   '/membros': typeof MembrosRoute
+  '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -465,6 +473,7 @@ export interface FileRoutesById {
   '/comandos': typeof ComandosRoute
   '/escola': typeof EscolaRoute
   '/membros': typeof MembrosRoute
+  '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
@@ -522,6 +531,7 @@ export interface FileRouteTypes {
     | '/comandos'
     | '/escola'
     | '/membros'
+    | '/noticias'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -577,6 +587,7 @@ export interface FileRouteTypes {
     | '/comandos'
     | '/escola'
     | '/membros'
+    | '/noticias'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -631,6 +642,7 @@ export interface FileRouteTypes {
     | '/comandos'
     | '/escola'
     | '/membros'
+    | '/noticias'
     | '/portfolio'
     | '/prompt-packs'
     | '/selo-demo'
@@ -687,6 +699,7 @@ export interface RootRouteChildren {
   ComandosRoute: typeof ComandosRoute
   EscolaRoute: typeof EscolaRoute
   MembrosRoute: typeof MembrosRoute
+  NoticiasRoute: typeof NoticiasRoute
   PortfolioRoute: typeof PortfolioRoute
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
@@ -801,6 +814,13 @@ declare module '@tanstack/react-router' {
       path: '/portfolio'
       fullPath: '/portfolio'
       preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/noticias': {
+      id: '/noticias'
+      path: '/noticias'
+      fullPath: '/noticias'
+      preLoaderRoute: typeof NoticiasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/membros': {
@@ -1172,6 +1192,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComandosRoute: ComandosRoute,
   EscolaRoute: EscolaRoute,
   MembrosRoute: MembrosRoute,
+  NoticiasRoute: NoticiasRoute,
   PortfolioRoute: PortfolioRoute,
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
