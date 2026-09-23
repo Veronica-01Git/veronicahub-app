@@ -484,9 +484,11 @@ const HEADER_ACCENT_LINE =
 export function SiteHeader({
   showAuth = true,
   showWireShortcut = false,
+  brand = "veronica",
 }: {
   showAuth?: boolean;
   showWireShortcut?: boolean;
+  brand?: "veronica" | "yo";
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const headerNav = showWireShortcut
@@ -502,8 +504,27 @@ export function SiteHeader({
   return (
     <header className="vt-cabecalho sticky top-0 z-30 text-foreground border-b border-border/40 bg-background/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4">
-        <Link to="/" aria-label="Veronica Hub — início" className="shrink-0 font-display text-base">
-          Veronica · Hub
+        <Link
+          to="/"
+          aria-label="Início do ecossistema"
+          className="flex shrink-0 items-center gap-2.5 font-display text-base"
+        >
+          {brand === "yo" ? (
+            <>
+              <img
+                src="/images/brand/yo-lab-logo.webp"
+                alt=""
+                width="38"
+                height="38"
+                className="size-9"
+              />
+              <span className="text-sm tracking-tight sm:text-base">
+                YO LAB <span className="font-normal">& CO.</span>
+              </span>
+            </>
+          ) : (
+            "Veronica · Hub"
+          )}
         </Link>
         <nav aria-label="Navegação principal" className="hidden items-center gap-2 text-sm lg:flex">
           {headerNav.map((item, index) => (
@@ -622,18 +643,42 @@ export function CyborgBackdrop() {
   );
 }
 
-export function SiteFooter() {
+export function SiteFooter({
+  tagline = "Escola de Inteligência Artificial",
+  brand = "veronica",
+}: {
+  tagline?: string;
+  brand?: "veronica" | "yo";
+}) {
   return (
     <footer className="vt-rodape text-foreground border-t border-border/40 bg-background px-6 py-10">
       <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
         <div>
-          <Link to="/" className="font-display text-lg">
-            Veronica Hub
+          <Link to="/" className="inline-flex items-center gap-2 font-display text-lg">
+            {brand === "yo" ? (
+              <>
+                <img
+                  src="/images/brand/yo-lab-logo.webp"
+                  alt=""
+                  width="34"
+                  height="34"
+                  className="size-[34px]"
+                />{" "}
+                YO LAB & CO.
+              </>
+            ) : (
+              "Veronica Hub"
+            )}
           </Link>
-          <p className="mt-3 text-sm text-muted-foreground">Escola de Inteligência Artificial</p>
-          <p className="mt-2 text-xs text-muted-foreground">© 2026 Veronica Hub</p>
+          <p className="mt-3 text-sm text-muted-foreground">{tagline}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            © 2026 {brand === "yo" ? "YO LAB & CO. / Veronica Hub" : "Veronica Hub"}
+          </p>
         </div>
         <nav aria-label="Navegação do rodapé" className="flex flex-col items-start gap-3">
+          <Link to="/escola" className="text-sm hover:text-neon-green">
+            Escola Veronica
+          </Link>
           {PRIMARY_NAV.map((item) => (
             <Link
               key={item.id}

@@ -201,6 +201,9 @@ test("nenhuma rota pública nasce órfã — ou tem link, ou está declarada sem
     [...routeSources.matchAll(/createFileRoute\("([^"]+)"\)/g)].map((m) => semBarraFinal(m[1])),
   );
   const comLink = new Set([
+    // A nova entrada corporativa encaminha para a Escola, cujo destino é
+    // declarado em PRODUCTS e renderizado pelo navegador da Home.
+    semBarraFinal(PRODUCTS.find((p) => p.id === "school").to),
     ...[...HOME_PRODUCTS, ...PRIMARY_NAV, ...INTENT_LINKS, ...SPECIAL_PROJECTS].map((p) =>
       semBarraFinal(p.to),
     ),
