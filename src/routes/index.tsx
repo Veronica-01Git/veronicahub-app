@@ -84,75 +84,62 @@ function EcosystemHome() {
     <div className="yolab-home home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader brand="yo" />
       <main>
-        <section className="yolab-hero relative isolate overflow-hidden px-6 py-20 sm:py-28">
-          <div className="yolab-grain" aria-hidden="true" />
-          <div className="relative mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[1.1fr_.9fr]">
+        <section className="vh-hero relative isolate overflow-hidden px-6 pb-16 pt-16 sm:pb-20 sm:pt-24">
+          <div className="vh-hero-grid" aria-hidden="true" />
+          <div className="relative mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.15fr_.85fr]">
             <div>
-              <p className="yolab-eyebrow">
-                <span className="yolab-led" /> YO LAB & CO / VERONICA HUB
+              <p className="vh-eyebrow">
+                <span className="vh-led" aria-hidden="true" /> YO LAB &amp; CO · Veronica Hub
               </p>
-              <h1 className="mt-8 max-w-3xl font-display text-[clamp(3.3rem,7vw,7.5rem)] leading-[.94] tracking-[-.075em]">
-                Ideias viram <span className="yolab-word">sistemas.</span>
+              <h1 className="vh-h1 mt-7">
+                Inteligência aplicada
                 <br />
-                Sistemas viram possibilidades.
+                à sua operação.
               </h1>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-                Educação, criação, inteligência e agentes conectados em um ecossistema para pessoas
-                e negócios. A Veronica acompanha cada próximo passo.
+              <p className="vh-lead mt-6 max-w-xl">
+                Educação, criação, análise e agentes autônomos em um só ecossistema. A Veronica
+                conduz cada etapa, do primeiro passo ao sistema rodando.
               </p>
-              <div className="mt-9 flex flex-wrap gap-3">
-                <a href="#plataformas" className="yolab-button yolab-button-dark">
-                  Explorar o ecossistema <ArrowDownRight size={17} />
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a href="#plataformas" className="vh-cta vh-cta-primary">
+                  Explorar o ecossistema <ArrowRight size={16} />
                 </a>
-                <a href="#solucoes" className="yolab-button yolab-button-light">
-                  Soluções para negócios <ArrowUpRight size={17} />
+                <a href="#solucoes" className="vh-cta vh-cta-ghost">
+                  Soluções para negócios <ArrowUpRight size={16} />
                 </a>
               </div>
-              <p className="mt-10 font-mono-tech text-[10px] uppercase tracking-[.22em] text-muted-foreground">
-                Uma engenharia. Vários caminhos de entrada.
-              </p>
+
+              <nav aria-label="Áreas do ecossistema" className="vh-console mt-10">
+                {(
+                  [
+                    { label: "Aprender", ids: ["school", "zero", "formations"] },
+                    { label: "Criar", ids: ["studio", "portfolio", "packs"] },
+                    { label: "Operar", ids: ["agentes", "analytics", "security", "clientes"] },
+                  ] as const
+                ).map((group) => (
+                  <div key={group.label} className="vh-console-group">
+                    <span className="vh-console-label">{group.label}</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.ids.map((id) => (
+                        <ProductLink key={id} id={id} className="vh-console-link">
+                          {product(id).name}
+                        </ProductLink>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </nav>
+
+              {/* Jornal — canal editorial, separado das plataformas. */}
+              <Link to="/noticias" className="vh-news mt-6" aria-label={`${WIRE_NAME} — últimas notícias`}>
+                <span className="vh-news-dot" aria-hidden="true" />
+                <span className="vh-news-kicker">Últimas notícias</span>
+                <span className="vh-news-name">{WIRE_NAME}</span>
+                <ArrowUpRight size={13} className="opacity-60" />
+              </Link>
             </div>
-            <div
-              className="yolab-orbit relative mx-auto flex aspect-square w-full max-w-[560px] items-center justify-center"
-              aria-label="YO LAB & CO conecta Veronica à Escola, criação, inteligência e agentes"
-            >
-              <div className="yolab-orbit-ring yolab-orbit-ring-outer" aria-hidden="true" />
-              <div className="yolab-orbit-ring yolab-orbit-ring-inner" aria-hidden="true" />
-              <div className="yolab-orbit-core relative z-10 flex size-[48%] flex-col items-center justify-center rounded-full text-center">
-                <img
-                  src="/images/brand/yo-lab-logo.webp"
-                  alt=""
-                  width="46"
-                  height="46"
-                  className="mb-1 size-9 sm:size-11"
-                />
-                <span className="font-mono-tech text-[9px] uppercase tracking-widest text-white/60">
-                  Inteligência do ecossistema
-                </span>
-                <span className="mt-2 font-display text-[clamp(2rem,4vw,3.6rem)] tracking-[-.06em] text-white">
-                  Veronica<span className="text-[#9cf7c9]">.</span>
-                </span>
-                <span className="font-mono-tech text-[9px] uppercase tracking-widest text-white/60">
-                  por YO LAB & CO
-                </span>
-              </div>
-              {(
-                [
-                  { id: "school", label: "Escola", place: "school" },
-                  { id: "studio", label: "Criar", place: "studio" },
-                  { id: "analytics", label: "Analisar", place: "data" },
-                  { id: "agentes", label: "Operar", place: "agents" },
-                ] as const
-              ).map((node) => (
-                <ProductLink
-                  key={node.id}
-                  id={node.id}
-                  className={`yolab-orbit-node yolab-orbit-node-${node.place}`}
-                >
-                  {node.label} <ArrowUpRight size={12} />
-                </ProductLink>
-              ))}
-            </div>
+
+            <NeuralOrb />
           </div>
         </section>
 
