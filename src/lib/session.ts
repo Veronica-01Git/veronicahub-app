@@ -18,6 +18,9 @@ function getSessionManager() {
 }
 
 export async function getSessionUserId(): Promise<string | null> {
+  // Leitura tolerante: sem segredo configurado, trata como "não logado"
+  // em vez de derrubar a página inteira.
+  if (!process.env.SESSION_SECRET) return null;
   const session = await getSessionManager();
   return session.data.userId ?? null;
 }
