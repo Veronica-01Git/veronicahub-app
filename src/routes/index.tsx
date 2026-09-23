@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { SiteFooter, SiteHeader, SOCIAL_LINKS } from "@/components/SiteChrome";
+import { NeuralOrb } from "@/components/home/NeuralOrb";
 import { product, WIRE_NAME } from "@/lib/ecosystem";
 
 // Curadoria de IDs; os dados e destinos continuam na fonte canônica.
