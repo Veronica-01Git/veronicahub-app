@@ -1,3 +1,17 @@
+## Express Operations — demonstração visual "Modo Sombra" (2026-09-24)
+
+- Nova aba **Demonstração — Modo Sombra** dentro da mesma rota
+  `/clientes/express-entulho/operacoes`: lista de 5-6 conversas fictícias com
+  selo de intenção, thread simulado, painel de dados extraídos (com destaque
+  para dado ausente), resposta sugerida pela IA e botão "Aprovar" que só marca
+  estado local e mostra o aviso "Envio bloqueado — modo sombra ativo".
+- **É Demonstrativo, não Funcionando.** Todos os dados vêm de um array
+  mockado no próprio componente (TypeScript) — sem tabela nova no Neon, sem
+  migration, sem webhook real, sem chamada ao Groq e sem qualquer API real do
+  WhatsApp. O backend real (número dedicado, webhook, extração de dados de
+  conversa real) segue pendente, como já registrado nas entradas anteriores.
+- Validação local: typecheck e build (Vite/Nitro) aprovados.
+
 ## Nova entrada YO LAB & CO / Escola Veronica (2026-09-23, branch de revisão)
 
 - A Home institucional do ecossistema foi criada em `/` com jornadas para aprender,

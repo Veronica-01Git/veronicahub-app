@@ -20,6 +20,7 @@ import {
   Map as MapIcon,
   MessagesSquare,
   ShieldCheck,
+  Sparkles,
   Truck,
   UsersRound,
   Wallet,
@@ -40,6 +41,12 @@ export type ItemNav = {
 export const ITENS_NAV: readonly ItemNav[] = [
   { slug: "", rotulo: "Visão geral", icone: LayoutDashboard, pronta: true },
   { slug: "testar", rotulo: "Sala de teste", icone: MessageCircle, pronta: true },
+  {
+    slug: "demonstracao",
+    rotulo: "Demonstração — Modo Sombra",
+    icone: Sparkles,
+    pronta: true,
+  },
   { slug: "atendimento", rotulo: "Central de atendimento", icone: MessagesSquare, pronta: true },
   { slug: "aprovacoes", rotulo: "Aprovações humanas", icone: ShieldCheck, pronta: true },
   {
