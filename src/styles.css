@@ -1280,3 +1280,13 @@
     }
   }
 }
+
+/* Hero minimal — ajustes mobile/tablet */
+@media (max-width: 640px) {
+  .vh-hero .vh-cta { width: 100%; justify-content: center; min-height: 48px; }
+  .vh-console-group { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: .5rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .vh-console-group::-webkit-scrollbar { display: none; }
+  .vh-console-link { flex: 0 0 auto; min-height: 44px; display: inline-flex; align-items: center; }
+  .vh-news { min-height: 44px; }
+  .neural-orb { max-width: 300px; }
+}
