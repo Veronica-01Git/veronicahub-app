@@ -51,6 +51,30 @@ de dentro da conta Meta for Developers de quem está configurando — nenhuma
 ferramenta de automação tem como gerá-las ou buscá-las por fora. As duas
 últimas (`VERIFY_TOKEN`, `ENVIO_LIBERADO`) já estão resolvidas acima.
 
+### Progresso ao vivo, feito com o responsável (24/09, tarde)
+
+Conduzido print a print, pelo celular e depois pelo PC.
+
+- App Meta for Developers criado: **"Express Entulho Agente"**, ID
+  `3981170865355653`. Conta Cloudflare: `ee5446d6140e2daaedb39c86a64d2a44`
+  (`dash.cloudflare.com/ee5446d6140e2daaedb39c86a64d2a44/workers/services/view/veronicahub-app/production/settings`).
+- Portfólio empresarial **"Express Entulho"** criado (verificação de negócio
+  adiada de propósito — não é necessária pro número de teste).
+- Caso de uso "Conectar-se com os clientes pelo WhatsApp" personalizado.
+- Número de teste reivindicado: **+1 (555) 185-0555**.
+- `WHATSAPP_PHONE_NUMBER_ID` = `1320896757776543` (confirmado na tela da
+  Meta; a primeira tentativa de colar no Cloudflare errou o campo — colou no
+  "Key" em vez do "Value". Conferir se ficou salvo certo antes de seguir).
+- `WHATSAPP_BUSINESS_ACCOUNT_ID` = `1131873005941228` (não é uma das 5
+  variáveis do projeto, mas fica registrado caso precise).
+- **Bloqueado:** gerar o token de acesso trava com erro do Facebook
+  "An invalid Platform session was found" no popup OAuth, repetido tanto no
+  Safari do celular (que chegou a crashar a aba) quanto na primeira tentativa
+  do Chrome desktop. Ainda não resolvido — próxima tentativa: aba anônima do
+  Chrome no PC. Se persistir, suspeitar de extensão de bloqueio de
+  cookies/terceiros no navegador, não de configuração da Meta.
+- `WHATSAPP_APP_SECRET` ainda não coletado (Configurações do app > Básico).
+
 **Depois de colar as 4 no painel do Cloudflare** (Workers & Pages →
 `veronicahub-app` → Settings → Variables and Secrets), falta:
 
