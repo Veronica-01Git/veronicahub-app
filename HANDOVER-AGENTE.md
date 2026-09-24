@@ -67,16 +67,16 @@ Conduzido print a print, pelo celular e depois pelo PC.
   "Key" em vez do "Value". Conferir se ficou salvo certo antes de seguir).
 - `WHATSAPP_BUSINESS_ACCOUNT_ID` = `1131873005941228` (não é uma das 5
   variáveis do projeto, mas fica registrado caso precise).
-- **Bloqueado:** gerar o token de acesso trava com erro do Facebook
-  "An invalid Platform session was found" no popup OAuth, repetido tanto no
-  Safari do celular (que chegou a crashar a aba) quanto na primeira tentativa
-  do Chrome desktop. Ainda não resolvido — próxima tentativa: aba anônima do
-  Chrome no PC. Se persistir, suspeitar de extensão de bloqueio de
-  cookies/terceiros no navegador, não de configuração da Meta.
-- `WHATSAPP_APP_SECRET` ainda não coletado (Configurações do app > Básico).
+- Token de acesso: o erro "An invalid Platform session was found" do popup
+  OAuth (visto no Safari do celular e na primeira tentativa do Chrome)
+  **se resolveu sozinho** numa tentativa seguinte no Chrome desktop — não
+  precisou de aba anônima. Token gerado e coletado.
+- **As 5 variáveis do WhatsApp estão salvas em produção no Cloudflare**:
+  `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`,
+  `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ENVIO_LIBERADO` — confirmado pelo
+  próprio responsável em 24/09, tipo Secret, ambiente Production.
 
-**Depois de colar as 4 no painel do Cloudflare** (Workers & Pages →
-`veronicahub-app` → Settings → Variables and Secrets), falta:
+**Falta agora:**
 
 1. Configurar o Webhook no painel da Meta: URL `https://veronicahub.com/api/whatsapp/webhook`,
    token de verificação = o mesmo `WHATSAPP_VERIFY_TOKEN`, assinar o campo `messages`.
