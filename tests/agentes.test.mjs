@@ -179,6 +179,7 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/clientes/express-entulho/operacoes/aprovacoes",
   "/clientes/express-entulho/operacoes/atendimento",
   "/clientes/express-entulho/operacoes/cacambas",
+  "/clientes/express-entulho/operacoes/demonstracao",
   "/clientes/express-entulho/operacoes/despacho",
   "/clientes/express-entulho/operacoes/operacoes-hoje",
   "/clientes/express-entulho/operacoes/regras-do-agente",
@@ -187,6 +188,10 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/blog/expediente",
   "/blog/rede-de-fontes",
   "/blog/rede-de-fontes/relatorios",
+  // Endereço curto que redireciona pra /blog. Mesmo padrão dos outros
+  // redirects de endereço antigo acima — gap pré-existente na main,
+  // fechado aqui porque o teste combina tudo numa lista só.
+  "/noticias",
   "/selos",
   "/selo-demo",
   "/aula-zero",
