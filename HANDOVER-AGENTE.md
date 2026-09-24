@@ -14,6 +14,58 @@ código**, não de memória. Onde eu não sei, está escrito que não sei.
 
 ---
 
+## 0.1 Estado em 24/09/2026 — checklist do número de teste da Meta, em andamento
+
+Conferido lendo os secrets do Worker `veronicahub-app` no painel do
+Cloudflare (nomes, não valores — os valores continuam ocultos).
+
+**Já configurado (confirmado hoje):**
+
+- `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, `GEMINI_API_KEY` — a cadeia de
+  provedores tem credencial nos 3 primeiros elos. A Sala de Teste
+  (`/clientes/express-entulho/operacoes/testar`) responde com IA real.
+- `CRON_SECRET`, `DATABASE_URL`, `SESSION_SECRET` e os demais secrets do
+  produto — presentes, sem relação com o WhatsApp.
+
+**Faltando (é isto que falta pra ligar o número de TESTE da Meta — não o da
+empresa, que é permanente pelo `AGENTS.md`):**
+
+- `WHATSAPP_PHONE_NUMBER_ID` — vem do painel *Configuração da API* do app
+  Meta for Developers, número de teste.
+- `WHATSAPP_ACCESS_TOKEN` — mesmo painel. **Expira em 24h** se for o token
+  temporário; para não vencer no meio de uma demonstração, gerar um token de
+  **Usuário do Sistema** na Meta Business Suite (permanente).
+- `WHATSAPP_APP_SECRET` — em *Configurações > Básico* do app.
+- `WHATSAPP_VERIFY_TOKEN` — não vem de lugar nenhum, é inventado por quem
+  configura e repetido no painel da Meta. Valor sugerido nesta sessão:
+  `0778169ea7e6238676e34fbc0753887807213d6228ea4839` (gerado com
+  `openssl rand -hex 24`, ainda não aplicado em nenhum lugar).
+- `WHATSAPP_ENVIO_LIBERADO` — trava own do projeto, não da Meta. O código
+  (`src/lib/whatsapp-cloud.ts:37`) exige exatamente o valor
+  `sim-o-dono-aprovou`. Sem essa string exata, o envio fica bloqueado mesmo
+  com as outras três credenciais presentes — é a trava de segurança
+  funcionando, não um bug.
+
+As três primeiras (`PHONE_NUMBER_ID`, `ACCESS_TOKEN`, `APP_SECRET`) só saem
+de dentro da conta Meta for Developers de quem está configurando — nenhuma
+ferramenta de automação tem como gerá-las ou buscá-las por fora. As duas
+últimas (`VERIFY_TOKEN`, `ENVIO_LIBERADO`) já estão resolvidas acima.
+
+**Depois de colar as 4 no painel do Cloudflare** (Workers & Pages →
+`veronicahub-app` → Settings → Variables and Secrets), falta:
+
+1. Configurar o Webhook no painel da Meta: URL `https://veronicahub.com/api/whatsapp/webhook`,
+   token de verificação = o mesmo `WHATSAPP_VERIFY_TOKEN`, assinar o campo `messages`.
+2. Cadastrar em *Para*, na Meta, os números que vão **receber** mensagens de
+   teste (o do dono, o do desenvolvedor — nunca o número atual da empresa
+   como remetente).
+3. Rodar `curl -H "Authorization: Bearer $CRON_SECRET" https://veronicahub.com/api/whatsapp/diagnostico`
+   pra confirmar que a Meta aceitou o token.
+
+Guia completo, passo a passo, já existe em `AGENTE-WHATSAPP.md`, seção 2.
+
+---
+
 ## 0. Erratas — leia antes de confiar no resto
 
 Este documento nasceu em 19/09 descrevendo o commit `da28803`. Entre 18/09 e
