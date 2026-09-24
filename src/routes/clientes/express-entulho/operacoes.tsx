@@ -139,6 +139,7 @@ function PortaFechada({
 
 const APOIO: Record<string, string> = {
   "": "Sexta-feira, 14 de setembro · dados fictícios",
+  demonstracao: "Vitrine interativa com dados fictícios — envio sempre bloqueado",
   atendimento: "Conversas do WhatsApp atendidas pelo agente",
   aprovacoes: "Decisões que a IA escalou para um humano",
   "operacoes-hoje": "Entregas e retiradas do dia",
