@@ -24,6 +24,9 @@ function getManager() {
 }
 
 export async function getPrivateClientSession(): Promise<PrivateClientSession | null> {
+  // Sem segredo válido: trata como "sem sessão" em vez de derrubar a página.
+  const secret = process.env.SESSION_SECRET;
+  if (!secret || secret.length < 32) return null;
   const session = await getManager();
   const { clientId, grantedAt } = session.data;
   if (!clientId || !grantedAt) return null;

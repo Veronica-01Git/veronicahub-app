@@ -566,11 +566,13 @@ export function SiteHeader({
               <AuthWidget variant="mobile" />
             </div>
           )}
-          {showWireShortcut && (
-            <div className="sm:hidden">
-              <WireNewsShortcut mobile />
-            </div>
-          )}
+          <Link
+            to="/noticias"
+            onClick={() => setMobileOpen(false)}
+            className="flex min-h-12 items-center gap-2 border-b border-border/40 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground"
+          >
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-neon-red" /> Últimas notícias
+          </Link>
           {headerNav.map((item, index) => (
             <div key={item.id}>
               <Link

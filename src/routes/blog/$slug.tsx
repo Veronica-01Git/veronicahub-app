@@ -12,6 +12,7 @@ import {
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { ArticleShare } from "@/components/blog/ArticleShare";
+import { NewsAssistant } from "@/components/blog/NewsAssistant";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
 import { WIRE_NAME } from "@/lib/ecosystem";
@@ -245,6 +246,9 @@ function ArticlePage() {
               coverImageUrl={state.article.coverImageUrl}
               photoCredit={state.article.coverPhotoCredit}
             />
+
+            <NewsAssistant headline={state.article.headline} body={state.article.body} />
+
 
             <div
               className="mt-9 flex flex-col gap-5 text-[18px] leading-[1.78] text-foreground/90"
