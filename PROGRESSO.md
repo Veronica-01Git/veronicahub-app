@@ -1,3 +1,31 @@
+## Número de teste do WhatsApp — motor pronto, falta a Meta liberar (2026-09-24)
+
+- Confirmado que o núcleo do agente já estava pronto antes de hoje: cadeia
+  de 4 provedores de IA com fallback (Anthropic → Groq → Groq reserva →
+  Gemini), guarda de preço determinística, webhook com validação de
+  assinatura, 159 testes passando. A Sala de Teste
+  (`/clientes/express-entulho/operacoes/testar`) já responde com IA real.
+- App na Meta for Developers criado ("Express Entulho Agente"), número de
+  teste reivindicado, e as 5 variáveis do WhatsApp
+  (`WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`,
+  `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ENVIO_LIBERADO`)
+  configuradas em produção no Cloudflare. Webhook verificado, recebendo
+  eventos da Meta normalmente.
+- **Teste real de envio para um número brasileiro falhou**: erro 130497,
+  "Business account is restricted from messaging users in this country" —
+  restrição da Meta pra contas sem verificação de negócio. Não é bug do
+  código; é a pendência #2 de `PENDENCIAS-CLIENTE.md` (verificação de
+  negócio / CNPJ), agora confirmada em teste real.
+- Verificação de negócio iniciada, mas **parada esperando documento da
+  empresa** (Cartão CNPJ ou similar) — só o dono consegue enviar. Detalhe
+  técnico completo, incluindo um endereço novo que a Meta encontrou
+  automaticamente (a reconciliar com a pendência #3), está em
+  `HANDOVER-AGENTE.md`.
+- **Resumo pro dono:** a tecnologia funciona e já pode ser vista hoje
+  (Sala de Teste + demonstração visual). O que falta pro WhatsApp real é
+  burocracia da Meta, não engenharia — precisa de um documento da empresa
+  pra destravar.
+
 ## Express Operations — demonstração visual "Modo Sombra" (2026-09-24)
 
 - Nova aba **Demonstração — Modo Sombra** dentro da mesma rota

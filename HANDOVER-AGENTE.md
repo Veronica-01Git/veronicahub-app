@@ -91,14 +91,35 @@ Conduzido print a print, pelo celular e depois pelo PC.
   `PENDENCIAS-CLIENTE.md` (verificação de negócio, CNPJ), só que agora
   provada em teste real, não só documentada como risco.
 
+### Verificação de negócio — iniciada, pausada esperando documento (24/09, 21:53)
+
+- Portfólio empresarial preenchido com CNPJ, nome e nome fantasia.
+- Telefone de contato usado: número pessoal do desenvolvedor (não o
+  WhatsApp da empresa — esse campo é só confirmação de contato pra Meta,
+  não vira remetente de nada; não fere a restrição do `AGENTS.md`).
+- Site usado: `https://veronicahub.com/clientes/express-entulho/proposta`
+  (o Instagram foi recusado pela Meta como "domínio de site comum").
+- **A Meta não achou correspondência automática** e pediu upload de
+  documento. Parado aqui de propósito — precisa do dono, amanhã.
+- **Dado novo, útil pra reconciliar com a pendência #3** (divergência de
+  endereço): a busca automática da Meta devolveu
+  **razão social "INOVACAO SERVICOS ADMINISTRATIVOS E TRANSPORTE LTDA"**,
+  endereço **"Rua Benjamin Franklin Pereira, 365, 88304-069, Itajaí"**.
+  Esse é um TERCEIRO endereço, diferente dos dois que a pendência #3 já
+  citava (Vila Operária / São João) — confirmar com o dono qual é o
+  correto antes de enviar o documento.
+
 **Falta agora — em ordem de bloqueio:**
 
-1. **Verificação de negócio na Meta** (Etapa 3, dentro de "Casos de uso" →
-   "Conectar-se com os clientes pelo WhatsApp" → "Configuração básica").
-   Pede documentos da empresa (CNPJ, endereço). Só o responsável consegue
-   avançar isso — exige documento oficial e login dele. Aprovação da Meta
-   pode levar de minutos a alguns dias úteis. **Sem isso, nenhuma mensagem
-   sai pra número brasileiro nesse app**, mesmo sendo número de teste.
+1. **Enviar documento da empresa na verificação** (Cadastro Nacional de
+   Pessoa Jurídica é o mais simples — já estava selecionado). Só o
+   responsável consegue, precisa de PDF/foto do documento e login dele.
+   Formatos aceitos: .jpg, .png, .pdf. Retomar em "Casos de uso" →
+   "Conectar-se com os clientes pelo WhatsApp" → "Configuração básica" →
+   "Etapa 3. Verificação da empresa". Aprovação da Meta pode levar de
+   minutos a alguns dias úteis depois do envio. **Sem isso, nenhuma
+   mensagem sai pra número brasileiro nesse app**, mesmo sendo número de
+   teste.
 2. Depois de verificado: repetir o teste de envio pela mesma tela
    ("Etapa 1. Experimente" → "Enviar mensagem") pra confirmar que o erro
    130497 sumiu.
