@@ -16,15 +16,15 @@
   restrição da Meta pra contas sem verificação de negócio. Não é bug do
   código; é a pendência #2 de `PENDENCIAS-CLIENTE.md` (verificação de
   negócio / CNPJ), agora confirmada em teste real.
-- Verificação de negócio iniciada, mas **parada esperando documento da
-  empresa** (Cartão CNPJ ou similar) — só o dono consegue enviar. Detalhe
-  técnico completo, incluindo um endereço novo que a Meta encontrou
-  automaticamente (a reconciliar com a pendência #3), está em
-  `HANDOVER-AGENTE.md`.
+- Verificação de negócio **enviada e em análise** — documento da empresa
+  encontrado e submetido no mesmo dia. A Meta confirmou recebimento com
+  prazo de ~2 dias úteis pra concluir a análise. Detalhe técnico
+  completo, incluindo um endereço novo que a Meta encontrou automaticamente
+  (a reconciliar com a pendência #3), está em `HANDOVER-AGENTE.md`.
 - **Resumo pro dono:** a tecnologia funciona e já pode ser vista hoje
-  (Sala de Teste + demonstração visual). O que falta pro WhatsApp real é
-  burocracia da Meta, não engenharia — precisa de um documento da empresa
-  pra destravar.
+  (Sala de Teste + demonstração visual). O WhatsApp real está com a
+  verificação de negócio já enviada à Meta, em análise — sem mais nada
+  pendente do nosso lado até ela responder.
 
 ## Express Operations — demonstração visual "Modo Sombra" (2026-09-24)
 

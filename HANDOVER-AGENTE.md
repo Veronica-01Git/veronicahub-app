@@ -109,18 +109,17 @@ Conduzido print a print, pelo celular e depois pelo PC.
   citava (Vila Operária / São João) — confirmar com o dono qual é o
   correto antes de enviar o documento.
 
+**Atualização (24/09, 22:01) — documento enviado, verificação EM ANÁLISE.**
+O responsável achou o Cadastro Nacional de Pessoa Jurídica e enviou pela
+tela de upload. A Meta confirmou recebimento: **"A análise do seu envio
+deverá levar aproximadamente 2 dias úteis."** Ela mesma avisa quando
+terminar — não precisa ficar checando.
+
 **Falta agora — em ordem de bloqueio:**
 
-1. **Enviar documento da empresa na verificação** (Cadastro Nacional de
-   Pessoa Jurídica é o mais simples — já estava selecionado). Só o
-   responsável consegue, precisa de PDF/foto do documento e login dele.
-   Formatos aceitos: .jpg, .png, .pdf. Retomar em "Casos de uso" →
-   "Conectar-se com os clientes pelo WhatsApp" → "Configuração básica" →
-   "Etapa 3. Verificação da empresa". Aprovação da Meta pode levar de
-   minutos a alguns dias úteis depois do envio. **Sem isso, nenhuma
-   mensagem sai pra número brasileiro nesse app**, mesmo sendo número de
-   teste.
-2. Depois de verificado: repetir o teste de envio pela mesma tela
+1. **Aguardar a Meta aprovar a verificação** (~2 dias úteis a partir de
+   24/09, 22:01). Nada a fazer enquanto isso não sai.
+2. Depois de aprovada: repetir o teste de envio pela mesma tela
    ("Etapa 1. Experimente" → "Enviar mensagem") pra confirmar que o erro
    130497 sumiu.
 3. Rodar `curl -H "Authorization: Bearer $CRON_SECRET" https://veronicahub.com/api/whatsapp/diagnostico`
