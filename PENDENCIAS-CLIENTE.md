@@ -48,23 +48,19 @@ recebidos nesta conversa). O que mudou:
   em Itapema. Ainda é indício, não confirmação direta do dono — mas é o
   primeiro indício que aponta pra essa combinação específica (cidade ×
   gesso), e não só pra demolição.
-- **Quatro regras de negócio novas, achadas em conversas reais, ainda sem
-  confirmação formal do dono — pra levar junto na próxima conversa de
-  preço:**
-  1. **Prazo de retirada em alta demanda**: até 24h depois do cliente
-     avisar que a caçamba está cheia. Não existe em lugar nenhum do
-     sistema hoje.
-  2. **Pagamento flexível**: Pix aceito tanto na entrega quanto antes da
-     coleta — hoje o sistema não distingue isso.
-  3. **Motivo real usado pra recusar desconto**: "reajuste de preço no
-     aterro". Vale como frase-modelo pra guarda de alçada comercial.
-  4. **Dado que falta no cadastro do cliente**: CPF, além de nome e
-     endereço — necessário pra abrir ordem de serviço, e a coleta de
-     dados hoje (inclusive a demo visual) não pede isso.
-
-Nenhuma dessas quatro regras entrou no código ainda — ficam registradas
-aqui até o dono confirmar, seguindo a mesma disciplina do resto deste
-arquivo: indício de conversa não é confirmação.
+- **Correção da própria noite de 24/09**: eu tinha listado aqui quatro
+  "regras novas" vindas de prints — errado, sem checar o código primeiro.
+  Conferido depois: **três das quatro já estavam implementadas antes de
+  hoje**, com a mesma frase do dono e tudo, em `src/lib/whatsapp-rules.ts`:
+  prazo de retirada de 24h em alta demanda (`prazoRecolhaHoras: 24`),
+  comprovante de pagamento antes da recolha
+  (`comprovanteAntesDaRecolha`, com a frase do dono citada no código),
+  e o script de recusa de desconto ("reajuste de preço no aterro"), que
+  já está em `montarSystemPrompt` em `whatsapp-agent.ts`. Formas de
+  pagamento (Pix, dinheiro, cartão em 2x) e a exigência de CPF também já
+  estão em `dadosParaAgendar`/`formasPagamento`. **A única coisa real que
+  faltava: o agente não sabe enviar foto** (de caçamba, por exemplo) —
+  isso é infraestrutura nova, registrado em `HANDOVER-AGENTE.md`.
 
 ---
 
