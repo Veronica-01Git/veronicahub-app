@@ -132,6 +132,48 @@ mesma guarda de preço, só não passa pelo canal WhatsApp.
 
 Guia completo, passo a passo, já existe em `AGENTE-WHATSAPP.md`, seção 2.
 
+### Pedido do responsável (24/09, à noite) — adiado de propósito, não esquecido
+
+Depois de ver o número de teste funcionando, o responsável pediu três coisas
+maiores, na mesma conversa. Decisão consciente: **não construir isso às 23h
+sem teste** — mesma lição do modo blindado que a seção 0 já registra. Fica
+descrito aqui pra quem pegar o próximo turno não precisar redescobrir o
+pedido nem o motivo do adiamento.
+
+1. **Rota "Cérebro do agente"**, dentro do painel operacional: dono ou
+   funcionário edita, adiciona ou remove regras de negócio e "forma de
+   responder" da IA — sem precisar de mim pra cada ajuste de preço ou
+   política. Ainda não desenhada. Ponto de partida natural: a tela
+   "Regras do agente" já existente (`/operacoes/regras-do-agente`), que
+   hoje só mostra a matriz — teria que ganhar edição de verdade, com
+   autenticação e validação (a guarda de preço não pode virar editável por
+   qualquer um sem querer).
+2. **Alerta pro número pessoal do Junior em casos extremos.**
+   **Canal escolhido: WhatsApp.** Ainda não tem desenho técnico — precisa
+   decidir: WhatsApp Business API (mais um número, mais uma credencial) ou
+   encaminhar por dentro do número de teste que já existe; o que conta
+   como "caso extremo" (a guarda de preço já escala pra humano — isso
+   seria uma segunda camada, só pra emergência); e for a onde esse alerta
+   é dado (painel? WhatsApp direto?).
+3. **Duas regras de negócio pedidas por instrução direta, não por
+   evidência de print** — cidades mais distantes e material vidro: a
+   agente deve dizer que vai **verificar com a equipe**, em vez de
+   tentar responder. Mais fácil que os itens acima: é regra de
+   encaminhamento, não preço. Cidades "mais distantes" ainda precisa de
+   definição (quais, das 8 cadastradas, contam como distantes?) e "vidro"
+   ainda não existe como `MaterialId` em `whatsapp-rules.ts` — hoje só
+   `demolicao` e `gesso`.
+
+Também pedido: deixar o painel "como um aplicativo móbil fácil de
+executar" — tratamento de responsividade/polish visual, válido, mas é
+teste de navegador antes de ir pro ar, não trabalho de uma sessão corrida.
+
+Nenhuma dessas três entrou em código nesta sessão. Regras de negócio
+novas encontradas em conversas reais (prazo de retirada, pagamento
+flexível, script de recusa de desconto, campo CPF faltando) estão
+registradas em `PENDENCIAS-CLIENTE.md`, não aqui — são pendência do
+dono confirmar, não decisão técnica.
+
 ---
 
 ## 0. Erratas — leia antes de confiar no resto

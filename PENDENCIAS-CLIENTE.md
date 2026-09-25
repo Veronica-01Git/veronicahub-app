@@ -35,6 +35,37 @@ empresa (14/09) e a conversa do dono com cliente (19/09). O que mudou:
   sala de teste em `/clientes/express-entulho/operacoes/testar`. Isso não é
   pendência dele; é bloqueio nosso que saiu do caminho.
 
+**Atualizado em 24/09/2026 (à noite)**, depois de configurar o número de
+teste do WhatsApp e ler prints de conversas reais da empresa (não datadas,
+recebidos nesta conversa). O que mudou:
+
+- **Item 2 (verificação de negócio) foi enviado à Meta e está em análise**
+  — não é mais "a fazer", é "aguardando resposta", prazo declarado de ~2
+  dias úteis. Detalhe técnico em `HANDOVER-AGENTE.md`.
+- **A pergunta 4 da lista de preços (Itapema, gesso: menor R$ 250, grande
+  R$ 470) ganhou reforço real**: um print de conversa mostra a empresa
+  cotando exatamente esses valores pra um pedido de descarte de **gesso**
+  em Itapema. Ainda é indício, não confirmação direta do dono — mas é o
+  primeiro indício que aponta pra essa combinação específica (cidade ×
+  gesso), e não só pra demolição.
+- **Quatro regras de negócio novas, achadas em conversas reais, ainda sem
+  confirmação formal do dono — pra levar junto na próxima conversa de
+  preço:**
+  1. **Prazo de retirada em alta demanda**: até 24h depois do cliente
+     avisar que a caçamba está cheia. Não existe em lugar nenhum do
+     sistema hoje.
+  2. **Pagamento flexível**: Pix aceito tanto na entrega quanto antes da
+     coleta — hoje o sistema não distingue isso.
+  3. **Motivo real usado pra recusar desconto**: "reajuste de preço no
+     aterro". Vale como frase-modelo pra guarda de alçada comercial.
+  4. **Dado que falta no cadastro do cliente**: CPF, além de nome e
+     endereço — necessário pra abrir ordem de serviço, e a coleta de
+     dados hoje (inclusive a demo visual) não pede isso.
+
+Nenhuma dessas quatro regras entrou no código ainda — ficam registradas
+aqui até o dono confirmar, seguindo a mesma disciplina do resto deste
+arquivo: indício de conversa não é confirmação.
+
 ---
 
 ## Resumo
