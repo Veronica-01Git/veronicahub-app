@@ -76,15 +76,39 @@ Conduzido print a print, pelo celular e depois pelo PC.
   `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ENVIO_LIBERADO` — confirmado pelo
   próprio responsável em 24/09, tipo Secret, ambiente Production.
 
-**Falta agora:**
+- **Webhook configurado e verificado** na Meta: URL
+  `https://veronicahub.com/api/whatsapp/webhook`, token de verificação
+  batendo com `WHATSAPP_VERIFY_TOKEN`. A Meta confirmou a assinatura
+  automática de vários campos, incluindo `messages` — o que importa pra
+  receber mensagem de cliente.
+- Destinatário de teste cadastrado (número pessoal do responsável,
+  `+55 47 99605-7436`), dentro do limite de 5 da Meta.
+- **Teste real de envio feito às 20:58 (24/09) — FALHOU com erro 130497:**
+  `"Business account is restricted from messaging users in this country."`
+  Confirmado lendo a carga completa do webhook de status. **Não é bug do
+  código** — é a Meta bloqueando contas sem verificação de negócio de
+  mandar mensagem pra números do Brasil. É a mesma pendência #2 de
+  `PENDENCIAS-CLIENTE.md` (verificação de negócio, CNPJ), só que agora
+  provada em teste real, não só documentada como risco.
 
-1. Configurar o Webhook no painel da Meta: URL `https://veronicahub.com/api/whatsapp/webhook`,
-   token de verificação = o mesmo `WHATSAPP_VERIFY_TOKEN`, assinar o campo `messages`.
-2. Cadastrar em *Para*, na Meta, os números que vão **receber** mensagens de
-   teste (o do dono, o do desenvolvedor — nunca o número atual da empresa
-   como remetente).
+**Falta agora — em ordem de bloqueio:**
+
+1. **Verificação de negócio na Meta** (Etapa 3, dentro de "Casos de uso" →
+   "Conectar-se com os clientes pelo WhatsApp" → "Configuração básica").
+   Pede documentos da empresa (CNPJ, endereço). Só o responsável consegue
+   avançar isso — exige documento oficial e login dele. Aprovação da Meta
+   pode levar de minutos a alguns dias úteis. **Sem isso, nenhuma mensagem
+   sai pra número brasileiro nesse app**, mesmo sendo número de teste.
+2. Depois de verificado: repetir o teste de envio pela mesma tela
+   ("Etapa 1. Experimente" → "Enviar mensagem") pra confirmar que o erro
+   130497 sumiu.
 3. Rodar `curl -H "Authorization: Bearer $CRON_SECRET" https://veronicahub.com/api/whatsapp/diagnostico`
-   pra confirmar que a Meta aceitou o token.
+   pra confirmar que a Meta aceita o token do lado do nosso Worker também.
+
+**Enquanto a verificação não sai**, o que já é demonstrável de verdade,
+sem depender da Meta: a Sala de Teste
+(`/clientes/express-entulho/operacoes/testar`) — mesmo agente, mesma IA,
+mesma guarda de preço, só não passa pelo canal WhatsApp.
 
 Guia completo, passo a passo, já existe em `AGENTE-WHATSAPP.md`, seção 2.
 
