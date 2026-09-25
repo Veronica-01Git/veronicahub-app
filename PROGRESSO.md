@@ -1,3 +1,35 @@
+## Sala de Teste destravada, e correção de documentação (2026-09-24, madrugada)
+
+- **Sala de Teste** (`/clientes/express-entulho/operacoes/testar`) estava
+  desligada em produção por faltar `TESTE_AGENTE_TOKEN` — trava de custo
+  proposital, não bug. Secret criado e salvo no Cloudflare. O link de
+  acesso agora exige o token na URL (`?t=...`); valor está só em
+  `HANDOVER-AGENTE.md`, não neste arquivo público.
+- **Correção importante**: eu tinha registrado em `PENDENCIAS-CLIENTE.md`
+  quatro "regras de negócio novas", vindas de prints de conversa real,
+  sem checar o código primeiro. Na conferência, três delas (prazo de
+  retirada 24h, comprovante antes da recolha, script de recusa de
+  desconto) e os campos de CPF/formas de pagamento **já estavam
+  implementados** em `whatsapp-rules.ts` e `whatsapp-agent.ts` antes
+  desta sessão — inclusive com as mesmas frases do dono. Documentação
+  corrigida. Também confirmado: o endereço que a Meta achou sozinha na
+  verificação de negócio (Rua Benjamin Franklin Pereira, 365, Itajaí)
+  **bate** com o endereço já cadastrado no sistema — não era um terceiro
+  endereço divergente, como eu tinha registrado por engano ontem à noite.
+- **O que realmente falta, confirmado**: o agente ainda não sabe **enviar
+  foto** (ex.: foto da caçamba ao cotar). Pedido do responsável, com duas
+  fotos reais de produto já recebidas nesta conversa. Infraestrutura de
+  mídia parcial já existe (`enviarMedia`/`sendAudio` em
+  `whatsapp-cloud.ts`, construída pro áudio) — falta o equivalente pra
+  imagem, estender o tipo `Decisao` e ensinar o modelo a sinalizar quando
+  anexar. Não construído ainda, de propósito: é mudança no contrato que
+  webhook, Sala de Teste e simulador de terminal compartilham, e essa
+  sessão já está numa hora ruim pra mexer nisso sem testar com calma.
+- Também registrado como pedido futuro, não construído: rota "Cérebro do
+  Agente" (edição de regras pela equipe) e alerta de emergência pro
+  WhatsApp pessoal do Junior (canal decidido, arquitetura não). Detalhe
+  completo em `HANDOVER-AGENTE.md`.
+
 ## Número de teste do WhatsApp — motor pronto, falta a Meta liberar (2026-09-24)
 
 - Confirmado que o núcleo do agente já estava pronto antes de hoje: cadeia
