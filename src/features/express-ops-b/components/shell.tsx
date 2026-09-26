@@ -32,10 +32,11 @@ export function TarjaDemo() {
   );
 }
 
-function Marca({ compacta = false }: { compacta?: boolean }) {
+function Marca({ compacta = false, onNavegar }: { compacta?: boolean; onNavegar?: () => void }) {
   return (
     <Link
       to={BASE}
+      onClick={onNavegar}
       className="flex items-center gap-2.5 rounded-lg"
       aria-label="Express Operations — visão geral"
     >
@@ -142,21 +143,24 @@ export function Topbar({ titulo, apoio }: { titulo: string; apoio?: string }) {
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="express-ops-b w-[276px] border-r border-[var(--ops-line)] bg-[var(--ops-card)] p-0"
+            className="express-ops-b ops-mobile-sheet flex h-dvh w-[min(320px,calc(100vw-24px))] max-w-none flex-col overflow-hidden border-r border-[var(--ops-line)] bg-[var(--ops-card)] p-0"
           >
-            <SheetHeader className="border-b border-[var(--ops-line)] p-4 text-left">
+            <SheetHeader className="shrink-0 border-b border-[var(--ops-line)] p-4 text-left">
               <SheetTitle asChild>
                 <span>
-                  <Marca />
+                  <Marca onNavegar={() => setAberto(false)} />
                 </span>
               </SheetTitle>
               <SheetDescription className="sr-only">
                 Navegação entre as seções do painel
               </SheetDescription>
             </SheetHeader>
-            <div className="p-2">
+            <nav
+              aria-label="Seções do Express Operations"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 pb-6"
+            >
               <ListaNav onNavegar={() => setAberto(false)} />
-            </div>
+            </nav>
           </SheetContent>
         </Sheet>
 
