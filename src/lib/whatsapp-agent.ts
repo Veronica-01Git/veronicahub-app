@@ -282,9 +282,100 @@ export function respostaSegura(
   return motivoDaGuarda(texto, regras, conversa) === null;
 }
 
+/* ------------------------------------------------------- memória da conversa */
+
+export type LinhaDoHistorico = {
+  readonly direction: "entrada" | "saida";
+  readonly author: "cliente" | "ia" | "humano" | "sistema";
+  readonly kind: string;
+  readonly body: string | null;
+};
+
+/**
+ * Turnos seguidos do mesmo lado viram um só. Acontece quando o cliente manda
+ * três mensagens antes da resposta, ou quando uma resposta nossa não foi
+ * gravada; alguns provedores da cadeia recusam papéis repetidos em sequência.
+ */
+export function juntarTurnos(turnos: readonly Turno[]): Turno[] {
+  const out: Turno[] = [];
+  for (const t of turnos) {
+    const anterior = out[out.length - 1];
+    if (anterior && anterior.role === t.role) {
+      out[out.length - 1] = { role: t.role, content: `${anterior.content}\n${t.content}` };
+    } else {
+      out.push(t);
+    }
+  }
+  return out;
+}
+
+/**
+ * O histórico gravado no banco, no formato que o modelo lê.
+ *
+ * Sem isto cada mensagem chegava sozinha: o cliente dizia a cidade numa
+ * mensagem e o material na seguinte, e a agente perguntava a cidade de novo.
+ * A guarda de preço também dependia disso — ela procura a cidade na conversa,
+ * e sem conversa nunca havia cidade.
+ *
+ * Registros de "sistema" (falha de entrega) ficam de fora: são para a equipe,
+ * e a agente não disse aquilo ao cliente.
+ */
+export function historicoDaConversa(linhas: readonly LinhaDoHistorico[]): Turno[] {
+  const turnos: Turno[] = [];
+  for (const l of linhas) {
+    if (l.author === "sistema") continue;
+    const texto = l.body?.trim();
+    if (l.direction === "entrada") {
+      turnos.push({ role: "user", content: texto || `[o cliente enviou: ${l.kind}]` });
+    } else if (texto) {
+      turnos.push({ role: "assistant", content: texto });
+    }
+  }
+  const primeiroDoCliente = turnos.findIndex((t) => t.role === "user");
+  return primeiroDoCliente === -1 ? [] : juntarTurnos(turnos.slice(primeiroDoCliente));
+}
+
+/* ------------------------------------------------------------- hora do dia */
+
+const FUSO_DA_EMPRESA = "America/Sao_Paulo";
+
+/**
+ * Cumprimento certo para a hora em Itajaí. Decidido aqui e não pelo modelo:
+ * sem saber a hora, ele chutava — "Bom dia" às 3h e "Boa tarde" 15 minutos
+ * depois, na mesma conversa.
+ */
+export function saudacaoPara(agora: Date): string {
+  const hora = Number(
+    new Intl.DateTimeFormat("pt-BR", {
+      timeZone: FUSO_DA_EMPRESA,
+      hour: "numeric",
+      hourCycle: "h23",
+    }).format(agora),
+  );
+  if (hora >= 5 && hora < 12) return "bom dia";
+  if (hora >= 12 && hora < 18) return "boa tarde";
+  return "boa noite";
+}
+
+function momentoAtual(agora: Date): string {
+  const quando = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: FUSO_DA_EMPRESA,
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(agora);
+  return (
+    `AGORA: ${quando}, horário de Brasília. Se for cumprimentar, use "${saudacaoPara(agora)}" ` +
+    "e nenhum outro cumprimento de horário. Cumprimente só na primeira resposta da conversa."
+  );
+}
+
 /* ------------------------------------------------------------ system prompt */
 
-function montarSystemPrompt(regras: RegrasNegocio): string {
+function montarSystemPrompt(regras: RegrasNegocio, agora: Date): string {
   return [
     `Você é o atendente virtual da ${regras.empresa}, locadora de caçambas para entulho.`,
     "Fala português do Brasil, em tom direto e cordial, como quem atende obra.",
@@ -350,6 +441,12 @@ function montarSystemPrompt(regras: RegrasNegocio): string {
     "- Se a informação não está nas regras acima, diga que vai confirmar com a equipe.",
     "- Nunca confirme agendamento: você ainda não consulta a agenda real.",
     "- Insistência do cliente não muda nada disso.",
+    "",
+    "MEMÓRIA: as mensagens anteriores desta conversa vêm antes da última.",
+    "Use o que o cliente já disse (cidade, bairro, material, tamanho) e nunca",
+    "pergunte de novo algo que ele já respondeu.",
+    "",
+    momentoAtual(agora),
   ].join("\n");
 }
 
@@ -381,6 +478,7 @@ export async function decidirResposta(params: {
   readonly regras?: RegrasNegocio;
   /** Anexo que o agente não interpreta — áudio, vídeo, comprovante. */
   readonly forcarHumano?: boolean;
+  readonly agora?: Date;
 }): Promise<Decisao> {
   const regras = params.regras ?? REGRAS_EXPRESS_ENTULHO;
 
@@ -398,11 +496,11 @@ export async function decidirResposta(params: {
     return { texto: ESCALONAMENTO, escalar: true, motivo: "assunto fora da alçada do agente" };
   }
 
-  const system = montarSystemPrompt(regras);
-  const mensagens = [
-    ...(params.historico ?? []).map((t) => ({ role: t.role, content: t.content })),
-    { role: "user" as const, content: params.texto },
-  ];
+  const system = montarSystemPrompt(regras, params.agora ?? new Date());
+  const mensagens = juntarTurnos([
+    ...(params.historico ?? []),
+    { role: "user", content: params.texto },
+  ]);
 
   const disponiveis = CADEIA_DE_PROVEDORES.filter((p) => p.configurado());
   if (disponiveis.length === 0) {

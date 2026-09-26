@@ -9,10 +9,10 @@
  * Mercado Pago.
  */
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { waConversations, waMessages } from "./schema";
-import { decidirResposta } from "./whatsapp-agent";
+import { decidirResposta, historicoDaConversa } from "./whatsapp-agent";
 import { extrairConteudo, type MensagemMeta } from "./whatsapp-mensagem";
 import {
   downloadMedia,
@@ -26,6 +26,9 @@ import { decidirVoz, marcarComoTranscricao, sintetizar, transcrever } from "./wh
 import { extrairFalhasDeEntrega, type FalhaDeEntrega, type StatusMeta } from "./whatsapp-status";
 
 const TENANT = "express-entulho";
+
+/** Quantas mensagens anteriores a agente relê — um orçamento inteiro cabe folgado. */
+const MENSAGENS_DE_MEMORIA = 30;
 
 type MetaValue = {
   messages?: MensagemMeta[];
@@ -276,8 +279,21 @@ async function processarMensagem(
       .where(eq(waMessages.id, inseridas[0].id));
   }
 
+  const linhasAnteriores = await db
+    .select({
+      direction: waMessages.direction,
+      author: waMessages.author,
+      kind: waMessages.kind,
+      body: waMessages.body,
+    })
+    .from(waMessages)
+    .where(and(eq(waMessages.conversationId, conversa.id), ne(waMessages.id, inseridas[0].id)))
+    .orderBy(desc(waMessages.occurredAt))
+    .limit(MENSAGENS_DE_MEMORIA);
+
   const decisao = await decidirResposta({
     texto: paraOAgente,
+    historico: historicoDaConversa(linhasAnteriores.reverse()),
     primeiraMensagem: anteriores <= 1,
     forcarHumano,
   });
