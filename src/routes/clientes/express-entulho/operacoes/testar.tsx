@@ -11,21 +11,21 @@
  * hora certa vale mais do que ler a resposta bonita — é o que responde a
  * pergunta dele, que é "ela vai falar bobagem com meu cliente?".
  *
- * Não existe envio nesta tela. Ela fala com /api/whatsapp/testar, que chama a
- * mesma agente e a mesma guarda de preço, e não tem caminho para a Meta.
+ * Não existe envio nesta tela. Ela chama `testarAgente`, que usa a mesma
+ * agente e a mesma guarda de preço e não tem caminho para a Meta. Quem entra é
+ * quem já passou pelo portão do painel — antes a tela exigia também um
+ * segredo na URL, e o link aberto de dentro do painel dava "link inválido".
  */
 
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle, Bot, Send, ShieldCheck, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OpsCard } from "@/features/express-ops-b/components/primitives";
+import { testarAgente } from "@/features/express-ops-b/data/agente";
 
 export const Route = createFileRoute("/clientes/express-entulho/operacoes/testar")({
   component: SalaDeTeste,
-  validateSearch: (busca: Record<string, unknown>) => ({
-    t: typeof busca.t === "string" ? busca.t : undefined,
-  }),
 });
 
 type Fala = {
@@ -73,7 +73,6 @@ const SUGESTOES = [
 ];
 
 function SalaDeTeste() {
-  const { t } = useSearch({ from: Route.id });
   const [falas, setFalas] = useState<readonly Fala[]>([]);
   const [rascunho, setRascunho] = useState("");
   const [pensando, setPensando] = useState(false);
@@ -99,30 +98,19 @@ function SalaDeTeste() {
         role: f.de === "cliente" ? ("user" as const) : ("assistant" as const),
         content: f.texto,
       }));
-      const r = await fetch(`/api/whatsapp/testar${t ? `?t=${encodeURIComponent(t)}` : ""}`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ texto: limpo, historico }),
-      });
-      const dados = (await r.json()) as {
-        texto?: string;
-        escalar?: boolean;
-        motivo?: string;
-        guarda?: string | null;
-        erro?: string;
-      };
-      if (!r.ok || dados.erro) {
-        setErro(dados.erro ?? `o servidor respondeu ${r.status}`);
+      const dados = await testarAgente({ data: { mensagem: limpo, historico } });
+      if ("erro" in dados) {
+        setErro(dados.erro);
         return;
       }
       setFalas([
         ...comCliente,
         {
           de: "agente",
-          texto: dados.texto ?? "",
+          texto: dados.texto,
           escalou: dados.escalar,
           motivo: dados.motivo,
-          guarda: dados.guarda ?? null,
+          guarda: dados.guarda,
         },
       ]);
     } catch {
