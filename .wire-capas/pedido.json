@@ -1,0 +1,326 @@
+{
+ "excluir": [
+  "35105465",
+  "38126749",
+  "28447774",
+  "34135846",
+  "1133497",
+  "11232689",
+  "38521764",
+  "28852824",
+  "23180917",
+  "534216",
+  "21085247",
+  "13653368",
+  "28857560",
+  "5716025",
+  "33587048",
+  "35285854",
+  "17834629",
+  "28682351",
+  "37816271",
+  "5505451",
+  "38849968",
+  "27055613",
+  "8463151",
+  "9623142",
+  "30037153",
+  "35171069",
+  "6949993",
+  "38963473",
+  "13727886",
+  "1647907",
+  "34924858",
+  "30824313",
+  "19342489",
+  "3321791",
+  "34718922",
+  "13095657",
+  "37143587",
+  "39190475",
+  "36169775",
+  "1689645",
+  "6466143",
+  "34924856",
+  "29988955",
+  "5473298",
+  "32394664",
+  "27658186",
+  "34817074",
+  "39192371",
+  "5480781",
+  "36169770"
+ ],
+ "materias": [
+  {
+   "slug": "barragem-arroio-sao-luiz-no-rs-170-moradores-evacuados-apos-risco-de-rompimento",
+   "beat": "clima",
+   "headline": "Barragem Arroio São Luiz no RS: 170 moradores evacuados após risco de rompimento",
+   "queries": [
+    "concrete dam spillway water",
+    "dam reservoir overflow heavy rain",
+    "earth dam wall water"
+   ]
+  },
+  {
+   "slug": "tse-confirma-que-chatbots-de-ia-apresentam-comportamento-extremamente-responsave",
+   "beat": "ia",
+   "headline": "TSE confirma que chatbots de IA apresentam comportamento “extremamente responsável” na eleição",
+   "queries": [
+    "electronic voting machine",
+    "ballot box election",
+    "person typing chatbot laptop"
+   ]
+  },
+  {
+   "slug": "defesa-civil-do-rio-grande-do-sul-emite-alerta-de-risco-muito-alto-de-inundacao-",
+   "beat": "clima",
+   "headline": "Defesa Civil do Rio Grande do Sul emite alerta de risco muito alto de inundação no Rio dos Sinos",
+   "queries": [
+    "river flood rising water houses",
+    "flooded riverside town aerial",
+    "overflowing river brown water"
+   ]
+  },
+  {
+   "slug": "senado-aprova-marco-regulatorio-da-inteligencia-artificial-no-brasil",
+   "beat": "ia",
+   "headline": "Senado aprova marco regulatório da inteligência artificial no Brasil",
+   "queries": [
+    "senate chamber plenary",
+    "parliament hall seats",
+    "legislative session hall"
+   ]
+  },
+  {
+   "slug": "brasil-pode-atrair-investimentos-em-ia-aponta-executivo-da-blackrock",
+   "beat": "mercado",
+   "headline": "Brasil pode atrair investimentos em IA, aponta executivo da BlackRock",
+   "queries": [
+    "sao paulo skyline skyscrapers",
+    "financial district avenue skyscrapers",
+    "investor looking at city skyline"
+   ]
+  },
+  {
+   "slug": "candidato-augusto-cury-alerta-para-75-de-chance-de-forte-el-nino-e-propoe-tecnol",
+   "beat": "clima",
+   "headline": "Candidato Augusto Cury alerta para 75% de chance de forte El Niño e propõe tecnologia estrangeira contra desmatamento na Amazônia",
+   "queries": [
+    "pacific ocean waves sunset",
+    "ocean surface heat haze",
+    "tropical ocean storm clouds"
+   ]
+  },
+  {
+   "slug": "google-dobrou-infraestrutura-de-ia-no-brasil-para-atender-boom-tecnologico",
+   "beat": "ia",
+   "headline": "Google Dobrou Infraestrutura de IA no Brasil para Atender Boom Tecnológico",
+   "queries": [
+    "data center servers blue light",
+    "server racks corridor",
+    "data center aerial building"
+   ]
+  },
+  {
+   "slug": "google-cloud-expande-infraestrutura-de-ia-em-sao-paulo-anuncia-processamento-loc",
+   "beat": "mercado",
+   "headline": "Google Cloud expande infraestrutura de IA em São Paulo, anuncia processamento local do Gemini Enterprise",
+   "queries": [
+    "fiber optic cables server",
+    "cloud computing server room",
+    "sao paulo city night aerial"
+   ]
+  },
+  {
+   "slug": "alerta-amarelo-de-tempestade-atinge-goias-com-risco-de-granizo-e-ventos-de-ate-6",
+   "beat": "clima",
+   "headline": "Alerta amarelo de tempestade atinge Goiás, com risco de granizo e ventos de até 60 km/h",
+   "queries": [
+    "hail stones ground",
+    "hailstorm",
+    "supercell storm farmland"
+   ]
+  },
+  {
+   "slug": "policia-do-espirito-santo-divulga-fotos-de-apreensoes-alteradas-por-ia-acrescent",
+   "beat": "ia",
+   "headline": "Polícia do Espírito Santo divulga fotos de apreensões alteradas por IA, acrescentando munições e mudando modelo de celular",
+   "queries": [
+    "police evidence table",
+    "photo editing software screen",
+    "police lights night"
+   ]
+  },
+  {
+   "slug": "macae-instala-300-abrigos-de-onibus-com-energia-solar-e-usb",
+   "beat": "clima",
+   "headline": "Macaé instala 300 abrigos de ônibus com energia solar e USB",
+   "queries": [
+    "bus stop shelter street",
+    "solar panels city street",
+    "bus shelter solar"
+   ]
+  },
+  {
+   "slug": "camara-de-campinas-adia-votacao-de-projeto-que-obriga-transparencia-no-uso-de-ia",
+   "beat": "ia",
+   "headline": "Câmara de Campinas adia votação de projeto que obriga transparência no uso de IA por falta de quórum",
+   "queries": [
+    "city council chamber",
+    "municipal assembly meeting",
+    "council chamber empty seats"
+   ]
+  },
+  {
+   "slug": "eua-rejeitam-pedido-da-china-para-participar-das-consultas-da-omc-com-brasil",
+   "beat": "geopolitica",
+   "headline": "EUA rejeitam pedido da China para participar das consultas da OMC com Brasil",
+   "queries": [
+    "world trade organization geneva",
+    "container port cranes sunset",
+    "trade negotiation table flags"
+   ]
+  },
+  {
+   "slug": "banco-central-destaca-desaceleracao-da-atividade-abre-caminho-para-corte-da-seli",
+   "beat": "economia",
+   "headline": "Banco Central destaca desaceleração da atividade, abre caminho para corte da Selic",
+   "queries": [
+    "brazilian real banknotes",
+    "brazilian money coins",
+    "economic chart down"
+   ]
+  },
+  {
+   "slug": "unifap-abre-995-vagas-em-cursos-gratuitos-de-tecnologia-e-ia",
+   "beat": "mercado",
+   "headline": "Unifap abre 995 vagas em cursos gratuitos de tecnologia e IA",
+   "queries": [
+    "university computer lab students",
+    "students coding classroom",
+    "young students laptops campus"
+   ]
+  },
+  {
+   "slug": "transferes-instantaneos-de-yuan-digital-cruzam-fronteira-em-shanghai-e-hong-kong",
+   "beat": "economia",
+   "headline": "Transferes instantâneos de yuan digital cruzam fronteira em Shanghai e Hong Kong",
+   "queries": [
+    "shanghai skyline night",
+    "hong kong victoria harbour night",
+    "mobile payment qr code"
+   ]
+  },
+  {
+   "slug": "feira-norte-do-estudante-2026-inicia-em-manaus-com-mais-de-50-palestras-gratuita",
+   "beat": "mercado",
+   "headline": "Feira Norte do Estudante 2026 inicia em Manaus com mais de 50 palestras gratuitas",
+   "queries": [
+    "students auditorium lecture",
+    "school students fair",
+    "young audience conference"
+   ]
+  },
+  {
+   "slug": "pboc-anuncia-injecao-diaria-de-ate-us-149-bilhoes-antes-da-semana-dourada",
+   "beat": "economia",
+   "headline": "PBoC anuncia injeção diária de até US$ 149 bilhões antes da Semana Dourada",
+   "queries": [
+    "chinese yuan banknotes",
+    "shanghai lujiazui financial district",
+    "beijing skyline"
+   ]
+  },
+  {
+   "slug": "incendio-na-br-319-mobiliza-100-mil-litros-de-agua-no-amazonas",
+   "beat": "clima",
+   "headline": "Incêndio na BR-319 mobiliza 100 mil litros de água no Amazonas",
+   "queries": [
+    "forest fire smoke",
+    "wildfire firefighter hose",
+    "burning forest road"
+   ]
+  },
+  {
+   "slug": "itau-ventures-investe-na-simile-startup-norte-americana-de-ia-que-simula-comport",
+   "beat": "mercado",
+   "headline": "Itaú Ventures investe na Simile, startup norte‑americana de IA que simula comportamento humano",
+   "queries": [
+    "startup founders meeting",
+    "venture capital pitch",
+    "crowd people walking aerial"
+   ]
+  },
+  {
+   "slug": "ciro-gomes-promete-replicar-modelo-do-iprede-para-atender-neurodivergentes-em-to",
+   "beat": "ia",
+   "headline": "Ciro Gomes promete replicar modelo do Iprede para atender neurodivergentes em todas as regiões de saúde do Ceará",
+   "queries": [
+    "child therapy session",
+    "autism child therapy toys",
+    "pediatric clinic child play"
+   ]
+  },
+  {
+   "slug": "banco-central-divulga-onda-finance-como-primeira-empresa-cripto-em-processo-de-a",
+   "beat": "economia",
+   "headline": "Banco Central divulga Onda Finance como primeira empresa cripto em processo de autorização no Brasil",
+   "queries": [
+    "bitcoin cryptocurrency coin",
+    "crypto trading chart screen",
+    "digital wallet smartphone"
+   ]
+  },
+  {
+   "slug": "embrapa-e-sinomach-digital-assinam-memorando-para-criar-centro-bilateral-de-ia-n",
+   "beat": "mercado",
+   "headline": "Embrapa e Sinomach Digital assinam memorando para criar centro bilateral de IA na agricultura familiar",
+   "queries": [
+    "family farm field tractor",
+    "agriculture drone field",
+    "farmer tablet crops"
+   ]
+  },
+  {
+   "slug": "china-amplia-presenca-no-mercado-brasileiro-com-tecnologia-investimentos-e-produ",
+   "beat": "geopolitica",
+   "headline": "China amplia presença no mercado brasileiro com tecnologia, investimentos e produção local",
+   "queries": [
+    "electric car factory assembly line",
+    "container ship cargo",
+    "factory production line robots"
+   ]
+  },
+  {
+   "slug": "bc-mantem-politica-de-juros-restrita-para-conter-a-inflacao",
+   "beat": "economia",
+   "headline": "BC mantém política de juros restrita para conter a inflação",
+   "queries": [
+    "supermarket shopping cart prices",
+    "grocery shopping inflation",
+    "stack of coins money"
+   ]
+  },
+  {
+   "slug": "senac-de-rio-das-ostras-lanca-novos-cursos-de-gastronomia-saude-e-ia-para-2026",
+   "beat": "mercado",
+   "headline": "Senac de Rio das Ostras lança novos cursos de gastronomia, saúde e IA para 2026",
+   "queries": [
+    "culinary school students kitchen",
+    "chef class students",
+    "nursing students training"
+   ]
+  },
+  {
+   "slug": "operacao-flagra-furto-de-energia-em-sete-estabelecimentos-no-para",
+   "beat": "clima",
+   "headline": "Operação flagra furto de energia em sete estabelecimentos no Pará",
+   "queries": [
+    "electricity meter",
+    "tangled power lines pole",
+    "electrician electric meter"
+   ]
+  }
+ ]
+}

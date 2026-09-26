@@ -1,0 +1,79 @@
+name: Capas da home do Wire (curadoria)
+
+# Workflow de apoio à troca das capas repetidas da home da Wire TV. Vive só
+# na branch wire/capas-home. Dois passos, disparados por arquivo:
+#   - .wire-capas/pedido.json   → busca candidatas no Pexels/Pixabay e
+#                                  commita miniaturas para curadoria visual;
+#   - .wire-capas/escolhas.json → baixa as fotos escolhidas em alta, otimiza e
+#                                  commita as capas novas no main.
+on:
+  push:
+    branches: [wire/capas-home]
+    paths:
+      - ".wire-capas/pedido.json"
+      - ".wire-capas/escolhas.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wire-capas-home
+  cancel-in-progress: false
+
+jobs:
+  capas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: O que mudou
+        id: mudou
+        run: |
+          changed=$(git diff --name-only HEAD~1 HEAD)
+          echo "$changed"
+          if echo "$changed" | grep -q "^.wire-capas/pedido.json$"; then echo "pedido=true" >> "$GITHUB_OUTPUT"; fi
+          if echo "$changed" | grep -q "^.wire-capas/escolhas.json$"; then echo "escolhas=true" >> "$GITHUB_OUTPUT"; fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
+
+      - name: Busca candidatas
+        if: steps.mudou.outputs.pedido == 'true'
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+        run: |
+          node scripts/wire-capas-candidatas.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .wire-capas/candidatas .wire-capas/candidatas.json
+          git commit -m "chore(wire): candidatas de capa para curadoria"
+          git push origin HEAD:wire/capas-home
+
+      - name: Aplica as escolhas no main
+        if: steps.mudou.outputs.escolhas == 'true'
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git worktree add ../main origin/main
+          mkdir -p ../main/public/images/blog-covers
+          node -e '
+            const e = require("./.wire-capas/escolhas.json");
+            for (const x of e) console.log([x.slug, x.source, x.id, x.imageUrl].join("\t"));
+          ' > escolhas.tsv
+          while IFS=$'\t' read -r slug source id url; do
+            dest="../main/public/images/blog-covers/${slug}--${source}-${id}.jpg"
+            curl -sS --fail --max-time 60 -o "$dest" "$url"
+            head -c 3 "$dest" | od -An -tx1 | grep -q "ff d8 ff" || { echo "::error::não é JPEG: $slug"; exit 1; }
+            bash scripts/optimize-cover.sh "$dest"
+          done < escolhas.tsv
+          cd ../main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/images/blog-covers
+          git commit -m "chore(wire): capas novas e únicas para as matérias da home"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
