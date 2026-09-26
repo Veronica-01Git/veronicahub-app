@@ -1,8 +1,17 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { type Beat } from "./beats";
 import { getDb } from "./db";
 import { articles } from "./schema";
 import { WIRE_INSTAGRAM_HANDLE } from "./wire-instagram-card";
+import {
+  INSTAGRAM_BEAT_COOLDOWN_HOURS,
+  claimInstagramBeat,
+  completeInstagramBeat,
+  markInstagramPublishAttempt,
+  reconcileExistingInstagramPost,
+  releaseInstagramBeat,
+  rememberInstagramBeatPost,
+} from "./instagram-beat-gate.server";
 
 const SITE_URL = "https://veronicahub.com";
 const DEFAULT_GRAPH_HOST = "graph.facebook.com";
@@ -38,7 +47,7 @@ export type InstagramPublishResult =
   | {
       ok: true;
       skipped: true;
-      reason: "disabled" | "already-published";
+      reason: "disabled" | "already-published" | "topic-cycle";
       permalink: string | null;
     }
   | {
@@ -132,9 +141,21 @@ export function buildInstagramCaption(input: {
   beat: Beat;
   headline: string;
   excerpt: string;
+  coverPhotoCredit: string | null;
+  coverPhotoUrl: string | null;
 }): string {
   const canonicalUrl = `${SITE_URL}/blog/${input.slug}`;
-  const footer = `\n\nLeia a matéria completa: ${canonicalUrl}\n\nWire TV · Veronica Hub\n${WIRE_INSTAGRAM_HANDLE}\n\n#WireTV #VeronicaHub ${topicHashtag(input.beat)}`;
+  const credit = input.coverPhotoCredit?.trim();
+  if (!credit) throw new Error("A capa precisa de crédito editorial antes de ir ao Instagram.");
+  const source = input.coverPhotoUrl?.includes("pixabay.com")
+    ? "Pixabay"
+    : input.coverPhotoUrl?.includes("pexels.com")
+      ? "Pexels"
+      : null;
+  const attribution = /^Ilustração gerada por IA/i.test(credit)
+    ? credit
+    : `Imagem ilustrativa · ${credit}${source ? ` / ${source}` : ""}`;
+  const footer = `\n\n${attribution}\n\nLeia a matéria completa: ${canonicalUrl}\n\nWire TV · Veronica Hub\n${WIRE_INSTAGRAM_HANDLE}\n\n#WireTV #VeronicaHub ${topicHashtag(input.beat)}`;
   const available = Math.max(0, MAX_CAPTION_LENGTH - footer.length - input.headline.length - 4);
   const excerpt =
     input.excerpt.length <= available
@@ -163,6 +184,33 @@ async function findExistingPublication(
     if (!after || !payload.data?.length) break;
   }
   return null;
+}
+
+async function findRecentPublicationForBeat(
+  config: InstagramConfig,
+  beat: Beat,
+): Promise<InstagramMedia | null> {
+  const fields = encodeURIComponent("id,caption,permalink,timestamp");
+  const payload = await metaRequest<{ data?: InstagramMedia[] }>(
+    config,
+    `${config.accountId}/media?fields=${fields}&limit=100`,
+  );
+  const cutoff = Date.now() - INSTAGRAM_BEAT_COOLDOWN_HOURS * 60 * 60 * 1000;
+  const recent = (payload.data ?? []).filter(
+    (media) => media.timestamp && Date.parse(media.timestamp) >= cutoff,
+  );
+  const slugFromCaption = (caption?: string) =>
+    /https:\/\/veronicahub\.com\/blog\/([a-z0-9-]+)/.exec(caption ?? "")?.[1] ?? null;
+  const slugs = recent
+    .map((media) => slugFromCaption(media.caption))
+    .filter((s): s is string => !!s);
+  if (!slugs.length) return null;
+  const known = await getDb()
+    .select({ slug: articles.slug })
+    .from(articles)
+    .where(and(eq(articles.beat, beat), inArray(articles.slug, slugs)));
+  const matches = new Set(known.map((row) => row.slug));
+  return recent.find((media) => matches.has(slugFromCaption(media.caption) ?? "")) ?? null;
 }
 
 async function waitForContainer(config: InstagramConfig, containerId: string): Promise<void> {
@@ -258,6 +306,8 @@ export async function publishArticleBySlugToInstagram(
       headline: articles.headline,
       excerpt: articles.excerpt,
       coverImageUrl: articles.coverImageUrl,
+      coverPhotoCredit: articles.coverPhotoCredit,
+      coverPhotoUrl: articles.coverPhotoUrl,
     })
     .from(articles)
     .where(and(eq(articles.slug, slug), eq(articles.status, "published")))
@@ -270,10 +320,16 @@ export async function publishArticleBySlugToInstagram(
   }
 
   const canonicalUrl = `${SITE_URL}/blog/${article.slug}`;
+  let claimId: string | null = null;
+  let publicationAttempted = false;
   try {
     await assertTargetAccount(config);
     const existing = await findExistingPublication(config, canonicalUrl);
     if (existing) {
+      await reconcileExistingInstagramPost(article.beat, article.slug, existing.timestamp);
+      if (existing.timestamp) {
+        await rememberInstagramBeatPost(article.beat, article.slug, existing.timestamp);
+      }
       return {
         ok: true,
         skipped: true,
@@ -282,9 +338,31 @@ export async function publishArticleBySlugToInstagram(
       };
     }
 
+    const caption = buildInstagramCaption(article);
+    const recentBeat = await findRecentPublicationForBeat(config, article.beat);
+    if (recentBeat?.timestamp) {
+      const previousSlug = /https:\/\/veronicahub\.com\/blog\/([a-z0-9-]+)/.exec(
+        recentBeat.caption ?? "",
+      )?.[1];
+      if (previousSlug) {
+        await rememberInstagramBeatPost(article.beat, previousSlug, recentBeat.timestamp);
+      }
+      return {
+        ok: true,
+        skipped: true,
+        reason: "topic-cycle",
+        permalink: recentBeat.permalink ?? null,
+      };
+    }
+
+    claimId = await claimInstagramBeat(article.beat, article.slug);
+    if (!claimId) {
+      return { ok: true, skipped: true, reason: "topic-cycle", permalink: null };
+    }
+
     const body = new URLSearchParams({
       image_url: publicImageUrl(publicationImageUrl),
-      caption: buildInstagramCaption(article),
+      caption,
     });
     const container = await metaRequest<{ id?: string }>(config, `${config.accountId}/media`, {
       method: "POST",
@@ -295,6 +373,8 @@ export async function publishArticleBySlugToInstagram(
 
     await waitForContainer(config, container.id);
     const publishBody = new URLSearchParams({ creation_id: container.id });
+    await markInstagramPublishAttempt(article.beat, claimId);
+    publicationAttempted = true;
     const publication = await metaRequest<{ id?: string }>(
       config,
       `${config.accountId}/media_publish`,
@@ -305,6 +385,8 @@ export async function publishArticleBySlugToInstagram(
       },
     );
     if (!publication.id) throw new Error("A Meta não confirmou a publicação.");
+
+    await completeInstagramBeat(article.beat, article.slug, claimId);
 
     const media = await metaRequest<{ permalink?: string }>(
       config,
@@ -317,9 +399,12 @@ export async function publishArticleBySlugToInstagram(
       permalink: media.permalink ?? null,
     };
   } catch (error) {
+    if (claimId && !publicationAttempted) {
+      await releaseInstagramBeat(article.beat, claimId).catch(() => {});
+    }
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Falha ao publicar no Instagram.",
+      error: `${error instanceof Error ? error.message : "Falha ao publicar no Instagram."}${publicationAttempted ? " Confira @wire__tv antes de tentar novamente; o resultado pode ter sido publicado." : ""}`,
     };
   }
 }

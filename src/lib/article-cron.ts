@@ -1,5 +1,5 @@
 import { and, eq, isNotNull } from "drizzle-orm";
-import { BEAT_VALUES, CYCLE_HOURS, isBeat, type Beat } from "./beats";
+import { beatForDate, isBeat, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
 import { WIRE_NAME } from "./ecosystem";
@@ -217,13 +217,10 @@ export async function handleArchiveWireOwnedImagesCron(request: Request): Promis
   return Response.json({ ok: true, saved, existing });
 }
 
-// Escolhe a editoria pela hora UTC atual — sem precisar guardar estado em
-// lugar nenhum (qual foi a última editoria gerada). A editoria gira por hora,
-// então ao longo do dia todas passam e a janela impede duplicação.
+// Escolhe a editoria pelo intervalo UTC atual, sem estado adicional. O giro
+// continua na virada do dia e a janela impede duplicação.
 function currentBeat(): Beat {
-  const hour = new Date().getUTCHours();
-  const index = Math.floor(hour / CYCLE_HOURS) % BEAT_VALUES.length;
-  return BEAT_VALUES[index];
+  return beatForDate(new Date());
 }
 
 // Chamado direto do src/server.ts (interceptado antes do handler do

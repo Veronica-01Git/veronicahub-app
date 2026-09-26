@@ -155,6 +155,17 @@ export const articles = pgTable(
   ],
 );
 
+// Reserva atômica da editoria antes de postar no Instagram da Wire TV.
+export const instagramBeatGate = pgTable("InstagramBeatGate", {
+  beat: text("beat").primaryKey(),
+  lastPublishedAt: timestamp("lastPublishedAt"),
+  lastSlug: text("lastSlug"),
+  claimId: text("claimId"),
+  claimSlug: text("claimSlug"),
+  claimUntil: timestamp("claimUntil"),
+  needsReview: boolean("needsReview").notNull().default(false),
+});
+
 // Cliques de saída para as fontes citadas. Não guarda IP, cookie, e-mail ou
 // user-agent: o relatório público precisa medir tráfego enviado, não pessoas.
 export const sourceReferrals = pgTable(

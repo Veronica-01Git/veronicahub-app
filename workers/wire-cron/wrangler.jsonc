@@ -6,14 +6,14 @@
   // Worker só de cron: não atende requisição, então não precisa de subdomínio
   // workers.dev. Sem isto o deploy cria uma URL pública que só devolveria erro.
   "workers_dev": false,
-  // De hora em hora, e só uma vez por hora. A redundância de horários existia
+  // A cada duas horas. A redundância de horários existia
   // pra compensar o descarte do agendador do GitHub; com um disparo confiável
   // ela vira desperdício de cota: cada tentativa numa hora que ainda não
   // publicou consome uma chamada de IA, e o teto diário da Groq (200k tokens)
   // dá para cerca de vinte chamadas por dia. Um segundo horário só vale a pena
   // se a cota for ampliada.
   "triggers": {
-    "crons": ["0 * * * *"]
+    "crons": ["0 */2 * * *"]
   },
   "observability": {
     "enabled": true

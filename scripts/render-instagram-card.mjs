@@ -63,6 +63,7 @@ async function main() {
   // Opcional: só existe quando a capa veio do banco curado. Sem ele a legenda
   // sai sem a linha de crédito, em vez de creditar quem não se sabe quem é.
   const photoCredit = (process.env.WIRE_PHOTO_CREDIT ?? "").trim();
+  const photoUrl = (process.env.WIRE_PHOTO_URL ?? "").trim();
   if (!isBeat(beat)) throw new Error(`WIRE_BEAT inválido: ${beat}`);
 
   const cover = await resolveCover(slug, beat);
@@ -98,7 +99,7 @@ async function main() {
   await writeFile(imageFile, canvas.toBuffer("image/jpeg", 92));
   await writeFile(
     captionFile,
-    `${buildWireCaption({ headline, excerpt, canonicalUrl, photoCredit })}\n`,
+    `${buildWireCaption({ headline, excerpt, canonicalUrl, photoCredit, photoUrl })}\n`,
   );
 
   console.log(`card: ${imageFile}`);

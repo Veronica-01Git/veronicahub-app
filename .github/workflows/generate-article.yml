@@ -1,9 +1,9 @@
 name: Gera e publica matéria (Wire TV)
 
 on:
-  # Uma matéria por hora, com editoria rotativa calculada pelo endpoint. Quem
+  # Uma tentativa a cada duas horas, com editoria rotativa calculada pelo endpoint. Quem
   # dá o ritmo é o Cron Trigger do Cloudflare, no Worker `wire-tv-cron`
-  # (`workers/wire-cron/`), que manda `workflow_dispatch` de hora em hora.
+  # (`workers/wire-cron/`), que manda `workflow_dispatch` a cada duas horas.
   # Publicado em 13/09; a primeira virada saiu às 18:00:05 UTC, cinco segundos
   # depois da hora cheia.
   #
@@ -40,7 +40,7 @@ on:
         options: ["", "ia", "clima", "economia", "geopolitica", "mercado"]
 
 concurrency:
-  group: veronica-wire-hourly
+  group: veronica-wire-editorial
   cancel-in-progress: false
 
 permissions:
@@ -278,6 +278,7 @@ jobs:
           WIRE_EXCERPT: ${{ steps.generate.outputs.excerpt }}
           WIRE_BEAT: ${{ steps.generate.outputs.beat }}
           WIRE_PHOTO_CREDIT: ${{ steps.fetch_photo.outputs.photoCredit || steps.generate_cover.outputs.photoCredit }}
+          WIRE_PHOTO_URL: ${{ steps.fetch_photo.outputs.photoUrl }}
           WIRE_OUT_DIR: public/images/instagram
         run: node scripts/render-instagram-card.mjs
 
