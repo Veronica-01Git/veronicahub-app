@@ -67,20 +67,30 @@ test("somente e-mail confirmado e listado entra no ambiente da Express", () => {
 });
 
 test("a decisão de acesso usa sessão do servidor e variável privada", async () => {
-  const source = await readFile(
-    new URL("../src/features/private-clients/access.functions.ts", import.meta.url),
-    "utf8",
-  );
+  const [regra, funcao, agente] = await Promise.all([
+    readFile(new URL("../src/features/private-clients/access.server.ts", import.meta.url), "utf8"),
+    readFile(
+      new URL("../src/features/private-clients/access.functions.ts", import.meta.url),
+      "utf8",
+    ),
+    readFile(new URL("../src/features/express-ops-b/data/agente.ts", import.meta.url), "utf8"),
+  ]);
 
-  assert.match(source, /getSessionUserId/);
-  assert.match(source, /process\.env/);
-  assert.match(source, /requiresVerifiedAccount/);
+  assert.match(regra, /getSessionUserId/);
+  assert.match(regra, /process\.env/);
+  assert.match(regra, /requiresVerifiedAccount/);
+  // A tela e as funções que chamam a agente passam pelo MESMO portão.
+  assert.match(funcao, /avaliarAcessoAoWorkspace/);
+  assert.match(agente, /avaliarAcessoAoWorkspace/);
 });
 
 test("a Express possui uma única central operacional canônica", async () => {
   const [workspace, admin, legado] = await Promise.all([
     readFile(new URL("../src/routes/clientes/$clientSlug.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../src/features/private-clients/admin.functions.ts", import.meta.url), "utf8"),
+    readFile(
+      new URL("../src/features/private-clients/admin.functions.ts", import.meta.url),
+      "utf8",
+    ),
     readFile(
       new URL("../src/routes/clientes/express-entulho/operacoes-demo.tsx", import.meta.url),
       "utf8",

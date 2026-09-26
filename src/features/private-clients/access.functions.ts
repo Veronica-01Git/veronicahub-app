@@ -54,44 +54,8 @@ export type WorkspaceAccess =
 export const getWorkspaceAccess = createServerFn({ method: "POST" })
   .inputValidator((input: { slug: string }) => ({ slug: String(input?.slug ?? "") }))
   .handler(async ({ data }): Promise<WorkspaceAccess> => {
-    const { getPrivateClientSession } = await import("./session.server");
-    const { getPrivateClientBySlug } = await import("./registry");
-
-    const session = await getPrivateClientSession();
-    if (!session) return { ok: false, reason: "unauthenticated" };
-
-    const client = getPrivateClientBySlug(data.slug);
-    if (!client || client.id !== session.clientId) return { ok: false, reason: "forbidden" };
-
-    if (client.requiresVerifiedAccount) {
-      const { evaluatePrivateClientAccountAccess } = await import("./access-policy");
-      const { getSessionUserId } = await import("@/lib/session");
-      const userId = await getSessionUserId();
-
-      let email: string | null = null;
-      if (userId) {
-        const [{ getDb }, { users }, { eq }] = await Promise.all([
-          import("@/lib/db"),
-          import("@/lib/schema"),
-          import("drizzle-orm"),
-        ]);
-        const [user] = await getDb()
-          .select({ email: users.email })
-          .from(users)
-          .where(eq(users.id, userId))
-          .limit(1);
-        email = user?.email ?? null;
-      }
-
-      const accountAccess = evaluatePrivateClientAccountAccess({
-        clientId: client.id,
-        email,
-        environment: process.env,
-      });
-      if (accountAccess !== "allowed") return { ok: false, reason: accountAccess };
-    }
-
-    return { ok: true, slug: client.slug };
+    const { avaliarAcessoAoWorkspace } = await import("./access.server");
+    return avaliarAcessoAoWorkspace(data.slug);
   });
 
 export const endPrivateClientSession = createServerFn({ method: "POST" }).handler(async () => {
