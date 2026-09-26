@@ -77,6 +77,18 @@
   isolation: isolate;
 }
 
+/* Sheets portalizados usam a mesma classe de tema. Sem esta regra, ela troca
+   position: fixed por relative e põe os diálogos atrás do overlay (z-50). */
+.express-ops-b[role="dialog"] {
+  position: fixed;
+  z-index: 51;
+  isolation: auto;
+}
+
+.ops-mobile-sheet nav a {
+  min-height: 44px;
+}
+
 /* Números sempre tabulares — comparar coluna é requisito, não enfeite. */
 .express-ops-b .ops-num {
   font-family: var(--ops-font-mono);
