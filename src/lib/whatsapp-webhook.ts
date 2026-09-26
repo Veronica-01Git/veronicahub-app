@@ -23,11 +23,13 @@ import {
   verifyWebhookSignature,
 } from "./whatsapp-cloud";
 import { decidirVoz, marcarComoTranscricao, sintetizar, transcrever } from "./whatsapp-voz";
+import { extrairFalhasDeEntrega, type FalhaDeEntrega, type StatusMeta } from "./whatsapp-status";
 
 const TENANT = "express-entulho";
 
 type MetaValue = {
   messages?: MensagemMeta[];
+  statuses?: StatusMeta[];
   contacts?: { profile?: { name?: string }; wa_id?: string }[];
 };
 
@@ -122,14 +124,54 @@ async function processarPayload(rawBody: string): Promise<void> {
     for (const change of entry.changes ?? []) {
       if (change.field !== "messages") continue;
       const value = change.value;
-      if (!value?.messages?.length) continue;
+      if (!value) continue;
 
+      for (const falha of extrairFalhasDeEntrega(value.statuses)) {
+        await registrarFalhaDeEntrega(falha);
+      }
+
+      if (!value.messages?.length) continue;
       const nome = value.contacts?.[0]?.profile?.name ?? null;
       for (const mensagem of value.messages) {
         await processarMensagem(mensagem, nome);
       }
     }
   }
+}
+
+/**
+ * Grava no histórico da conversa que a Meta não entregou uma mensagem nossa.
+ *
+ * Vai como mensagem de autor "sistema" para não exigir tabela nova: o
+ * histórico já é onde se procura o que aconteceu numa conversa. A chave
+ * única leva o wamid, então o reenvio do aviso pela Meta não duplica.
+ */
+async function registrarFalhaDeEntrega(falha: FalhaDeEntrega): Promise<void> {
+  console.error("Meta não entregou a mensagem:", falha.descricao);
+  const db = getDb();
+
+  const [conversa] = await db
+    .insert(waConversations)
+    .values({ tenant: TENANT, waId: falha.waId })
+    .onConflictDoUpdate({
+      target: [waConversations.tenant, waConversations.waId],
+      set: { updatedAt: new Date() },
+    })
+    .returning();
+  if (!conversa) return;
+
+  await db
+    .insert(waMessages)
+    .values({
+      conversationId: conversa.id,
+      providerId: `falha:${falha.mensagemId}`,
+      direction: "saida",
+      author: "sistema",
+      kind: "falha_entrega",
+      body: falha.descricao,
+      occurredAt: falha.ocorridoEm,
+    })
+    .onConflictDoNothing({ target: waMessages.providerId });
 }
 
 async function processarMensagem(
