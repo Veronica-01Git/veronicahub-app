@@ -694,6 +694,9 @@ export function SiteFooter({
           <a href={SOCIAL_LINKS.email} className="text-sm">
             Contato
           </a>
+          <Link to="/privacidade" className="text-sm text-muted-foreground hover:text-neon-green">
+            Política de Privacidade
+          </Link>
         </nav>
         <div>
           <p className="mb-3 text-sm">Acompanhe a Veronica</p>
