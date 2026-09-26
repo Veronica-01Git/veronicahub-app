@@ -31,7 +31,13 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/generate-article.yml"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      beat:
+        description: "Editoria desta rodada manual (vazio = a da hora, como no cron)"
+        type: choice
+        default: ""
+        options: ["", "ia", "clima", "economia", "geopolitica", "mercado"]
 
 concurrency:
   group: veronica-wire-hourly
@@ -54,10 +60,14 @@ jobs:
             sleep 45
           fi
 
+          # Rodada manual pode escolher a editoria; o endpoint já aceita ?beat=.
+          BEAT_QUERY=""
+          if [ -n "${{ inputs.beat }}" ]; then BEAT_QUERY="?beat=${{ inputs.beat }}"; fi
+
           status=$(curl --silent --show-error \
             --max-time 120 \
             -o response.json -w "%{http_code}" \
-            -X POST "https://veronicahub.com/api/cron/generate-article" \
+            -X POST "https://veronicahub.com/api/cron/generate-article${BEAT_QUERY}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
           echo "HTTP status: $status"
           cat response.json
@@ -72,6 +82,7 @@ jobs:
           fi
           if [ "$(jq -r '.skipped == true' response.json)" = "true" ]; then
             reason=$(jq -r '.error // "rodada editorial sem publicação"' response.json)
+            echo "::notice title=Rodada sem publicação ($(jq -r '.beat // "?"' response.json))::$reason"
             {
               echo "### Wire TV — rodada sem publicação"
               echo
