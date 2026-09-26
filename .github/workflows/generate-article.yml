@@ -126,27 +126,36 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      # Capa vem do banco curado na biblioteca do Admin, não de busca ao vivo.
-      # Decisão de 13/09, depois de a matéria sobre a enchente em Telangana
-      # sair com foto de uma rua americana com placa "ROAD CLOSED": foto de
-      # banco escolhida por termo em inglês inventado pelo modelo não ilustra,
-      # finge documentar. Imagem curada é assumidamente ilustrativa.
+      # Nível 1 (26/09): foto ÚNICA da matéria, buscada no Pexels (principal)
+      # e no Pixabay (reserva) — ver o cabeçalho de scripts/fetch-cover-live.mjs.
       #
-      # Para alimentar o banco: Admin → Imagens → enviar com nome começando em
-      # wire-banco-<editoria>- (wire-banco-clima-chuva-cidade.webp, por
-      # exemplo). Sem nenhuma cadastrada, a matéria recebe arte própria gerada
-      # do slug no passo seguinte.
-      - name: Pega capa do banco curado (arte gerada se vazio)
+      # Substituiu o banco curado da biblioteca, que tinha ~1 foto por cena e
+      # repetia a mesma imagem em matérias diferentes (27 das 30 capas da home
+      # em 26/09). A lição de 13/09 (Telangana com rua americana) continua
+      # valendo e está no script: a cena curada vai primeiro, foto que diz ser
+      # de outro lugar é recusada, e nenhuma foto já publicada volta — nem pelo
+      # id, nem pela aparência.
+      #
+      # Os ids usados ficam em scripts/data/wire-fotos-usadas.json, commitado
+      # junto com a capa no passo "Commita a capa".
+      - name: Busca capa única (Pexels → Pixabay)
         if: steps.checkout.outcome == 'success'
         id: fetch_photo
         continue-on-error: true
         env:
           COVER_SLUG: ${{ steps.generate.outputs.slug }}
           COVER_BEAT: ${{ steps.generate.outputs.beat }}
-          COVER_LIBRARY_ID: ${{ steps.generate.outputs.libraryCoverId }}
-          COVER_LIBRARY_CREDIT: ${{ steps.generate.outputs.libraryCoverCredit }}
+          COVER_HEADLINE: ${{ steps.generate.outputs.headline }}
+          COVER_EXCERPT: ${{ steps.generate.outputs.excerpt }}
+          COVER_FOTO_TERMOS: ${{ steps.generate.outputs.fotoTermos }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
         run: |
-          node scripts/fetch-cover-photo.mjs > photo-result.json
+          # O hash visual usa o ImageMagick; o passo de otimização mais abaixo
+          # também, e o apt não reinstala o que já está lá.
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick
+          node scripts/fetch-cover-live.mjs > photo-result.json
           cat photo-result.json
           path=$(jq -r '.path // empty' photo-result.json)
           if [ -n "$path" ]; then found=true; else found=false; fi
@@ -271,6 +280,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "public/images/blog-covers/${COVER_SLUG}.jpg"
+          # Registro das fotos já usadas: é o que impede a próxima matéria de
+          # repetir esta foto.
+          if [ -f scripts/data/wire-fotos-usadas.json ]; then git add scripts/data/wire-fotos-usadas.json; fi
           # O card e a legenda entram no MESMO commit da capa: um commit a
           # mais no main significa um deploy a mais, e cada deploy troca o que
           # a produção está servindo. Se o passo anterior falhou, os arquivos

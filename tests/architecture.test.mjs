@@ -261,48 +261,35 @@ test("capa que a biblioteca já serve não passa por download", () => {
   );
 });
 
-test("a capa sai do banco curado da biblioteca, não de busca ao vivo", () => {
+test("a capa é foto única do Pexels/Pixabay, com as travas de 13/09", () => {
   const server = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
-  const script = readFileSync(new URL("../scripts/fetch-cover-photo.mjs", import.meta.url), "utf8");
+  const script = readFileSync(new URL("../scripts/fetch-cover-live.mjs", import.meta.url), "utf8");
   const workflow = readFileSync(
     new URL("../.github/workflows/generate-article.yml", import.meta.url),
     "utf8",
   );
 
-  // O prefixo do nome de arquivo é a única ligação entre o que a pessoa
-  // digita ao subir a imagem no Admin e o que a consulta procura. Se um lado
-  // mudar sem o outro, o banco fica invisível: nada falha, e toda matéria
-  // passa a sair com o fallback fixo da editoria.
-  const bank = readFileSync(new URL("../src/lib/cover-bank.ts", import.meta.url), "utf8");
-  const prefix = bank.match(/LIBRARY_COVER_PREFIX = "([^"]+)"/);
-  assert.ok(prefix, "cover-bank precisa declarar LIBRARY_COVER_PREFIX");
-  assert.match(server, /LIBRARY_COVER_PREFIX/, "a consulta do rodízio precisa usar o prefixo");
+  // Decisão de 26/09: o banco curado repetia a mesma foto em matérias
+  // diferentes (27 das 30 capas da home). A capa passou a ser buscada por
+  // matéria, Pexels primeiro — mas as lições da busca ao vivo removida em
+  // 13/09 (Telangana com rua americana) continuam travadas aqui.
+  assert.match(workflow, /node scripts\/fetch-cover-live\.mjs/);
+  assert.match(script, /escolherCena/, "a cena curada continua sendo a primeira consulta");
+  assert.match(script, /citaLugarEstrangeiro/, "foto que diz ser de outro lugar é recusada");
+  assert.match(script, /wire-fotos-usadas\.json/, "o registro de fotos usadas impede repetição");
+  assert.match(script, /dhash/i, "a comparação visual pega a foto antiga sem id no nome");
   assert.ok(
-    server.includes(`\${LIBRARY_COVER_PREFIX}\${beat}-%`),
-    "a consulta precisa filtrar por prefixo + editoria",
+    script.indexOf("buscarPexels") < script.indexOf("buscarPixabay"),
+    "o Pexels é a fonte principal",
   );
-  assert.ok(
-    workflow.includes(`${prefix[1]}<editoria>-`),
-    `o workflow precisa documentar o nome que a pessoa deve usar (${prefix[1]}<editoria>-)`,
-  );
-
-  // Decisão editorial de 13/09: sem busca ao vivo. Se voltar, a capa volta a
-  // ser escolhida por termo em inglês inventado pelo modelo.
-  assert.ok(
-    !/searchPexels|searchPixabay/.test(script),
-    "a capa não pode voltar a ser buscada ao vivo",
-  );
-  assert.ok(
-    !/PEXELS_API_KEY|PIXABAY_API_KEY/.test(workflow),
-    "o workflow não deve mais passar chave de banco de fotos",
+  assert.match(
+    workflow,
+    /git add scripts\/data\/wire-fotos-usadas\.json/,
+    "o registro precisa ser commitado junto com a capa, senão a próxima matéria repete",
   );
 
-  // O id escolhido no servidor precisa chegar ao script.
-  assert.ok(/libraryCoverId/.test(workflow), "o workflow precisa repassar libraryCoverId");
-  assert.ok(
-    /COVER_LIBRARY_ID/.test(script) && /COVER_LIBRARY_ID/.test(workflow),
-    "COVER_LIBRARY_ID liga workflow e script",
-  );
+  // As chaves ficam no runner do Actions; nunca no Worker.
+  assert.ok(!/PEXELS_API_KEY/.test(server), "a chave do Pexels não pode chegar ao Worker");
 });
 
 test("o card do Instagram é gerado e commitado no mesmo caminho", () => {
@@ -524,18 +511,18 @@ test("o crédito do fotógrafo atravessa do banco até a matéria", () => {
   );
   const cron = readFileSync(new URL("../src/lib/article-cron.ts", import.meta.url), "utf8");
   const fetchScript = readFileSync(
-    new URL("../scripts/fetch-cover-photo.mjs", import.meta.url),
+    new URL("../scripts/fetch-cover-live.mjs", import.meta.url),
     "utf8",
   );
 
-  // Quatro elos. Se um sumir, a foto continua sendo publicada e o crédito
-  // simplesmente some — sem nada falhar, que é como este tipo de defeito passa.
-  assert.match(cron, /libraryCoverCredit/, "a resposta do cron precisa levar o crédito");
-  assert.match(workflow, /libraryCoverCredit/, "o workflow precisa ler o crédito da resposta");
-  assert.match(workflow, /COVER_LIBRARY_CREDIT/, "o crédito precisa chegar ao script da capa");
-  assert.match(fetchScript, /COVER_LIBRARY_CREDIT/);
+  // Elos do crédito da foto (26/09: a foto vem do Pexels/Pixabay pelo
+  // fetch-cover-live). Se um sumir, a foto continua sendo publicada e o
+  // crédito simplesmente some — sem nada falhar.
+  assert.match(cron, /libraryCoverCredit/, "a resposta do cron segue levando o crédito do banco");
   assert.match(fetchScript, /photoCredit/, "o script precisa devolver o crédito ao workflow");
+  assert.match(fetchScript, /photoUrl/, "a página da foto dá o link e o nome da fonte");
   assert.match(workflow, /PHOTO_CREDIT: \$\{\{ steps\.fetch_photo\.outputs\.photoCredit/);
+  assert.match(workflow, /PHOTO_URL: \$\{\{ steps\.fetch_photo\.outputs\.photoUrl/);
 
   // Quinto elo, desde 20/09: a ilustração da Nano Banana Pro entra na cascata
   // entre o banco e a arte do slug, e o crédito dela ("Ilustração gerada por
