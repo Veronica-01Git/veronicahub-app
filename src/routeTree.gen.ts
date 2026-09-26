@@ -48,8 +48,10 @@ import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminComissoesShopeeRouteImport } from './routes/admin/comissoes-shopee'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
 import { Route as ClientesVeronicaFashionOperatorIndexRouteImport } from './routes/clientes/veronica-fashion-operator/index'
+import { Route as ClientesLzTeamIndexRouteImport } from './routes/clientes/lz-team/index'
 import { Route as PreviewExpressOperationsBSplatRouteImport } from './routes/preview/express-operations-b/$'
 import { Route as ClientesVeronicaFashionOperatorExecucaoRouteImport } from './routes/clientes/veronica-fashion-operator/execucao'
+import { Route as ClientesLzTeamPainelRouteImport } from './routes/clientes/lz-team/painel'
 import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
 import { Route as ClientesExpressEntulhoOperacoesDemoRouteImport } from './routes/clientes/express-entulho/operacoes-demo'
 import { Route as ClientesExpressEntulhoOperacoesRouteImport } from './routes/clientes/express-entulho/operacoes'
@@ -264,6 +266,11 @@ const ClientesVeronicaFashionOperatorIndexRoute =
     path: '/clientes/veronica-fashion-operator/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ClientesLzTeamIndexRoute = ClientesLzTeamIndexRouteImport.update({
+  id: '/clientes/lz-team/',
+  path: '/clientes/lz-team/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreviewExpressOperationsBSplatRoute =
   PreviewExpressOperationsBSplatRouteImport.update({
     id: '/$',
@@ -276,6 +283,11 @@ const ClientesVeronicaFashionOperatorExecucaoRoute =
     path: '/clientes/veronica-fashion-operator/execucao',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ClientesLzTeamPainelRoute = ClientesLzTeamPainelRouteImport.update({
+  id: '/clientes/lz-team/painel',
+  path: '/clientes/lz-team/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientesExpressEntulhoPropostaRoute =
   ClientesExpressEntulhoPropostaRouteImport.update({
     id: '/clientes/express-entulho/proposta',
@@ -410,8 +422,10 @@ export interface FileRoutesByFullPath {
   '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/lz-team/': typeof ClientesLzTeamIndexRoute
   '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
   '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
@@ -467,8 +481,10 @@ export interface FileRoutesByTo {
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/lz-team': typeof ClientesLzTeamIndexRoute
   '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
   '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
@@ -526,8 +542,10 @@ export interface FileRoutesById {
   '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
+  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/lz-team/': typeof ClientesLzTeamIndexRoute
   '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
   '/clientes/express-entulho/operacoes/aprovacoes': typeof ClientesExpressEntulhoOperacoesAprovacoesRoute
@@ -586,8 +604,10 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/lz-team/painel'
     | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/lz-team/'
     | '/clientes/veronica-fashion-operator/'
     | '/clientes/express-entulho/operacoes/$secao'
     | '/clientes/express-entulho/operacoes/aprovacoes'
@@ -643,8 +663,10 @@ export interface FileRouteTypes {
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/lz-team/painel'
     | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/lz-team'
     | '/clientes/veronica-fashion-operator'
     | '/clientes/express-entulho/operacoes/$secao'
     | '/clientes/express-entulho/operacoes/aprovacoes'
@@ -701,8 +723,10 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
+    | '/clientes/lz-team/painel'
     | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/lz-team/'
     | '/clientes/veronica-fashion-operator/'
     | '/clientes/express-entulho/operacoes/$secao'
     | '/clientes/express-entulho/operacoes/aprovacoes'
@@ -759,7 +783,9 @@ export interface RootRouteChildren {
   ClientesExpressEntulhoOperacoesRoute: typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
+  ClientesLzTeamPainelRoute: typeof ClientesLzTeamPainelRoute
   ClientesVeronicaFashionOperatorExecucaoRoute: typeof ClientesVeronicaFashionOperatorExecucaoRoute
+  ClientesLzTeamIndexRoute: typeof ClientesLzTeamIndexRoute
   ClientesVeronicaFashionOperatorIndexRoute: typeof ClientesVeronicaFashionOperatorIndexRoute
 }
 
@@ -1038,6 +1064,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesVeronicaFashionOperatorIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes/lz-team/': {
+      id: '/clientes/lz-team/'
+      path: '/clientes/lz-team'
+      fullPath: '/clientes/lz-team/'
+      preLoaderRoute: typeof ClientesLzTeamIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/preview/express-operations-b/$': {
       id: '/preview/express-operations-b/$'
       path: '/$'
@@ -1050,6 +1083,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes/veronica-fashion-operator/execucao'
       fullPath: '/clientes/veronica-fashion-operator/execucao'
       preLoaderRoute: typeof ClientesVeronicaFashionOperatorExecucaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/lz-team/painel': {
+      id: '/clientes/lz-team/painel'
+      path: '/clientes/lz-team/painel'
+      fullPath: '/clientes/lz-team/painel'
+      preLoaderRoute: typeof ClientesLzTeamPainelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clientes/express-entulho/proposta': {
@@ -1272,8 +1312,10 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesExpressEntulhoOperacoesDemoRoute:
     ClientesExpressEntulhoOperacoesDemoRoute,
   ClientesExpressEntulhoPropostaRoute: ClientesExpressEntulhoPropostaRoute,
+  ClientesLzTeamPainelRoute: ClientesLzTeamPainelRoute,
   ClientesVeronicaFashionOperatorExecucaoRoute:
     ClientesVeronicaFashionOperatorExecucaoRoute,
+  ClientesLzTeamIndexRoute: ClientesLzTeamIndexRoute,
   ClientesVeronicaFashionOperatorIndexRoute:
     ClientesVeronicaFashionOperatorIndexRoute,
 }

@@ -45,7 +45,11 @@ function PrivateClientsPortal() {
       setResult(response);
       if (response.status === "granted") {
         setTimeout(() => {
-          void navigate({ to: "/clientes/$clientSlug", params: { clientSlug: response.slug } });
+          // /clientes/lz-team é a página pública do LZ; o ambiente privado
+          // dele mora em /painel.
+          if (response.slug === "lz-team") void navigate({ to: "/clientes/lz-team/painel" });
+          else
+            void navigate({ to: "/clientes/$clientSlug", params: { clientSlug: response.slug } });
         }, 550);
       }
     } catch {
