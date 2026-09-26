@@ -63,6 +63,11 @@ jobs:
           cat response.json
           echo
           if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            # Anotação de erro com o corpo da resposta: aparece na aba Actions
+            # e na API pública de check-runs, sem precisar baixar o log. Foi o
+            # que faltou em 26/09, quando o Wire ficou 20h falhando sem que o
+            # motivo aparecesse em lugar nenhum de fácil acesso.
+            echo "::error title=Geração da matéria falhou (HTTP $status)::$(head -c 900 response.json | tr '\n\r' '  ')"
             exit 1
           fi
           if [ "$(jq -r '.skipped == true' response.json)" = "true" ]; then
@@ -331,6 +336,7 @@ jobs:
           echo "HTTP status: $status"
           cat set-cover-response.json
           if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "::error title=Registro da capa falhou (HTTP $status)::$(head -c 900 set-cover-response.json | tr '\n\r' '  ')"
             exit 1
           fi
 
