@@ -43,6 +43,20 @@ export const ENTREGAS_POR_SELO: Record<string, readonly EntregaDeCliente[]> = {
       publica: true,
     },
   ],
+  "VH-MEM-2026-000002": [
+    {
+      to: "/clientes/lz-team",
+      rotulo: "Página do LZ Training Club",
+      descricao: "Página pública do Coach Lucas Tomaz: método, trajetória e aplicação",
+      publica: true,
+    },
+    {
+      to: "/clientes/lz-team/painel",
+      rotulo: "Ambiente privado",
+      descricao: "Workspace do LZ Team, com entrada pelo selo",
+      publica: false,
+    },
+  ],
 };
 
 /** Todo destino alcançável a partir das páginas de cliente. */

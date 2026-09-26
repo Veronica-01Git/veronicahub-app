@@ -86,7 +86,10 @@ test("a decisão de acesso usa sessão do servidor e variável privada", async (
 
 test("a Express possui uma única central operacional canônica", async () => {
   const [workspace, admin, legado] = await Promise.all([
-    readFile(new URL("../src/routes/clientes/$clientSlug.tsx", import.meta.url), "utf8"),
+    readFile(
+      new URL("../src/features/private-clients/components/workspace-page.tsx", import.meta.url),
+      "utf8",
+    ),
     readFile(
       new URL("../src/features/private-clients/admin.functions.ts", import.meta.url),
       "utf8",
@@ -102,4 +105,42 @@ test("a Express possui uma única central operacional canônica", async () => {
   assert.match(admin, /"\/clientes\/express-entulho\/operacoes"/);
   assert.match(legado, /redirect\(\{ to: "\/clientes\/express-entulho\/operacoes"/);
   assert.doesNotMatch(legado, /ExpressOperationsDemo/);
+});
+
+test("só /clientes/lz-team é pública; o resto de /clientes segue atrás do portão", async () => {
+  const [publica, painel, dinamica, portal] = await Promise.all([
+    readFile(new URL("../src/routes/clientes/lz-team/index.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/routes/clientes/lz-team/painel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/routes/clientes/$clientSlug.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/routes/clientes/index.tsx", import.meta.url), "utf8"),
+  ]);
+
+  // A página pública não renderiza workspace nem consulta sessão.
+  assert.doesNotMatch(publica, /<PrivateClientWorkspace|from "@\/features\/private-clients/);
+  // O workspace do LZ continua existindo, com o mesmo componente protegido.
+  assert.match(painel, /<PrivateClientWorkspace clientSlug="lz-team" \/>/);
+  // Todos os outros clientes seguem pela rota dinâmica protegida.
+  assert.match(dinamica, /<PrivateClientWorkspace clientSlug=\{clientSlug\} \/>/);
+  // Quem entra com o selo do LZ cai no painel, não na página pública.
+  assert.match(portal, /"\/clientes\/lz-team\/painel"/);
+});
+
+test("página do LZ: slots de imagem, UTMs e link do WhatsApp", async () => {
+  const { slotFromFilename, pickUtm, whatsappLink } =
+    await import("../src/features/lz-team/content.ts");
+
+  assert.equal(slotFromFilename("lz-team--gallery-1.png"), "gallery-1");
+  assert.equal(slotFromFilename("lz-team--cert-faixa-preta.webp"), "cert-faixa-preta");
+  assert.equal(slotFromFilename("lz-team--desconhecido.png"), null);
+  assert.equal(slotFromFilename("gallery-1.png"), null);
+
+  assert.deepEqual(pickUtm("?utm_source=ig&utm_campaign=vsl&fbclid=x&outro=1"), {
+    utm_source: "ig",
+    utm_campaign: "vsl",
+  });
+
+  const link = whatsappLink("Olá", { utm_source: "ig", utm_campaign: "vsl" });
+  assert.ok(link.startsWith("https://wa.me/5547996078242?text="));
+  assert.equal(new URL(link).searchParams.get("text"), "Olá\n\n[origem: ig / vsl]");
+  assert.equal(new URL(whatsappLink("Olá", {})).searchParams.get("text"), "Olá");
 });
