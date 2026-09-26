@@ -188,6 +188,8 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/blog/expediente",
   "/blog/rede-de-fontes",
   "/blog/rede-de-fontes/relatorios",
+  // Link fica no rodapé de todas as páginas, que o teste não enxerga.
+  "/privacidade",
   // Endereço curto que redireciona pra /blog. Mesmo padrão dos outros
   // redirects de endereço antigo acima — gap pré-existente na main,
   // fechado aqui porque o teste combina tudo numa lista só.
