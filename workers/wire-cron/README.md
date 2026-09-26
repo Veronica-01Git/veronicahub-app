@@ -1,7 +1,7 @@
 # wire-tv-cron
 
 Worker de agendamento da Wire TV. Não serve tráfego e não tem rota: a cada
-hora ele dispara o workflow `generate-article.yml` no GitHub, que é quem
+duas horas ele dispara o workflow `generate-article.yml` no GitHub, que é quem
 publica a matéria e busca a capa.
 
 Existe porque o agendador do GitHub descarta disparo. Medido no repositório
@@ -33,7 +33,7 @@ dependência, então cabe no editor do navegador.
 3. **Guarde o token.** Settings → Variables and Secrets → Add → tipo **Secret**,
    nome `GITHUB_TOKEN`, valor = o token do GitHub → Deploy.
 4. **Crie o gatilho.** Settings → Triggers → Cron Triggers → Add Cron Trigger →
-   `0 * * * *` → Add.
+   `0 */2 * * *` → Add.
 
 Nesse caminho o `wrangler.jsonc` deste diretório não é lido por ninguém: ele
 documenta a configuração, e quem vale é o que está no painel. Se mudar o cron

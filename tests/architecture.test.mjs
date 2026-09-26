@@ -12,7 +12,7 @@ import {
   HOME_PRODUCTS,
 } from "../src/lib/ecosystem.ts";
 import { sealRecords } from "../src/lib/seals.ts";
-import { BEAT_VALUES } from "../src/lib/beats.ts";
+import { BEAT_VALUES, beatForDate } from "../src/lib/beats.ts";
 import { WIRE_OFFERS } from "../src/lib/wire-commerce.ts";
 import { WIRE_INSTAGRAM_HANDLE, wrapHeadline } from "../src/lib/wire-instagram-card.ts";
 
@@ -49,6 +49,16 @@ const routes = new Set(
     (match) => match[1].replace(/\/$/, "") || "/",
   ),
 );
+
+test("o rodízio de duas horas continua sem repetir na virada UTC do dia", () => {
+  const start = Date.parse("2026-09-26T20:00:00Z");
+  const selected = Array.from({ length: 6 }, (_, index) =>
+    beatForDate(new Date(start + index * 2 * 60 * 60 * 1_000)),
+  );
+  assert.equal(new Set(selected.slice(0, 5)).size, 5);
+  assert.equal(selected[5], selected[0]);
+  assert.equal(beatForDate(new Date(start + 2 * 60 * 60 * 1_000)), selected[1]);
+});
 
 test("cada destino interno do ecossistema corresponde a uma rota existente", () => {
   for (const item of PRODUCTS.filter((item) => !item.external))
@@ -739,8 +749,9 @@ test("o crédito do fotógrafo aparece no rodapé da capa e na legenda", async (
     excerpt: "Resumo",
     canonicalUrl: "https://veronicahub.com/blog/x",
     photoCredit: "Ana Silva",
+    photoUrl: "https://images.pexels.com/photo.jpg",
   });
-  assert.match(comCredito, /^Foto: Ana Silva \/ Pexels$/m);
+  assert.match(comCredito, /^Imagem ilustrativa · Ana Silva \/ Pexels$/m);
   assert.ok(!/Pexels \/ Pexels/.test(comCredito), "a fonte não pode sair duplicada");
 
   // Sem crédito não se inventa linha: creditar quem não se sabe quem é seria
@@ -749,7 +760,7 @@ test("o crédito do fotógrafo aparece no rodapé da capa e na legenda", async (
     headline: "Manchete",
     canonicalUrl: "https://veronicahub.com/blog/x",
   });
-  assert.ok(!/Foto:/.test(semCredito));
+  assert.ok(!/Imagem ilustrativa/.test(semCredito));
 
   // O crédito viaja do banco até os dois destinos.
   assert.match(page, /coverPhotoCredit/);

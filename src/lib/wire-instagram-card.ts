@@ -112,20 +112,30 @@ export function buildWireCaption(input: {
   excerpt?: string;
   canonicalUrl: string;
   photoCredit?: string | null;
+  photoUrl?: string | null;
 }): string {
   // O resumo é opcional: quando a legenda é montada fora do site (script de
   // publicação), nem sempre ele está à mão, e um parágrafo vazio no meio da
   // legenda aparece como duas linhas em branco no feed.
   const excerpt = input.excerpt?.trim();
-  // O crédito do fotógrafo acompanha a foto onde quer que ela vá. No feed não
-  // há como linkar, então vai escrito; o nome chega sem a fonte (ver
-  // parseBankCredit), e é aqui que "Pexels" é acrescentado.
+  // O crédito acompanha a imagem; não atribuir ao Pexels uma foto do Pixabay
+  // nem tratar uma ilustração gerada por IA como fotografia.
   const credit = input.photoCredit?.trim();
+  const source = input.photoUrl?.includes("pixabay.com")
+    ? "Pixabay"
+    : input.photoUrl?.includes("pexels.com")
+      ? "Pexels"
+      : null;
+  const attribution = credit
+    ? /^Ilustração gerada por IA/i.test(credit)
+      ? credit
+      : `Imagem ilustrativa · ${credit}${source ? ` / ${source}` : ""}`
+    : undefined;
   return [
     input.headline,
     excerpt,
     `Leia a matéria completa: ${input.canonicalUrl}`,
-    credit ? `Foto: ${credit} / Pexels` : undefined,
+    attribution,
     WIRE_INSTAGRAM_HANDLE,
   ]
     .filter(Boolean)

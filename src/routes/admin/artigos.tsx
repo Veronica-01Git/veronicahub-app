@@ -188,6 +188,8 @@ function ArticlesAdmin() {
         setNotice(`Matéria publicada. Instagram pendente: ${res.instagram.error}`);
       } else if (res.instagram.skipped && res.instagram.reason === "disabled") {
         setNotice("Matéria publicada. O envio automático ao Instagram está desligado.");
+      } else if (res.instagram.skipped && res.instagram.reason === "topic-cycle") {
+        setNotice("Matéria publicada no site. A editoria já foi enviada ao Instagram neste ciclo.");
       } else if (res.instagram.skipped) {
         setNotice("Matéria publicada. Este link já estava no Instagram, então não foi duplicado.");
       } else {
@@ -208,7 +210,9 @@ function ArticlesAdmin() {
         setNotice(
           res.reason === "already-published"
             ? "Esta matéria já está publicada no Instagram; nenhuma duplicata foi criada."
-            : "Publicação automática desativada.",
+            : res.reason === "topic-cycle"
+              ? "A editoria já foi enviada ao Instagram neste ciclo; nenhuma duplicata foi criada."
+              : "Publicação automática desativada.",
         );
       } else {
         setNotice("Matéria publicada com sucesso no Instagram da Wire TV.");
