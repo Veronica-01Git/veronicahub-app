@@ -63,9 +63,9 @@ export async function createTopUpPreference(params: {
       external_reference: topUpId,
       notification_url: `${webhookBaseUrl}/api/mercadopago-webhook`,
       back_urls: {
-        success: `${webhookBaseUrl}/video-ia?topup=${topUpId}`,
-        pending: `${webhookBaseUrl}/video-ia?topup=${topUpId}&status=pendente`,
-        failure: `${webhookBaseUrl}/video-ia?topup=${topUpId}&status=erro`,
+        success: `${webhookBaseUrl}/studio-veronica?topup=${topUpId}`,
+        pending: `${webhookBaseUrl}/studio-veronica?topup=${topUpId}&status=pendente`,
+        failure: `${webhookBaseUrl}/studio-veronica?topup=${topUpId}&status=erro`,
       },
       auto_return: "approved",
     },

@@ -24,7 +24,7 @@ const STATIC_PATHS = [
   "/veronica-nautica",
   "/veronica-rede",
   "/veronica-security",
-  "/video-ia",
+  "/studio-veronica",
 ];
 
 function xmlEscape(value: string): string {

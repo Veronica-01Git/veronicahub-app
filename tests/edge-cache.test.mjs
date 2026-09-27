@@ -62,6 +62,7 @@ test("nada ligado a login ou carteira entra no cache, nunca", () => {
     "https://veronicahub.com/admin",
     "https://veronicahub.com/conta",
     "https://veronicahub.com/video-ia",
+    "https://veronicahub.com/studio-veronica",
     "https://veronicahub.com/veronica-curriculo-certo",
     "https://veronicahub.com/veronica-curriculo-certo-rh",
     "https://veronicahub.com/api/whatsapp/diagnostico",

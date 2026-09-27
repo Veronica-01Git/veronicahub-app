@@ -22,6 +22,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
 import { Route as SelosRouteImport } from './routes/selos'
+import { Route as StudioVeronicaRouteImport } from './routes/studio-veronica'
 import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
 import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
@@ -131,6 +132,11 @@ const SeloDemoRoute = SeloDemoRouteImport.update({
 const SelosRoute = SelosRouteImport.update({
   id: '/selos',
   path: '/selos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioVeronicaRoute = StudioVeronicaRouteImport.update({
+  id: '/studio-veronica',
+  path: '/studio-veronica',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VeronicaAnalyticsRoute = VeronicaAnalyticsRouteImport.update({
@@ -392,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
+  '/studio-veronica': typeof StudioVeronicaRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -452,6 +459,7 @@ export interface FileRoutesByTo {
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
+  '/studio-veronica': typeof StudioVeronicaRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -512,6 +520,7 @@ export interface FileRoutesById {
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
+  '/studio-veronica': typeof StudioVeronicaRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
@@ -574,6 +583,7 @@ export interface FileRouteTypes {
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
+    | '/studio-veronica'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -634,6 +644,7 @@ export interface FileRouteTypes {
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
+    | '/studio-veronica'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -693,6 +704,7 @@ export interface FileRouteTypes {
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
+    | '/studio-veronica'
     | '/veronica-analytics'
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
@@ -754,6 +766,7 @@ export interface RootRouteChildren {
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
   SelosRoute: typeof SelosRoute
+  StudioVeronicaRoute: typeof StudioVeronicaRoute
   VeronicaAnalyticsRoute: typeof VeronicaAnalyticsRoute
   VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
   VeronicaCurriculoCertoRhRoute: typeof VeronicaCurriculoCertoRhRoute
@@ -880,6 +893,13 @@ declare module '@tanstack/react-router' {
       path: '/selos'
       fullPath: '/selos'
       preLoaderRoute: typeof SelosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio-veronica': {
+      id: '/studio-veronica'
+      path: '/studio-veronica'
+      fullPath: '/studio-veronica'
+      preLoaderRoute: typeof StudioVeronicaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/veronica-analytics': {
@@ -1281,6 +1301,7 @@ const rootRouteChildren: RootRouteChildren = {
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
   SelosRoute: SelosRoute,
+  StudioVeronicaRoute: StudioVeronicaRoute,
   VeronicaAnalyticsRoute: VeronicaAnalyticsRoute,
   VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
   VeronicaCurriculoCertoRhRoute: VeronicaCurriculoCertoRhRoute,

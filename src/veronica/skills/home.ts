@@ -51,7 +51,7 @@ Garantia incondicional de 7 dias em qualquer plano. Emite NF-e automática
 (serve pra CNPJ MEI, ME e pessoa física).
 
 O ecossistema além dos cursos — cada um é uma página própria dentro do Hub:
-- Veronica Studio (/video-ia) — geração de imagem real via Nano Banana Pro, 2
+- Veronica Studio (/studio-veronica) — geração de imagem real via Nano Banana Pro, 2
   grátis ao criar conta. Vídeo, voz e avatar ainda em desenvolvimento — nunca
   fale como se já estivessem prontos.
 - Currículo-Certo (/veronica-curriculo-certo) — otimização de currículo pra
