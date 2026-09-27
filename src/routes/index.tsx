@@ -273,7 +273,7 @@ function EcosystemHome() {
                   <p className="mt-8 font-mono-tech text-[10px] uppercase tracking-widest text-white/50">
                     {active.category}
                   </p>
-                  <h3 className="mt-3 font-display text-4xl leading-tight tracking-[-.05em] text-white">
+                  <h3 className="mt-3 font-display text-4xl leading-tight tracking-[-.03em] text-white">
                     {active.name}
                   </h3>
                   <p className="mt-5 leading-relaxed text-white/70">{active.description}</p>
@@ -473,7 +473,7 @@ function EcosystemHome() {
         <section className="yolab-end px-6 py-24 sm:py-32">
           <div className="mx-auto max-w-7xl">
             <p className="yolab-eyebrow">SEU PRÓXIMO PASSO</p>
-            <h2 className="mt-6 max-w-5xl font-display text-[clamp(3rem,7vw,7rem)] leading-[.98] tracking-[-.07em]">
+            <h2 className="mt-6 max-w-5xl font-display text-[clamp(3rem,7vw,7rem)] leading-none tracking-[-.035em] text-balance">
               O futuro começa em alguma parte. Escolha a sua.
             </h2>
             <div className="mt-12 grid gap-3 sm:grid-cols-3">

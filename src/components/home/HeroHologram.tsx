@@ -52,7 +52,7 @@ export function HeroHologram({ className = "" }: { className?: string }) {
       <span className="yo-holo-tick yo-holo-tick-br" aria-hidden="true" />
       <div ref={canvasHost} className="yo-holo-canvas" />
       <p className="yo-holo-caption" aria-hidden="true">
-        <span className="vh-led" /> YO · 8D hologram
+        <span className="vh-led" /> YO · holograma 8D
       </p>
     </div>
   );
