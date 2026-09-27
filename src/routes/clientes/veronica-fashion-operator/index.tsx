@@ -171,8 +171,8 @@ function VeronicaFashion() {
                 </div>
               </>
             );
-            return card.href.startsWith("/") ? (
-              <Link key={card.title} to={card.href} className="group relative overflow-hidden border-white/15 xl:border-r">
+            return card.href === "/clientes/veronica-fashion-operator/execucao" ? (
+              <Link key={card.title} to="/clientes/veronica-fashion-operator/execucao" className="group relative overflow-hidden border-white/15 xl:border-r">
                 {cardContent}
               </Link>
             ) : (
