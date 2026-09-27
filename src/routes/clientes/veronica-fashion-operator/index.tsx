@@ -16,7 +16,7 @@ import {
   HoloBadge,
   HolographicField,
   SectionLabel,
-} from "@/features/private-clients/components/apple-client-ui";
+} from "@/features/private-clients/components/apple-client-ui";\nimport { fashionMediaById } from "@/features/private-clients/data/fashion-media";
 
 export const Route = createFileRoute("/clientes/veronica-fashion-operator/")({
   component: VeronicaFashion,
@@ -64,11 +64,12 @@ const atelier = [
   },
 ];
 
-const editorialImages = [
-  { src: "https://images.pexels.com/photos/30372261/pexels-photo-30372261.jpeg?auto=compress&cs=tinysrgb&w=1800", alt: "Retrato editorial humano em direção de moda contemporânea", credit: "Editorial reference · Pexels" },
-  { src: "https://images.pexels.com/photos/32548829/pexels-photo-32548829.jpeg?auto=compress&cs=tinysrgb&w=1800", alt: "Composição humana couture em atmosfera cinematográfica", credit: "Editorial reference · Pexels" },
-  { src: "https://images.pexels.com/photos/14559203/pexels-photo-14559203.jpeg?auto=compress&cs=tinysrgb&w=1800", alt: "Figura humana e arquitetura moderna em composição editorial", credit: "Editorial reference · Pexels" },
-];
+const heroDesktop = fashionMediaById("human-system-hero-desktop")!;
+const heroMobile = fashionMediaById("human-system-hero-mobile")!;
+const editorialPortrait = fashionMediaById("human-system-editorial")!;
+const collectionLook = fashionMediaById("human-system-full-look")!;
+
+const editorialImages = [editorialPortrait, collectionLook];
 
 const campaignPrinciples = [
   ["01", "Human", "Pessoas antes do efeito. Pele, gesto e presença continuam reconhecíveis."],
@@ -95,7 +96,8 @@ function VeronicaFashion() {
           <span className="text-[11px] font-medium tracking-[.18em] text-black/45">FASHION & CO.</span>
           <nav className="ml-auto hidden items-center gap-7 text-[11px] font-medium text-black/48 md:flex">
             <a href="#maison" className="transition hover:text-black">Maison</a>
-            <a href="#collection" className="transition hover:text-black">Collection 001</a>\n            <a href="#atelier" className="transition hover:text-black">Atelier</a>
+            <a href="#collection" className="transition hover:text-black">Collection 001</a>
+            <a href="#atelier" className="transition hover:text-black">Atelier</a>
             <a href="#intelligence" className="transition hover:text-black">Intelligence</a>
           </nav>
           <Link
@@ -133,7 +135,13 @@ function VeronicaFashion() {
               </p>
             </div>
 
-            <div className="group relative min-h-[560px] overflow-hidden rounded-[28px] bg-[#111113] p-7 text-white shadow-[0_45px_120px_rgba(0,0,0,.22)] [perspective:1400px] sm:p-9 lg:-rotate-[1.25deg] lg:transition-transform lg:duration-700 lg:hover:rotate-0 lg:hover:scale-[1.015]"><img src={editorialImages[0].src} alt={editorialImages[0].alt} className="absolute inset-0 h-full w-full object-cover object-center opacity-75 saturate-[.72] contrast-[1.08] transition duration-1000 group-hover:scale-[1.045] group-hover:saturate-100" loading="eager" /><div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.18)_45%,rgba(0,0,0,.88))]" /><div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,.28),transparent_22%)] mix-blend-screen" />
+            <div className="group relative min-h-[560px] overflow-hidden rounded-[28px] bg-[#111113] p-7 text-white shadow-[0_45px_120px_rgba(0,0,0,.22)] [perspective:1400px] sm:p-9 lg:-rotate-[1.25deg] lg:transition-transform lg:duration-700 lg:hover:rotate-0 lg:hover:scale-[1.015]">
+              <picture>
+                <source media="(max-width: 767px)" srcSet={heroMobile.src} />
+                <img src={heroDesktop.src} alt={heroDesktop.alt} className="absolute inset-0 h-full w-full object-cover object-center opacity-82 saturate-[.78] contrast-[1.08] transition duration-1000 group-hover:scale-[1.035] group-hover:saturate-100 motion-reduce:transform-none" loading="eager" fetchPriority="high" />
+              </picture>
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.16)_45%,rgba(0,0,0,.88))]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,.24),transparent_22%)] mix-blend-screen" />
               <div className="absolute inset-0 opacity-90">
                 <div className="absolute -right-[12%] -top-[10%] h-[75%] w-[75%] rounded-full bg-[radial-gradient(circle_at_40%_40%,rgba(255,221,238,.48),rgba(111,90,166,.2)_35%,transparent_70%)] blur-xl" />
                 <div className="absolute -bottom-[22%] -left-[12%] h-[68%] w-[68%] rounded-full bg-[radial-gradient(circle_at_center,rgba(114,230,222,.34),transparent_68%)] blur-xl" />
@@ -194,7 +202,7 @@ function VeronicaFashion() {
         <section className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-28">
           <div className="mb-10 flex items-end justify-between gap-6">
             <div><SectionLabel>Editorial / Human</SectionLabel><h2 className="mt-4 max-w-3xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-7xl">Human presence. Veronica language.</h2></div>
-            <p className="hidden max-w-sm text-right text-xs leading-6 text-black/40 md:block">Direção proprietária Human System. As referências fotográficas atuais funcionam como matéria-prima temporária até a biblioteca autoral completa.</p>
+            <p className="hidden max-w-sm text-right text-xs leading-6 text-black/40 md:block">Collection 001 fotografada como um sistema visual próprio: humanidade, matéria, arquitetura e inteligência em uma única linguagem.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-[1.15fr_.85fr]">
             {editorialImages.slice(1).map((image, index) => (
@@ -242,8 +250,10 @@ function VeronicaFashion() {
           </div>
         </section>
 
-        <section className="bg-[#111113] px-5 py-24 text-white sm:px-8 lg:py-36">
-          <div className="mx-auto max-w-[1500px]">
+        <section className="relative overflow-hidden bg-[#111113] px-5 py-24 text-white sm:px-8 lg:py-36">
+          <img src={collectionLook.src} alt="" aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-[38%] object-cover opacity-[.16] mix-blend-luminosity lg:block" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#111113] via-[#111113]/95 to-[#111113]/70" aria-hidden />
+          <div className="relative mx-auto max-w-[1500px]">
             <div className="grid gap-8 lg:grid-cols-[1fr_.65fr] lg:items-end">
               <div>
                 <div className="font-mono text-[9px] uppercase tracking-[.28em] text-white/38">Collection architecture</div>
