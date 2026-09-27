@@ -57,6 +57,19 @@ test("imagem no corpo: só arquivo do próprio site, parágrafo inteiro", () => 
   assert.equal(parseBodyImage("![x](https://evil.example/a.jpg)"), null);
   assert.equal(parseBodyImage("texto ![x](/images/a.jpg)"), null);
   assert.equal(parseBodyImage("![x](/images/../segredo.jpg)"), null);
-  assert.equal(parseBodyImage("![x](/images/a.jpg\" onerror=\"x)"), null);
+  assert.equal(parseBodyImage('![x](/images/a.jpg" onerror="x)'), null);
   assert.equal(parseBodyImage("Parágrafo comum."), null);
+});
+
+test("desk escrito à mão vence o palpite por palavra-chave", () => {
+  // editorial-network.ts importa "./beats" sem extensão; lido como texto.
+  const rede = readFileSync(new URL("../src/lib/editorial-network.ts", import.meta.url), "utf8");
+  const corpo = rede.slice(rede.indexOf("export function resolveEditorialChannel"));
+  const escolhaManual = corpo.indexOf("channel.label.toLocaleLowerCase");
+  const palpite = corpo.indexOf("channel.keywords.reduce");
+  assert.ok(
+    escolhaManual > 0 && escolhaManual < palpite,
+    "desk manual precisa ser conferido antes das palavras-chave",
+  );
+  assert.match(rede, /label: "Bastidores"/);
 });

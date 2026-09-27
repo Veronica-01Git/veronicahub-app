@@ -199,6 +199,11 @@ export function resolveEditorialChannel(
   ...articleText: Array<string | null | undefined>
 ): EditorialChannel {
   const channels = EDITORIAL_CHANNELS[beat];
+  // Desk escolhido à mão (matéria da casa, admin) vence o palpite por palavra-chave.
+  const explicit = articleText[0]?.trim().toLocaleLowerCase("pt-BR");
+  const chosen =
+    explicit && channels.find((channel) => channel.label.toLocaleLowerCase("pt-BR") === explicit);
+  if (chosen) return chosen;
   const normalized = articleText.filter(Boolean).join(" ").toLocaleLowerCase("pt-BR");
   const scores = channels.map((channel) =>
     channel.keywords.reduce((score, keyword) => score + (normalized.includes(keyword) ? 1 : 0), 0),
