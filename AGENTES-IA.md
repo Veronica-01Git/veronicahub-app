@@ -13,12 +13,29 @@ misturar os três é como se vende software que não existe.
 Uma vitrine de agentes onde o usuário escolhe a solução, prova antes de pagar
 e depois compra: avulso (uma solução), mensal ou anual.
 
-Dois agentes hoje:
+Três agentes hoje:
 
 | Agente                  | O que faz                                       | Teste grátis |
 | ----------------------- | ----------------------------------------------- | ------------ |
 | **WhatsApp Empresarial** | Atende cliente com os preços e o jeito do dono  | 6 horas      |
 | **Veronica Analytics**   | Escolhe a oferta e escreve o criativo do afiliado | —          |
+| **Agente TV**            | A redação do Wire TV no site de uma empresa de notícias | — (a prova é o Wire ao vivo) |
+
+### Agente TV (27/09/2026)
+
+É a redação automática que publica o Wire TV, vendida para empresas de
+notícias usarem no próprio site. A seção `#tv` da rota lê o feed público
+`/api/wire/feed.json` e mostra as três últimas matérias com capa — a prova é o
+Wire real, não uma simulação.
+
+- **Mensal e anual** são contratados pela carteira, como os outros agentes.
+- **Piloto de 7 dias** e **implantação** passam por pessoa: o cliente preenche
+  os dados do veículo e a mensagem sai montada para o WhatsApp da Yo Lab. A
+  ligação com o site do cliente ainda **não é autosserviço**, e a página diz
+  isso.
+- Preços (piloto R$ 197, mensal R$ 997, anual R$ 9.970) são proposta de 27/09
+  e aparecem marcados "a confirmar" até a dona confirmar em
+  `src/lib/agentes.ts`.
 
 ---
 

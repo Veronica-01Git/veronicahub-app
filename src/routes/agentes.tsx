@@ -37,8 +37,11 @@ import {
   MessageCircle,
   TrendingUp,
   Loader2,
+  Tv,
+  Newspaper,
+  Radio,
 } from "lucide-react";
-import { SiteHeader, SiteFooter, PageHero } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, PageHero, SOCIAL_LINKS } from "@/components/SiteChrome";
 import {
   AGENTES,
   PACOTES_DE_SALDO,
@@ -394,6 +397,12 @@ function Agentes() {
           >
             Ganhar com afiliados
           </a>
+          <a
+            href="#tv"
+            className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-border/60 px-5 text-sm"
+          >
+            Redação para empresas de notícias
+          </a>
         </div>
         {saldoCents !== null && (
           <p className="mt-6 font-mono-tech text-xs text-muted-foreground">
@@ -404,7 +413,7 @@ function Agentes() {
 
       {/* ------------------------------------------------ [01] vitrine */}
       <Secao id="vitrine" numero="01" titulo="Os agentes">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {AGENTES.map((a) => {
             const estado = estadoDe(a.id);
             return (
@@ -481,8 +490,11 @@ function Agentes() {
       {/* -------------------------------------------- [03] Analytics */}
       <AgenteAnalytics estado={estadoDe("analytics-afiliado")} aoMudar={recarregar} />
 
-      {/* ------------------------------------------- [04] carteira */}
-      <Secao id="creditos" numero="04" titulo="Créditos">
+      {/* ------------------------------------------------ [04] Agente TV */}
+      <AgenteTV estado={estadoDe("agente-tv")} aoMudar={recarregar} logado={logado} />
+
+      {/* ------------------------------------------- [05] carteira */}
+      <Secao id="creditos" numero="05" titulo="Créditos">
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           {/* min-w-0: item de grid nasce com min-width:auto, então ele estica
               para caber o conteúdo em vez de deixar o filho rolar. Sem isto, a
@@ -717,7 +729,7 @@ function AgenteWhatsApp({
       if (!res.ok) {
         setErro(
           res.error === "insufficient_funds"
-            ? "Saldo insuficiente. Recarregue a carteira em [04] e volte aqui."
+            ? "Saldo insuficiente. Recarregue a carteira em [05] e volte aqui."
             : res.error,
         );
       }
@@ -1165,7 +1177,7 @@ function AgenteAnalytics({
       else
         setErro(
           res.error === "insufficient_funds"
-            ? "Saldo insuficiente para o kit avulso. Recarregue em [04] ou contrate o mensal."
+            ? "Saldo insuficiente para o kit avulso. Recarregue em [05] ou contrate o mensal."
             : res.error,
         );
       await aoMudar();
@@ -1400,6 +1412,334 @@ function AgenteAnalytics({
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
           A comissão é paga pela Shopee, pelo relatório de Sub_id — o Hub mede o encaminhamento, não
           o pagamento. Crédito automático de comissão ao divulgador ainda não existe.
+        </p>
+      </div>
+    </Secao>
+  );
+}
+
+/* ---------------------------------------------------- Agente TV */
+
+/**
+ * Agente TV — a redação do Wire vendida para empresas de notícias.
+ *
+ * A PROVA É O PRÓPRIO WIRE. Em vez de uma simulação, a seção lê o feed
+ * público do Wire TV (/api/wire/feed.json) e mostra as últimas matérias que a
+ * redação publicou sozinha, com a capa que o fotógrafo escolheu. É a mesma
+ * regra da página: o que o cliente vê é o que ele leva.
+ *
+ * CONTRATAÇÃO. Mensal e anual são debitados da carteira, como nos outros
+ * agentes. Como a ligação com o site do veículo passa por implantação feita
+ * pela Yo Lab, depois de contratar (ou para o piloto) o cliente manda os
+ * dados do veículo pelo WhatsApp, já com a mensagem montada.
+ */
+type MateriaDoWire = {
+  slug: string;
+  titulo: string;
+  editoria: string;
+  capaUrl: string | null;
+  capaCredito: string | null;
+  publicadoEm: string;
+  urlOriginal: string;
+};
+
+const EQUIPE_DA_REDACAO: readonly { papel: string; faz: string }[] = [
+  {
+    papel: "Pauteiro e repórter",
+    faz: "lê a rede de fontes, escolhe a pauta e escreve com o fato confirmado em duas fontes independentes",
+  },
+  {
+    papel: "Editor-chefe",
+    faz: "regras fixas, sem IA: barra fato com mais de 72 horas, fonte repetida e manchete parecida com outra",
+  },
+  {
+    papel: "Fotógrafo",
+    faz: "busca uma capa única no Pexels (e no Pixabay de reserva) e nunca repete uma foto que já esteve no ar",
+  },
+  {
+    papel: "Ilustrador",
+    faz: "entra só quando não há foto que sirva, sempre com o aviso de imagem gerada por IA",
+  },
+  { papel: "Diagramador", faz: "otimiza a capa e monta o card do Instagram com a manchete" },
+  { papel: "Publicador", faz: "posta no Instagram do veículo, com trava contra post repetido" },
+  {
+    papel: "Guardião",
+    faz: "vigia a redação e avisa quando ela para, quando falta capa ou quando uma foto se repete",
+  },
+];
+
+function tempoDesde(iso: string): string {
+  const minutos = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (minutos < 60) return `há ${minutos} min`;
+  const horas = Math.round(minutos / 60);
+  if (horas < 48) return `há ${horas}h`;
+  return `há ${Math.round(horas / 24)} dias`;
+}
+
+function AgenteTV({
+  estado,
+  aoMudar,
+  logado,
+}: {
+  estado: EstadoAgente | null;
+  aoMudar: () => Promise<void>;
+  logado: boolean | null;
+}) {
+  const config = agente("agente-tv");
+  const [materias, setMaterias] = useState<MateriaDoWire[] | null>(null);
+  const [veiculo, setVeiculo] = useState({ nome: "", site: "", editorias: "", instagram: "" });
+  const [ocupado, setOcupado] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [contratado, setContratado] = useState<string | null>(null);
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/wire/feed.json")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((dados: { materias?: MateriaDoWire[] } | null) => {
+        if (!vivo) return;
+        const lista = (dados?.materias ?? []).filter((m) => m.capaUrl).slice(0, 3);
+        setMaterias(lista);
+      })
+      .catch(() => vivo && setMaterias([]));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  const linkWhatsApp = useMemo(() => {
+    const linhas = [
+      "Olá! Quero o Agente TV para a minha empresa de notícias.",
+      contratado ? `Já contratei o plano ${contratado} pela página /agentes.` : "",
+      veiculo.nome && `Veículo: ${veiculo.nome}`,
+      veiculo.site && `Site: ${veiculo.site}`,
+      veiculo.editorias && `Editorias: ${veiculo.editorias}`,
+      veiculo.instagram && `Instagram: ${veiculo.instagram}`,
+    ].filter(Boolean);
+    return `${SOCIAL_LINKS.whatsapp}?text=${encodeURIComponent(linhas.join("\n"))}`;
+  }, [veiculo, contratado]);
+
+  async function contratar(planoId: "mensal" | "anual") {
+    setErro(null);
+    setOcupado(true);
+    try {
+      const res = await contratarPlano({ data: { agenteId: "agente-tv", planoId } });
+      if (!res.ok) {
+        setErro(
+          res.error === "insufficient_funds"
+            ? "Saldo insuficiente. Recarregue a carteira em [05] e volte aqui."
+            : res.error,
+        );
+      } else {
+        setContratado(planoId === "mensal" ? "Mensal" : "Anual");
+      }
+      await aoMudar();
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao contratar.");
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  const campo =
+    "w-full rounded-sm border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-neon-green/60";
+
+  return (
+    <Secao id="tv" numero="04" titulo={config.nome}>
+      <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr]">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green">
+            <Tv className="h-3.5 w-3.5" /> para empresas de notícias
+          </p>
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed">{config.promessa}</p>
+
+          <h3 className="mt-10 flex items-center gap-2 font-display text-xl">
+            <Newspaper className="h-5 w-5 text-neon-green" /> A redação
+          </h3>
+          <ol className="mt-5 space-y-3">
+            {EQUIPE_DA_REDACAO.map((m, i) => (
+              <li key={m.papel} className="flex gap-3 text-sm leading-relaxed">
+                <span className="font-mono-tech text-xs text-neon-green">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span>
+                  <strong className="font-medium">{m.papel}</strong>{" "}
+                  <span className="text-muted-foreground">— {m.faz}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="min-w-0">
+          <h3 className="flex items-center gap-2 font-display text-xl">
+            <Radio className="h-5 w-5 text-neon-green" /> Ao vivo no Wire TV
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            As últimas matérias que esta redação publicou sozinha, com a capa que ela escolheu.
+          </p>
+          <div className="mt-5 space-y-4">
+            {materias === null && (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> carregando o Wire…
+              </p>
+            )}
+            {materias?.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                O feed do Wire não respondeu agora.{" "}
+                <Link to="/blog" className="text-neon-green hover:underline">
+                  Abrir o Wire TV
+                </Link>
+              </p>
+            )}
+            {materias?.map((m) => (
+              <a
+                key={m.slug}
+                href={`/blog/${m.slug}`}
+                className="group flex gap-4 rounded-sm border border-border/60 p-3 transition hover:border-neon-green/50"
+              >
+                {m.capaUrl && (
+                  <img
+                    src={m.capaUrl}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-[16/9] w-32 shrink-0 rounded-sm object-cover sm:w-40"
+                  />
+                )}
+                <span className="min-w-0">
+                  <span className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {m.editoria} · {tempoDesde(m.publicadoEm)}
+                  </span>
+                  <span className="mt-1 line-clamp-3 block text-sm font-medium leading-snug group-hover:text-neon-green">
+                    {m.titulo}
+                  </span>
+                  {m.capaCredito && (
+                    <span className="mt-1 block text-[11px] text-muted-foreground">
+                      Foto: {m.capaCredito}
+                    </span>
+                  )}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Planos */}
+      <div className="mt-16">
+        <h3 className="font-display text-xl">Para a sua empresa</h3>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {config.planos.map((p) => (
+            <div
+              key={p.id}
+              className={`rounded-sm border p-5 ${
+                p.id === "mensal" ? "border-neon-green/50" : "border-border/60"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {p.rotulo}
+                </p>
+                {p.economia && (
+                  <span className="rounded-full bg-neon-green/10 px-2 py-0.5 font-mono-tech text-[10px] text-neon-green">
+                    {p.economia}
+                  </span>
+                )}
+              </div>
+              <p className="mt-3">
+                <Preco cents={p.precoCents} confirmado={precoConfirmado(p.procedencia)} />
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">{p.unidade}</p>
+              <div className="mt-5">
+                {p.id === "avulso" ? (
+                  <a
+                    href={linkWhatsApp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-border/60 px-5 text-sm font-medium transition hover:border-neon-green/60"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Pedir o piloto
+                  </a>
+                ) : (
+                  <Botao
+                    variante={p.id === "mensal" ? "primario" : "secundario"}
+                    onClick={() => contratar(p.id as "mensal" | "anual")}
+                    carregando={ocupado}
+                    disabled={logado === false}
+                  >
+                    Contratar
+                  </Botao>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {logado === false && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Entre com seu e-mail pelo topo da página para contratar — o plano fica ligado à conta.
+          </p>
+        )}
+        {erro && (
+          <div className="mt-4">
+            <Aviso tom="erro">{erro}</Aviso>
+          </div>
+        )}
+        {(contratado || estado?.liberado) && (
+          <p className="mt-4 flex items-center gap-2 text-sm text-neon-green">
+            <Check className="h-4 w-4" /> Plano ativo. Próximo passo: mande os dados do veículo
+            abaixo para a Yo Lab ligar a redação ao seu site.
+          </p>
+        )}
+
+        {/* Dados do veículo para a implantação */}
+        <div className="mt-10 rounded-sm border border-border/60 p-5">
+          <p className="font-display text-lg">Dados do seu veículo</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A redação é ligada ao seu site numa implantação feita pela Yo Lab. Preencha e envie pelo
+            WhatsApp — a mensagem sai montada.
+          </p>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <input
+              className={campo}
+              placeholder="Nome do veículo"
+              value={veiculo.nome}
+              onChange={(e) => setVeiculo({ ...veiculo, nome: e.target.value })}
+            />
+            <input
+              className={campo}
+              placeholder="Site (ex.: jornaldacidade.com.br)"
+              value={veiculo.site}
+              onChange={(e) => setVeiculo({ ...veiculo, site: e.target.value })}
+            />
+            <input
+              className={campo}
+              placeholder="Editorias (ex.: cidade, política, esporte)"
+              value={veiculo.editorias}
+              onChange={(e) => setVeiculo({ ...veiculo, editorias: e.target.value })}
+            />
+            <input
+              className={campo}
+              placeholder="Instagram do veículo (opcional)"
+              value={veiculo.instagram}
+              onChange={(e) => setVeiculo({ ...veiculo, instagram: e.target.value })}
+            />
+          </div>
+          <div className="mt-5">
+            <a
+              href={linkWhatsApp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-neon-green px-5 text-sm font-medium text-background hover:opacity-90"
+            >
+              <MessageCircle className="h-4 w-4" /> Enviar pelo WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+          O plano é debitado do seu saldo e vale por um período fixo — não há cobrança recorrente
+          automática. {config.pendencias.join(" ")}
         </p>
       </div>
     </Secao>

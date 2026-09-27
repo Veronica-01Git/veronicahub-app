@@ -36,7 +36,7 @@ export function precoConfirmado(p: Procedencia): boolean {
   return Boolean(p.confirmadoPor && p.confirmadoEm);
 }
 
-export type AgenteId = "whatsapp-empresarial" | "analytics-afiliado";
+export type AgenteId = "whatsapp-empresarial" | "analytics-afiliado" | "agente-tv";
 
 export type PlanoId = "avulso" | "mensal" | "anual";
 
@@ -199,7 +199,80 @@ const ANALYTICS_AFILIADO: Agente = {
   ],
 };
 
-export const AGENTES: readonly Agente[] = [WHATSAPP_EMPRESARIAL, ANALYTICS_AFILIADO];
+/**
+ * Agente 3 — Agente TV, a redação automática.
+ *
+ * É o Wire TV (veronicahub.com/blog) vendido para o veículo do cliente: a
+ * mesma equipe de agentes que publica o Wire de hora em hora — pauta,
+ * apuração em duas fontes, editor-chefe por regra, capa única do Pexels e
+ * card do Instagram — rodando para o site de uma empresa de notícias.
+ *
+ * COMO O PREÇO FOI TIRADO. O custo de inferência é quase zero (Groq no plano
+ * gratuito, Pexels e Pixabay gratuitos). O que se vende é o trabalho
+ * substituído: um redator de plantão, um editor de foto e quem posta nas
+ * redes, 24 horas por dia. Por isso a mensalidade ancora nesse trabalho, e o
+ * piloto de sete dias existe para o veículo ver a redação publicando no site
+ * dele antes de assinar.
+ *
+ * O QUE NÃO É AUTOSSERVIÇO. A redação roda na infraestrutura da Yo Lab e é
+ * ligada ao site do cliente numa implantação feita por pessoa. Isso fica
+ * declarado nas pendências e na tela — a página não vende como pronto o que
+ * ainda passa por implantação.
+ */
+const PROPOSTA_TV: Procedencia = {
+  fonte:
+    "proposta de Claude Code em 27/09/2026, ancorada no trabalho substituído (redator de plantão, editor de foto e social media), não no custo de API",
+  confirmadoPor: null,
+  confirmadoEm: null,
+};
+
+const AGENTE_TV: Agente = {
+  id: "agente-tv",
+  nome: "Agente TV",
+  tagline: "Uma redação que apura, escreve e ilustra. De hora em hora.",
+  promessa:
+    "Para a sua empresa de notícias: a mesma redação automática que publica o Wire TV, rodando no SEU site — pauta do dia, fato confirmado em duas fontes, capa única e card pronto para o Instagram.",
+  ancora: "tv",
+  guia: "Veronica",
+  desenvolvedor: "Yo Lab & co.",
+  testeHoras: 0,
+  planos: [
+    {
+      id: "avulso",
+      rotulo: "Piloto",
+      unidade: "7 dias no seu site, 1 editoria",
+      precoCents: 19_700,
+      procedencia: PROPOSTA_TV,
+    },
+    {
+      id: "mensal",
+      rotulo: "Mensal",
+      unidade: "1 site, até 5 editorias, até 12 matérias por dia",
+      precoCents: 99_700,
+      procedencia: PROPOSTA_TV,
+    },
+    {
+      id: "anual",
+      rotulo: "Anual",
+      unidade: "1 site, até 5 editorias, 12 meses",
+      precoCents: 997_000,
+      procedencia: PROPOSTA_TV,
+      economia: "2 meses grátis",
+    },
+  ],
+  entregas: [
+    "Pauta do dia a partir de uma rede de fontes, com o fato confirmado em duas fontes independentes",
+    "Editor-chefe por regra: barra fato velho, fonte repetida e manchete parecida com outra já publicada",
+    "Capa única por matéria (Pexels e Pixabay), com crédito do fotógrafo — nenhuma foto repete",
+    "Card do Instagram pronto com a manchete, e um guardião que avisa quando a redação para",
+  ],
+  pendencias: [
+    "A ligação com o site do veículo é feita pela Yo Lab numa implantação — ainda não é autosserviço",
+    "Postar no Instagram do veículo depende do token da Meta da própria empresa",
+  ],
+};
+
+export const AGENTES: readonly Agente[] = [WHATSAPP_EMPRESARIAL, ANALYTICS_AFILIADO, AGENTE_TV];
 
 export function agente(id: AgenteId): Agente {
   const encontrado = AGENTES.find((a) => a.id === id);

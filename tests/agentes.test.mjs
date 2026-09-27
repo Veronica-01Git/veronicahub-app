@@ -258,3 +258,17 @@ test("todo produto público e interno tem porta de entrada na navegação", () =
     "produtos sem link em lugar nenhum da navegação",
   );
 });
+
+test("o Agente TV é a redação do Wire para empresas de notícias, com a implantação à vista", () => {
+  const tv = agente("agente-tv");
+  assert.equal(tv.ancora, "tv");
+  assert.equal(tv.testeHoras, 0, "a prova do Agente TV é o próprio Wire ao vivo, não um teste");
+  // A ligação com o site do cliente passa por pessoa: isso não pode sumir da
+  // página enquanto não houver autosserviço.
+  assert.ok(
+    tv.pendencias.some((p) => /implanta/i.test(p)),
+    "o Agente TV precisa declarar que a ligação ao site é por implantação",
+  );
+  // A seção mostra o Wire real, lido do feed público — não uma demonstração.
+  assert.ok(routeSources.includes('fetch("/api/wire/feed.json")'));
+});
