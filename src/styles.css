@@ -316,48 +316,130 @@
   font-weight: 600;
   color: oklch(0.97 0.01 180);
 }
-.neural-orb-glow {
-  position: absolute;
-  inset: 8%;
-  border-radius: 50%;
-  background: radial-gradient(circle, oklch(0.6 0.15 170 / 0.3), transparent 68%);
-  filter: blur(6px);
+.yo-holo {
+  --holo: oklch(0.86 0.19 160);
+  --holo-soft: oklch(0.86 0.19 160 / 0.16);
+  isolation: isolate;
 }
-.neural-orb-ring {
+/* Halo: dois gradientes empilhados — núcleo quente atrás do "YO" e uma
+   coroa larga que funde o palco no fundo da hero sem borda visível. */
+.yo-holo-halo {
   position: absolute;
+  inset: 4%;
+  z-index: -1;
   border-radius: 50%;
-  border: 1px solid oklch(0.88 0.15 195 / 0.18);
+  background:
+    radial-gradient(circle at 50% 46%, oklch(0.7 0.17 165 / 0.34), transparent 42%),
+    radial-gradient(circle at 50% 50%, oklch(0.55 0.13 185 / 0.18), transparent 70%);
+  filter: blur(8px);
+  animation: yo-holo-breathe 6s ease-in-out infinite;
+}
+/* Pedestal de projeção: elipse em perspectiva com anéis concêntricos, onde
+   o feixe do modelo "pousa". */
+.yo-holo-floor {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 14%;
+  height: 14%;
+  z-index: -1;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at center, oklch(0.8 0.18 162 / 0.28), transparent 62%),
+    repeating-radial-gradient(
+      ellipse at center,
+      transparent 0 9px,
+      oklch(0.86 0.19 160 / 0.14) 9px 10px
+    );
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 72%);
+}
+.yo-holo-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 0.9s ease,
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.yo-holo-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.yo-holo[data-state="ready"] .yo-holo-canvas {
+  opacity: 1;
+  transform: none;
+}
+/* Marcas de mira nos cantos: enquadram o holograma como leitura de
+   instrumento, sem fechar uma caixa em volta dele. */
+.yo-holo-tick {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: oklch(0.86 0.19 160 / 0.42);
+  border-style: solid;
+  border-width: 0;
   pointer-events: none;
 }
-.neural-orb-ring-a {
-  inset: 2%;
-  animation: vh-spin 34s linear infinite;
-  border-style: dashed;
+.yo-holo-tick-tl {
+  top: 3%;
+  left: 3%;
+  border-top-width: 1px;
+  border-left-width: 1px;
 }
-.neural-orb-ring-b {
-  inset: 14%;
-  border-color: oklch(0.85 0.22 155 / 0.22);
-  animation: vh-spin 24s linear infinite reverse;
+.yo-holo-tick-tr {
+  top: 3%;
+  right: 3%;
+  border-top-width: 1px;
+  border-right-width: 1px;
 }
-.neural-orb-ring-c {
-  inset: 26%;
-  border-color: oklch(0.9 0.06 200 / 0.14);
-  animation: vh-spin 44s linear infinite;
+.yo-holo-tick-bl {
+  bottom: 3%;
+  left: 3%;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
 }
-@keyframes vh-spin {
-  to {
-    transform: rotate(360deg);
+.yo-holo-tick-br {
+  bottom: 3%;
+  right: 3%;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+.yo-holo-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: oklch(0.86 0.03 175 / 0.5);
+}
+@keyframes yo-holo-breathe {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .neural-orb-ring,
+  .yo-holo-halo,
   .vh-led,
   .vh-news-dot {
     animation: none !important;
   }
-  .neural-orb svg animate,
-  .neural-orb svg animateMotion {
-    display: none;
+  .yo-holo-canvas {
+    transition: none;
   }
 }
 
@@ -366,12 +448,34 @@
   background: oklch(0.975 0.007 145);
   scroll-behavior: smooth;
 }
-.yolab-home .vt-cabecalho,
 .yolab-home .vt-rodape {
   --background: oklch(0.975 0.007 145);
   --foreground: oklch(0.17 0.015 180);
   --muted-foreground: oklch(0.43 0.016 180);
   --border: oklch(0.84 0.012 155 / 0.7);
+}
+/* Cabeçalho preto na home: vira a tampa da hero escura em vez de uma faixa
+   clara solta acima dela. Os tokens são trocados no próprio <header>, então
+   o menu de ferramentas, o login e o menu mobile herdam o preto sem regra
+   própria. --neon-red volta à variante do escuro (a clara de .home-hybrid
+   some no preto) e alimenta os dois fios de acento. */
+.yolab-home .vt-cabecalho {
+  --background: oklch(0.11 0.004 200);
+  --foreground: oklch(0.97 0.006 180);
+  --surface: oklch(0.16 0.008 200);
+  --popover: oklch(0.13 0.006 200);
+  --popover-foreground: oklch(0.97 0.006 180);
+  --muted-foreground: oklch(0.72 0.012 190);
+  --border: oklch(1 0 0 / 0.1);
+  --neon-green: oklch(0.85 0.22 155);
+  --neon-red: oklch(0.64 0.24 25);
+  color-scheme: dark;
+}
+/* O selo YO é um disco preto: no cabeçalho preto ele ganha um aro fino
+   para não virar só as letras flutuando. */
+.yolab-home .vt-cabecalho img[src*="yo-lab-logo"] {
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px oklch(1 0 0 / 0.14);
 }
 .yolab-hero {
   background:
@@ -1183,6 +1287,31 @@
   view-transition-name: cabecalho;
 }
 
+/* Fios vermelhos do cabeçalho (topo e base). Esmaecem nas pontas em vez de
+   cortar a tela; a cor vem de --neon-red, que cada tema do cabeçalho ajusta.
+   O ::after é uma cópia desfocada do mesmo traço — um brilho de 3px que dá
+   corpo à linha de 1px sem engrossá-la de fato. */
+.vh-header-rule {
+  --rule: linear-gradient(
+    90deg,
+    transparent,
+    var(--neon-red) 18%,
+    var(--neon-red) 82%,
+    transparent
+  );
+  height: 1px;
+  background: var(--rule);
+  opacity: 0.9;
+}
+.vh-header-rule::after {
+  content: "";
+  position: absolute;
+  inset: -1px 0;
+  background: var(--rule);
+  filter: blur(2px);
+  opacity: 0.55;
+}
+
 @utility vt-rodape {
   view-transition-name: rodape;
 }
@@ -1288,5 +1417,5 @@
   .vh-console-group::-webkit-scrollbar { display: none; }
   .vh-console-link { flex: 0 0 auto; min-height: 44px; display: inline-flex; align-items: center; }
   .vh-news { min-height: 44px; }
-  .neural-orb { max-width: 300px; }
+  .yo-holo { max-width: 340px; }
 }

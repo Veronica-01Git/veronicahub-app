@@ -473,13 +473,6 @@ function SpecialProjectLinks({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-// Fio vermelho do cabeçalho: esmaece nas duas pontas em vez de cortar a tela
-// de ponta a ponta. A cor vem de --neon-red, que tem variante clara em
-// .home-hybrid pras rotas de fundo claro. O fade agora começa mais cedo
-// (25%/75%) pra deixar o traço mais delicado.
-const HEADER_ACCENT_LINE =
-  "linear-gradient(90deg, transparent, var(--neon-red) 25%, var(--neon-red) 75%, transparent)";
-
 // Páginas com carteira mantêm seus próprios controles de sessão.
 export function SiteHeader({
   showAuth = true,
@@ -593,16 +586,12 @@ export function SiteHeader({
           ))}
         </nav>
       )}
-      {/* Fio de acento — meio pixel na borda SUPERIOR do cabeçalho, esmaecendo
-        nas pontas pra ler como detalhe de design e não como faixa de alerta.
-        0.5px vira meia espessura real em tela de alta densidade e, em 1x, o
-        navegador resolve como uma linha mais clara — afina dos dois jeitos,
-        sem sumir. Ancorado no próprio <header>, que já é sticky. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[0.5px] opacity-60"
-        style={{ background: HEADER_ACCENT_LINE }}
-      />
+      {/* Fios de acento — um na borda SUPERIOR e outro na INFERIOR, os dois
+        esmaecendo nas pontas, emoldurando o cabeçalho como uma peça só.
+        1px com brilho curto: encorpa o traço do antigo meio pixel sem virar
+        faixa de alerta. Ancorados no próprio <header>, que já é sticky. */}
+      <div aria-hidden className="vh-header-rule pointer-events-none absolute inset-x-0 top-0" />
+      <div aria-hidden className="vh-header-rule pointer-events-none absolute inset-x-0 bottom-0" />
     </header>
   );
 }
