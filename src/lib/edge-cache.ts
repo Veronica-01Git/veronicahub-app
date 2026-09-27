@@ -39,7 +39,7 @@
  * visita produz sempre o mesmo HTML.
  *
  * O que NUNCA entra, mesmo passando nesse teste: qualquer rota ligada a
- * login ou carteira (`/admin/*`, `/video-ia`, `/veronica-curriculo-certo*`,
+ * login ou carteira (`/admin/*`, `/studio-veronica`, `/video-ia`, `/veronica-curriculo-certo*`,
  * `/conta`). Elas renderizam conteúdo de pessoa, e HTML de pessoa em cache
  * compartilhado é vazamento de dado, não otimização.
  *
@@ -71,6 +71,7 @@ const NUNCA_CACHEAR: readonly RegExp[] = [
   /^\/admin(\/|$)/,
   /^\/conta(\/|$)/,
   /^\/video-ia(\/|$)/,
+  /^\/studio-veronica(\/|$)/,
   /^\/veronica-curriculo-certo/,
   /^\/api(\/|$)/,
 ];

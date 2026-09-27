@@ -216,7 +216,7 @@ export default function MemberAdmin() {
                     ? "Salvar e publicar"
                     : "Salvar rascunho"}
               </button>
-              <a className="vm-text" href="/video-ia" target="_blank" rel="noreferrer">
+              <a className="vm-text" href="/studio-veronica" target="_blank" rel="noreferrer">
                 Abrir Studio
               </a>
               <a className="vm-text" href="/admin/imagens" target="_blank" rel="noreferrer">

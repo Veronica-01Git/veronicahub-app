@@ -53,7 +53,7 @@ const ACTION_BY_BEAT: Record<
     eyebrow: "Da notícia à criação",
     title: "Transforme esta tendência em imagem, vídeo e campanha",
     description: "Use os fluxos do Veronica Studio para sair da leitura e produzir com IA.",
-    href: "/video-ia?utm_source=wire&utm_medium=article_action&utm_campaign=studio",
+    href: "/studio-veronica?utm_source=wire&utm_medium=article_action&utm_campaign=studio",
     cta: "Criar no Studio",
   },
   clima: {

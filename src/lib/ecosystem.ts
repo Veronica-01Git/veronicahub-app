@@ -95,9 +95,9 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "studio",
-    name: "Studio Criativo",
+    name: "Studio Veronica",
     category: "Ferramentas",
-    to: "/video-ia",
+    to: "/studio-veronica",
     status: "Parcial",
     description: "Geração de imagem disponível; vídeo, voz e avatar em desenvolvimento",
     external: false,

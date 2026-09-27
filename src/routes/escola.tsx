@@ -748,7 +748,7 @@ function Escola() {
             </p>
           </div>
           <Link
-            to="/video-ia"
+            to="/studio-veronica"
             className="group inline-flex flex-shrink-0 items-center gap-2 rounded-sm bg-neon-cyan px-6 py-3.5 font-mono-tech text-xs uppercase tracking-[0.18em] text-primary-foreground shadow-[0_0_24px_-8px_oklch(0.88_0.15_195/0.7)] transition duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
           >
             Começar grátis na Studio{" "}

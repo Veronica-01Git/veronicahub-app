@@ -360,7 +360,7 @@ function ProductCard({
               </button>
             ) : (
               <Link
-                to="/video-ia"
+                to="/studio-veronica"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.1em] transition hover:-translate-y-0.5"
                 style={{ borderColor: "var(--va-line)" }}
               >
@@ -502,7 +502,7 @@ function CreativeCard({ video }: { video: TrendingVideo }) {
           {video.hook}
         </p>
         <Link
-          to="/video-ia"
+          to="/studio-veronica"
           className="mt-5 flex items-center justify-between border-t pt-4 font-mono-tech text-[9.5px] font-semibold uppercase tracking-[0.11em] transition group-hover:text-[var(--va-pink)]"
           style={{ borderColor: "var(--va-line)" }}
         >
@@ -991,7 +991,7 @@ function VeronicaAnalytics() {
               </p>
             </div>
             <Link
-              to="/video-ia"
+              to="/studio-veronica"
               className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.13em] text-black transition hover:-translate-y-0.5 hover:bg-emerald-300"
             >
               Abrir Studio Criativo{" "}
