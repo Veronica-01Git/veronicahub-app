@@ -153,8 +153,7 @@
   --vh-ink: oklch(0.08 0.012 195);
   background:
     radial-gradient(ellipse at 72% 38%, oklch(0.45 0.13 168 / 0.35), transparent 58%),
-    radial-gradient(ellipse at 10% 90%, oklch(0.4 0.1 210 / 0.22), transparent 55%),
-    var(--vh-ink);
+    radial-gradient(ellipse at 10% 90%, oklch(0.4 0.1 210 / 0.22), transparent 55%), var(--vh-ink);
   color: oklch(0.97 0.01 180);
 }
 .vh-hero-grid {
@@ -628,24 +627,321 @@
   border-left: 1px solid oklch(0.85 0.01 180);
 }
 .yolab-browser {
-  background: oklch(0.13 0.02 185);
+  display: grid;
+  grid-template-columns: minmax(225px, 0.83fr) minmax(0, 1.65fr) minmax(255px, 0.96fr);
+  min-height: 680px;
+  overflow: hidden;
+  border: 1px solid oklch(0.33 0.035 165);
+  border-radius: 1.75rem;
+  background: #07110f;
   color: white;
+  box-shadow: 0 30px 70px rgb(7 22 17 / 0.16);
+}
+.yolab-browser-nav {
+  min-width: 0;
+  padding: 28px 20px;
+  border-right: 1px solid rgb(255 255 255 / 0.11);
+}
+.yolab-browser-label {
+  margin: 0 12px 20px;
+  color: #aebcb7;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.yolab-browser-label span {
+  color: #668578;
+}
+.yolab-browser-list {
+  display: grid;
+  gap: 5px;
+}
+.yolab-browser-tab {
+  display: flex;
+  width: 100%;
+  min-height: 49px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 11px;
+  padding: 0 13px;
+  color: #bacac3;
+  font-size: 13px;
+  text-align: left;
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    transform 220ms ease;
+}
+.yolab-browser-tab:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: white;
+  transform: translateX(2px);
+}
+.yolab-browser-tab:focus-visible,
+.yolab-browser-link:focus-visible {
+  outline: 2px solid #89edb5;
+  outline-offset: 3px;
+}
+.yolab-browser-tab-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yolab-browser-number {
+  margin-right: 12px;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: 0.58;
+}
+.yolab-browser-arrow {
+  flex: none;
+  opacity: 0.58;
+}
+.yolab-browser-tab:hover .yolab-browser-arrow {
+  opacity: 1;
+}
+.yolab-browser-status {
+  display: inline-flex;
+  border: 1px solid rgb(172 237 196 / 0.45);
+  border-radius: 999px;
+  padding: 6px 11px;
+  color: #b4f8cb;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 .yolab-browser-tab-active {
-  background: oklch(0.85 0.18 155);
-  color: oklch(0.15 0.03 170);
+  background: #81eeb0;
+  color: #092018;
   font-weight: 600;
 }
-.yolab-preview {
-  background: radial-gradient(circle at 50% 45%, oklch(0.39 0.11 163), oklch(0.15 0.035 195) 65%);
+.yolab-browser-tab-active:hover {
+  background: #a0f7c4;
+  color: #092018;
 }
-.yolab-preview-halo {
+.yolab-preview {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 520px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 32px 24px;
+  background: #112923;
+}
+.yolab-preview-ambient {
   position: absolute;
-  inset: 15%;
-  border: 1px solid oklch(0.87 0.14 170 / 0.3);
-  border-radius: 50%;
+  z-index: -1;
+  inset: -48px;
+  background-position: center;
+  background-size: cover;
+  filter: blur(42px) brightness(0.32) saturate(0.9);
+  transform: scale(1.08);
+}
+.yolab-preview::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 25%, rgb(2 15 11 / 0.75));
+  content: "";
   pointer-events: none;
-  box-shadow: 0 0 110px oklch(0.72 0.15 160 / 0.24);
+}
+.yolab-preview-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.23);
+  border-radius: 19px;
+  box-shadow:
+    0 24px 70px rgb(0 0 0 / 0.38),
+    0 0 44px rgb(91 238 163 / 0.12);
+  animation: yolab-frame-enter 600ms ease-out both;
+}
+.yolab-preview-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  animation: yolab-cinematic-drift 16s ease-in-out infinite alternate;
+}
+.yolab-preview-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 38%,
+    rgb(255 255 255 / 0.11) 50%,
+    transparent 62%
+  );
+  transform: translateX(-125%);
+  pointer-events: none;
+}
+.yolab-preview-frame:hover .yolab-preview-sheen {
+  animation: yolab-sheen 1000ms ease-out;
+}
+.yolab-preview-caption {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 9px;
+  color: #e5f6eb;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.yolab-preview-caption > span:last-child {
+  color: #9ebdac;
+}
+.yolab-browser-detail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 38px 32px;
+  border-left: 1px solid rgb(255 255 255 / 0.11);
+}
+.yolab-browser-link {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 34px;
+  border-top: 1px solid rgb(255 255 255 / 0.28);
+  padding-top: 14px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 200ms ease;
+}
+.yolab-browser-link:hover {
+  color: #9cf7c9;
+}
+@keyframes yolab-frame-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes yolab-cinematic-drift {
+  from {
+    transform: scale(1.015);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+@keyframes yolab-sheen {
+  to {
+    transform: translateX(125%);
+  }
+}
+@media (max-width: 1100px) {
+  .yolab-browser {
+    grid-template-columns: minmax(225px, 0.7fr) minmax(0, 1.5fr);
+  }
+  .yolab-browser-detail {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: end;
+    gap: 32px;
+    border-top: 1px solid rgb(255 255 255 / 0.11);
+    border-left: 0;
+  }
+  .yolab-browser-link {
+    flex: 0 0 min(32%, 260px);
+  }
+}
+@media (max-width: 700px) {
+  .yolab-browser {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-radius: 22px;
+  }
+  .yolab-browser-nav {
+    padding: 20px 0 14px;
+    border-right: 0;
+    border-bottom: 1px solid rgb(255 255 255 / 0.11);
+  }
+  .yolab-browser-label {
+    margin: 0 20px 14px;
+  }
+  .yolab-browser-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 20px 10px;
+    scroll-padding: 20px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+  .yolab-browser-tab {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 230px;
+    min-height: 44px;
+    scroll-snap-align: start;
+  }
+  .yolab-browser-tab:hover {
+    transform: none;
+  }
+  .yolab-browser-tab-name {
+    overflow: visible;
+  }
+  .yolab-preview {
+    min-height: 280px;
+    gap: 18px;
+    padding: 24px 18px 19px;
+  }
+  .yolab-preview-frame {
+    border-radius: 14px;
+  }
+  .yolab-preview-caption {
+    align-self: flex-start;
+  }
+  .yolab-browser-detail {
+    display: block;
+    padding: 26px 22px;
+  }
+  .yolab-browser-detail p {
+    margin-top: 14px;
+  }
+  .yolab-browser-detail h3 {
+    margin-top: 8px;
+  }
+  .yolab-browser-link {
+    width: 100%;
+    margin-top: 26px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yolab-preview-frame,
+  .yolab-preview-image,
+  .yolab-preview-frame:hover .yolab-preview-sheen {
+    animation: none;
+  }
+  .yolab-browser-tab,
+  .yolab-browser-link {
+    transition: none;
+  }
 }
 .yolab-flow {
   background: oklch(0.955 0.018 160);
@@ -1416,10 +1712,32 @@
 
 /* Hero minimal — ajustes mobile/tablet */
 @media (max-width: 640px) {
-  .vh-hero .vh-cta { width: 100%; justify-content: center; min-height: 48px; }
-  .vh-console-group { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: .5rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .vh-console-group::-webkit-scrollbar { display: none; }
-  .vh-console-link { flex: 0 0 auto; min-height: 44px; display: inline-flex; align-items: center; }
-  .vh-news { min-height: 44px; }
-  .yo-holo { max-width: 340px; }
+  .vh-hero .vh-cta {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+  .vh-console-group {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.5rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .vh-console-group::-webkit-scrollbar {
+    display: none;
+  }
+  .vh-console-link {
+    flex: 0 0 auto;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .vh-news {
+    min-height: 44px;
+  }
+  .yo-holo {
+    max-width: 340px;
+  }
 }

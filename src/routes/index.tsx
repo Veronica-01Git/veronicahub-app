@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ArrowUpRight, Check, Sparkles } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { SiteFooter, SiteHeader, SOCIAL_LINKS } from "@/components/SiteChrome";
 import { HeroHologram } from "@/components/home/HeroHologram";
 import { product, WIRE_NAME } from "@/lib/ecosystem";
@@ -20,12 +20,18 @@ const BROWSE = [
   "clientes",
 ] as const;
 const FEATURED = ["school", "agentes", "studio", "analytics", "wire"] as const;
-const MEDIA: Record<string, string> = {
-  school: "/images/home/veronica-cyborg-hero-poster.webp",
-  studio: "/images/ecosystem/studio.webp",
-  analytics: "/images/ecosystem/analytics.webp",
-  career: "/images/ecosystem/curriculo.webp",
-  security: "/images/ecosystem/security.webp",
+const MEDIA: Record<(typeof BROWSE)[number], string> = {
+  school: "Grupo aprendendo inteligência artificial em um estúdio de ensino",
+  agentes: "Profissional interagindo por voz com uma assistente digital",
+  studio: "Direção criativa em um estúdio cinematográfico",
+  analytics: "Analista estudando produtos e dados de comércio digital",
+  portfolio: "Designer organizando seu portfólio digital",
+  career: "Profissional preparando currículo com orientação",
+  wire: "Equipe editorial trabalhando em uma redação noturna",
+  security: "Especialista analisando a segurança de sistemas digitais",
+  fashion: "Designer criando uma peça em um ateliê de moda",
+  members: "Comunidade criativa compartilhando ideias em uma mesa de trabalho",
+  clientes: "Cliente e consultora planejando um projeto digital",
 };
 
 export const Route = createFileRoute("/")({
@@ -79,8 +85,26 @@ function ProductLink({
 }
 
 function EcosystemHome() {
-  const [selected, setSelected] = useState<string>("agentes");
+  const [selected, setSelected] = useState<(typeof BROWSE)[number]>("school");
+  const browseButtons = useRef<(HTMLButtonElement | null)[]>([]);
   const active = product(selected);
+  function handleBrowseKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const next =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? BROWSE.length - 1
+          : event.key === "ArrowDown" || event.key === "ArrowRight"
+            ? (index + 1) % BROWSE.length
+            : event.key === "ArrowUp" || event.key === "ArrowLeft"
+              ? (index - 1 + BROWSE.length) % BROWSE.length
+              : -1;
+    if (next === -1) return;
+    event.preventDefault();
+    setSelected(BROWSE[next]);
+    browseButtons.current[next]?.focus();
+    browseButtons.current[next]?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
   return (
     <div className="yolab-home home-hybrid min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteHeader brand="yo" />
@@ -94,8 +118,7 @@ function EcosystemHome() {
               </p>
               <h1 className="vh-h1 mt-7">
                 Inteligência aplicada
-                <br />
-                à sua operação.
+                <br />à sua operação.
               </h1>
               <p className="vh-lead mt-6 max-w-xl">
                 Educação, criação, análise e agentes autônomos em um só ecossistema. A Veronica
@@ -132,7 +155,11 @@ function EcosystemHome() {
               </nav>
 
               {/* Jornal — canal editorial, separado das plataformas. */}
-              <Link to="/noticias" className="vh-news mt-6" aria-label={`${WIRE_NAME} — últimas notícias`}>
+              <Link
+                to="/noticias"
+                className="vh-news mt-6"
+                aria-label={`${WIRE_NAME} — últimas notícias`}
+              >
                 <span className="vh-news-dot" aria-hidden="true" />
                 <span className="vh-news-kicker">Últimas notícias</span>
                 <span className="vh-news-name">{WIRE_NAME}</span>
@@ -205,15 +232,15 @@ function EcosystemHome() {
                 Escolha uma área para ver o que ela faz, seu estágio atual e por onde começar.
               </p>
             </div>
-            <div className="yolab-browser mt-12 grid overflow-hidden rounded-[2rem] lg:grid-cols-[.85fr_1.4fr_1fr]">
-              <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r lg:p-7">
-                <p className="mb-5 font-mono-tech text-[10px] uppercase tracking-[.2em] text-white/45">
-                  Selecione uma área
+            <div className="yolab-browser mt-12" aria-label="Explore as plataformas Veronica">
+              <nav className="yolab-browser-nav" aria-label="Plataformas Veronica">
+                <p className="yolab-browser-label">
+                  Selecione uma área <span>· 11 plataformas</span>
                 </p>
                 <div
-                  className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-1"
+                  className="yolab-browser-list"
                   role="group"
-                  aria-label="Plataformas Veronica"
+                  aria-label="Escolha uma plataforma"
                 >
                   {BROWSE.map((id, i) => {
                     const item = product(id);
@@ -222,67 +249,68 @@ function EcosystemHome() {
                         key={id}
                         type="button"
                         aria-pressed={selected === id}
+                        aria-label={`Mostrar ${item.name}`}
+                        ref={(node) => {
+                          browseButtons.current[i] = node;
+                        }}
                         onClick={() => setSelected(id)}
-                        className={`yolab-browser-tab flex min-h-12 items-center justify-between gap-2 rounded-xl px-3 text-left text-[13px] transition-colors ${selected === id ? "yolab-browser-tab-active" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+                        onKeyDown={(event) => handleBrowseKeyDown(event, i)}
+                        className={`yolab-browser-tab ${selected === id ? "yolab-browser-tab-active" : ""}`}
                       >
-                        <span className="truncate">
-                          <span className="mr-3 font-mono-tech text-[9px] opacity-50">
+                        <span className="yolab-browser-tab-name">
+                          <span className="yolab-browser-number">
                             {String(i + 1).padStart(2, "0")}
                           </span>
                           {item.name}
                         </span>
-                        <ArrowUpRight size={14} className="shrink-0" />
+                        <ArrowUpRight
+                          size={15}
+                          aria-hidden="true"
+                          className="yolab-browser-arrow"
+                        />
                       </button>
                     );
                   })}
                 </div>
-              </div>
-              <div className="yolab-preview relative flex min-h-[320px] items-center justify-center overflow-hidden p-8 sm:min-h-[490px]">
-                {MEDIA[selected] ? (
+              </nav>
+              <div className="yolab-preview" aria-live="polite" aria-atomic="true">
+                <div
+                  className="yolab-preview-ambient"
+                  aria-hidden="true"
+                  style={{ backgroundImage: `url(/images/home/platforms/${selected}-1280.webp)` }}
+                />
+                <div className="yolab-preview-frame" key={selected}>
                   <img
-                    key={selected}
-                    src={MEDIA[selected]}
-                    alt={`Prévia visual de ${active.name}`}
-                    width="960"
-                    height="640"
+                    src={`/images/home/platforms/${selected}-1280.webp`}
+                    srcSet={`/images/home/platforms/${selected}-1280.webp 1280w, /images/home/platforms/${selected}-4k.webp 3840w`}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 640px"
+                    alt={MEDIA[selected]}
+                    width="3840"
+                    height="2160"
                     loading="lazy"
                     decoding="async"
-                    className="relative z-10 h-full max-h-[420px] w-full rounded-2xl object-cover shadow-2xl"
+                    className="yolab-preview-image"
                   />
-                ) : (
-                  <div className="yolab-preview-fallback relative z-10 flex aspect-square w-[min(70%,290px)] items-center justify-center rounded-[2rem] border border-white/20 bg-white/10 p-6 text-center backdrop-blur">
-                    <span className="font-display text-3xl tracking-tight text-white sm:text-4xl">
-                      {active.name}
-                      <span className="text-[#9cf7c9]">.</span>
-                    </span>
-                  </div>
-                )}
-                <span aria-hidden="true" className="yolab-preview-halo" />
-                <span className="absolute bottom-5 left-7 z-10 font-mono-tech text-[9px] uppercase tracking-widest text-white/65">
-                  {MEDIA[selected] ? "Imagem da plataforma" : "Identidade da plataforma"}
+                  <span className="yolab-preview-sheen" aria-hidden="true" />
+                </div>
+                <span className="yolab-preview-caption">
+                  <span className="vh-led" aria-hidden="true" /> {active.name}{" "}
+                  <span>· universo Veronica</span>
                 </span>
               </div>
-              <div
-                className="flex flex-col justify-between border-t border-white/10 p-7 lg:border-l lg:border-t-0 lg:p-9"
-                aria-live="polite"
-              >
+              <div className="yolab-browser-detail" aria-live="polite" aria-atomic="true">
                 <div>
-                  <span className="inline-flex rounded-full border border-white/20 px-3 py-1 font-mono-tech text-[10px] uppercase tracking-widest text-[#9cf7c9]">
-                    {active.status}
-                  </span>
+                  <span className="yolab-browser-status">{active.status}</span>
                   <p className="mt-8 font-mono-tech text-[10px] uppercase tracking-widest text-white/50">
                     {active.category}
                   </p>
-                  <h3 className="mt-3 font-display text-4xl leading-tight tracking-[-.03em] text-white">
+                  <h3 className="mt-3 font-display text-[clamp(1.9rem,3vw,2.75rem)] leading-tight tracking-[-.03em] text-white">
                     {active.name}
                   </h3>
                   <p className="mt-5 leading-relaxed text-white/70">{active.description}</p>
                 </div>
-                <ProductLink
-                  id={selected}
-                  className="mt-10 inline-flex min-h-12 items-center justify-between gap-3 border-t border-white/25 pt-4 text-sm font-medium text-white transition-colors hover:text-[#9cf7c9]"
-                >
-                  Conhecer a plataforma <ArrowUpRight size={18} />
+                <ProductLink id={selected} className="yolab-browser-link">
+                  Explorar {active.name} <ArrowUpRight size={18} aria-hidden="true" />
                 </ProductLink>
               </div>
             </div>
