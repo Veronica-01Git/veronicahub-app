@@ -16,7 +16,8 @@ import {
   HoloBadge,
   HolographicField,
   SectionLabel,
-} from "@/features/private-clients/components/apple-client-ui";\nimport { fashionMediaById } from "@/features/private-clients/data/fashion-media";
+} from "@/features/private-clients/components/apple-client-ui";
+import { fashionMediaById } from "@/features/private-clients/data/fashion-media";
 
 export const Route = createFileRoute("/clientes/veronica-fashion-operator/")({
   component: VeronicaFashion,
