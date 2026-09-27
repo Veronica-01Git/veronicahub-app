@@ -9,6 +9,7 @@ import {
   INTENTS,
   INTENT_LINKS,
   PRIMARY_NAV,
+  HEADER_NAV_GROUPS,
   HOME_PRODUCTS,
 } from "../src/lib/ecosystem.ts";
 import { sealRecords } from "../src/lib/seals.ts";
@@ -74,6 +75,15 @@ test("navegação pública não inclui administração nem destinos vazios", () 
       "/clientes-veronica",
     ],
   );
+});
+test("menus do cabeçalho apontam para rotas públicas sem duplicar o Wire TV", () => {
+  const grouped = HEADER_NAV_GROUPS.flatMap((group) => group.items);
+  assert.deepEqual(HEADER_NAV_GROUPS.map((group) => group.label), ["Aprender", "Criar", "Soluções", "Explorar"]);
+  assert.equal(new Set(grouped.map((item) => item.id)).size, grouped.length);
+  for (const item of grouped) {
+    assert.ok(item.public && !item.external && routes.has(item.to), `${item.id}: destino público inválido`);
+    assert.notEqual(item.id, "wire", "Wire TV tem entrada editorial separada");
+  }
 });
 test("as seis intenções apontam para produtos públicos existentes", () => {
   assert.deepEqual(
