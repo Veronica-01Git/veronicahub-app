@@ -65,9 +65,16 @@ const atelier = [
 ];
 
 const editorialImages = [
-  { src: "https://images.pexels.com/photos/30372261/pexels-photo-30372261.jpeg?auto=compress&cs=tinysrgb&w=1600", alt: "Editorial de moda em estúdio com styling contemporâneo", credit: "Jay Soundo · Pexels" },
-  { src: "https://images.pexels.com/photos/32548829/pexels-photo-32548829.jpeg?auto=compress&cs=tinysrgb&w=1600", alt: "Editorial couture com modelos em composição dramática", credit: "Felix Young · Pexels" },
-  { src: "https://images.pexels.com/photos/14559203/pexels-photo-14559203.jpeg?auto=compress&cs=tinysrgb&w=1600", alt: "Modelo em arquitetura moderna com estética editorial", credit: "Connor Scott McManus · Pexels" },
+  { src: "https://images.pexels.com/photos/30372261/pexels-photo-30372261.jpeg?auto=compress&cs=tinysrgb&w=1800", alt: "Retrato editorial humano em direção de moda contemporânea", credit: "Editorial reference · Pexels" },
+  { src: "https://images.pexels.com/photos/32548829/pexels-photo-32548829.jpeg?auto=compress&cs=tinysrgb&w=1800", alt: "Composição humana couture em atmosfera cinematográfica", credit: "Editorial reference · Pexels" },
+  { src: "https://images.pexels.com/photos/14559203/pexels-photo-14559203.jpeg?auto=compress&cs=tinysrgb&w=1800", alt: "Figura humana e arquitetura moderna em composição editorial", credit: "Editorial reference · Pexels" },
+];
+
+const campaignPrinciples = [
+  ["01", "Human", "Pessoas antes do efeito. Pele, gesto e presença continuam reconhecíveis."],
+  ["02", "Matter", "Lã, couro, algodão e superfícies arquitetônicas ganham textura e silêncio."],
+  ["03", "Space", "Arquitetura monolítica, espaço negativo e escala constroem autoridade visual."],
+  ["04", "Intelligence", "Tecnologia aparece como luz, profundidade e comportamento — nunca como ruído."],
 ];
 
 const runway = [
@@ -88,7 +95,7 @@ function VeronicaFashion() {
           <span className="text-[11px] font-medium tracking-[.18em] text-black/45">FASHION & CO.</span>
           <nav className="ml-auto hidden items-center gap-7 text-[11px] font-medium text-black/48 md:flex">
             <a href="#maison" className="transition hover:text-black">Maison</a>
-            <a href="#atelier" className="transition hover:text-black">Atelier</a>
+            <a href="#collection" className="transition hover:text-black">Collection 001</a>\n            <a href="#atelier" className="transition hover:text-black">Atelier</a>
             <a href="#intelligence" className="transition hover:text-black">Intelligence</a>
           </nav>
           <Link
@@ -114,7 +121,7 @@ function VeronicaFashion() {
             <div>
               <div className="flex items-center gap-3">
                 <span className="h-px w-10 bg-black/40" />
-                <span className="text-[10px] font-semibold uppercase tracking-[.28em] text-black/45">Fashion intelligence maison · 2026</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[.28em] text-black/45">Collection 001 · Human System · 2026</span>
               </div>
               <h1 className="mt-8 max-w-5xl font-serif text-[clamp(4.8rem,11vw,11.5rem)] font-normal leading-[.72] tracking-[-.075em] text-black">
                 Veronica
@@ -122,7 +129,7 @@ function VeronicaFashion() {
                 <span className="ml-[18%] block text-[.42em] tracking-[-.045em]">& Co.</span>
               </h1>
               <p className="mt-10 max-w-xl text-[clamp(1rem,1.7vw,1.25rem)] leading-8 text-black/52">
-                Para quem vai lançar uma marca. Para quem já tem uma. Uma plataforma para transformar criação em produto, produto em operação e operação em uma marca mais inteligente.
+                Humanidade, matéria, arquitetura e inteligência em uma linguagem própria. Da primeira ideia à operação de uma marca de moda.
               </p>
             </div>
 
@@ -138,8 +145,8 @@ function VeronicaFashion() {
                 </div>
                 <div>
                   <div className="font-serif text-5xl leading-[.92] tracking-[-.05em] sm:text-6xl">
-                    From idea
-                    <span className="block italic text-white/55">to label.</span>
+                    Human
+                    <span className="block italic text-white/55">System.</span>
                   </div>
                   <div className="mt-8 flex items-center justify-between border-t border-white/15 pt-5 text-[10px] uppercase tracking-[.18em] text-white/45">
                     <span>VH-MEM-2026-000003</span>
@@ -159,10 +166,35 @@ function VeronicaFashion() {
           </div>
         </section>
 
+        <section id="collection" className="relative overflow-hidden bg-[#0b0b0c] px-5 py-24 text-white sm:px-8 lg:py-36">
+          <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_72%_18%,rgba(235,222,202,.18),transparent_30%),radial-gradient(circle_at_12%_82%,rgba(130,155,165,.12),transparent_28%)]" />
+          <div className="relative mx-auto max-w-[1500px]">
+            <div className="grid gap-10 lg:grid-cols-[1.15fr_.85fr] lg:items-end">
+              <div>
+                <div className="font-mono text-[9px] uppercase tracking-[.34em] text-white/42">Veronica Fashion & Co. · Collection 001</div>
+                <h2 className="mt-6 font-serif text-[clamp(4.5rem,10vw,10rem)] leading-[.72] tracking-[-.07em]">Human<br/><span className="italic text-white/48">System</span></h2>
+              </div>
+              <div className="max-w-lg lg:justify-self-end">
+                <p className="font-serif text-2xl leading-9 text-white/78">O luxo da Veronica nasce do contraste entre presença humana e precisão tecnológica.</p>
+                <p className="mt-5 text-sm leading-7 text-white/42">Uma gramática visual própria: pele natural, tailoring sem logotipos, matéria tátil, arquitetura monumental, luz lateral e tecnologia quase invisível.</p>
+              </div>
+            </div>
+            <div className="mt-20 grid gap-px overflow-hidden border-y border-white/10 bg-white/10 md:grid-cols-4">
+              {campaignPrinciples.map(([index,title,copy]) => (
+                <article key={index} className="min-h-64 bg-[#0b0b0c] p-6 transition duration-700 hover:bg-white/[.04]">
+                  <div className="font-mono text-[9px] tracking-[.24em] text-white/28">{index}</div>
+                  <h3 className="mt-16 font-serif text-4xl tracking-[-.04em]">{title}</h3>
+                  <p className="mt-4 text-xs leading-6 text-white/38">{copy}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-28">
           <div className="mb-10 flex items-end justify-between gap-6">
-            <div><SectionLabel>Editorial / Human</SectionLabel><h2 className="mt-4 max-w-3xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-7xl">Luxury is a point of view.</h2></div>
-            <p className="hidden max-w-sm text-right text-xs leading-6 text-black/40 md:block">Referências visuais editoriais independentes. Nenhuma afiliação ou campanha oficial de terceiros é alegada.</p>
+            <div><SectionLabel>Editorial / Human</SectionLabel><h2 className="mt-4 max-w-3xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-7xl">Human presence. Veronica language.</h2></div>
+            <p className="hidden max-w-sm text-right text-xs leading-6 text-black/40 md:block">Direção proprietária Human System. As referências fotográficas atuais funcionam como matéria-prima temporária até a biblioteca autoral completa.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-[1.15fr_.85fr]">
             {editorialImages.slice(1).map((image, index) => (
@@ -171,7 +203,7 @@ function VeronicaFashion() {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,0,0,.68))]" />
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-white">
                   <figcaption className="font-serif text-3xl italic tracking-[-.03em]">{index === 0 ? "The silhouette." : "The attitude."}</figcaption>
-                  <span className="font-mono text-[8px] uppercase tracking-[.18em] text-white/55">{image.credit}</span>
+                  <span className="font-mono text-[8px] uppercase tracking-[.18em] text-white/55">COLLECTION 001 · HUMAN SYSTEM</span>
                 </div>
               </figure>
             ))}
