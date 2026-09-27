@@ -1,343 +1,270 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  BarChart3,
-  Boxes,
-  Factory,
-  Layers3,
-  Scissors,
-  Sparkles,
-  UsersRound,
-} from "lucide-react";
+import { ArrowRight, Play, Sparkles } from "lucide-react";
 
-import {
-  AppleClientFrame,
-  GlassCard,
-  HoloBadge,
-  HolographicField,
-  SectionLabel,
-} from "@/features/private-clients/components/apple-client-ui";
+import { AppleClientFrame } from "@/features/private-clients/components/apple-client-ui";
 import { fashionMediaById } from "@/features/private-clients/data/fashion-media";
 
 export const Route = createFileRoute("/clientes/veronica-fashion-operator/")({
   component: VeronicaFashion,
   head: () => ({
     meta: [
-      { title: "Veronica Fashion & Co. | Fashion Intelligence" },
+      { title: "Veronica Fashion & Co. | Human System" },
       {
         name: "description",
         content:
-          "Plataforma da Veronica para donos e futuros donos de marcas de roupa: coleção, produção, margem, estoque, leads e operação.",
+          "Maison digital de inteligência para criar, desenvolver e operar marcas de moda.",
       },
-      { property: "og:title", content: "Veronica Fashion & Co." },
+      { property: "og:title", content: "Veronica Fashion & Co. — Human System" },
       {
         property: "og:description",
-        content: "From idea to label. Fashion intelligence para construir e operar marcas de roupa.",
+        content: "From idea to label. Collection 001 — Human System.",
       },
     ],
   }),
 });
-
-const atelier = [
-  {
-    index: "01",
-    icon: Scissors,
-    title: "Crie a marca",
-    copy: "Posicionamento, universo visual, coleção e arquitetura de produto em uma direção única.",
-  },
-  {
-    index: "02",
-    icon: Factory,
-    title: "Produza melhor",
-    copy: "Leitura de grade, prioridade por peça e decisões de produção preparadas para dados reais.",
-  },
-  {
-    index: "03",
-    icon: BarChart3,
-    title: "Proteja a margem",
-    copy: "Giro, ruptura, estoque parado e caixa transformados em uma visão operacional simples.",
-  },
-  {
-    index: "04",
-    icon: UsersRound,
-    title: "Venda com contexto",
-    copy: "B2B e B2C organizados para transformar audiência, lojistas e consumidores em próximos movimentos.",
-  },
-];
 
 const heroDesktop = fashionMediaById("human-system-hero-desktop")!;
 const heroMobile = fashionMediaById("human-system-hero-mobile")!;
 const editorialPortrait = fashionMediaById("human-system-editorial")!;
 const collectionLook = fashionMediaById("human-system-full-look")!;
 
-const editorialImages = [editorialPortrait, collectionLook];
-
-const campaignPrinciples = [
-  ["01", "Human", "Pessoas antes do efeito. Pele, gesto e presença continuam reconhecíveis."],
-  ["02", "Matter", "Lã, couro, algodão e superfícies arquitetônicas ganham textura e silêncio."],
-  ["03", "Space", "Arquitetura monolítica, espaço negativo e escala constroem autoridade visual."],
-  ["04", "Intelligence", "Tecnologia aparece como luz, profundidade e comportamento — nunca como ruído."],
-];
-
-const runway = [
-  { code: "DROP / 01", title: "Identity", note: "marca · direção · linguagem", gradient: "from-[#0d0d0f] via-[#29242c] to-[#8f7b86]" },
-  { code: "DROP / 02", title: "Collection", note: "peças · grade · variações", gradient: "from-[#d8d0c4] via-[#f3eee7] to-[#8ea0a7]" },
-  { code: "DROP / 03", title: "Demand", note: "leads · sinais · intenção", gradient: "from-[#171a22] via-[#253745] to-[#b2d8d1]" },
-];
+const cards = [
+  {
+    eyebrow: "Para novas marcas",
+    title: "Crie sua marca",
+    copy: "Da ideia ao posicionamento, coleção, produção e mercado.",
+    cta: "Comece aqui",
+    image: editorialPortrait,
+    href: "#atelier",
+  },
+  {
+    eyebrow: "Coleção",
+    title: "Desenvolva sua coleção",
+    copy: "Transforme conceito em peças reais com direção e tecnologia.",
+    cta: "Veja como",
+    image: collectionLook,
+    href: "#collection",
+  },
+  {
+    eyebrow: "Operação",
+    title: "Opere com inteligência",
+    copy: "Fashion OS: gestão, produção, estoque, margem e crescimento.",
+    cta: "Explorar Fashion OS",
+    image: heroDesktop,
+    href: "/clientes/veronica-fashion-operator/execucao",
+  },
+  {
+    eyebrow: "Human System",
+    title: "Faça parte",
+    copy: "Uma nova geração de marcas de moda, humanas e inteligentes.",
+    cta: "Conheça a maison",
+    image: heroMobile,
+    href: "#manifesto",
+  },
+] as const;
 
 function VeronicaFashion() {
   return (
     <AppleClientFrame tone="violet">
-      <div className="fixed inset-x-0 top-0 z-50 border-b border-black/[.05] bg-[#f7f5f2]/86 supports-[backdrop-filter]:bg-[#f7f5f2]/72 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-[1500px] items-center gap-3 px-4 sm:gap-6 sm:px-8">
-          <Link to="/" className="font-serif text-[13px] font-semibold tracking-[.14em] text-black/80">
-            VERONICA
-          </Link>
-          <span className="h-4 w-px bg-black/10" />
-          <span className="text-[11px] font-medium tracking-[.18em] text-black/45">FASHION & CO.</span>
-          <nav className="ml-auto hidden items-center gap-7 text-[11px] font-medium text-black/48 md:flex">
-            <a href="#maison" className="transition hover:text-black">Maison</a>
-            <a href="#collection" className="transition hover:text-black">Collection 001</a>
-            <a href="#atelier" className="transition hover:text-black">Atelier</a>
-            <a href="#intelligence" className="transition hover:text-black">Intelligence</a>
-          </nav>
-          <Link
-            to="/clientes/veronica-fashion-operator/execucao"
-            className="ml-auto inline-flex min-h-10 items-center gap-2 rounded-full bg-black px-4 text-[11px] font-semibold text-white md:ml-3"
-          >
-            Entrar <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-          </Link>
-        </div>
-      </div>
+      <main className="bg-[#f3efe8] text-[#111]">
+        <section id="maison" className="relative min-h-[100svh] overflow-hidden bg-[#0b0b0b] text-white">
+          <picture>
+            <source media="(max-width: 767px)" srcSet={heroMobile.src} />
+            <img
+              src={heroDesktop.src}
+              alt={heroDesktop.alt}
+              className="absolute inset-0 h-full w-full object-cover object-[58%_center] md:object-center"
+              loading="eager"
+              fetchPriority="high"
+            />
+          </picture>
 
-      <main className="bg-[#f7f5f2] text-[#111113]">
-        <section id="maison" className="relative flex min-h-[100svh] items-center overflow-hidden px-4 pb-10 pt-24 sm:px-8 sm:pb-14 sm:pt-28 lg:pb-16">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-[9%] top-[12%] h-[52vw] max-h-[720px] w-[52vw] max-w-[720px] rounded-full border border-black/[.04]" />
-            <div className="absolute right-[-8%] top-[8%] h-[70%] w-[58%] opacity-80">
-              <HolographicField tone="rose" intensity={0.9} />
-            </div>
-            <div className="absolute left-[43%] top-[20%] h-[48%] w-px bg-gradient-to-b from-transparent via-black/10 to-transparent" />
-          </div>
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,.88)_0%,rgba(0,0,0,.62)_34%,rgba(0,0,0,.08)_69%,rgba(0,0,0,.08)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,.86)_0%,rgba(0,0,0,.58)_38%,rgba(0,0,0,.08)_68%,rgba(0,0,0,.08)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.2),transparent_28%,transparent_68%,rgba(0,0,0,.46))]" />
 
-          <div className="relative mx-auto grid w-full max-w-[1500px] gap-8 sm:gap-10 lg:grid-cols-[1.12fr_.88fr] lg:items-center lg:gap-12">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="h-px w-10 bg-black/40" />
-                <span className="text-[10px] font-semibold uppercase tracking-[.28em] text-black/45">Collection 001 · Human System · 2026</span>
+          <header className="relative z-20 mx-auto flex h-[82px] max-w-[1500px] items-center px-5 sm:px-8 lg:px-10">
+            <Link to="/" className="shrink-0">
+              <span className="block font-serif text-[24px] leading-none tracking-[.055em] sm:text-[30px]">VERONICA</span>
+              <span className="mt-2 block text-[8px] uppercase tracking-[.52em] text-white/72">Fashion & Co.</span>
+            </Link>
+
+            <nav className="ml-auto hidden items-center gap-7 text-[10px] uppercase tracking-[.08em] text-white/82 lg:flex">
+              <a href="#maison" className="border-b border-white/60 pb-2">Início</a>
+              <a href="#manifesto" className="transition hover:text-white">A Maison</a>
+              <a href="#atelier" className="transition hover:text-white">Crie sua marca</a>
+              <a href="#collection" className="transition hover:text-white">Coleções</a>
+              <Link to="/clientes/veronica-fashion-operator/execucao" className="transition hover:text-white">Fashion OS</Link>
+            </nav>
+
+            <Link
+              to="/membros"
+              className="ml-auto hidden rounded-full border border-white/60 bg-white/10 px-6 py-3 text-[9px] uppercase tracking-[.14em] backdrop-blur-md transition hover:bg-white hover:text-black sm:inline-flex lg:ml-9"
+            >
+              Área de membros
+            </Link>
+          </header>
+
+          <div className="relative z-10 mx-auto flex min-h-[calc(100svh-82px)] max-w-[1500px] items-center px-5 pb-12 pt-8 sm:px-8 lg:px-10">
+            <div className="grid w-full gap-12 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
+              <div className="max-w-[760px]">
+                <div className="text-[9px] uppercase tracking-[.44em] text-white/76">Moda · Tecnologia · Negócios · Impacto</div>
+                <h1 className="mt-5 font-serif text-[clamp(4.2rem,8vw,8.5rem)] leading-[.76] tracking-[-.065em]">
+                  VERONICA
+                  <span className="block">FASHION & CO.</span>
+                </h1>
+                <div className="mt-5 text-[11px] uppercase tracking-[.48em] text-white/84">From idea to label</div>
+                <p className="mt-6 max-w-lg text-sm leading-7 text-white/72 sm:text-[15px]">
+                  A maison digital para criar, desenvolver e operar marcas de moda com visão, identidade e inteligência.
+                </p>
+
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <a
+                    href="#atelier"
+                    className="inline-flex min-h-12 items-center gap-5 rounded-full bg-white px-6 text-[10px] font-semibold uppercase tracking-[.1em] text-black transition duration-500 hover:scale-[1.02]"
+                  >
+                    Crie sua marca <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  </a>
+                  <Link
+                    to="/clientes/veronica-fashion-operator/execucao"
+                    className="inline-flex min-h-12 items-center gap-5 rounded-full border border-white/65 px-6 text-[10px] font-semibold uppercase tracking-[.1em] text-white backdrop-blur-sm transition duration-500 hover:bg-white hover:text-black"
+                  >
+                    Conheça o Fashion OS <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
+                </div>
+
+                <div className="mt-9 flex flex-wrap gap-x-10 gap-y-4 border-t border-white/18 pt-5 text-[9px] uppercase tracking-[.16em] text-white/55">
+                  <span>Collection 001</span>
+                  <span>Human System</span>
+                  <span>Member 03</span>
+                </div>
               </div>
-              <h1 className="mt-6 max-w-5xl font-serif text-[clamp(3.75rem,12vw,11.25rem)] font-normal leading-[.76] tracking-[-.068em] text-black sm:mt-8 sm:leading-[.73]">
-                Veronica
-                <span className="block italic text-black/58">Fashion</span>
-                <span className="ml-[18%] block text-[.42em] tracking-[-.045em]">& Co.</span>
-              </h1>
-              <p className="mt-7 max-w-xl text-[clamp(.98rem,1.6vw,1.22rem)] leading-7 text-black/56 sm:mt-9 sm:leading-8">
-                Humanidade, matéria, arquitetura e inteligência em uma linguagem própria. Da primeira ideia à operação de uma marca de moda.
+
+              <aside className="hidden self-end justify-self-end pb-8 text-right lg:block">
+                <div className="border-l border-white/38 pl-6 text-left">
+                  <div className="font-serif text-[26px] leading-[1.15]">Create the label.<br />Operate the maison.</div>
+                  <div className="mt-7 space-y-2 text-[9px] uppercase tracking-[.25em] text-white/54">
+                    <div>Visão</div><div>Coleção</div><div>Produção</div><div>Margem</div><div>Mercado</div><div>Liberdade</div>
+                  </div>
+                </div>
+                <a href="#collection" className="mt-10 inline-flex items-center gap-4 text-[9px] uppercase tracking-[.22em] text-white/72">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 backdrop-blur-md"><Play className="ml-0.5 h-3.5 w-3.5" aria-hidden /></span>
+                  Explorar
+                </a>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid bg-[#101010] md:grid-cols-2 xl:grid-cols-4">
+          {cards.map((card) => {
+            const cardContent = (
+              <>
+                <img src={card.image.src} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover transition duration-[1200ms] ease-out group-hover:scale-[1.035] motion-reduce:transform-none motion-reduce:transition-none" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.75))]" />
+                <div className="relative flex h-full min-h-[300px] flex-col justify-end p-6 text-white sm:min-h-[360px] lg:p-8">
+                  <div className="text-[9px] uppercase tracking-[.24em] text-white/52">{card.eyebrow}</div>
+                  <h2 className="mt-3 max-w-[14ch] font-serif text-4xl leading-[.9] tracking-[-.035em]">{card.title}</h2>
+                  <p className="mt-4 max-w-xs text-xs leading-5 text-white/64">{card.copy}</p>
+                  <div className="mt-6 inline-flex items-center gap-3 text-[9px] uppercase tracking-[.18em] text-white/78">
+                    {card.cta} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  </div>
+                </div>
+              </>
+            );
+            return card.href === "/clientes/veronica-fashion-operator/execucao" ? (
+              <Link key={card.title} to="/clientes/veronica-fashion-operator/execucao" className="group relative overflow-hidden border-white/15 xl:border-r">
+                {cardContent}
+              </Link>
+            ) : (
+              <a key={card.title} href={card.href} className="group relative overflow-hidden border-white/15 xl:border-r">
+                {cardContent}
+              </a>
+            );
+          })}
+        </section>
+
+        <section id="collection" className="scroll-mt-20 bg-[#f4f0e9] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+          <div className="mx-auto grid max-w-[1500px] gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
+            <div className="lg:sticky lg:top-24">
+              <div className="text-[9px] uppercase tracking-[.38em] text-black/48">Collection 001</div>
+              <h2 className="mt-4 font-serif text-[clamp(4rem,7vw,7.3rem)] leading-[.78] tracking-[-.06em]">HUMAN SYSTEM</h2>
+              <p className="mt-5 text-[10px] uppercase tracking-[.3em] text-black/58">Roupas para um mundo real.</p>
+              <p className="mt-4 max-w-lg text-sm leading-7 text-black/56">
+                Design, matéria, propósito e tecnologia para uma nova geração de marcas que pensam o futuro sem perder humanidade.
               </p>
+              <a href="#atelier" className="mt-7 inline-flex min-h-11 items-center gap-4 rounded-full border border-black/20 px-5 text-[9px] uppercase tracking-[.14em] transition hover:bg-black hover:text-white">
+                Explorar coleção <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </a>
             </div>
 
-            <div className="group relative min-h-[62svh] overflow-hidden rounded-[24px] bg-[#111113] p-6 text-white shadow-[0_30px_90px_rgba(0,0,0,.18)] [perspective:1400px] sm:min-h-[560px] sm:rounded-[28px] sm:p-9 sm:shadow-[0_45px_120px_rgba(0,0,0,.22)] lg:-rotate-[1deg] lg:transition-transform lg:duration-700 lg:ease-out lg:hover:rotate-0 lg:hover:scale-[1.012] motion-reduce:transform-none motion-reduce:transition-none">
-              <picture>
-                <source media="(max-width: 767px)" srcSet={heroMobile.src} />
-                <img src={heroDesktop.src} alt={heroDesktop.alt} className="absolute inset-0 h-full w-full object-cover object-[50%_28%] opacity-84 saturate-[.8] contrast-[1.08] transition duration-[1200ms] ease-out md:object-center md:group-hover:scale-[1.028] md:group-hover:saturate-100 motion-reduce:transform-none motion-reduce:transition-none" loading="eager" fetchPriority="high" />
-              </picture>
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.16)_45%,rgba(0,0,0,.88))]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,.24),transparent_22%)] mix-blend-screen" />
-              <div className="absolute inset-0 opacity-90">
-                <div className="absolute -right-[12%] -top-[10%] h-[75%] w-[75%] rounded-full bg-[radial-gradient(circle_at_40%_40%,rgba(255,221,238,.48),rgba(111,90,166,.2)_35%,transparent_70%)] blur-xl" />
-                <div className="absolute -bottom-[22%] -left-[12%] h-[68%] w-[68%] rounded-full bg-[radial-gradient(circle_at_center,rgba(114,230,222,.34),transparent_68%)] blur-xl" />
-              </div>
-              <div className="relative flex h-full min-h-[350px] flex-col justify-between">
-                <div className="flex items-start justify-between">
-                  <span className="font-mono text-[9px] uppercase tracking-[.28em] text-white/48">Private platform / 03</span>
-                  <HoloBadge>membro registrado</HoloBadge>
-                </div>
-                <div>
-                  <div className="font-serif text-5xl leading-[.92] tracking-[-.05em] sm:text-6xl">
-                    Human
-                    <span className="block italic text-white/55">System.</span>
-                  </div>
-                  <div className="mt-8 flex items-center justify-between border-t border-white/15 pt-5 text-[10px] uppercase tracking-[.18em] text-white/45">
-                    <span>VH-MEM-2026-000003</span>
-                    <span>Veronica Hub</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-y border-black/[.065] bg-[#111113] py-4 text-white">
-          <div className="mx-auto flex max-w-[1500px] gap-10 overflow-hidden px-5 font-mono text-[9px] uppercase tracking-[.24em] text-white/48 sm:px-8">
-            {["Brand system", "Collection", "Production", "Margin", "Inventory", "Leads", "Fashion AI"].map((item) => (
-              <span key={item} className="shrink-0">{item}</span>
-            ))}
-          </div>
-        </section>
-
-        <section id="collection" className="scroll-mt-20 relative overflow-hidden bg-[#0b0b0c] px-5 py-24 text-white sm:px-8 lg:py-36">
-          <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_72%_18%,rgba(235,222,202,.18),transparent_30%),radial-gradient(circle_at_12%_82%,rgba(130,155,165,.12),transparent_28%)]" />
-          <div className="relative mx-auto max-w-[1500px]">
-            <div className="grid gap-10 lg:grid-cols-[1.15fr_.85fr] lg:items-end">
-              <div>
-                <div className="font-mono text-[9px] uppercase tracking-[.34em] text-white/42">Veronica Fashion & Co. · Collection 001</div>
-                <h2 className="mt-6 font-serif text-[clamp(4.5rem,10vw,10rem)] leading-[.72] tracking-[-.07em]">Human<br/><span className="italic text-white/48">System</span></h2>
-              </div>
-              <div className="max-w-lg lg:justify-self-end">
-                <p className="font-serif text-2xl leading-9 text-white/78">O luxo da Veronica nasce do contraste entre presença humana e precisão tecnológica.</p>
-                <p className="mt-5 text-sm leading-7 text-white/42">Uma gramática visual própria: pele natural, tailoring sem logotipos, matéria tátil, arquitetura monumental, luz lateral e tecnologia quase invisível.</p>
-              </div>
-            </div>
-            <div className="mt-20 grid gap-px overflow-hidden border-y border-white/10 bg-white/10 md:grid-cols-4">
-              {campaignPrinciples.map(([index,title,copy]) => (
-                <article key={index} className="min-h-64 bg-[#0b0b0c] p-6 transition duration-700 hover:bg-white/[.04]">
-                  <div className="font-mono text-[9px] tracking-[.24em] text-white/28">{index}</div>
-                  <h3 className="mt-16 font-serif text-4xl tracking-[-.04em]">{title}</h3>
-                  <p className="mt-4 text-xs leading-6 text-white/38">{copy}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-8 sm:py-20 lg:py-28">
-          <div className="mb-10 flex items-end justify-between gap-6">
-            <div><SectionLabel>Editorial / Human</SectionLabel><h2 className="mt-4 max-w-3xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-7xl">Human presence. Veronica language.</h2></div>
-            <p className="hidden max-w-sm text-right text-xs leading-6 text-black/40 md:block">Collection 001 fotografada como um sistema visual próprio: humanidade, matéria, arquitetura e inteligência em uma única linguagem.</p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-[1.15fr_.85fr]">
-            {editorialImages.slice(1).map((image, index) => (
-              <figure key={image.src} className={`group relative overflow-hidden rounded-[24px] bg-black shadow-[0_30px_90px_rgba(0,0,0,.14)] [transform-style:preserve-3d] ${index === 0 ? "min-h-[62svh] sm:min-h-[720px]" : "min-h-[52svh] sm:min-h-[560px] md:mt-20"}`}>
-                <img src={image.src} alt={image.alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover grayscale-[12%] contrast-[1.04] transition duration-[1100ms] ease-out md:group-hover:scale-[1.025] md:group-hover:grayscale-0 motion-reduce:transform-none motion-reduce:transition-none" />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,0,0,.68))]" />
-                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-white">
-                  <figcaption className="font-serif text-3xl italic tracking-[-.03em]">{index === 0 ? "The silhouette." : "The attitude."}</figcaption>
-                  <span className="font-mono text-[8px] uppercase tracking-[.18em] text-white/55">COLLECTION 001 · HUMAN SYSTEM</span>
+            <div className="grid gap-2 sm:grid-cols-[1.45fr_.75fr_.75fr]">
+              <figure className="group relative min-h-[460px] overflow-hidden sm:min-h-[590px]">
+                <img src={collectionLook.src} alt={collectionLook.alt} className="absolute inset-0 h-full w-full object-cover transition duration-[1200ms] group-hover:scale-[1.025] motion-reduce:transform-none" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-5 text-white">
+                  <figcaption className="text-[9px] uppercase tracking-[.2em]">Silhueta</figcaption>
                 </div>
               </figure>
-            ))}
-          </div>
-        </section>
-
-        <section id="atelier" className="scroll-mt-20 mx-auto max-w-[1500px] px-4 py-20 sm:px-8 sm:py-24 lg:py-36">
-          <div className="grid gap-12 lg:grid-cols-[.72fr_1.28fr]">
-            <div className="lg:sticky lg:top-28 lg:self-start">
-              <SectionLabel>Atelier operacional</SectionLabel>
-              <h2 className="mt-5 max-w-md font-serif text-5xl leading-[.92] tracking-[-.055em] sm:text-7xl">
-                A grife por trás da sua grife.
-              </h2>
-              <p className="mt-7 max-w-sm text-[15px] leading-7 text-black/48">
-                Não é uma loja virtual. É a camada de inteligência que acompanha o nascimento, a coleção e a operação da marca.
-              </p>
-            </div>
-
-            <div className="border-t border-black/10">
-              {atelier.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <article key={item.index} className="group grid gap-5 border-b border-black/10 py-8 sm:grid-cols-[64px_1fr_auto] sm:items-center sm:py-10">
-                    <div className="font-mono text-[10px] tracking-[.2em] text-black/30">{item.index}</div>
-                    <div>
-                      <h3 className="font-serif text-4xl tracking-[-.04em] sm:text-5xl">{item.title}</h3>
-                      <p className="mt-3 max-w-xl text-sm leading-6 text-black/45">{item.copy}</p>
-                    </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-black/10 transition duration-500 group-hover:rotate-12 group-hover:bg-black group-hover:text-white">
-                      <Icon className="h-4 w-4" aria-hidden />
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden bg-[#111113] px-4 py-20 text-white sm:px-8 sm:py-24 lg:py-36">
-          <img src={collectionLook.src} alt="" aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-[38%] object-cover opacity-[.16] mix-blend-luminosity lg:block" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#111113] via-[#111113]/95 to-[#111113]/70" aria-hidden />
-          <div className="relative mx-auto max-w-[1500px]">
-            <div className="grid gap-8 lg:grid-cols-[1fr_.65fr] lg:items-end">
-              <div>
-                <div className="font-mono text-[9px] uppercase tracking-[.28em] text-white/38">Collection architecture</div>
-                <h2 className="mt-5 max-w-4xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-8xl">
-                  Uma coleção é uma decisão editorial.
-                </h2>
+              <div className="grid gap-2">
+                <figure className="group relative min-h-[225px] overflow-hidden sm:min-h-[290px]">
+                  <img src={heroDesktop.src} alt={heroDesktop.alt} className="absolute inset-0 h-full w-full object-cover transition duration-[1200ms] group-hover:scale-[1.025] motion-reduce:transform-none" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-4 text-white"><figcaption className="text-[9px] uppercase tracking-[.2em]">Território</figcaption></div>
+                </figure>
+                <figure className="group relative min-h-[225px] overflow-hidden sm:min-h-[290px]">
+                  <img src={editorialPortrait.src} alt={editorialPortrait.alt} className="absolute inset-0 h-full w-full object-cover transition duration-[1200ms] group-hover:scale-[1.025] motion-reduce:transform-none" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-4 text-white"><figcaption className="text-[9px] uppercase tracking-[.2em]">Identidade</figcaption></div>
+                </figure>
               </div>
-              <p className="max-w-lg text-sm leading-7 text-white/45 lg:justify-self-end">
-                Organize ideia, peça, variação, grade, estágio e leitura comercial em um mesmo ambiente — sem transformar criatividade em uma planilha sem identidade.
+              <figure className="group relative min-h-[460px] overflow-hidden sm:min-h-[590px]">
+                <img src={heroMobile.src} alt={heroMobile.alt} className="absolute inset-0 h-full w-full object-cover transition duration-[1200ms] group-hover:scale-[1.025] motion-reduce:transform-none" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-5 text-white">
+                  <figcaption className="text-[9px] uppercase tracking-[.2em]">Matéria</figcaption>
+                </div>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <section id="atelier" className="scroll-mt-20 bg-[#111] px-5 py-24 text-white sm:px-8 lg:px-10 lg:py-32">
+          <div className="mx-auto grid max-w-[1500px] gap-12 lg:grid-cols-[.8fr_1.2fr]">
+            <div>
+              <div className="text-[9px] uppercase tracking-[.32em] text-white/42">Atelier operacional</div>
+              <h2 className="mt-5 max-w-xl font-serif text-5xl leading-[.86] tracking-[-.055em] sm:text-7xl">A grife por trás da sua grife.</h2>
+              <p className="mt-6 max-w-lg text-sm leading-7 text-white/48">
+                A Veronica conecta identidade, coleção, produção e leitura operacional para transformar intenção em uma marca executável.
               </p>
             </div>
-
-            <div className="mt-16 grid gap-px overflow-hidden bg-white/10 lg:grid-cols-3">
-              {runway.map((item, index) => (
-                <article key={item.code} className="group relative min-h-[460px] overflow-hidden bg-[#161619] p-6 [perspective:1200px] sm:min-h-[520px] sm:p-7">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-80 transition duration-700 ease-out md:group-hover:scale-[1.025] motion-reduce:transform-none motion-reduce:transition-none`} />
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,rgba(0,0,0,.78))]" />
-                  <div className="absolute inset-x-[22%] top-[13%] h-[48%] rounded-[48%_48%_12%_12%] border border-white/20 bg-white/[.06] shadow-[inset_0_0_80px_rgba(255,255,255,.08)] backdrop-blur-[2px]" />
-                  <div className="relative flex h-full flex-col justify-between">
-                    <div className="flex justify-between font-mono text-[9px] uppercase tracking-[.22em] text-white/55">
-                      <span>{item.code}</span><span>0{index + 1}</span>
-                    </div>
-                    <div>
-                      <h3 className="font-serif text-5xl tracking-[-.05em]">{item.title}</h3>
-                      <p className="mt-3 text-[11px] uppercase tracking-[.18em] text-white/45">{item.note}</p>
-                    </div>
-                  </div>
+            <div className="grid gap-px bg-white/10 sm:grid-cols-2">
+              {[
+                ["01", "Identidade", "Posicionamento, linguagem e direção visual."],
+                ["02", "Coleção", "Peças, grade, variações e arquitetura de produto."],
+                ["03", "Operação", "Estoque, produção, margem e próximos movimentos."],
+                ["04", "Mercado", "B2B, B2C, leads e contexto comercial."],
+              ].map(([index, title, copy]) => (
+                <article key={index} className="min-h-[260px] bg-[#111] p-6 transition duration-700 hover:bg-white/[.045]">
+                  <div className="font-mono text-[9px] tracking-[.22em] text-white/25">{index}</div>
+                  <h3 className="mt-14 font-serif text-4xl tracking-[-.04em]">{title}</h3>
+                  <p className="mt-4 max-w-xs text-xs leading-6 text-white/42">{copy}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="intelligence" className="scroll-mt-20 relative overflow-hidden px-4 py-20 sm:px-8 sm:py-24 lg:py-36">
-          <div className="pointer-events-none absolute inset-0 opacity-80">
-            <HolographicField tone="aqua" intensity={0.65} />
-          </div>
-          <div className="relative mx-auto max-w-[1500px]">
-            <div className="mx-auto max-w-4xl text-center">
-              <HoloBadge>Veronica Fashion Intelligence</HoloBadge>
-              <h2 className="mt-7 font-serif text-5xl leading-[.9] tracking-[-.06em] sm:text-8xl">
-                A estética atrai.
-                <span className="block italic text-black/45">A inteligência sustenta.</span>
-              </h2>
-              <p className="mx-auto mt-7 max-w-2xl text-[15px] leading-7 text-black/50">
-                O ambiente operacional reúne os módulos que dão continuidade à marca: dinheiro, produção, leads, coleções e plano de ação. Integrações reais entram somente quando conectadas e validadas.
+        <section id="manifesto" className="scroll-mt-20 bg-[#f4f0e9] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+          <div className="mx-auto grid max-w-[1500px] gap-10 border-t border-black/12 pt-10 lg:grid-cols-[1.1fr_.9fr] lg:items-end">
+            <div>
+              <div className="text-[9px] uppercase tracking-[.32em] text-black/38">Veronica Fashion & Co.</div>
+              <h2 className="mt-4 max-w-4xl font-serif text-5xl leading-[.86] tracking-[-.055em] sm:text-7xl">Uma nova geração de marcas de moda.</h2>
+            </div>
+            <div>
+              <p className="max-w-lg text-sm leading-7 text-black/54">
+                Uma maison digital onde direção criativa, tecnologia e operação trabalham juntas. O objetivo não é parecer uma marca pronta — é construir uma marca que possa existir, crescer e operar.
               </p>
-            </div>
-
-            <div className="mt-16 grid gap-4 md:grid-cols-3">
-              <GlassCard className="p-7">
-                <Boxes className="h-5 w-5 text-violet-500" aria-hidden />
-                <div className="mt-14 font-serif text-4xl tracking-[-.04em]">Estoque</div>
-                <p className="mt-3 text-sm leading-6 text-black/45">Veja o que gira, o que trava caixa e o que precisa de contexto antes da próxima produção.</p>
-              </GlassCard>
-              <GlassCard className="p-7">
-                <Layers3 className="h-5 w-5 text-cyan-600" aria-hidden />
-                <div className="mt-14 font-serif text-4xl tracking-[-.04em]">Coleção</div>
-                <p className="mt-3 text-sm leading-6 text-black/45">Mantenha conceito, peças, variações e decisões conectados à mesma narrativa.</p>
-              </GlassCard>
-              <GlassCard className="p-7">
-                <Sparkles className="h-5 w-5 text-rose-500" aria-hidden />
-                <div className="mt-14 font-serif text-4xl tracking-[-.04em]">Veronica</div>
-                <p className="mt-3 text-sm leading-6 text-black/45">Uma interface preparada para conversar com a operação e explicar por que cada movimento é sugerido.</p>
-              </GlassCard>
-            </div>
-          </div>
-        </section>
-
-        <section className="px-4 pb-24 pt-8 sm:px-8 sm:pb-28 lg:pb-40">
-          <div className="mx-auto max-w-[1500px] border-t border-black/10 pt-12">
-            <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
-              <div>
-                <div className="font-mono text-[9px] uppercase tracking-[.25em] text-black/35">Veronica Fashion & Co. · member 03</div>
-                <h2 className="mt-5 max-w-4xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-8xl">
-                  Sua marca começa antes da primeira peça.
-                </h2>
-              </div>
               <Link
                 to="/clientes/veronica-fashion-operator/execucao"
-                className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-black px-7 text-[12px] font-semibold text-white transition hover:scale-[1.02]"
+                className="mt-7 inline-flex min-h-12 items-center gap-4 rounded-full bg-black px-6 text-[10px] font-semibold uppercase tracking-[.13em] text-white transition hover:scale-[1.02]"
               >
-                Abrir Fashion Operator <ArrowRight className="h-4 w-4" aria-hidden />
+                Abrir Fashion OS <Sparkles className="h-3.5 w-3.5" aria-hidden />
               </Link>
             </div>
           </div>
