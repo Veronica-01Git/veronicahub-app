@@ -37,7 +37,7 @@ on:
         description: "Editoria desta rodada manual (vazio = a da hora, como no cron)"
         type: choice
         default: ""
-        options: ["", "ia", "clima", "economia", "geopolitica", "mercado"]
+        options: ["", "ia", "sc", "economia", "clima"]
 
 concurrency:
   group: veronica-wire-hourly

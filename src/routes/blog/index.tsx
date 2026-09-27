@@ -10,11 +10,13 @@ import {
   TrendingUp,
   Cloud,
   Landmark,
+  MapPin,
+  Sparkles,
 } from "lucide-react";
 import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
 import { CoverThumb } from "@/components/blog/CoverThumb";
 import { getPublishedArticles } from "@/lib/articles-server";
-import { BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
+import { ACTIVE_BEATS, BEAT_VALUES, BEAT_LABELS, BEAT_SHORT, type Beat } from "@/lib/beats";
 import { formatAgo } from "@/lib/blog-format";
 import { WIRE_NAME } from "@/lib/ecosystem";
 
@@ -34,13 +36,13 @@ export const Route = createFileRoute("/blog/")({
       { title: `${WIRE_NAME} — Cobertura contínua e global | Veronica Hub` },
       {
         name: "description",
-        content: `${WIRE_NAME}: IA, energia limpa, yuan digital, geopolítica Brasil e China, e o realinhamento do mercado tecnológico — cobertura contínua.`,
+        content: `${WIRE_NAME}: inteligência artificial, Santa Catarina e IA, China + Brasil e o yuan digital, terras raras e o futuro climático — e as notícias da Veronica Hub. Cobertura contínua.`,
       },
       { property: "og:title", content: `${WIRE_NAME} — Cobertura contínua e global` },
       {
         property: "og:description",
         content:
-          "O jornal digital da Veronica Hub sobre o que está movendo IA, economia e geopolítica.",
+          "O jornal digital da Veronica Hub: IA, Santa Catarina, China + Brasil, terras raras e clima.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -55,6 +57,8 @@ const BEAT_ICON: Record<Beat, typeof Cpu> = {
   economia: Landmark,
   geopolitica: Globe2,
   mercado: TrendingUp,
+  sc: MapPin,
+  veronica: Sparkles,
 };
 
 const BEAT_COLOR: Record<Beat, string> = {
@@ -63,6 +67,8 @@ const BEAT_COLOR: Record<Beat, string> = {
   economia: "oklch(0.62 0.15 85)",
   geopolitica: "oklch(0.58 0.19 25)",
   mercado: "oklch(0.56 0.16 290)",
+  sc: "oklch(0.6 0.16 40)",
+  veronica: "oklch(0.32 0.02 250)",
 };
 
 const BEAT_META = Object.fromEntries(
@@ -177,7 +183,7 @@ function VeronicaWire() {
             >
               Início
             </a>
-            {BEAT_VALUES.map((b) => (
+            {ACTIVE_BEATS.map((b) => (
               <Link
                 key={b}
                 to="/blog/editoria/$beat"
@@ -369,7 +375,7 @@ function VeronicaWire() {
       </section>
 
       {/* Seções por editoria — só renderiza quando existe matéria publicada nela */}
-      {BEAT_VALUES.map((beat) => {
+      {ACTIVE_BEATS.map((beat) => {
         const items = articles.filter((a) => a.beat === beat && !shownIds.has(a.id));
         if (items.length === 0) return null;
         const meta = BEAT_META[beat];

@@ -124,6 +124,8 @@ function topicHashtag(beat: Beat): string {
     economia: "#Economia",
     geopolitica: "#Geopolitica",
     mercado: "#Mercado",
+    sc: "#SantaCatarina",
+    veronica: "#VeronicaHub",
   }[beat];
 }
 

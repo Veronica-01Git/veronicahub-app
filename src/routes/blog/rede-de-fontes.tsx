@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { WirePulseGlobe } from "@/components/blog/WirePulseGlobe";
-import { BEAT_LABELS, BEAT_VALUES } from "@/lib/beats";
+import { ACTIVE_BEATS as BEAT_VALUES, BEAT_LABELS } from "@/lib/beats";
 import { EDITORIAL_CHANNELS } from "@/lib/editorial-network";
 import { getSourceNetworkSnapshot } from "@/lib/source-network-server";
 import { WIRE_NAME } from "@/lib/ecosystem";
@@ -108,7 +108,10 @@ function SourceNetworkPage() {
 
           <div className="mt-10 grid gap-4 lg:grid-cols-5">
             {BEAT_VALUES.map((beat, beatIndex) => (
-              <article key={beat} className="overflow-hidden rounded-sm border border-border/60 bg-surface/30">
+              <article
+                key={beat}
+                className="overflow-hidden rounded-sm border border-border/60 bg-surface/30"
+              >
                 <div className="border-b border-border/50 p-5">
                   <div className="font-mono-tech text-xs text-neon-green">
                     {String(beatIndex + 1).padStart(2, "0")}
@@ -159,8 +162,12 @@ function SourceNetworkPage() {
                       className="flex items-center justify-between gap-4 rounded-sm border border-background/15 bg-background/[0.04] px-4 py-3"
                     >
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-background">{source.label}</div>
-                        <div className="mt-0.5 truncate text-xs text-background/45">{source.domain}</div>
+                        <div className="truncate text-sm font-medium text-background">
+                          {source.label}
+                        </div>
+                        <div className="mt-0.5 truncate text-xs text-background/45">
+                          {source.domain}
+                        </div>
                       </div>
                       <span className="shrink-0 font-mono-tech text-xs text-neon-green">
                         {source.citations}×
@@ -185,10 +192,22 @@ function SourceNetworkPage() {
             <h2 className="mt-3 font-display text-3xl">Da citação à parceria</h2>
             <div className="mt-7 space-y-5">
               {[
-                [BookOpenCheck, "Fonte citada", "O veículo foi consultado e recebeu crédito na matéria."],
-                [BarChart3, "Resultado documentado", "O tráfego encaminhado aparece no relatório mensal."],
+                [
+                  BookOpenCheck,
+                  "Fonte citada",
+                  "O veículo foi consultado e recebeu crédito na matéria.",
+                ],
+                [
+                  BarChart3,
+                  "Resultado documentado",
+                  "O tráfego encaminhado aparece no relatório mensal.",
+                ],
                 [Mail, "Convite formal", "A colaboração é proposta com base em dados reais."],
-                [ShieldCheck, "Parceiro verificado", "O selo só é liberado depois da concordância entre as partes."],
+                [
+                  ShieldCheck,
+                  "Parceiro verificado",
+                  "O selo só é liberado depois da concordância entre as partes.",
+                ],
               ].map(([Icon, title, description], index) => {
                 const StepIcon = Icon as typeof CheckCircle2;
                 return (
@@ -198,7 +217,9 @@ function SourceNetworkPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono-tech text-xs text-muted-foreground">0{index + 1}</span>
+                        <span className="font-mono-tech text-xs text-muted-foreground">
+                          0{index + 1}
+                        </span>
                         <h3 className="font-medium">{String(title)}</h3>
                       </div>
                       <p className="mt-1 text-sm leading-relaxed text-muted-foreground">

@@ -97,6 +97,9 @@ export const articleBeat = pgEnum("ArticleBeat", [
   "economia",
   "geopolitica",
   "mercado",
+  // 27/09/2026 — drizzle/0016_wire_editorias_sc_veronica.sql
+  "sc",
+  "veronica",
 ]);
 export const articleStatus = pgEnum("ArticleStatus", ["draft", "published"]);
 

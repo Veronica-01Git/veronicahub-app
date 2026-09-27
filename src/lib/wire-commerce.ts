@@ -58,6 +58,24 @@ export const WIRE_OFFERS: Record<Beat, WireOffer> = {
     cta: "Explorar oportunidades",
     path: "/veronica-analytics",
   },
+  sc: {
+    id: "agentes-sc",
+    eyebrow: "IA aplicada · Veronica Hub",
+    title: "Agentes de IA para a sua empresa",
+    description:
+      "Atendimento no WhatsApp, análise de ofertas e redação automática — com teste antes de pagar.",
+    cta: "Conhecer os agentes",
+    path: "/agentes",
+  },
+  veronica: {
+    id: "hub-veronica",
+    eyebrow: "Ecossistema · Veronica Hub",
+    title: "Conheça a Veronica Hub por dentro",
+    description:
+      "Agentes de IA, Studio criativo, formações e o Wire TV, desenvolvidos pela Yo Lab & Co.",
+    cta: "Abrir a Veronica Hub",
+    path: "/",
+  },
 };
 
 export function trackedWireOfferHref(

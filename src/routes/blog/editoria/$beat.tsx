@@ -1,6 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Cpu, Cloud, Landmark, Globe2, TrendingUp } from "lucide-react";
+import {
+  ArrowLeft,
+  Cpu,
+  Cloud,
+  Landmark,
+  Globe2,
+  TrendingUp,
+  MapPin,
+  Sparkles,
+} from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { CoverThumb, BEAT_COLOR } from "@/components/blog/CoverThumb";
 import { getArticlesByBeat } from "@/lib/articles-server";
@@ -21,6 +30,8 @@ const BEAT_ICON: Record<Beat, typeof Cpu> = {
   economia: Landmark,
   geopolitica: Globe2,
   mercado: TrendingUp,
+  sc: MapPin,
+  veronica: Sparkles,
 };
 
 export const Route = createFileRoute("/blog/editoria/$beat")({

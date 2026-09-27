@@ -144,6 +144,22 @@ export const COVER_SCENES: Record<Beat, readonly Scene[]> = {
   ],
   clima: [
     {
+      term: "rare earth minerals ore samples",
+      pistas: [
+        "terras raras",
+        "terra rara",
+        "mineral critico",
+        "minerais criticos",
+        "neodimio",
+        "niobio",
+        "grafita",
+      ],
+    },
+    {
+      term: "open pit mine aerial",
+      pistas: ["mineracao", "mina", "jazida", "extracao", "litio", "lavra"],
+    },
+    {
       term: "wind turbines field sunset",
       pistas: ["eolic", "vento", "turbina", "renovavel", "transicao energetica"],
     },
@@ -415,6 +431,67 @@ export const COVER_SCENES: Record<Beat, readonly Scene[]> = {
     {
       term: "data center construction aerial",
       pistas: ["datacenter", "data center", "nuvem", "hiperescala", "capacidade", "expansao"],
+    },
+  ],
+  // Santa Catarina e IA (27/09/2026). Cenas genéricas e ilustrativas — nada
+  // de ponte ou praia reconhecível que "documente" um lugar que a foto não é.
+  sc: [
+    {
+      term: "technology park innovation center",
+      pistas: [
+        "acate",
+        "parque tecnologico",
+        "inovac",
+        "polo",
+        "startup",
+        "ecossistema",
+        "sapiens",
+        "hub",
+      ],
+    },
+    {
+      term: "software developers office team",
+      pistas: [
+        "software",
+        "desenvolvedor",
+        "programac",
+        "empresa de tecnologia",
+        "contrat",
+        "vaga",
+      ],
+    },
+    {
+      term: "university research laboratory students",
+      pistas: ["ufsc", "udesc", "universidade", "pesquisa", "estudante", "curso", "capacitac"],
+    },
+    {
+      term: "industrial automation robotic factory",
+      pistas: ["industria", "fabrica", "joinville", "blumenau", "jaragua", "automac", "manufatura"],
+    },
+    {
+      term: "shipping port container terminal",
+      pistas: ["porto", "itajai", "navegantes", "itapoa", "sao francisco do sul", "exportac"],
+    },
+    {
+      term: "government building meeting room",
+      pistas: ["governo", "estado", "secretaria", "alesc", "prefeitura", "lei", "decreto"],
+    },
+    {
+      term: "coastal city skyline night",
+      pistas: ["florianopolis", "capital", "cidade", "balneario", "litoral", "turismo"],
+    },
+  ],
+  // Veronica Hub — conteúdo da casa, fora do rodízio: a capa normalmente é
+  // enviada pela redação. As cenas só existem para a busca ter um ponto de
+  // partida caso uma matéria da casa saia sem capa.
+  veronica: [
+    {
+      term: "futuristic workspace computer screens night",
+      pistas: ["veronica", "plataforma", "hub", "agente", "lancament"],
+    },
+    {
+      term: "person coding laptop dark room",
+      pistas: ["desenvolv", "codigo", "software", "fundador", "dev"],
     },
   ],
 };

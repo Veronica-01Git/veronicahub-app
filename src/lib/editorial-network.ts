@@ -47,9 +47,9 @@ export const EDITORIAL_CHANNELS: Record<Beat, readonly [EditorialChannel, Editor
     },
     {
       id: "sustentabilidade",
-      label: "Sustentabilidade",
-      description: "Energia limpa, transição climática e soluções de baixo carbono.",
-      keywords: ["solar", "eólica", "energia", "bateria", "emissão", "carbono", "sustentável"],
+      label: "Terras Raras & Transição",
+      description: "Terras raras, minerais críticos, energia limpa e a transição climática.",
+      keywords: ["terras raras", "mineral", "lítio", "nióbio", "solar", "bateria", "carbono"],
     },
   ],
   economia: [
@@ -62,8 +62,8 @@ export const EDITORIAL_CHANNELS: Record<Beat, readonly [EditorialChannel, Editor
     {
       id: "mundo",
       label: "Economia Global",
-      description: "Moedas, bancos centrais e movimentos econômicos internacionais.",
-      keywords: ["global", "yuan", "dólar", "china", "fed", "internacional", "cbdc"],
+      description: "Yuan digital, e-CNY, comércio e tecnologia entre China e Brasil.",
+      keywords: ["yuan", "e-cny", "china", "chinês", "pequim", "cbdc", "brics"],
     },
   ],
   geopolitica: [
@@ -102,10 +102,47 @@ export const EDITORIAL_CHANNELS: Record<Beat, readonly [EditorialChannel, Editor
       ],
     },
   ],
+  sc: [
+    {
+      id: "ecossistema-sc",
+      label: "Ecossistema",
+      description: "Empresas, startups, polos de inovação e investimentos em IA em Santa Catarina.",
+      keywords: ["empresa", "startup", "acate", "inovação", "polo", "investimento", "parque"],
+    },
+    {
+      id: "gestao-sc",
+      label: "Governo & Educação",
+      description: "Políticas públicas, universidades e formação em IA no estado catarinense.",
+      keywords: ["governo", "estado", "universidade", "ufsc", "udesc", "curso", "lei"],
+    },
+  ],
+  veronica: [
+    {
+      id: "produto",
+      label: "Produto",
+      description: "Lançamentos, rotas e agentes da Veronica Hub.",
+      keywords: ["agente", "rota", "lançamento", "studio", "plataforma", "wire"],
+    },
+    {
+      id: "bastidores",
+      label: "Bastidores",
+      description: "Quem constrói a Veronica, decisões e trajetória da Yo Lab & Co.",
+      keywords: ["fundador", "desenvolvedor", "yo lab", "trajetória", "empresa", "meta"],
+    },
+  ],
 };
 
 export const SOURCE_LABELS: Record<string, string> = {
   "agenciabrasil.ebc.com.br": "Agência Brasil",
+  "ndmais.com.br": "ND+",
+  "nsctotal.com.br": "NSC Total",
+  "scc10.com.br": "SCC10",
+  "omunicipio.com.br": "O Município",
+  "diarinho.net": "Diarinho",
+  "jornalrazao.com": "Jornal Razão",
+  "acate.com.br": "ACATE",
+  "sc.gov.br": "Governo de SC",
+  "fapesc.sc.gov.br": "FAPESC",
   "atlanticcouncil.org": "Atlantic Council",
   "bbc.com": "BBC",
   "caixinglobal.com": "Caixin Global",

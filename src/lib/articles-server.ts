@@ -37,10 +37,14 @@ const GDELT_SCOPE = "(Brazil OR Brasil OR China OR Chinese)";
 
 const GDELT_QUERY: Record<Beat, string> = {
   ia: `${GDELT_SCOPE} ("artificial intelligence" OR "generative AI" OR "AI model")`,
-  clima: `${GDELT_SCOPE} ("clean energy" OR batteries OR solar OR wind OR climate)`,
-  economia: `${GDELT_SCOPE} ("digital yuan" OR CBDC OR "digital currency" OR economy)`,
+  clima: `${GDELT_SCOPE} ("rare earth" OR "rare earths" OR "critical minerals" OR lithium OR climate OR "clean energy")`,
+  economia: `${GDELT_SCOPE} ("digital yuan" OR "e-CNY" OR CBDC OR "digital currency" OR yuan)`,
   geopolitica: `${GDELT_SCOPE} (trade OR diplomacy OR chips OR semiconductors OR tariffs)`,
   mercado: `${GDELT_SCOPE} (technology OR startup) (investment OR earnings OR infrastructure)`,
+  // Santa Catarina: o recorte geográfico é o próprio estado.
+  sc: `("Santa Catarina" OR Florianópolis OR Joinville OR Blumenau) ("artificial intelligence" OR "inteligência artificial" OR AI)`,
+  // Conteúdo da casa: fora do rodízio, nunca pautado pelo radar.
+  veronica: `"Veronica Hub"`,
 };
 
 // Redundância gratuita para o radar: quando o GDELT demora ou fica fora do
@@ -63,11 +67,30 @@ const BRASIL_EM_ALTA = "https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR%3Apt"
 const AGENCIA_BRASIL = "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml";
 const G1 = "https://g1.globo.com/rss/g1/";
 
+// Santa Catarina (27/09/2026): pedido da editora — pautar e apurar nos
+// portais mais acessados do estado. ND+ e NSC Total se declaram líderes de
+// audiência em SC; SCC10, O Município e Jornal Razão completam o radar
+// regional. A busca do Google Notícias com `site:` é o jeito estável de ler
+// esses portais sem depender de cada um manter um RSS próprio.
+const PORTAIS_SC = [
+  "ndmais.com.br",
+  "nsctotal.com.br",
+  "scc10.com.br",
+  "omunicipio.com.br",
+  "jornalrazao.com",
+];
+const SITES_SC = PORTAIS_SC.map((dominio) => `site:${dominio}`).join(" OR ");
+
 const RSS_FEEDS: Record<Beat, string[]> = {
   ia: [googleNewsBrasil("inteligência artificial"), AGENCIA_BRASIL, G1, BRASIL_EM_ALTA],
-  clima: [googleNewsBrasil("energia limpa OR clima"), AGENCIA_BRASIL, G1, BRASIL_EM_ALTA],
+  clima: [
+    googleNewsBrasil("terras raras OR minerais críticos OR lítio OR clima"),
+    AGENCIA_BRASIL,
+    G1,
+    BRASIL_EM_ALTA,
+  ],
   economia: [
-    googleNewsBrasil("economia OR banco central OR yuan digital"),
+    googleNewsBrasil("yuan digital OR yuan China Brasil OR moeda digital"),
     AGENCIA_BRASIL,
     G1,
     BRASIL_EM_ALTA,
@@ -84,18 +107,25 @@ const RSS_FEEDS: Record<Beat, string[]> = {
     G1,
     BRASIL_EM_ALTA,
   ],
+  sc: [
+    googleNewsBrasil(`(inteligência artificial OR IA OR tecnologia OR inovação) (${SITES_SC})`),
+    googleNewsBrasil("inteligência artificial Santa Catarina"),
+  ],
+  veronica: [],
 };
 
 const SIGNAL_KEYWORDS: Record<Beat, RegExp> = {
   ia: /\b(ai|artificial intelligence|intelig[êe]ncia artificial|modelo|model|chip|rob[ôo]|software|algoritmo)\b/i,
   clima:
-    /\b(climate|clima|energy|energia|solar|wind|e[óo]lica|battery|bateria|emiss[õo]|desmatamento|enchente|seca)\b/i,
+    /\b(terras? raras?|rare earths?|minera(l|is|ção|cao)|l[íi]tio|lithium|ni[óo]bio|climate|clima|energy|energia|solar|wind|e[óo]lica|battery|bateria|emiss[õo]|desmatamento|enchente|seca)\b/i,
   economia:
     /\b(econom|central bank|banco central|currency|moeda|inflation|infla[çc][ãa]o|cbdc|yuan|drex|pix|juros|selic|c[âa]mbio|d[óo]lar|pib)\b/i,
   geopolitica:
     /\b(china|chin[êe]s|chinese|brasil|brazil|trade|com[ée]rcio|tariff|tarifa|chip|semiconductor|semicondutor|geopolit|diplomac|acordo|brics|mercosul)\b/i,
   mercado:
     /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip|rodada|aquisi[çc][ãa]o)\b/i,
+  sc: /\b(ia|intelig[êe]ncia artificial|tecnologia|inova[çc][ãa]o|startup|software|acate|digital|rob[ôo]|dados)\b/i,
+  veronica: /\bveronica\b/i,
 };
 
 // Recorte geográfico aplicado a TODO sinal, venha do GDELT ou do RSS.
@@ -266,12 +296,15 @@ const BEAT_PAGE_SIZE = 15;
 const BEAT_BRIEF: Record<Beat, string> = {
   ia: "modelos de IA, infraestrutura de inferência, produtos de IA generativa e regulação de IA",
   clima:
-    "energia limpa (solar, eólica, baterias), políticas climáticas e uso de IA em modelagem climática",
+    "terras raras e minerais críticos (Brasil e China), transição energética e o futuro climático — eventos extremos, energia limpa e política climática",
   economia:
-    "yuan digital, moedas digitais de bancos centrais (CBDCs) e política monetária ligada a tecnologia",
+    "China + Brasil: yuan digital (e-CNY), moedas digitais de bancos centrais, Drex e a relação econômica e tecnológica entre os dois países",
   geopolitica:
     "relação Brasil–China — comércio, chips, cadeias produtivas, diplomacia e tecnologia",
   mercado: "mercado de tecnologia global — investimentos, big techs e infraestrutura de IA",
+  sc: "inteligência artificial em Santa Catarina — empresas, startups, polos de inovação, universidades e governo do estado. Apure primeiro nos portais catarinenses mais acessados (ND+ ndmais.com.br, NSC Total nsctotal.com.br, SCC10, O Município, Jornal Razão) e confirme em fonte primária (Governo de SC, ACATE, FAPESC, universidades) ou em outro portal",
+  veronica:
+    "notícias da própria Veronica Hub — conteúdo da casa, escrito com a direção, nunca pautado por conta própria",
 };
 
 function slugify(text: string): string {

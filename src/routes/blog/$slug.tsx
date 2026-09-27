@@ -15,6 +15,7 @@ import { ArticleShare } from "@/components/blog/ArticleShare";
 import { NewsAssistant } from "@/components/blog/NewsAssistant";
 import { getArticleBySlug } from "@/lib/articles-server";
 import { BEAT_LABELS } from "@/lib/beats";
+import { parseBodyImage } from "@/lib/blog-format";
 import { WIRE_NAME } from "@/lib/ecosystem";
 import { sourceDomain, sourceLabel, trackedSourceHref } from "@/lib/editorial-network";
 import { WIRE_OFFERS, trackedWireOfferHref } from "@/lib/wire-commerce";
@@ -23,8 +24,12 @@ const SITE_URL = "https://veronicahub.com";
 
 // Deriva "Pexels"/"Pixabay" do hostname da URL do crédito — evita rotular
 // errado quando a foto veio da segunda fonte (ver scripts/fetch-cover-photo.mjs).
-function derivePhotoSourceLabel(url: string | null): string {
-  if (!url) return "";
+function derivePhotoSourceLabel(url: string | null, credit?: string | null): string {
+  // Ilustração gerada por IA não vem de banco de imagens: o crédito já diz.
+  if (credit && /ilustra[çc][ãa]o/i.test(credit)) return "";
+  // Sem URL: foto antiga do banco curado, que era do Pexels e não guardava
+  // a página de origem.
+  if (!url) return "Pexels";
   try {
     const hostname = new URL(url).hostname;
     if (hostname.includes("pixabay")) return "Pixabay";
@@ -32,7 +37,9 @@ function derivePhotoSourceLabel(url: string | null): string {
   } catch {
     // ignora URL inválida — cai no fallback abaixo
   }
-  return "Pexels";
+  // Sem URL de banco de imagens (foto enviada pela redação, arquivo pessoal,
+  // ilustração): o crédito já diz de onde veio, e "/ Pexels" seria falso.
+  return "";
 }
 
 function readingMinutes(body: string): number {
@@ -146,6 +153,9 @@ function ArticlePending() {
 function ArticlePage() {
   const state = Route.useLoaderData();
   const offer = state.ok ? WIRE_OFFERS[state.article.beat] : null;
+  const fonteDaFoto = state.ok
+    ? derivePhotoSourceLabel(state.article.coverPhotoUrl, state.article.coverPhotoCredit)
+    : "";
   const hasEditorialUpdate =
     state.ok &&
     state.article.publishedAt &&
@@ -228,13 +238,13 @@ function ArticlePage() {
                   rel="noopener noreferrer"
                   className="mt-1.5 block text-right text-[11px] text-muted-foreground/70 transition hover:text-muted-foreground"
                 >
-                  Foto: {state.article.coverPhotoCredit} /{" "}
-                  {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
+                  Foto: {state.article.coverPhotoCredit}
+                  {fonteDaFoto && ` / ${fonteDaFoto}`}
                 </a>
               ) : (
                 <p className="mt-1.5 text-right text-[11px] text-muted-foreground/70">
-                  Foto: {state.article.coverPhotoCredit} /{" "}
-                  {derivePhotoSourceLabel(state.article.coverPhotoUrl)}
+                  Foto: {state.article.coverPhotoCredit}
+                  {fonteDaFoto && ` / ${fonteDaFoto}`}
                 </p>
               ))}
 
@@ -249,7 +259,6 @@ function ArticlePage() {
 
             <NewsAssistant headline={state.article.headline} body={state.article.body} />
 
-
             <div
               className="mt-9 flex flex-col gap-5 text-[18px] leading-[1.78] text-foreground/90"
               style={{ fontFamily: '"Newsreader", Georgia, serif' }}
@@ -258,9 +267,25 @@ function ArticlePage() {
                 .split(/\n{2,}/)
                 .map((p) => p.trim())
                 .filter(Boolean)
-                .map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
-                ))}
+                .map((paragraph, i) => {
+                  const imagem = parseBodyImage(paragraph);
+                  if (!imagem) return <p key={i}>{paragraph}</p>;
+                  return (
+                    <figure key={i} className="my-2">
+                      <img
+                        src={imagem.src}
+                        alt={imagem.alt}
+                        loading="lazy"
+                        className="w-full rounded-sm border border-border/60 object-cover"
+                      />
+                      {imagem.alt && (
+                        <figcaption className="mt-2 font-sans text-sm leading-relaxed text-muted-foreground">
+                          {imagem.alt}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                })}
             </div>
 
             <div className="mt-9 flex flex-col gap-4 border-t border-border/60 pt-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">

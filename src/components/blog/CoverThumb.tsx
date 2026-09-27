@@ -10,6 +10,8 @@ export const BEAT_COLOR: Record<Beat, string> = {
   economia: "oklch(0.62 0.15 85)",
   geopolitica: "oklch(0.58 0.19 25)",
   mercado: "oklch(0.56 0.16 290)",
+  sc: "oklch(0.6 0.16 40)",
+  veronica: "oklch(0.32 0.02 250)",
 };
 
 // "oklch(L C H)" -> "oklch(L C H / alpha)" — alpha precisa entrar dentro da

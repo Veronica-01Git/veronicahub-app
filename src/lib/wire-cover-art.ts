@@ -39,6 +39,8 @@ const BEAT_PALETTE: Record<Beat, { base: Rgb; accent: Rgb; deep: Rgb }> = {
   economia: { base: [251, 191, 36], accent: [253, 224, 71], deep: [24, 17, 4] },
   geopolitica: { base: [248, 113, 113], accent: [251, 146, 60], deep: [24, 9, 9] },
   mercado: { base: [167, 139, 250], accent: [244, 114, 182], deep: [16, 10, 26] },
+  sc: { base: [251, 146, 60], accent: [52, 211, 153], deep: [24, 12, 6] },
+  veronica: { base: [99, 230, 166], accent: [226, 232, 240], deep: [8, 10, 12] },
 };
 
 // Os cinco traçados possíveis. O nome vai no log do gerador para dar pra

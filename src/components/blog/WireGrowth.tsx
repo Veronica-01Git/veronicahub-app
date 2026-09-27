@@ -84,6 +84,20 @@ const ACTION_BY_BEAT: Record<
     href: "/veronica-analytics?utm_source=wire&utm_medium=article_action&utm_campaign=analytics",
     cta: "Abrir radar de produtos",
   },
+  sc: {
+    eyebrow: "Da notícia à operação",
+    title: "Coloque a IA para trabalhar na sua empresa catarinense",
+    description: "Conheça os agentes da Veronica: atendimento, análise e redação automática.",
+    href: "/agentes?utm_source=wire&utm_medium=article_action&utm_campaign=agentes",
+    cta: "Conhecer os agentes",
+  },
+  veronica: {
+    eyebrow: "Por dentro da Veronica",
+    title: "Veja de perto o que a Veronica Hub já faz",
+    description: "Agentes, Studio, formações e o próprio Wire — tudo no mesmo ecossistema.",
+    href: "/?utm_source=wire&utm_medium=article_action&utm_campaign=hub",
+    cta: "Abrir a Veronica Hub",
+  },
 };
 
 export function WireOwnedStories() {
@@ -145,10 +159,13 @@ export function WireOwnedStories() {
                     <Icon className="h-3.5 w-3.5" />
                     {story.eyebrow}
                   </div>
-                  <h3 className="mt-2 font-display text-xl leading-tight text-white">{story.title}</h3>
+                  <h3 className="mt-2 font-display text-xl leading-tight text-white">
+                    {story.title}
+                  </h3>
                   <p className="mt-2 text-xs leading-relaxed text-white/60">{story.description}</p>
                   <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-neon-green">
-                    {story.cta} <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    {story.cta}{" "}
+                    <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </span>
                 </div>
               </a>

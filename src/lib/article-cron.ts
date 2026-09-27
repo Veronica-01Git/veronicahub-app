@@ -1,5 +1,5 @@
 import { and, eq, isNotNull } from "drizzle-orm";
-import { BEAT_VALUES, CYCLE_HOURS, isBeat, type Beat } from "./beats";
+import { CYCLE_HOURS, ROTATION_BEATS, type Beat } from "./beats";
 import { publishArticleFromCron, simulateArticleFromCron } from "./articles-server";
 import { getDb } from "./db";
 import { WIRE_NAME } from "./ecosystem";
@@ -222,8 +222,8 @@ export async function handleArchiveWireOwnedImagesCron(request: Request): Promis
 // então ao longo do dia todas passam e a janela impede duplicação.
 function currentBeat(): Beat {
   const hour = new Date().getUTCHours();
-  const index = Math.floor(hour / CYCLE_HOURS) % BEAT_VALUES.length;
-  return BEAT_VALUES[index];
+  const index = Math.floor(hour / CYCLE_HOURS) % ROTATION_BEATS.length;
+  return ROTATION_BEATS[index];
 }
 
 // Chamado direto do src/server.ts (interceptado antes do handler do
@@ -246,7 +246,12 @@ export async function handleGenerateArticleCron(request: Request): Promise<Respo
   // (brief "evolução"). Gasta uma chamada de IA de verdade.
   const url = new URL(request.url);
   const requestedBeat = url.searchParams.get("beat");
-  const beat = requestedBeat && isBeat(requestedBeat) ? requestedBeat : currentBeat();
+  // Só editorias do rodízio: a "veronica" é conteúdo da casa e as
+  // aposentadas (geopolítica, mercado) não recebem mais pauta automática.
+  const beat: Beat =
+    requestedBeat && (ROTATION_BEATS as readonly string[]).includes(requestedBeat)
+      ? (requestedBeat as Beat)
+      : currentBeat();
   if (url.searchParams.get("dryRun") === "1") {
     const simulated = await simulateArticleFromCron(beat);
     return new Response(JSON.stringify({ dryRun: true, beat, ...simulated }), {

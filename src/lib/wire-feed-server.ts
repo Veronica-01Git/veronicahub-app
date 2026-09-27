@@ -1,3 +1,4 @@
+import { parseBodyImage } from "./blog-format";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { articles } from "./schema";
@@ -33,6 +34,8 @@ export const EDITORIA_PUBLICA = {
   economia: "economia",
   geopolitica: "geopolitica",
   mercado: "tech",
+  sc: "sc",
+  veronica: "veronica",
 } as const satisfies Record<Beat, string>;
 
 export type WireFeedEditoria = (typeof EDITORIA_PUBLICA)[Beat];
@@ -118,7 +121,14 @@ function corpoParaHtml(body: string): string {
     .split(/\n{2,}/)
     .map((paragrafo) => paragrafo.trim())
     .filter(Boolean)
-    .map((paragrafo) => `<p>${escaparHtml(paragrafo).replace(/\n/g, "<br />")}</p>`)
+    .map((paragrafo) => {
+      const imagem = parseBodyImage(paragrafo);
+      if (imagem) {
+        const legenda = imagem.alt ? `<figcaption>${escaparHtml(imagem.alt)}</figcaption>` : "";
+        return `<figure><img src="${SITE_URL}${imagem.src}" alt="${escaparHtml(imagem.alt)}" />${legenda}</figure>`;
+      }
+      return `<p>${escaparHtml(paragrafo).replace(/\n/g, "<br />")}</p>`;
+    })
     .join("\n");
 }
 
