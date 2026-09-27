@@ -88,8 +88,8 @@ const runway = [
 function VeronicaFashion() {
   return (
     <AppleClientFrame tone="violet">
-      <div className="fixed inset-x-0 top-0 z-50 border-b border-black/[.055] bg-[#f7f5f2]/80 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-[1500px] items-center gap-6 px-5 sm:px-8">
+      <div className="fixed inset-x-0 top-0 z-50 border-b border-black/[.05] bg-[#f7f5f2]/86 supports-[backdrop-filter]:bg-[#f7f5f2]/72 backdrop-blur-2xl">
+        <div className="mx-auto flex h-16 max-w-[1500px] items-center gap-3 px-4 sm:gap-6 sm:px-8">
           <Link to="/" className="font-serif text-[13px] font-semibold tracking-[.14em] text-black/80">
             VERONICA
           </Link>
@@ -111,7 +111,7 @@ function VeronicaFashion() {
       </div>
 
       <main className="bg-[#f7f5f2] text-[#111113]">
-        <section id="maison" className="relative flex min-h-screen items-end overflow-hidden px-5 pb-12 pt-28 sm:px-8 lg:pb-16">
+        <section id="maison" className="relative flex min-h-[100svh] items-center overflow-hidden px-4 pb-10 pt-24 sm:px-8 sm:pb-14 sm:pt-28 lg:pb-16">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-[9%] top-[12%] h-[52vw] max-h-[720px] w-[52vw] max-w-[720px] rounded-full border border-black/[.04]" />
             <div className="absolute right-[-8%] top-[8%] h-[70%] w-[58%] opacity-80">
@@ -120,26 +120,26 @@ function VeronicaFashion() {
             <div className="absolute left-[43%] top-[20%] h-[48%] w-px bg-gradient-to-b from-transparent via-black/10 to-transparent" />
           </div>
 
-          <div className="relative mx-auto grid w-full max-w-[1500px] gap-12 lg:grid-cols-[1.18fr_.82fr] lg:items-end">
+          <div className="relative mx-auto grid w-full max-w-[1500px] gap-8 sm:gap-10 lg:grid-cols-[1.12fr_.88fr] lg:items-center lg:gap-12">
             <div>
               <div className="flex items-center gap-3">
                 <span className="h-px w-10 bg-black/40" />
                 <span className="text-[10px] font-semibold uppercase tracking-[.28em] text-black/45">Collection 001 · Human System · 2026</span>
               </div>
-              <h1 className="mt-8 max-w-5xl font-serif text-[clamp(4.8rem,11vw,11.5rem)] font-normal leading-[.72] tracking-[-.075em] text-black">
+              <h1 className="mt-6 max-w-5xl font-serif text-[clamp(3.75rem,12vw,11.25rem)] font-normal leading-[.76] tracking-[-.068em] text-black sm:mt-8 sm:leading-[.73]">
                 Veronica
                 <span className="block italic text-black/58">Fashion</span>
                 <span className="ml-[18%] block text-[.42em] tracking-[-.045em]">& Co.</span>
               </h1>
-              <p className="mt-10 max-w-xl text-[clamp(1rem,1.7vw,1.25rem)] leading-8 text-black/52">
+              <p className="mt-7 max-w-xl text-[clamp(.98rem,1.6vw,1.22rem)] leading-7 text-black/56 sm:mt-9 sm:leading-8">
                 Humanidade, matéria, arquitetura e inteligência em uma linguagem própria. Da primeira ideia à operação de uma marca de moda.
               </p>
             </div>
 
-            <div className="group relative min-h-[560px] overflow-hidden rounded-[28px] bg-[#111113] p-7 text-white shadow-[0_45px_120px_rgba(0,0,0,.22)] [perspective:1400px] sm:p-9 lg:-rotate-[1.25deg] lg:transition-transform lg:duration-700 lg:hover:rotate-0 lg:hover:scale-[1.015]">
+            <div className="group relative min-h-[62svh] overflow-hidden rounded-[24px] bg-[#111113] p-6 text-white shadow-[0_30px_90px_rgba(0,0,0,.18)] [perspective:1400px] sm:min-h-[560px] sm:rounded-[28px] sm:p-9 sm:shadow-[0_45px_120px_rgba(0,0,0,.22)] lg:-rotate-[1deg] lg:transition-transform lg:duration-700 lg:ease-out lg:hover:rotate-0 lg:hover:scale-[1.012] motion-reduce:transform-none motion-reduce:transition-none">
               <picture>
                 <source media="(max-width: 767px)" srcSet={heroMobile.src} />
-                <img src={heroDesktop.src} alt={heroDesktop.alt} className="absolute inset-0 h-full w-full object-cover object-center opacity-82 saturate-[.78] contrast-[1.08] transition duration-1000 group-hover:scale-[1.035] group-hover:saturate-100 motion-reduce:transform-none" loading="eager" fetchPriority="high" />
+                <img src={heroDesktop.src} alt={heroDesktop.alt} className="absolute inset-0 h-full w-full object-cover object-[50%_28%] opacity-84 saturate-[.8] contrast-[1.08] transition duration-[1200ms] ease-out md:object-center md:group-hover:scale-[1.028] md:group-hover:saturate-100 motion-reduce:transform-none motion-reduce:transition-none" loading="eager" fetchPriority="high" />
               </picture>
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.16)_45%,rgba(0,0,0,.88))]" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,.24),transparent_22%)] mix-blend-screen" />
@@ -175,7 +175,7 @@ function VeronicaFashion() {
           </div>
         </section>
 
-        <section id="collection" className="relative overflow-hidden bg-[#0b0b0c] px-5 py-24 text-white sm:px-8 lg:py-36">
+        <section id="collection" className="scroll-mt-20 relative overflow-hidden bg-[#0b0b0c] px-5 py-24 text-white sm:px-8 lg:py-36">
           <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_72%_18%,rgba(235,222,202,.18),transparent_30%),radial-gradient(circle_at_12%_82%,rgba(130,155,165,.12),transparent_28%)]" />
           <div className="relative mx-auto max-w-[1500px]">
             <div className="grid gap-10 lg:grid-cols-[1.15fr_.85fr] lg:items-end">
@@ -200,15 +200,15 @@ function VeronicaFashion() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-28">
+        <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-8 sm:py-20 lg:py-28">
           <div className="mb-10 flex items-end justify-between gap-6">
             <div><SectionLabel>Editorial / Human</SectionLabel><h2 className="mt-4 max-w-3xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-7xl">Human presence. Veronica language.</h2></div>
             <p className="hidden max-w-sm text-right text-xs leading-6 text-black/40 md:block">Collection 001 fotografada como um sistema visual próprio: humanidade, matéria, arquitetura e inteligência em uma única linguagem.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-[1.15fr_.85fr]">
             {editorialImages.slice(1).map((image, index) => (
-              <figure key={image.src} className={`group relative overflow-hidden rounded-[24px] bg-black shadow-[0_30px_90px_rgba(0,0,0,.14)] [transform-style:preserve-3d] ${index === 0 ? "min-h-[720px]" : "min-h-[560px] md:mt-24"}`}>
-                <img src={image.src} alt={image.alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover grayscale-[18%] contrast-[1.05] transition duration-1000 ease-out group-hover:scale-[1.035] group-hover:grayscale-0" />
+              <figure key={image.src} className={`group relative overflow-hidden rounded-[24px] bg-black shadow-[0_30px_90px_rgba(0,0,0,.14)] [transform-style:preserve-3d] ${index === 0 ? "min-h-[62svh] sm:min-h-[720px]" : "min-h-[52svh] sm:min-h-[560px] md:mt-20"}`}>
+                <img src={image.src} alt={image.alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover grayscale-[12%] contrast-[1.04] transition duration-[1100ms] ease-out md:group-hover:scale-[1.025] md:group-hover:grayscale-0 motion-reduce:transform-none motion-reduce:transition-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,0,0,.68))]" />
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-white">
                   <figcaption className="font-serif text-3xl italic tracking-[-.03em]">{index === 0 ? "The silhouette." : "The attitude."}</figcaption>
@@ -219,7 +219,7 @@ function VeronicaFashion() {
           </div>
         </section>
 
-        <section id="atelier" className="mx-auto max-w-[1500px] px-5 py-24 sm:px-8 lg:py-36">
+        <section id="atelier" className="scroll-mt-20 mx-auto max-w-[1500px] px-4 py-20 sm:px-8 sm:py-24 lg:py-36">
           <div className="grid gap-12 lg:grid-cols-[.72fr_1.28fr]">
             <div className="lg:sticky lg:top-28 lg:self-start">
               <SectionLabel>Atelier operacional</SectionLabel>
@@ -251,7 +251,7 @@ function VeronicaFashion() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden bg-[#111113] px-5 py-24 text-white sm:px-8 lg:py-36">
+        <section className="relative overflow-hidden bg-[#111113] px-4 py-20 text-white sm:px-8 sm:py-24 lg:py-36">
           <img src={collectionLook.src} alt="" aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-[38%] object-cover opacity-[.16] mix-blend-luminosity lg:block" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#111113] via-[#111113]/95 to-[#111113]/70" aria-hidden />
           <div className="relative mx-auto max-w-[1500px]">
@@ -269,8 +269,8 @@ function VeronicaFashion() {
 
             <div className="mt-16 grid gap-px overflow-hidden bg-white/10 lg:grid-cols-3">
               {runway.map((item, index) => (
-                <article key={item.code} className="group relative min-h-[520px] overflow-hidden bg-[#161619] p-7">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-80 transition duration-700 group-hover:scale-105`} />
+                <article key={item.code} className="group relative min-h-[460px] overflow-hidden bg-[#161619] p-6 [perspective:1200px] sm:min-h-[520px] sm:p-7">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-80 transition duration-700 ease-out md:group-hover:scale-[1.025] motion-reduce:transform-none motion-reduce:transition-none`} />
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,rgba(0,0,0,.78))]" />
                   <div className="absolute inset-x-[22%] top-[13%] h-[48%] rounded-[48%_48%_12%_12%] border border-white/20 bg-white/[.06] shadow-[inset_0_0_80px_rgba(255,255,255,.08)] backdrop-blur-[2px]" />
                   <div className="relative flex h-full flex-col justify-between">
@@ -288,7 +288,7 @@ function VeronicaFashion() {
           </div>
         </section>
 
-        <section id="intelligence" className="relative overflow-hidden px-5 py-24 sm:px-8 lg:py-36">
+        <section id="intelligence" className="scroll-mt-20 relative overflow-hidden px-4 py-20 sm:px-8 sm:py-24 lg:py-36">
           <div className="pointer-events-none absolute inset-0 opacity-80">
             <HolographicField tone="aqua" intensity={0.65} />
           </div>
@@ -324,7 +324,7 @@ function VeronicaFashion() {
           </div>
         </section>
 
-        <section className="px-5 pb-28 pt-10 sm:px-8 lg:pb-40">
+        <section className="px-4 pb-24 pt-8 sm:px-8 sm:pb-28 lg:pb-40">
           <div className="mx-auto max-w-[1500px] border-t border-black/10 pt-12">
             <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
