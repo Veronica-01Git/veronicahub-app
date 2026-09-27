@@ -64,6 +64,12 @@ const atelier = [
   },
 ];
 
+const editorialImages = [
+  { src: "https://images.pexels.com/photos/30372261/pexels-photo-30372261.jpeg?auto=compress&cs=tinysrgb&w=1600", alt: "Editorial de moda em estúdio com styling contemporâneo", credit: "Jay Soundo · Pexels" },
+  { src: "https://images.pexels.com/photos/32548829/pexels-photo-32548829.jpeg?auto=compress&cs=tinysrgb&w=1600", alt: "Editorial couture com modelos em composição dramática", credit: "Felix Young · Pexels" },
+  { src: "https://images.pexels.com/photos/14559203/pexels-photo-14559203.jpeg?auto=compress&cs=tinysrgb&w=1600", alt: "Modelo em arquitetura moderna com estética editorial", credit: "Connor Scott McManus · Pexels" },
+];
+
 const runway = [
   { code: "DROP / 01", title: "Identity", note: "marca · direção · linguagem", gradient: "from-[#0d0d0f] via-[#29242c] to-[#8f7b86]" },
   { code: "DROP / 02", title: "Collection", note: "peças · grade · variações", gradient: "from-[#d8d0c4] via-[#f3eee7] to-[#8ea0a7]" },
@@ -120,7 +126,7 @@ function VeronicaFashion() {
               </p>
             </div>
 
-            <div className="relative min-h-[420px] overflow-hidden rounded-[2px] bg-[#111113] p-7 text-white shadow-[0_35px_100px_rgba(0,0,0,.16)] sm:p-9">
+            <div className="group relative min-h-[560px] overflow-hidden rounded-[28px] bg-[#111113] p-7 text-white shadow-[0_45px_120px_rgba(0,0,0,.22)] [perspective:1400px] sm:p-9 lg:-rotate-[1.25deg] lg:transition-transform lg:duration-700 lg:hover:rotate-0 lg:hover:scale-[1.015]"><img src={editorialImages[0].src} alt={editorialImages[0].alt} className="absolute inset-0 h-full w-full object-cover object-center opacity-75 saturate-[.72] contrast-[1.08] transition duration-1000 group-hover:scale-[1.045] group-hover:saturate-100" loading="eager" /><div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.18)_45%,rgba(0,0,0,.88))]" /><div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,.28),transparent_22%)] mix-blend-screen" />
               <div className="absolute inset-0 opacity-90">
                 <div className="absolute -right-[12%] -top-[10%] h-[75%] w-[75%] rounded-full bg-[radial-gradient(circle_at_40%_40%,rgba(255,221,238,.48),rgba(111,90,166,.2)_35%,transparent_70%)] blur-xl" />
                 <div className="absolute -bottom-[22%] -left-[12%] h-[68%] w-[68%] rounded-full bg-[radial-gradient(circle_at_center,rgba(114,230,222,.34),transparent_68%)] blur-xl" />
@@ -149,6 +155,25 @@ function VeronicaFashion() {
           <div className="mx-auto flex max-w-[1500px] gap-10 overflow-hidden px-5 font-mono text-[9px] uppercase tracking-[.24em] text-white/48 sm:px-8">
             {["Brand system", "Collection", "Production", "Margin", "Inventory", "Leads", "Fashion AI"].map((item) => (
               <span key={item} className="shrink-0">{item}</span>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-28">
+          <div className="mb-10 flex items-end justify-between gap-6">
+            <div><SectionLabel>Editorial / Human</SectionLabel><h2 className="mt-4 max-w-3xl font-serif text-5xl leading-[.9] tracking-[-.055em] sm:text-7xl">Luxury is a point of view.</h2></div>
+            <p className="hidden max-w-sm text-right text-xs leading-6 text-black/40 md:block">Referências visuais editoriais independentes. Nenhuma afiliação ou campanha oficial de terceiros é alegada.</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-[1.15fr_.85fr]">
+            {editorialImages.slice(1).map((image, index) => (
+              <figure key={image.src} className={`group relative overflow-hidden rounded-[24px] bg-black shadow-[0_30px_90px_rgba(0,0,0,.14)] [transform-style:preserve-3d] ${index === 0 ? "min-h-[720px]" : "min-h-[560px] md:mt-24"}`}>
+                <img src={image.src} alt={image.alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover grayscale-[18%] contrast-[1.05] transition duration-1000 ease-out group-hover:scale-[1.035] group-hover:grayscale-0" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,0,0,.68))]" />
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-white">
+                  <figcaption className="font-serif text-3xl italic tracking-[-.03em]">{index === 0 ? "The silhouette." : "The attitude."}</figcaption>
+                  <span className="font-mono text-[8px] uppercase tracking-[.18em] text-white/55">{image.credit}</span>
+                </div>
+              </figure>
             ))}
           </div>
         </section>
