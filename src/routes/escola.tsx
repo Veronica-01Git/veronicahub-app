@@ -214,7 +214,7 @@ function Escola() {
           <span className="hidden sm:inline">Perguntar à Veronica</span>
         </button>
       )}
-      <SiteHeader showWireShortcut />
+      <SiteHeader />
 
       <button
         type="button"
