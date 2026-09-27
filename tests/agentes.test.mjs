@@ -167,6 +167,8 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/clientes/express-entulho/operacoes-demo",
   // Redirect do endereço antigo da proposta.
   "/proposta/express-entulho",
+  // Endereço antigo do Studio: mantém links externos e retorno de checkout.
+  "/video-ia",
   // Redirects do endereço antigo do Express Operations, que saiu de
   // /preview em 21/09. Não têm link porque não são página — são o link
   // velho que o dono já tem salvo continuando a abrir.
