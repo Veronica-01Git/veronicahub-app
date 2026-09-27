@@ -1,4 +1,14 @@
-export type FashionAssetKind = "hero" | "portrait" | "people" | "product" | "architecture" | "material" | "motion";
+export type FashionAssetKind =
+  | "hero"
+  | "hero-mobile"
+  | "portrait"
+  | "people"
+  | "collection"
+  | "product"
+  | "architecture"
+  | "material"
+  | "motion";
+
 export type FashionAssetStatus = "reference" | "generated" | "approved" | "published";
 
 export type FashionMediaAsset = {
@@ -21,36 +31,49 @@ export const FASHION_CAMPAIGN = {
 
 export const FASHION_MEDIA: FashionMediaAsset[] = [
   {
-    id: "reference-hero-01",
+    id: "human-system-hero-desktop",
     campaign: "collection-001-human-system",
     kind: "hero",
-    src: "https://images.pexels.com/photos/30372261/pexels-photo-30372261.jpeg?auto=compress&cs=tinysrgb&w=1800",
-    alt: "Retrato editorial humano em direção de moda contemporânea",
-    origin: "pexels",
-    status: "reference",
-    credit: "Pexels",
+    src: "/media/fashion/collection-001/hero/human-system-hero-desktop.jpg",
+    alt: "Dois modelos adultos em alfaiataria minimalista entre volumes monumentais de concreto",
+    origin: "veronica-generated",
+    status: "published",
+    credit: "Veronica Fashion & Co. · Human System",
   },
   {
-    id: "reference-people-01",
+    id: "human-system-hero-mobile",
     campaign: "collection-001-human-system",
-    kind: "people",
-    src: "https://images.pexels.com/photos/32548829/pexels-photo-32548829.jpeg?auto=compress&cs=tinysrgb&w=1800",
-    alt: "Composição humana couture em atmosfera cinematográfica",
-    origin: "pexels",
-    status: "reference",
-    credit: "Pexels",
+    kind: "hero-mobile",
+    src: "/media/fashion/collection-001/hero/human-system-hero-mobile.jpg",
+    alt: "Modelo adulta em alfaiataria clara diante de arquitetura mineral monumental",
+    origin: "veronica-generated",
+    status: "published",
+    credit: "Veronica Fashion & Co. · Human System",
   },
   {
-    id: "reference-architecture-01",
+    id: "human-system-editorial",
     campaign: "collection-001-human-system",
-    kind: "architecture",
-    src: "https://images.pexels.com/photos/14559203/pexels-photo-14559203.jpeg?auto=compress&cs=tinysrgb&w=1800",
-    alt: "Figura humana e arquitetura moderna em composição editorial",
-    origin: "pexels",
-    status: "reference",
-    credit: "Pexels",
+    kind: "portrait",
+    src: "/media/fashion/collection-001/portrait/human-system-editorial.jpg",
+    alt: "Retrato editorial adulto em alfaiataria preta com luz cinematográfica lateral",
+    origin: "veronica-generated",
+    status: "published",
+    credit: "Veronica Fashion & Co. · Human System",
+  },
+  {
+    id: "human-system-full-look",
+    campaign: "collection-001-human-system",
+    kind: "collection",
+    src: "/media/fashion/collection-001/collection/human-system-full-look.jpg",
+    alt: "Look completo de alfaiataria em cenário brutalista com movimento natural de tecido",
+    origin: "veronica-generated",
+    status: "published",
+    credit: "Veronica Fashion & Co. · Human System",
   },
 ];
 
 export const fashionMediaByKind = (kind: FashionAssetKind) =>
   FASHION_MEDIA.filter((asset) => asset.kind === kind);
+
+export const fashionMediaById = (id: string) =>
+  FASHION_MEDIA.find((asset) => asset.id === id);
