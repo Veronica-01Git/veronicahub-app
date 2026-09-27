@@ -276,7 +276,7 @@ function ArticlePage() {
                         src={imagem.src}
                         alt={imagem.alt}
                         loading="lazy"
-                        className="w-full rounded-sm border border-border/60 object-cover"
+                        className="mx-auto max-h-[85vh] w-auto max-w-full rounded-sm border border-border/60"
                       />
                       {imagem.alt && (
                         <figcaption className="mt-2 font-sans text-sm leading-relaxed text-muted-foreground">
