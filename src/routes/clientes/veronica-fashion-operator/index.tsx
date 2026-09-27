@@ -25,6 +25,8 @@ export const Route = createFileRoute("/clientes/veronica-fashion-operator/")({
 
 const heroDesktop = fashionMediaById("human-system-hero-desktop")!;
 const heroMobile = fashionMediaById("human-system-hero-mobile")!;
+const heroDesktop4K = "/media/fashion/collection-001/hero/human-system-hero-desktop-v2-4k.webp";
+const heroMobile4K = "/media/fashion/collection-001/hero/human-system-hero-mobile-v2-4k.webp";
 const editorialPortrait = fashionMediaById("human-system-editorial")!;
 const collectionLook = fashionMediaById("human-system-full-look")!;
 
@@ -69,11 +71,19 @@ function VeronicaFashion() {
       <main className="bg-[#f3efe8] text-[#111]">
         <section id="maison" className="relative min-h-[100svh] overflow-hidden bg-[#0b0b0b] text-white">
           <picture>
-            <source media="(max-width: 767px)" srcSet={heroMobile.src} />
+            <source
+              media="(max-width: 767px)"
+              srcSet={`${heroMobile.src} 810w, ${heroMobile4K} 2160w`}
+              sizes="100vw"
+            />
             <img
               src={heroDesktop.src}
+              srcSet={`${heroDesktop.src} 1280w, ${heroDesktop4K} 3840w`}
+              sizes="100vw"
               alt={heroDesktop.alt}
-              className="absolute inset-0 h-full w-full object-cover object-[58%_center] md:object-center"
+              width="3840"
+              height="2160"
+              className="absolute inset-0 h-full w-full object-cover object-[60%_center] md:object-[center_15%]"
               loading="eager"
               fetchPriority="high"
             />
