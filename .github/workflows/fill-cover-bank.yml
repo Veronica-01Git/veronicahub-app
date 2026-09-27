@@ -18,9 +18,15 @@ name: Abastece o banco de capas (Wire TV)
 #
 # O teto por editoria continua no servidor (MAX_BANK_PER_BEAT), não aqui — o
 # endpoint recusa o que passar disso, mesmo que este workflow rode duas vezes.
+#
+# PAUSADO em 26/09 (pedido da editora-chefe): as capas do Wire deixaram de
+# sair deste banco — cada matéria busca a própria foto única em
+# scripts/fetch-cover-live.mjs. O banco fica congelado como está, para ser
+# reaproveitado em outra rota. Rodada manual continua disponível pela aba
+# Actions; para voltar ao diário, restaure o bloco `schedule` abaixo.
 on:
-  schedule:
-    - cron: "40 6 * * *"
+  # schedule:
+  #   - cron: "40 6 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
