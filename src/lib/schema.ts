@@ -293,6 +293,10 @@ export const affiliateCatalogProducts = pgTable(
     // vídeo (R2 ou URL pública). Ambos opcionais — o card tem fallback.
     coverUrl: text("coverUrl"),
     videoUrl: text("videoUrl"),
+    // Imagens complementares (galeria) para o divulgador postar no TikTok
+    // Shop/Shopee Vídeo além da capa — JSON de até 4 URLs HTTPS. Texto (não
+    // jsonb) segue o padrão do resto do schema (ver MediaImage.data).
+    galleryUrls: text("galleryUrls"),
     // Público-alvo do produto: "feminino" | "masculino" | "unissex".
     audience: text("audience").notNull().default("unissex"),
     active: boolean("active").notNull().default(true),

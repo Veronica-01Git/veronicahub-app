@@ -36,6 +36,7 @@ type ProductRow = {
   angle: string;
   coverUrl?: string;
   videoUrl?: string;
+  galleryUrls?: string[];
   audience?: string;
   active: boolean;
   priority: number;
@@ -55,6 +56,7 @@ const emptyForm = {
   audience: "feminino",
   coverUrl: "",
   videoUrl: "",
+  galleryUrls: "",
 };
 
 function ShopeeProductsAdmin() {
@@ -97,6 +99,7 @@ function ShopeeProductsAdmin() {
       audience: product.audience ?? "unissex",
       coverUrl: product.coverUrl ?? "",
       videoUrl: product.videoUrl ?? "",
+      galleryUrls: (product.galleryUrls ?? []).join(", "),
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -107,7 +110,11 @@ function ShopeeProductsAdmin() {
     setNotice(null);
     try {
       const result = await saveAffiliateProductAdmin({
-        data: { ...form, priority: Number(form.priority) || 0 },
+        data: {
+          ...form,
+          priority: Number(form.priority) || 0,
+          galleryUrls: form.galleryUrls.split(",").map((url) => url.trim()).filter(Boolean),
+        },
       });
       if (!result.ok) setNotice(result.error);
       else {
@@ -249,6 +256,10 @@ function ShopeeProductsAdmin() {
                     <input placeholder="https://.../criativo.mp4" value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 text-sm" />
                   </label>
                   <label className="sm:col-span-2 text-xs font-medium">
+                    Imagens complementares (opcional — até 4 URLs separadas por vírgula)
+                    <textarea rows={2} placeholder="https://.../foto-uso.jpg, https://.../detalhe.jpg" value={form.galleryUrls} onChange={(e) => setForm({ ...form, galleryUrls: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 text-xs leading-5" />
+                  </label>
+                  <label className="sm:col-span-2 text-xs font-medium">
                     Link de afiliado Shopee (curto s.shopee.com.br ou completo)
                     <textarea required rows={4} value={form.affiliateUrl} onChange={(e) => setForm({ ...form, affiliateUrl: e.target.value })} className="mt-2 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 py-3 font-mono text-xs leading-5" />
                   </label>
@@ -268,7 +279,8 @@ function ShopeeProductsAdmin() {
                 <p className="mt-2 text-xs leading-6 text-white/55">
                   Cole um array JSON com até 50 produtos ou linhas copiadas de uma planilha,
                   separadas por TAB: nome, categoria, preço, comissão, ângulo, link, prioridade,
-                  público, capa e vídeo. Link curto s.shopee.com.br é expandido automaticamente.
+                  público, capa, vídeo e imagens complementares (várias URLs separadas por ";"
+                  dentro da célula). Link curto s.shopee.com.br é expandido automaticamente.
                 </p>
                 <textarea
                   rows={13}
@@ -303,6 +315,9 @@ function ShopeeProductsAdmin() {
                         <span>·</span>
                         <span>{product.audience ?? "unissex"}</span>
                         {product.videoUrl && <span>· vídeo ✓</span>}
+                        {!!product.galleryUrls?.length && (
+                          <span>· +{product.galleryUrls.length} imagens</span>
+                        )}
                         <span>·</span>
                         <span className={product.active ? "text-emerald-700" : "text-red-600"}>{product.active ? "ativo" : "arquivado"}</span>
                         <span>· prioridade {product.priority}</span>

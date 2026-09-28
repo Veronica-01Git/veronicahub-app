@@ -8,6 +8,7 @@ import {
   isAffiliateAudience,
   isAffiliateCategory,
   sanitizeMediaUrl,
+  sanitizeMediaUrlList,
   validateShopeeAffiliateUrl,
   type AffiliateAudience,
   type AffiliateProduct,
@@ -39,6 +40,7 @@ async function ensureAffiliateCatalogStorage() {
   // roda em todo cold start sem custo relevante e dispensa migração manual.
   await db.execute(sql`ALTER TABLE "AffiliateProduct" ADD COLUMN IF NOT EXISTS "coverUrl" text`);
   await db.execute(sql`ALTER TABLE "AffiliateProduct" ADD COLUMN IF NOT EXISTS "videoUrl" text`);
+  await db.execute(sql`ALTER TABLE "AffiliateProduct" ADD COLUMN IF NOT EXISTS "galleryUrls" text`);
   await db.execute(
     sql`ALTER TABLE "AffiliateProduct" ADD COLUMN IF NOT EXISTS "audience" text DEFAULT 'unissex' NOT NULL`,
   );
@@ -52,9 +54,14 @@ async function ensureAffiliateCatalogStorage() {
   `);
 
   for (const product of seedProducts) {
+    const { galleryUrls, ...seed } = product;
     await db
       .insert(affiliateCatalogProducts)
-      .values({ ...product, priority: 100 })
+      .values({
+        ...seed,
+        galleryUrls: galleryUrls && galleryUrls.length > 0 ? JSON.stringify(galleryUrls) : null,
+        priority: 100,
+      })
       .onConflictDoNothing();
   }
   catalogReady = true;
@@ -71,8 +78,23 @@ function mapProduct(row: typeof affiliateCatalogProducts.$inferSelect): Affiliat
     angle: row.angle,
     coverUrl: row.coverUrl ?? undefined,
     videoUrl: row.videoUrl ?? undefined,
+    galleryUrls: parseGalleryUrls(row.galleryUrls),
     audience: isAffiliateAudience(row.audience) ? row.audience : "unissex",
   };
+}
+
+// A coluna guarda um JSON de string[] em texto (mesmo padrão do resto do
+// schema — ver MediaImage.data). Uma linha antiga ou corrompida vira galeria
+// vazia em vez de derrubar a página.
+function parseGalleryUrls(value: string | null): string[] | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = JSON.parse(value);
+    const urls = sanitizeMediaUrlList(parsed);
+    return urls.length > 0 ? urls : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function normalizeProductId(value: string): string {
@@ -96,6 +118,7 @@ type ProductInput = {
   priority: number;
   coverUrl: string | null;
   videoUrl: string | null;
+  galleryUrls: string[];
   audience: AffiliateAudience;
 };
 
@@ -171,6 +194,7 @@ function validateProduct(raw: unknown): RawProductInput {
     priority,
     coverUrl: sanitizeMediaUrl(data?.coverUrl),
     videoUrl: sanitizeMediaUrl(data?.videoUrl),
+    galleryUrls: sanitizeMediaUrlList(data?.galleryUrls),
     audience,
   };
 }
@@ -203,10 +227,13 @@ async function upsertProduct(data: ProductInput, adminId: string) {
     )
     .limit(1);
   const id = existing?.id ?? data.id ?? "";
+  // Coluna é texto — a galeria vira JSON aqui e só volta a ser array em
+  // mapProduct/parseGalleryUrls. Lista vazia grava null (sem lixo no banco).
+  const galleryUrls = data.galleryUrls.length > 0 ? JSON.stringify(data.galleryUrls) : null;
 
   const [row] = await db
     .insert(affiliateCatalogProducts)
-    .values({ ...data, id, createdBy: adminId, updatedAt: new Date() })
+    .values({ ...data, id, galleryUrls, createdBy: adminId, updatedAt: new Date() })
     .onConflictDoUpdate({
       target: affiliateCatalogProducts.id,
       set: {
@@ -219,6 +246,7 @@ async function upsertProduct(data: ProductInput, adminId: string) {
         priority: data.priority,
         coverUrl: data.coverUrl,
         videoUrl: data.videoUrl,
+        galleryUrls,
         audience: data.audience,
         active: true,
         updatedAt: new Date(),
@@ -333,7 +361,9 @@ function parseBulkInput(input: unknown): { items: RawProductInput[] } {
       .filter((line, index) => !(index === 0 && /^(nome|name)\t/i.test(line)))
       .map((line) => {
         // Colunas: nome, categoria, preço, comissão, ângulo, link, prioridade,
-        // público, capa, vídeo. As três últimas são opcionais.
+        // público, capa, vídeo e imagens complementares. As quatro últimas
+        // são opcionais; complementares aceita várias URLs separadas por ";"
+        // dentro da própria célula (TAB continua separando as colunas).
         const [
           name,
           category,
@@ -345,6 +375,7 @@ function parseBulkInput(input: unknown): { items: RawProductInput[] } {
           audience,
           coverUrl,
           videoUrl,
+          galleryUrls,
         ] = line.split("\t");
         return {
           name,
@@ -357,6 +388,7 @@ function parseBulkInput(input: unknown): { items: RawProductInput[] } {
           audience,
           coverUrl,
           videoUrl,
+          galleryUrls: galleryUrls?.split(";"),
         };
       });
   }
