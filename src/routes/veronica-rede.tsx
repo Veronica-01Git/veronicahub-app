@@ -231,6 +231,30 @@ function VeronicaRede() {
                       cliques
                     </span>
                   </div>
+                  {!!product.galleryUrls?.length && (
+                    <div className="mt-4 flex flex-wrap gap-2 border-t border-black/10 pt-4">
+                      {product.galleryUrls.map((url) => (
+                        <a
+                          key={url}
+                          href={url}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group relative h-16 w-16 overflow-hidden rounded-lg border border-black/10"
+                        >
+                          <img
+                            src={url}
+                            alt=""
+                            loading="lazy"
+                            className="h-full w-full object-cover transition group-hover:opacity-70"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
+                            <Download className="h-3.5 w-3.5 text-white" />
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </article>
               ))}
             </div>

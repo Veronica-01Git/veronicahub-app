@@ -36,9 +36,13 @@ export type AffiliateProduct = {
   coverUrl?: string;
   /** Criativo original em vídeo (9:16) pronto pra repostar. */
   videoUrl?: string;
+  /** Imagens complementares (galeria) — até 4, além da capa. */
+  galleryUrls?: string[];
   /** Público principal do produto. Ausente = unissex. */
   audience?: AffiliateAudience;
 };
+
+export const MAX_GALLERY_IMAGES = 4;
 
 export const AFFILIATE_AUDIENCES = ["feminino", "masculino", "unissex"] as const;
 export type AffiliateAudience = (typeof AFFILIATE_AUDIENCES)[number];
@@ -58,6 +62,30 @@ export function sanitizeMediaUrl(value: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Normaliza a galeria de imagens complementares: aceita um array já pronto
+ * ou uma string com URLs separadas por vírgula/quebra de linha (como vem do
+ * textarea do admin e da coluna de importação em lote), descarta o que não
+ * for HTTPS válido e corta em MAX_GALLERY_IMAGES.
+ */
+export function sanitizeMediaUrlList(value: unknown, max = MAX_GALLERY_IMAGES): string[] {
+  const items = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(/[,\n;]+/)
+      : [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of items) {
+    const url = sanitizeMediaUrl(item);
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    out.push(url);
+    if (out.length >= max) break;
+  }
+  return out;
 }
 
 export type AffiliateCatalog = {
