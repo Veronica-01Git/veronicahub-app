@@ -22,7 +22,14 @@ import { RECUSA_PAUTA_SC, foraDaPautaSc } from "./pauta-sc";
 // diretamente, sem essa camada intermediária, e é um modelo de produção do
 // Groq. reasoning_effort baixo mantém a pesquisa dentro do orçamento.
 const DRAFT_MODEL = "openai/gpt-oss-20b";
-const DRAFT_FALLBACK_MODEL = "openai/gpt-oss-120b";
+// Até 29/09/2026 era a reserva do Wire quando o 20B batia no teto diário. Saiu
+// do Wire por decisão da dona: a cota da Groq é por modelo e por conta, e o
+// 120B é o primeiro reserva do agente de WhatsApp (whatsapp-provedores.ts)
+// quando a Anthropic falha. Com o Wire gastando os dois, um dia de cota
+// apertada deixava o atendimento da Express Entulho sem reserva. Agora o Wire
+// para no 20B e o 120B fica livre para o WhatsApp. A constante continua aqui
+// porque o teste da cadeia do WhatsApp confere que o nome existe na Groq.
+const DRAFT_RESERVED_MODEL = "openai/gpt-oss-120b";
 const DRAFT_MAX_TOKENS = 1100;
 
 // GDELT funciona como radar gratuito de pauta. Ele não é tratado como fonte
@@ -596,28 +603,14 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
       };
     }
 
-    // Os modelos GPT-OSS têm cotas gratuitas separadas. O 120B também suporta
-    // browser_search e funciona como reserva sem exigir outra credencial.
-    try {
-      const fallbackGroq = new Groq({ apiKey });
-      response = await fallbackGroq.chat.completions.create({
-        model: DRAFT_FALLBACK_MODEL,
-        messages,
-        max_completion_tokens: DRAFT_MAX_TOKENS,
-        reasoning_effort: "low",
-        tool_choice: "required",
-        tools: [{ type: "browser_search" }],
-      });
-    } catch (fallbackError) {
-      return {
-        ok: false,
-        error:
-          fallbackError instanceof Error
-            ? fallbackError.message
-            : "Falha ao gerar rascunho com os dois modelos.",
-        retry: false,
-      };
-    }
+    // Cota do 20B esgotada: a rodada fica sem publicar (o "429" no começo da
+    // mensagem é o que isEditorialSkip reconhece). Sem cair para o 120B — ver
+    // DRAFT_RESERVED_MODEL.
+    return {
+      ok: false,
+      error: `${error instanceof Error ? error.message : "429 limite da Groq"} (${DRAFT_RESERVED_MODEL} reservado ao WhatsApp)`,
+      retry: false,
+    };
   }
 
   const finishReason = response.choices[0]?.finish_reason;
