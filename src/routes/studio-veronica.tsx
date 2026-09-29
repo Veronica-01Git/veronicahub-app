@@ -16,11 +16,11 @@ import {
   Clapperboard,
   BookOpen,
   Sparkles,
-  ArrowUpRight,
 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
 import { LazyImage } from "@/components/media/LazyImage";
+import { CreativeDirections } from "@/components/studio/CreativeDirections";
 import type { StudioCriativoStepId } from "@/veronica/skills";
 import { courses } from "@/lib/courses";
 import { formatBRL, MIN_DEPOSIT_CENTS } from "@/lib/account";
@@ -1212,57 +1212,18 @@ function VeronicaStudio() {
                 </div>
               )}
             </div>
-            <div className="mt-10 flex items-end justify-between gap-4">
-              <div>
-                <span className="font-mono-tech text-[10px] uppercase tracking-[.2em] text-neon-cyan">
-                  Inspiração criativa
-                </span>
-                <h2 className="mt-2 font-display text-2xl tracking-tight text-white sm:text-3xl">
-                  Comece por uma direção.
-                </h2>
-                <p className="mt-2 text-sm text-white/55">
-                  Escolha uma ideia para preencher o compositor e dar seu próprio toque.
-                </p>
-              </div>
-              <span className="hidden text-xs text-white/40 sm:block">Deslize para explorar →</span>
-            </div>
-            <div className="mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [scrollbar-width:thin] [scrollbar-color:rgba(0,255,170,.3)_transparent]">
-              {CREATIVE_STARTERS.map((idea) => (
-                <button
-                  key={idea.title}
-                  type="button"
-                  onClick={() => {
-                    setFormat(idea.format);
-                    setPrompt(idea.prompt);
-                    document
-                      .getElementById("gerar")
-                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                    document.getElementById("studio-prompt")?.focus({ preventScroll: true });
-                  }}
-                  className="group relative aspect-[4/5] w-[220px] shrink-0 snap-start overflow-hidden rounded-[20px] border border-white/10 bg-[#172023] text-left transition hover:-translate-y-1 hover:border-neon-green/60 focus-visible:outline-2 focus-visible:outline-neon-green sm:w-[260px] lg:w-[calc((100%_-_3rem)/4)]"
-                >
-                  <img
-                    src={idea.image}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"
-                  />
-                  <span className="absolute bottom-0 left-0 right-0 p-5">
-                    <span className="block font-mono-tech text-[9px] uppercase tracking-widest text-neon-green">
-                      {idea.category}
-                    </span>
-                    <span className="mt-1.5 flex items-center justify-between text-lg font-semibold text-white">
-                      {idea.title}
-                      <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </div>
+            <CreativeDirections
+              ideas={CREATIVE_STARTERS}
+              onSelect={(idea) => {
+                setFormat(idea.format);
+                setPrompt(idea.prompt);
+                document.getElementById("gerar")?.scrollIntoView({
+                  behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+                  block: "center",
+                });
+                document.getElementById("studio-prompt")?.focus({ preventScroll: true });
+              }}
+            />
           </div>
         </section>
 
