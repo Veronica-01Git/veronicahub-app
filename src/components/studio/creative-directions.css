@@ -1,0 +1,101 @@
+.studio-directions-filter {
+  position: relative;
+  max-width: 100%;
+}
+.studio-directions-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 12px;
+  background: #172023;
+  color: #e4eeee;
+  font-size: 0.8rem;
+  cursor: pointer;
+  list-style: none;
+}
+.studio-directions-trigger::-webkit-details-marker {
+  display: none;
+}
+.studio-directions-trigger:focus-visible,
+.studio-directions-options button:focus-visible {
+  outline: 2px solid var(--neon-green);
+  outline-offset: 3px;
+}
+.studio-directions-options {
+  /* Without anchor positioning, the disclosure expands in normal flow. */
+  width: min(260px, calc(100vw - 40px));
+  margin-top: 8px;
+  padding: 6px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 14px;
+  background: #172023;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.4);
+}
+.studio-directions-options button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 0.8rem;
+  color: #e4eeee;
+  cursor: pointer;
+}
+.studio-directions-options button:hover {
+  background: rgb(255 255 255 / 0.06);
+}
+.studio-directions-options button[aria-pressed="true"] {
+  background: rgb(23 244 143 / 0.1);
+  color: var(--neon-green);
+}
+
+@supports (anchor-name: --studio-directions-filter) and
+  (position-area: bottom span-left) {
+  .studio-directions-trigger {
+    anchor-name: --studio-directions-filter;
+  }
+  .studio-directions-options {
+    position: fixed;
+    z-index: 40;
+    position-anchor: --studio-directions-filter;
+    position-area: bottom span-left;
+    position-try-fallbacks:
+      flip-block,
+      flip-inline,
+      flip-block flip-inline;
+    max-height: min(240px, 60dvh);
+    overflow-y: auto;
+  }
+}
+
+.studio-directions-track::view-transition-old(root) {
+  animation: studio-directions-out 140ms ease-out both;
+}
+.studio-directions-track::view-transition-new(root) {
+  animation: studio-directions-in 180ms ease-out both;
+}
+@keyframes studio-directions-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes studio-directions-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-directions-track::view-transition-old(root),
+  .studio-directions-track::view-transition-new(root) {
+    animation: none;
+  }
+}

@@ -15,6 +15,8 @@ import { SUPPORTED_PROFESSIONS } from "../config/sections";
 import { createPortfolioDraft } from "../features/generator/create-draft";
 import type { PortfolioDraft, PreviewDevice } from "../types";
 import { PortfolioPreview } from "./PortfolioPreview";
+import { usePortfolioTools } from "../features/webmcp/use-portfolio-tools";
+import type { PortfolioBrief } from "../features/webmcp/tools";
 
 const PROCESS = [
   "Conte sua trajetória",
@@ -30,6 +32,8 @@ export function PortfolioExperience() {
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [proposedBrief, setProposedBrief] = useState<PortfolioBrief | null>(null);
+  usePortfolioTools(setProposedBrief);
 
   const generate = () => {
     setDraft(createPortfolioDraft(name, profession));
@@ -170,10 +174,36 @@ export function PortfolioExperience() {
               </p>
             </div>
             <div className="rounded-[1.5rem] border border-white/10 bg-[#0a1012] p-6 md:p-8">
+              {proposedBrief && (
+                <div className="mb-5 rounded-xl border border-emerald-300/30 bg-emerald-300/5 p-4">
+                  <p role="status" className="text-sm text-emerald-200">Seu assistente preparou uma sugestão.</p>
+                  <p className="mt-2 break-words text-sm text-white/70">
+                    {proposedBrief.name} · {proposedBrief.profession}
+                  </p>
+                  <p className="mt-2 text-xs text-white/50">Revise antes de preencher. A simulação só começa quando você selecionar Gerar.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onClick={() => {
+                      setName(proposedBrief.name);
+                      setProfession(proposedBrief.profession);
+                      setProposedBrief(null);
+                      document.getElementById("portfolio-owner-name")?.focus({ preventScroll: true });
+                    }} className="min-h-11 rounded-lg bg-emerald-300 px-4 text-sm font-medium text-[#07100c]">
+                      Usar sugestão
+                    </button>
+                    <button type="button" onClick={() => {
+                      setProposedBrief(null);
+                      document.getElementById("portfolio-owner-name")?.focus({ preventScroll: true });
+                    }} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm text-white/70">
+                      Descartar
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="text-sm text-white/60">
                   Seu nome
                   <input
+                    id="portfolio-owner-name"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="Ex.: Marina Costa"
