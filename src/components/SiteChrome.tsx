@@ -503,12 +503,8 @@ export function SiteHeader({
           </div>
         </nav>
       )}
-      {/* Fios de acento — um na borda SUPERIOR e outro na INFERIOR, os dois
-        esmaecendo nas pontas, emoldurando o cabeçalho como uma peça só.
-        1px com brilho curto: encorpa o traço do antigo meio pixel sem virar
-        faixa de alerta. Ancorados no próprio <header>, que já é sticky. */}
+      {/* Fio de acento apenas na borda superior; a base mantém a divisória neutra do cabeçalho. */}
       <div aria-hidden className="vh-header-rule pointer-events-none absolute inset-x-0 top-0" />
-      <div aria-hidden className="vh-header-rule pointer-events-none absolute inset-x-0 bottom-0" />
     </header>
   );
 }

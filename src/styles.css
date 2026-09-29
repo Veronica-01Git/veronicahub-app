@@ -1587,10 +1587,8 @@
   view-transition-name: cabecalho;
 }
 
-/* Fios vermelhos do cabeçalho (topo e base). Esmaecem nas pontas em vez de
-   cortar a tela; a cor vem de --neon-red, que cada tema do cabeçalho ajusta.
-   O ::after é uma cópia desfocada do mesmo traço — um brilho de 3px que dá
-   corpo à linha de 1px sem engrossá-la de fato. */
+/* Fio vermelho no topo do cabeçalho. Esmaece nas pontas; a cor vem
+   de --neon-red. O ::after cria um brilho curto para o traço de 1px. */
 .vh-header-rule {
   --rule: linear-gradient(
     90deg,
