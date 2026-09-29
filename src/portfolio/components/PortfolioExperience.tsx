@@ -16,6 +16,7 @@ import { createPortfolioDraft } from "../features/generator/create-draft";
 import type { PortfolioDraft, PreviewDevice } from "../types";
 import { PortfolioPreview } from "./PortfolioPreview";
 import { BriefStorage, PersonalBriefFields } from "./PersonalBriefFields";
+import { PortfolioAiPanel } from "./PortfolioAiPanel";
 import { createPersonalDraft, emptyBrief, reviewDraft } from "../features/generator/personal-brief";
 import { usePortfolioTools } from "../features/webmcp/use-portfolio-tools";
 import type { PortfolioBrief } from "../features/webmcp/tools";
@@ -31,6 +32,7 @@ export function PortfolioExperience() {
   const [brief, setBrief] = useState(emptyBrief);
   const { name, profession } = brief;
   const [isDemo, setIsDemo] = useState(false);
+  const [isAi, setIsAi] = useState(false);
   const [error, setError] = useState("");
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const [draft, setDraft] = useState<PortfolioDraft | null>(null);
@@ -53,6 +55,7 @@ export function PortfolioExperience() {
     try {
       setDraft(createPersonalDraft(brief));
       setIsDemo(false);
+      setIsAi(false);
       setError("");
       setAnalysisOpen(true);
       setAssistantOpen(false);
@@ -63,6 +66,7 @@ export function PortfolioExperience() {
   const showExample = () => {
     setDraft(createPortfolioDraft("Alex Silva", "Designer"));
     setIsDemo(true);
+    setIsAi(false);
     setAnalysisOpen(false);
     setAssistantOpen(false);
   };
@@ -98,7 +102,7 @@ export function PortfolioExperience() {
                 Montar minha prévia gratuita <ArrowRight className="h-4 w-4" />
               </a>
               <p className="mt-4 text-xs text-white/40">
-                Sem cartão · montagem local · publicação e IA em preparação
+                Sem cartão · prévia local ilimitada · uma geração com IA por conta
               </p>
             </div>
             <div className="relative mx-auto w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/[0.045] p-4 shadow-2xl backdrop-blur">
@@ -265,6 +269,12 @@ export function PortfolioExperience() {
               <BriefStorage brief={brief} onRestore={restored => { setBrief(restored); setError(""); }} />
             </form>
           </div>
+          <PortfolioAiPanel brief={brief} isAi={isAi} onGenerated={generated => {
+            setDraft(generated);
+            setIsDemo(false);
+            setIsAi(true);
+            setAnalysisOpen(true);
+          }} />
         </section>
 
         {draft && (
@@ -274,7 +284,7 @@ export function PortfolioExperience() {
               <div className="mb-8 flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.035] p-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="flex items-center gap-2 text-sm text-emerald-200">
-                    <Check className="h-4 w-4" /> {isDemo ? "Projetos, números e depoimento apenas ilustrativos" : "Montada com as informações do seu briefing"}
+                    <Check className="h-4 w-4" /> {isDemo ? "Projetos, números e depoimento apenas ilustrativos" : isAi ? "Texto sugerido pela IA, salvo na sua conta · revise os fatos" : "Montada com as informações do seu briefing"}
                   </div>
                   <p className="mt-1 text-xs text-white/40">
                     A prévia não é um site publicado. Volte ao briefing para ajustar o conteúdo.
