@@ -47,11 +47,14 @@ test("Santa Catarina é apurada nos portais catarinenses, litoral norte na frent
   ]) {
     assert.ok(server.includes(portal), `${portal} fora do radar de SC`);
   }
-  // O radar para nas duas primeiras pautas: o feed de Itajaí e BC vem antes.
-  const feeds = server.slice(server.indexOf("  sc: [\n    googleNewsBrasil"));
+  // O radar para nas duas primeiras pautas: o feed de Itajaí e BC vem antes,
+  // um por portal (o DIARINHO sozinho enche os 100 itens de um feed conjunto).
+  const feeds = server.slice(server.indexOf("const RSS_FEEDS"));
+  const sc = feeds.slice(feeds.indexOf("  sc: ["));
   assert.ok(
-    feeds.indexOf("PORTAIS_LITORAL_NORTE") < feeds.indexOf("PORTAIS_SC"),
-    "feed do litoral norte precisa ser o primeiro de SC",
+    sc.indexOf("...PORTAIS_LITORAL_NORTE.map((portal) =>") >= 0 &&
+      sc.indexOf("PORTAIS_LITORAL_NORTE") < sc.indexOf("PORTAIS_SC"),
+    "um feed por portal do litoral norte, antes dos estaduais",
   );
 });
 
@@ -128,6 +131,38 @@ test("o Wire não usa o gpt-oss-120b: ele fica livre para a reserva do WhatsApp"
   assert.ok(
     isEditorialSkip(
       '429 {"error":{"message":"Rate limit reached for model `openai/gpt-oss-20b`"}} (openai/gpt-oss-120b reservado ao WhatsApp)',
+    ),
+  );
+});
+
+test("SC: página de tag, autor ou seção do portal não vira pauta", async () => {
+  const { tituloDeIndice } = await import("../src/lib/pauta-sc.ts");
+  // Títulos reais do feed do DIARINHO no Google Notícias em 29/09/2026.
+  for (const titulo of [
+    "TV DIARINHO - DIARINHO",
+    "Corinthians feminino - DIARINHO",
+    "Diego Matiello - DIARINHO",
+    "Publicações Legais - DIARINHO",
+    "BESS - DIARINHO",
+  ]) {
+    assert.ok(tituloDeIndice(titulo), `deveria ser índice: ${titulo}`);
+  }
+  for (const titulo of [
+    "Obras já dão “spoilers” da nova atração do Morro do Careca - DIARINHO",
+    "Chuva deve marcar quase toda a semana em Balneário Camboriú - BC Notícias",
+    'Via importante que liga "cidades-irmãs" de SC tem trânsito alterado - NSC Total',
+  ]) {
+    assert.ok(!tituloDeIndice(titulo), `é manchete: ${titulo}`);
+  }
+});
+
+test("recusa por data diz se o fato era antigo ou futuro, sem mudar a classificação", async () => {
+  const server = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
+  assert.match(server, /"datado no futuro"/);
+  const { isEditorialSkip } = await import("../src/lib/editorial-skip.ts");
+  assert.ok(
+    isEditorialSkip(
+      "A data do fato está fora da janela editorial de 72h (datado no futuro: 2026-10-08T22:00:00Z — Marejada divulga shows).",
     ),
   );
 });

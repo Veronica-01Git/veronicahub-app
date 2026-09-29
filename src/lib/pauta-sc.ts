@@ -27,6 +27,19 @@ export function foraDaPautaSc(...textos: Array<string | null | undefined>): bool
   return FORA_DE_PAUTA.test(normalizar(textos.filter(Boolean).join(" ")));
 }
 
+// O Google Notícias indexa páginas de tag, de autor e de seção dos portais
+// regionais como se fossem matérias: "TV DIARINHO", "Corinthians feminino",
+// "Diego Matiello", "Publicações Legais". Medido em 29/09/2026: 52 dos 80
+// itens recentes do DIARINHO no feed eram isso. Um desses como pauta não
+// aponta fato nenhum, e o modelo tem que achar a matéria sozinho — suspeita
+// para as rodadas daquele dia que pararam na trava de 72h. Manchete de
+// verdade tem verbo e contexto;
+// menos de cinco palavras, tirado o " - Portal" do fim, é índice.
+export function tituloDeIndice(titulo: string): boolean {
+  const semPortal = titulo.replace(/\s+-\s+[^-]+$/, "").trim();
+  return semPortal.split(/\s+/).filter(Boolean).length < 5;
+}
+
 // Prefixo da recusa gravada pelo servidor. Mora aqui para o classificador de
 // recusa editorial (editorial-skip.ts) e o servidor usarem o mesmo texto.
 export const RECUSA_PAUTA_SC = "Pauta fora da linha editorial de Santa Catarina";

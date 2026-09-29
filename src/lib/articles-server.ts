@@ -7,7 +7,7 @@ import { requireAdmin } from "./admin-server";
 import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 import { WIRE_NAME } from "./ecosystem";
 import { resolveEditorialChannel, scheduledEditorialChannel } from "./editorial-network";
-import { RECUSA_PAUTA_SC, foraDaPautaSc } from "./pauta-sc";
+import { RECUSA_PAUTA_SC, foraDaPautaSc, tituloDeIndice } from "./pauta-sc";
 
 // Rascunhos gerados por IA rodam no Groq desde que Anthropic (sem crédito)
 // e Gemini (cota bloqueada mesmo com faturamento configurado — cartão
@@ -127,8 +127,13 @@ const RSS_FEEDS: Record<Beat, string[]> = {
   ],
   // A ordem é a prioridade: o radar para nas duas primeiras pautas de
   // domínios diferentes, então o litoral norte vem antes do estado.
+  //
+  // Um feed por portal do litoral norte, não um feed com os três: o Google
+  // Notícias devolve no máximo 100 itens e o DIARINHO sozinho preenche os
+  // 100 (medido em 29/09/2026), então BC Notícias e Click Camboriú nunca
+  // apareciam.
   sc: [
-    googleNewsBrasil(sitesDe(PORTAIS_LITORAL_NORTE)),
+    ...PORTAIS_LITORAL_NORTE.map((portal) => googleNewsBrasil(sitesDe([portal]))),
     googleNewsBrasil(`(Itajaí OR "Balneário Camboriú") (${sitesDe(PORTAIS_SC)})`),
     googleNewsBrasil(`"Santa Catarina" (${sitesDe(PORTAIS_SC)})`),
   ],
@@ -216,7 +221,7 @@ async function discoverRssSignals(beat: Beat): Promise<StorySignal[]> {
     if (result.status !== "fulfilled") continue;
     for (const item of result.value) {
       if (!item.title || !item.url || !SIGNAL_KEYWORDS[beat].test(item.title)) continue;
-      if (beat === "sc" && foraDaPautaSc(item.title)) continue;
+      if (beat === "sc" && (foraDaPautaSc(item.title) || tituloDeIndice(item.title))) continue;
       const published = Date.parse(item.seenAt);
       if (Number.isFinite(published) && published < recentFloor) continue;
       let domain: string;
@@ -336,7 +341,7 @@ const BEAT_BRIEF: Record<Beat, string> = {
   geopolitica:
     "relação Brasil–China — comércio, chips, cadeias produtivas, diplomacia e tecnologia",
   mercado: "mercado de tecnologia global — investimentos, big techs e infraestrutura de IA",
-  sc: "notícias de Santa Catarina com foco em Itajaí, Balneário Camboriú e o litoral norte — cidade, serviços públicos, obras, porto, economia, turismo, eventos, educação e saúde. Apure primeiro nos portais mais lidos da região (DIARINHO diarinho.net, BC Notícias bcnoticias.com.br, Click Camboriú clickcamboriu.com.br) e do estado (ND+ ndmais.com.br, NSC Total nsctotal.com.br), e confirme em fonte primária (prefeituras, Governo de SC, Porto de Itajaí) ou em outro portal. PROIBIDO pautar polícia, crime, prisão, acidente, morte ou tragédia: se só houver esse tipo de fato, responda o erro de sem fato verificável",
+  sc: "notícias de Santa Catarina com foco em Itajaí, Balneário Camboriú e o litoral norte — cidade, serviços públicos, obras, porto, economia, turismo, eventos, educação e saúde. Apure primeiro nos portais mais lidos da região (DIARINHO diarinho.net, BC Notícias bcnoticias.com.br, Click Camboriú clickcamboriu.com.br) e do estado (ND+ ndmais.com.br, NSC Total nsctotal.com.br), e confirme em fonte primária (prefeituras, Governo de SC, Porto de Itajaí) ou em outro portal. Notícia local costuma anunciar algo que ainda vai acontecer (show, obra, inauguração, mudança no trânsito): nesse caso o fato é o anúncio, e eventDate é a data em que foi anunciado, nunca a data futura do evento. PROIBIDO pautar polícia, crime, prisão, acidente, morte ou tragédia: se só houver esse tipo de fato, responda o erro de sem fato verificável",
   veronica:
     "notícias da própria Veronica Hub — conteúdo da casa, escrito com a direção, nunca pautado por conta própria",
 };
@@ -679,9 +684,17 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
     eventTimestamp < now - 72 * 60 * 60 * 1000 ||
     eventTimestamp > now + 6 * 60 * 60 * 1000
   ) {
+    // O detalhe vai depois do prefixo (que é o que isEditorialSkip casa) para
+    // o aviso da rodada no Actions dizer se o fato era velho ou datado no
+    // futuro — em 29/09 duas rodadas de SC pararam aqui sem essa pista.
+    const lado = !Number.isFinite(eventTimestamp)
+      ? "data inválida"
+      : eventTimestamp > now
+        ? "datado no futuro"
+        : "antigo";
     return {
       ok: false,
-      error: "A data do fato está fora da janela editorial de 72h.",
+      error: `A data do fato está fora da janela editorial de 72h (${lado}: ${String(eventDate).slice(0, 25)} — ${String(headline).slice(0, 90)}).`,
       retry: true,
     };
   }
