@@ -55,7 +55,7 @@ export const BEAT_LABELS: Record<Beat, string> = {
   economia: "China + Brasil · Yuan Digital",
   geopolitica: "Geopolítica · Brasil e China",
   mercado: "Mercado Tecnológico Global",
-  sc: "Santa Catarina · IA",
+  sc: "Santa Catarina · Itajaí e BC",
   veronica: "Veronica Hub",
 };
 

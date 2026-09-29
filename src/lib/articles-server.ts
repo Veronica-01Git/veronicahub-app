@@ -7,6 +7,7 @@ import { requireAdmin } from "./admin-server";
 import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 import { WIRE_NAME } from "./ecosystem";
 import { resolveEditorialChannel, scheduledEditorialChannel } from "./editorial-network";
+import { RECUSA_PAUTA_SC, foraDaPautaSc } from "./pauta-sc";
 
 // Rascunhos gerados por IA rodam no Groq desde que Anthropic (sem crédito)
 // e Gemini (cota bloqueada mesmo com faturamento configurado — cartão
@@ -41,8 +42,10 @@ const GDELT_QUERY: Record<Beat, string> = {
   economia: `${GDELT_SCOPE} ("digital yuan" OR "e-CNY" OR CBDC OR "digital currency" OR yuan)`,
   geopolitica: `${GDELT_SCOPE} (trade OR diplomacy OR chips OR semiconductors OR tariffs)`,
   mercado: `${GDELT_SCOPE} (technology OR startup) (investment OR earnings OR infrastructure)`,
-  // Santa Catarina: o recorte geográfico é o próprio estado.
-  sc: `("Santa Catarina" OR Florianópolis OR Joinville OR Blumenau) ("artificial intelligence" OR "inteligência artificial" OR AI)`,
+  // Santa Catarina: o recorte geográfico é o próprio estado, com Itajaí e
+  // Balneário Camboriú na frente. Sem filtro de assunto desde 29/09 — polícia
+  // e tragédia saem pelo foraDaPautaSc, não pela consulta.
+  sc: `(Itajaí OR "Balneário Camboriú" OR "Santa Catarina")`,
   // Conteúdo da casa: fora do rodízio, nunca pautado pelo radar.
   veronica: `"Veronica Hub"`,
 };
@@ -72,6 +75,14 @@ const G1 = "https://g1.globo.com/rss/g1/";
 // audiência em SC; SCC10, O Município e Jornal Razão completam o radar
 // regional. A busca do Google Notícias com `site:` é o jeito estável de ler
 // esses portais sem depender de cada um manter um RSS próprio.
+//
+// 29/09/2026: a editoria virou Santa Catarina geral, com foco em Itajaí e
+// Balneário Camboriú. Os portais da região entram na frente: o DIARINHO
+// (diário de Itajaí e BC desde 1979, que se declara o mais lido do litoral
+// norte) e o BC Notícias e o Click Camboriú, os portais de Balneário. Não há
+// medição independente de audiência entre eles; a escolha é por tradição e
+// cobertura diária.
+const PORTAIS_LITORAL_NORTE = ["diarinho.net", "bcnoticias.com.br", "clickcamboriu.com.br"];
 const PORTAIS_SC = [
   "ndmais.com.br",
   "nsctotal.com.br",
@@ -79,7 +90,7 @@ const PORTAIS_SC = [
   "omunicipio.com.br",
   "jornalrazao.com",
 ];
-const SITES_SC = PORTAIS_SC.map((dominio) => `site:${dominio}`).join(" OR ");
+const sitesDe = (dominios: string[]) => dominios.map((dominio) => `site:${dominio}`).join(" OR ");
 
 const RSS_FEEDS: Record<Beat, string[]> = {
   ia: [googleNewsBrasil("inteligência artificial"), AGENCIA_BRASIL, G1, BRASIL_EM_ALTA],
@@ -107,9 +118,12 @@ const RSS_FEEDS: Record<Beat, string[]> = {
     G1,
     BRASIL_EM_ALTA,
   ],
+  // A ordem é a prioridade: o radar para nas duas primeiras pautas de
+  // domínios diferentes, então o litoral norte vem antes do estado.
   sc: [
-    googleNewsBrasil(`(inteligência artificial OR IA OR tecnologia OR inovação) (${SITES_SC})`),
-    googleNewsBrasil("inteligência artificial Santa Catarina"),
+    googleNewsBrasil(sitesDe(PORTAIS_LITORAL_NORTE)),
+    googleNewsBrasil(`(Itajaí OR "Balneário Camboriú") (${sitesDe(PORTAIS_SC)})`),
+    googleNewsBrasil(`"Santa Catarina" (${sitesDe(PORTAIS_SC)})`),
   ],
   veronica: [],
 };
@@ -124,7 +138,10 @@ const SIGNAL_KEYWORDS: Record<Beat, RegExp> = {
     /\b(china|chin[êe]s|chinese|brasil|brazil|trade|com[ée]rcio|tariff|tarifa|chip|semiconductor|semicondutor|geopolit|diplomac|acordo|brics|mercosul)\b/i,
   mercado:
     /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip|rodada|aquisi[çc][ãa]o)\b/i,
-  sc: /\b(ia|intelig[êe]ncia artificial|tecnologia|inova[çc][ãa]o|startup|software|acate|digital|rob[ôo]|dados)\b/i,
+  // Os feeds de SC já são recortados por portal e por cidade, e a manchete
+  // local raramente repete o nome da cidade. Qualquer título passa aqui; quem
+  // tira polícia e tragédia é o foraDaPautaSc.
+  sc: /\S/,
   veronica: /\bveronica\b/i,
 };
 
@@ -175,7 +192,10 @@ async function discoverRssSignals(beat: Beat): Promise<StorySignal[]> {
         const title = rssTag(match[1], "title");
         const url = rssTag(match[1], "link");
         const seenAt = rssTag(match[1], "pubDate") || rssTag(match[1], "dc:date");
-        return { title, url, seenAt };
+        // O Google Notícias entrega o link embrulhado em news.google.com; o
+        // portal de verdade vem no atributo url de <source>.
+        const sourceUrl = match[1].match(/<source\b[^>]*\burl="([^"]+)"/i)?.[1] ?? "";
+        return { title, url, seenAt, sourceUrl };
       });
     }),
   );
@@ -189,11 +209,17 @@ async function discoverRssSignals(beat: Beat): Promise<StorySignal[]> {
     if (result.status !== "fulfilled") continue;
     for (const item of result.value) {
       if (!item.title || !item.url || !SIGNAL_KEYWORDS[beat].test(item.title)) continue;
+      if (beat === "sc" && foraDaPautaSc(item.title)) continue;
       const published = Date.parse(item.seenAt);
       if (Number.isFinite(published) && published < recentFloor) continue;
       let domain: string;
       try {
-        domain = new URL(item.url).hostname.replace(/^www\./, "").toLowerCase();
+        // Só em SC, por ora: com o domínio do link, todo item do Google
+        // Notícias vira "news.google.com", cai fora do escopo (não é .br) e
+        // conta como um domínio só. As outras editorias têm o mesmo sintoma,
+        // mas mudar o radar delas é outra decisão editorial.
+        const origem = beat === "sc" && item.sourceUrl ? item.sourceUrl : item.url;
+        domain = new URL(origem).hostname.replace(/^www\./, "").toLowerCase();
       } catch {
         continue;
       }
@@ -237,6 +263,7 @@ async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
     for (const raw of payload.articles) {
       const item = raw as Record<string, unknown>;
       if (typeof item.title !== "string" || typeof item.url !== "string") continue;
+      if (beat === "sc" && foraDaPautaSc(item.title)) continue;
       let domain: string;
       try {
         domain = new URL(item.url).hostname.replace(/^www\./, "").toLowerCase();
@@ -302,7 +329,7 @@ const BEAT_BRIEF: Record<Beat, string> = {
   geopolitica:
     "relação Brasil–China — comércio, chips, cadeias produtivas, diplomacia e tecnologia",
   mercado: "mercado de tecnologia global — investimentos, big techs e infraestrutura de IA",
-  sc: "inteligência artificial em Santa Catarina — empresas, startups, polos de inovação, universidades e governo do estado. Apure primeiro nos portais catarinenses mais acessados (ND+ ndmais.com.br, NSC Total nsctotal.com.br, SCC10, O Município, Jornal Razão) e confirme em fonte primária (Governo de SC, ACATE, FAPESC, universidades) ou em outro portal",
+  sc: "notícias de Santa Catarina com foco em Itajaí, Balneário Camboriú e o litoral norte — cidade, serviços públicos, obras, porto, economia, turismo, eventos, educação e saúde. Apure primeiro nos portais mais lidos da região (DIARINHO diarinho.net, BC Notícias bcnoticias.com.br, Click Camboriú clickcamboriu.com.br) e do estado (ND+ ndmais.com.br, NSC Total nsctotal.com.br), e confirme em fonte primária (prefeituras, Governo de SC, Porto de Itajaí) ou em outro portal. PROIBIDO pautar polícia, crime, prisão, acidente, morte ou tragédia: se só houver esse tipo de fato, responda o erro de sem fato verificável",
   veronica:
     "notícias da própria Veronica Hub — conteúdo da casa, escrito com a direção, nunca pautado por conta própria",
 };
@@ -1073,6 +1100,11 @@ async function draftAndValidate(
 ): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
   const draft = await draftArticleContent(beat);
   if (!draft.ok) return draft;
+
+  // O radar já filtra, mas o modelo pode achar outra pauta pela busca.
+  if (beat === "sc" && foraDaPautaSc(draft.content.headline, draft.content.excerpt)) {
+    return { ok: false, error: `${RECUSA_PAUTA_SC}: ${draft.content.headline}` };
+  }
 
   const quality = validateDraftForPublish(draft.content);
   if (!quality.ok) return quality;

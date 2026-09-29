@@ -36,11 +36,51 @@ test("o enum do banco e a migração cobrem as editorias novas", () => {
   }
 });
 
-test("Santa Catarina é apurada nos portais catarinenses", () => {
+test("Santa Catarina é apurada nos portais catarinenses, litoral norte na frente", () => {
   const server = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
-  for (const portal of ["ndmais.com.br", "nsctotal.com.br"]) {
+  for (const portal of [
+    "ndmais.com.br",
+    "nsctotal.com.br",
+    "diarinho.net",
+    "bcnoticias.com.br",
+    "clickcamboriu.com.br",
+  ]) {
     assert.ok(server.includes(portal), `${portal} fora do radar de SC`);
   }
+  // O radar para nas duas primeiras pautas: o feed de Itajaí e BC vem antes.
+  const feeds = server.slice(server.indexOf("  sc: [\n    googleNewsBrasil"));
+  assert.ok(
+    feeds.indexOf("PORTAIS_LITORAL_NORTE") < feeds.indexOf("PORTAIS_SC"),
+    "feed do litoral norte precisa ser o primeiro de SC",
+  );
+});
+
+test("SC: polícia, crime, acidente e tragédia ficam fora da pauta automática", async () => {
+  const { foraDaPautaSc, RECUSA_PAUTA_SC } = await import("../src/lib/pauta-sc.ts");
+  const { isEditorialSkip } = await import("../src/lib/editorial-skip.ts");
+
+  for (const manchete of [
+    "Polícia prende suspeito de assalto no Centro de Itajaí",
+    "Acidente na BR-101 em Balneário Camboriú deixa dois feridos",
+    "Homem morre afogado na Praia Central",
+    "Golpe do falso aluguel faz vítimas em BC",
+    "Tiroteio assusta moradores de Navegantes",
+  ]) {
+    assert.ok(foraDaPautaSc(manchete), `deveria barrar: ${manchete}`);
+  }
+  for (const manchete of [
+    "Porto de Itajaí registra recorde de movimentação em setembro",
+    "Balneário Camboriú abre matrículas para a rede municipal",
+    "Presidente da Alesc visita obras da Via Expressa",
+    "Retiro de verão movimenta hotéis de Itapema",
+    "Marejada 2026 divulga programação de shows",
+  ]) {
+    assert.ok(!foraDaPautaSc(manchete), `não deveria barrar: ${manchete}`);
+  }
+  assert.ok(foraDaPautaSc("Nova ciclovia em Itajaí", "Obra começa após morte de ciclista"));
+
+  // Recusa por pauta fora da linha é pulo editorial (rodada verde), não falha.
+  assert.ok(isEditorialSkip(`${RECUSA_PAUTA_SC}: Polícia prende suspeito`));
 });
 
 test("o cron não gera matéria da casa nem de editoria aposentada", () => {

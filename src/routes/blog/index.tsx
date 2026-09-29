@@ -36,7 +36,7 @@ export const Route = createFileRoute("/blog/")({
       { title: `${WIRE_NAME} — Cobertura contínua e global | Veronica Hub` },
       {
         name: "description",
-        content: `${WIRE_NAME}: inteligência artificial, Santa Catarina e IA, China + Brasil e o yuan digital, terras raras e o futuro climático — e as notícias da Veronica Hub. Cobertura contínua.`,
+        content: `${WIRE_NAME}: inteligência artificial, Santa Catarina com foco em Itajaí e Balneário Camboriú, China + Brasil e o yuan digital, terras raras e o futuro climático — e as notícias da Veronica Hub. Cobertura contínua.`,
       },
       { property: "og:title", content: `${WIRE_NAME} — Cobertura contínua e global` },
       {
