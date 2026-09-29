@@ -30,6 +30,27 @@ export const users = pgTable("User", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
+// Uma geração gratuita de Portfolio por conta. A linha única por userId
+// reserva a chamada à IA atomicamente mesmo com cliques em abas diferentes.
+export const portfolioGenerations = pgTable(
+  "PortfolioGeneration",
+  {
+    id: text("id").primaryKey(),
+    userId: text("userId").notNull().references(() => users.id).unique(),
+    status: text("status").notNull(), // pending | complete | failed
+    attempts: integer("attempts").notNull().default(1),
+    briefJson: text("briefJson").notNull(),
+    draftJson: text("draftJson"),
+    model: text("model").notNull(),
+    promptTokens: integer("promptTokens"),
+    completionTokens: integer("completionTokens"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+    completedAt: timestamp("completedAt"),
+  },
+  (table) => [index("PortfolioGeneration_status_updatedAt_idx").on(table.status, table.updatedAt)],
+);
+
 // Código de login por e-mail. Sem relação com User: o código pode ser
 // pedido antes da conta existir (verifyEmailCode cria o User no sucesso).
 export const emailOtps = pgTable(
