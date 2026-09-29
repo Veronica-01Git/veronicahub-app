@@ -130,7 +130,7 @@ export const PRODUCTS: Product[] = [
     name: "Foguete Amarelo",
     category: "Ferramentas",
     to: "/foguete-amarelo",
-    status: "Em estruturação",
+    status: "Disponível",
     description: "Agente de IA para consignação entre farmácia, distribuidora e indústria",
     external: false,
     public: true,
