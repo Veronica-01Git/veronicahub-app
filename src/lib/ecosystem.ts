@@ -293,6 +293,7 @@ export const HOME_PRODUCTS = [
   // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site
   // — nem na vitrine da home, nem no menu Ferramentas, que leem desta lista.
   "agentes",
+  "foguete",
   "portfolio",
   "studio",
   "career",
