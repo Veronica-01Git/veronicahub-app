@@ -126,6 +126,16 @@ export const PRODUCTS: Product[] = [
     public: true,
   },
   {
+    id: "foguete",
+    name: "Foguete Amarelo",
+    category: "Ferramentas",
+    to: "/foguete-amarelo",
+    status: "Em estruturação",
+    description: "Agente de IA para consignação entre farmácia, distribuidora e indústria",
+    external: false,
+    public: true,
+  },
+  {
     id: "analytics",
     name: "Veronica Analytics",
     category: "Ferramentas",
@@ -269,7 +279,7 @@ export const HEADER_NAV_GROUPS = [
   {
     id: "business",
     label: "Soluções",
-    items: ["agentes", "analytics", "security", "career", "rh"].map(product),
+    items: ["agentes", "foguete", "analytics", "security", "career", "rh"].map(product),
   },
   { id: "explore", label: "Explorar", items: ["members", "clientes"].map(product) },
 ] as const;
@@ -283,6 +293,7 @@ export const HOME_PRODUCTS = [
   // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site
   // — nem na vitrine da home, nem no menu Ferramentas, que leem desta lista.
   "agentes",
+  "foguete",
   "portfolio",
   "studio",
   "career",

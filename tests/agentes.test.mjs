@@ -16,6 +16,7 @@ import {
   PRIMARY_NAV,
   INTENT_LINKS,
   SPECIAL_PROJECTS,
+  HEADER_NAV_GROUPS,
 } from "../src/lib/ecosystem.ts";
 import { LINKS_DE_CLIENTES } from "../src/lib/clientes.ts";
 
@@ -216,6 +217,8 @@ test("nenhuma rota pública nasce órfã — ou tem link, ou está declarada sem
     ...[...HOME_PRODUCTS, ...PRIMARY_NAV, ...INTENT_LINKS, ...SPECIAL_PROJECTS].map((p) =>
       semBarraFinal(p.to),
     ),
+    // O menu do cabeçalho (desktop e celular) também é porta de entrada.
+    ...HEADER_NAV_GROUPS.flatMap((g) => g.items).map((p) => semBarraFinal(p.to)),
     // A listagem /clientes também é navegação: o que ela lista tem link.
     ...LINKS_DE_CLIENTES.map(semBarraFinal),
   ]);
@@ -252,7 +255,8 @@ test("todo produto público e interno tem porta de entrada na navegação", () =
       p.public &&
       !p.external &&
       !comCasaPropria.has(p.id) &&
-      !HOME_PRODUCTS.some((h) => h.id === p.id),
+      !HOME_PRODUCTS.some((h) => h.id === p.id) &&
+      !HEADER_NAV_GROUPS.some((g) => g.items.some((h) => h.id === p.id)),
   );
   assert.deepEqual(
     orfaos.map((p) => p.id),

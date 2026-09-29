@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Layers,
   Anchor,
+  Rocket,
   ShoppingBag,
   Plus,
   Minus,
@@ -47,6 +48,7 @@ import { HOME_PRODUCTS } from "@/lib/ecosystem";
 const HOME_ICONS: Record<string, typeof Wand2> = {
   clientes: Users,
   agentes: MessageCircle,
+  foguete: Rocket,
   portfolio: Briefcase,
   studio: Wand2,
   career: FileText,
