@@ -113,3 +113,21 @@ test("desk escrito à mão vence o palpite por palavra-chave", () => {
   );
   assert.match(rede, /label: "Bastidores"/);
 });
+
+test("o Wire não usa o gpt-oss-120b: ele fica livre para a reserva do WhatsApp", async () => {
+  const server = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
+  // Uma chamada só à Groq no rascunho, e com o modelo principal.
+  const chamadas = [...server.matchAll(/chat\.completions\.create\(\{\s*model: (\w+)/g)].map(
+    (m) => m[1],
+  );
+  assert.deepEqual(chamadas, ["DRAFT_MODEL"]);
+  assert.match(server, /const DRAFT_MODEL = "openai\/gpt-oss-20b";/);
+
+  // Cota esgotada continua sendo rodada sem publicação, não falha.
+  const { isEditorialSkip } = await import("../src/lib/editorial-skip.ts");
+  assert.ok(
+    isEditorialSkip(
+      '429 {"error":{"message":"Rate limit reached for model `openai/gpt-oss-20b`"}} (openai/gpt-oss-120b reservado ao WhatsApp)',
+    ),
+  );
+});

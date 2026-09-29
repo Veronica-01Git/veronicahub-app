@@ -407,7 +407,7 @@ test("a reserva da Groq usa identificadores que o repositório comprova", async 
   // o valida é a sonda do /api/whatsapp/diagnostico.)
   const { readFileSync } = await import("node:fs");
   const fonte = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
-  const comprovados = [...fonte.matchAll(/^const DRAFT_(?:FALLBACK_)?MODEL = "([^"]+)";/gm)].map(
+  const comprovados = [...fonte.matchAll(/^const DRAFT_(?:RESERVED_)?MODEL = "([^"]+)";/gm)].map(
     (m) => m[1],
   );
 
