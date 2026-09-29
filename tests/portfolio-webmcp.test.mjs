@@ -7,7 +7,7 @@ import {
 
 const professions = ["Designer", "Desenvolvedor"];
 
-test("WebMCP describes only public demo capabilities and never generates", async () => {
+test("WebMCP describes only public preview capabilities and never generates", async () => {
   const tools = createPortfolioTools(professions, () =>
     assert.fail("read-only tool mutated state"),
   );
@@ -17,7 +17,7 @@ test("WebMCP describes only public demo capabilities and never generates", async
   );
   assert.equal(tools[0].annotations.readOnlyHint, true);
   const info = JSON.parse(await tools[0].execute({}));
-  assert.equal(info.mode, "local_demo");
+  assert.equal(info.mode, "local_brief_preview");
   assert.equal(info.canGenerateViaTool, false);
   assert.equal(info.persistsData, false);
   assert.deepEqual(info.professions, professions);

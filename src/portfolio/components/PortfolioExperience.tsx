@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Bot,
@@ -15,19 +15,24 @@ import { SUPPORTED_PROFESSIONS } from "../config/sections";
 import { createPortfolioDraft } from "../features/generator/create-draft";
 import type { PortfolioDraft, PreviewDevice } from "../types";
 import { PortfolioPreview } from "./PortfolioPreview";
+import { BriefStorage, PersonalBriefFields } from "./PersonalBriefFields";
+import { createPersonalDraft, emptyBrief, reviewDraft } from "../features/generator/personal-brief";
 import { usePortfolioTools } from "../features/webmcp/use-portfolio-tools";
 import type { PortfolioBrief } from "../features/webmcp/tools";
 
 const PROCESS = [
   "Conte sua trajetória",
-  "A Veronica estrutura",
-  "Você navega e analisa",
-  "Edite e publique quando quiser",
+  "Monte sua prévia",
+  "Revise o conteúdo",
+  "Guarde seu briefing",
 ];
 
 export function PortfolioExperience() {
-  const [name, setName] = useState("");
-  const [profession, setProfession] = useState("Designer");
+  const [brief, setBrief] = useState(emptyBrief);
+  const { name, profession } = brief;
+  const [isDemo, setIsDemo] = useState(false);
+  const [error, setError] = useState("");
+  const resultHeading = useRef<HTMLHeadingElement>(null);
   const [draft, setDraft] = useState<PortfolioDraft | null>(null);
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [analysisOpen, setAnalysisOpen] = useState(false);
@@ -35,17 +40,33 @@ export function PortfolioExperience() {
   const [proposedBrief, setProposedBrief] = useState<PortfolioBrief | null>(null);
   usePortfolioTools(setProposedBrief);
 
+  useEffect(() => {
+    if (!draft) return;
+    resultHeading.current?.focus({ preventScroll: true });
+    resultHeading.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start",
+    });
+  }, [draft]);
+
   const generate = () => {
-    setDraft(createPortfolioDraft(name, profession));
-    setAnalysisOpen(false);
-    window.setTimeout(
-      () =>
-        document
-          .getElementById("portfolio-result")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-      50,
-    );
+    try {
+      setDraft(createPersonalDraft(brief));
+      setIsDemo(false);
+      setError("");
+      setAnalysisOpen(true);
+      setAssistantOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Revise os campos do briefing.");
+    }
   };
+  const showExample = () => {
+    setDraft(createPortfolioDraft("Alex Silva", "Designer"));
+    setIsDemo(true);
+    setAnalysisOpen(false);
+    setAssistantOpen(false);
+  };
+  const review = draft ? reviewDraft(draft) : [];
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#070b0d] text-white">
@@ -59,7 +80,7 @@ export function PortfolioExperience() {
           <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[1fr_0.85fr] lg:items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-emerald-300/5 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-200">
-                <Sparkles className="h-3.5 w-3.5" /> Nova vertical · Veronica Portfolio
+                <Sparkles className="h-3.5 w-3.5" /> Veronica Portfolio · prévia gratuita
               </div>
               <h1 className="mt-7 max-w-4xl font-display text-5xl leading-[0.9] tracking-[-0.055em] sm:text-6xl md:text-7xl">
                 Sua trajetória,
@@ -67,24 +88,24 @@ export function PortfolioExperience() {
                 <span className="text-emerald-300">projetada para abrir portas.</span>
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-relaxed text-white/60 md:text-lg">
-                Transforme experiências, projetos e competências em um portfólio profissional
-                completo — com estrutura, análise e presença da Veronica.
+                Apresente seu trabalho com clareza. Conte sua trajetória, selecione projetos reais
+                e veja uma primeira versão do seu portfólio em desktop e celular.
               </p>
               <a
                 href="#create"
                 className="mt-9 inline-flex min-h-12 items-center gap-3 rounded-full bg-emerald-300 px-6 font-semibold text-[#07100c] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(110,231,183,0.28)]"
               >
-                Criar meu portfólio gratuitamente <ArrowRight className="h-4 w-4" />
+                Montar minha prévia gratuita <ArrowRight className="h-4 w-4" />
               </a>
               <p className="mt-4 text-xs text-white/40">
-                1 geração gratuita · sem cartão · pagamento ainda não conectado
+                Sem cartão · montagem local · publicação e IA em preparação
               </p>
             </div>
             <div className="relative mx-auto w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/[0.045] p-4 shadow-2xl backdrop-blur">
               <div className="rounded-[1.4rem] border border-white/10 bg-[#0d1417] p-4">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3 text-[10px] uppercase tracking-[0.15em] text-white/40">
-                  <span>Portfolio intelligence</span>
-                  <span className="text-emerald-300">Preview vivo</span>
+                  <span>Do briefing à apresentação</span>
+                  <span className="text-emerald-300">Modelo ilustrativo</span>
                 </div>
                 <div className="mt-4 grid grid-cols-[0.75fr_1.25fr] gap-3">
                   <div className="aspect-[4/5] rounded-xl bg-[radial-gradient(circle_at_35%_30%,#67e8c4,transparent_34%),linear-gradient(145deg,#101820,#273c48_55%,#d8ff57)]" />
@@ -103,9 +124,9 @@ export function PortfolioExperience() {
               </div>
               <div className="absolute -bottom-5 -left-5 rounded-2xl border border-emerald-300/25 bg-[#0b1214]/95 px-4 py-3 text-sm shadow-xl">
                 <span className="block text-[10px] uppercase tracking-wider text-white/40">
-                  Análise Veronica
+                  Seu conteúdo, organizado
                 </span>
-                <span className="mt-1 block text-emerald-200">Narrativa forte · 92/100</span>
+                <span className="mt-1 block text-emerald-200">Apresentação · projetos · contato</span>
               </div>
             </div>
           </div>
@@ -163,28 +184,31 @@ export function PortfolioExperience() {
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.75fr_1.25fr]">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-emerald-300">
-                Geração gratuita
+                Seu briefing
               </p>
               <h2 className="mt-4 font-display text-4xl tracking-[-0.04em] md:text-5xl">
-                Crie uma primeira versão agora.
+                Comece pelo que você já fez.
               </h2>
               <p className="mt-5 text-sm leading-relaxed text-white/50">
-                Este MVP gera uma demonstração local e temporária. Nenhuma alteração é persistida e
-                nenhum dado é enviado a um provider externo.
+                Preencha o que deseja apresentar. A prévia organiza os dados informados, sem inventar
+                experiências ou resultados. Este fluxo não envia o briefing a um serviço de IA.
               </p>
+              <button type="button" onClick={showExample} className="mt-6 min-h-11 rounded-xl border border-white/20 px-4 text-sm text-white/80 hover:border-emerald-300">
+                Ver exemplo fictício
+              </button>
+              <p className="mt-3 text-xs leading-relaxed text-white/50">Nome e profissão bastam para começar. Os demais campos são opcionais e melhoram sua apresentação.</p>
             </div>
-            <div className="rounded-[1.5rem] border border-white/10 bg-[#0a1012] p-6 md:p-8">
+            <form noValidate onSubmit={event => { event.preventDefault(); generate(); }} className="min-w-0 rounded-[1.5rem] border border-white/10 bg-[#0a1012] p-6 md:p-8">
               {proposedBrief && (
                 <div className="mb-5 rounded-xl border border-emerald-300/30 bg-emerald-300/5 p-4">
                   <p role="status" className="text-sm text-emerald-200">Seu assistente preparou uma sugestão.</p>
                   <p className="mt-2 break-words text-sm text-white/70">
                     {proposedBrief.name} · {proposedBrief.profession}
                   </p>
-                  <p className="mt-2 text-xs text-white/50">Revise antes de preencher. A simulação só começa quando você selecionar Gerar.</p>
+                  <p className="mt-2 text-xs text-white/50">Revise antes de preencher. A prévia só é montada quando você selecionar Montar prévia.</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button type="button" onClick={() => {
-                      setName(proposedBrief.name);
-                      setProfession(proposedBrief.profession);
+                      setBrief(current => ({ ...current, name: proposedBrief.name, profession: proposedBrief.profession }));
                       setProposedBrief(null);
                       document.getElementById("portfolio-owner-name")?.focus({ preventScroll: true });
                     }} className="min-h-11 rounded-lg bg-emerald-300 px-4 text-sm font-medium text-[#07100c]">
@@ -205,7 +229,10 @@ export function PortfolioExperience() {
                   <input
                     id="portfolio-owner-name"
                     value={name}
-                    onChange={(event) => setName(event.target.value)}
+                    required
+                    maxLength={80}
+                    autoComplete="name"
+                    onChange={(event) => setBrief(current => ({ ...current, name: event.target.value }))}
                     placeholder="Ex.: Marina Costa"
                     className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition placeholder:text-white/25 focus:border-emerald-300/60"
                   />
@@ -214,7 +241,7 @@ export function PortfolioExperience() {
                   Área profissional
                   <select
                     value={profession}
-                    onChange={(event) => setProfession(event.target.value)}
+                    onChange={(event) => setBrief(current => ({ ...current, profession: event.target.value }))}
                     className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-[#11191c] px-4 text-white outline-none focus:border-emerald-300/60"
                   >
                     {SUPPORTED_PROFESSIONS.map((item) => (
@@ -223,38 +250,41 @@ export function PortfolioExperience() {
                   </select>
                 </label>
               </div>
+              <PersonalBriefFields brief={brief} onChange={setBrief} />
+              {error && <p role="alert" className="mt-5 text-sm text-rose-200">{error}</p>}
               <button
-                type="button"
-                onClick={generate}
+                type="submit"
                 className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-300 px-5 font-semibold text-[#07100c] transition hover:brightness-110"
               >
                 <Sparkles className="h-4 w-4" />{" "}
-                {draft ? "Gerar nova simulação" : "Gerar meu portfólio gratuito"}
+                {draft && !isDemo ? "Atualizar minha prévia" : "Montar minha prévia"}
               </button>
               <div className="mt-4 flex items-center gap-2 text-xs text-white/40">
-                <ShieldCheck className="h-4 w-4 text-emerald-300" /> Simulação sem persistência · 1
-                geração real será vinculada à conta em uma etapa futura
+                <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-300" /> Seus dados ficam nesta página. Guardar o briefing é uma escolha sua.
               </div>
-            </div>
+              <BriefStorage brief={brief} onRestore={restored => { setBrief(restored); setError(""); }} />
+            </form>
           </div>
         </section>
 
         {draft && (
           <section id="portfolio-result" className="scroll-mt-24 px-3 py-20 md:px-6">
             <div className="mx-auto max-w-7xl">
+              <h2 ref={resultHeading} tabIndex={-1} className="mb-5 scroll-mt-24 font-display text-3xl focus:outline-none">{isDemo ? "Exemplo fictício de portfólio" : "Sua prévia está pronta para revisão"}</h2>
               <div className="mb-8 flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.035] p-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="flex items-center gap-2 text-sm text-emerald-200">
-                    <Check className="h-4 w-4" /> Geração gratuita utilizada nesta simulação
+                    <Check className="h-4 w-4" /> {isDemo ? "Projetos, números e depoimento apenas ilustrativos" : "Montada com as informações do seu briefing"}
                   </div>
                   <p className="mt-1 text-xs text-white/40">
-                    Navegue no resultado; mudanças sugeridas não são persistidas.
+                    A prévia não é um site publicado. Volte ao briefing para ajustar o conteúdo.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <div className="flex rounded-xl border border-white/10 p-1">
                     <button
                       type="button"
+                      aria-label="Prévia desktop"
                       onClick={() => setDevice("desktop")}
                       aria-pressed={device === "desktop"}
                       className={`rounded-lg px-3 py-2 ${device === "desktop" ? "bg-white/10 text-emerald-200" : "text-white/40"}`}
@@ -263,6 +293,7 @@ export function PortfolioExperience() {
                     </button>
                     <button
                       type="button"
+                      aria-label="Prévia celular"
                       onClick={() => setDevice("mobile")}
                       aria-pressed={device === "mobile"}
                       className={`rounded-lg px-3 py-2 ${device === "mobile" ? "bg-white/10 text-emerald-200" : "text-white/40"}`}
@@ -272,40 +303,33 @@ export function PortfolioExperience() {
                   </div>
                   <button
                     type="button"
+                    aria-expanded={analysisOpen}
                     onClick={() => setAnalysisOpen((value) => !value)}
                     className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/70 hover:border-emerald-300/40"
                   >
-                    Analisar portfólio
+                    {analysisOpen ? "Ocultar revisão" : "Revisar conteúdo"}
                   </button>
                   <button
                     type="button"
+                    aria-expanded={assistantOpen}
                     onClick={() => setAssistantOpen((value) => !value)}
                     className="inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-semibold text-[#07100c]"
                   >
-                    <Bot className="h-4 w-4" /> Conversar com Veronica
+                    <Bot className="h-4 w-4" /> Orientação de conteúdo
                   </button>
                 </div>
               </div>
               {analysisOpen && (
-                <div className="mb-6 grid gap-3 rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-5 md:grid-cols-3">
-                  <div>
-                    <span className="text-xs uppercase tracking-wider text-white/40">Clareza</span>
-                    <strong className="mt-2 block text-2xl text-emerald-200">92/100</strong>
-                  </div>
-                  <div>
-                    <span className="text-xs uppercase tracking-wider text-white/40">
-                      Diferenciação
-                    </span>
-                    <strong className="mt-2 block text-2xl text-emerald-200">86/100</strong>
-                  </div>
-                  <div>
-                    <span className="text-xs uppercase tracking-wider text-white/40">
-                      Próxima melhoria
-                    </span>
-                    <p className="mt-2 text-sm text-white/65">
-                      Troque os projetos demonstrativos por resultados verificáveis.
-                    </p>
-                  </div>
+                <div className="mb-6 rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-5">
+                  <p className="text-sm font-medium">Checklist do conteúdo · {review.filter(item => item.complete).length} de {review.length} itens preenchidos</p>
+                  <p className="mt-2 text-xs text-white/55">Esta revisão verifica preenchimento, não qualidade nem veracidade. Confira as informações antes de compartilhar.</p>
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {review.map(item => <li key={item.label} className="rounded-xl border border-white/10 p-4">
+                      <p className="text-sm text-emerald-200">{item.complete ? "Preenchido" : "A completar"} · {item.label}</p>
+                      {!item.complete && <p className="mt-2 text-xs leading-relaxed text-white/65">{item.hint}</p>}
+                    </li>)}
+                  </ul>
+                  <a href="#create" className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-white/20 px-4 text-sm">Voltar ao briefing</a>
                 </div>
               )}
               {assistantOpen && (
@@ -313,22 +337,24 @@ export function PortfolioExperience() {
                   <div className="flex gap-3">
                     <Bot className="mt-0.5 h-5 w-5 text-cyan-200" />
                     <div>
-                      <p className="text-sm font-medium">Veronica · modo de simulação</p>
+                      <p className="text-sm font-medium">Guia Veronica · orientação editorial</p>
                       <p className="mt-2 text-sm leading-relaxed text-white/60">
-                        Eu começaria fortalecendo o primeiro case com contexto, decisão e resultado.
-                        Posso simular essa mudança, mas ela só será salva após o editor persistente
-                        ser lançado.
+                        Para cada projeto, explique o contexto, sua participação e o resultado observado.
+                        Trabalhos autorais e acadêmicos também contam, desde que sejam identificados.
+                        Esta é uma orientação fixa; o assistente de IA desta vertical ainda está em preparação.
                       </p>
                     </div>
                   </div>
                 </div>
               )}
-              <PortfolioPreview draft={draft} device={device} />
+              <PortfolioPreview draft={draft} device={device} personal={!isDemo} />
             </div>
           </section>
         )}
 
-        <section className="border-y border-white/10 px-6 py-20">
+        <details className="mx-auto max-w-7xl border-y border-white/10 px-6 py-8">
+          <summary className="min-h-12 cursor-pointer py-3 font-display text-xl text-white/80">Para desenvolvedores · arquitetura e catálogo de módulos</summary>
+        <section className="px-0 py-12">
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-10 lg:grid-cols-2">
               <div>
@@ -423,14 +449,16 @@ export function PortfolioExperience() {
           </div>
         </section>
 
+        </details>
+
         <section className="border-y border-white/10 bg-white/[0.025] px-6 py-20">
           <div className="mx-auto max-w-7xl">
             <div className="text-center">
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-emerald-300">
-                Planos
+                Disponibilidade
               </p>
               <h2 className="mt-4 font-display text-4xl tracking-[-0.04em] md:text-5xl">
-                Comece gratuito. Evolua quando fizer sentido.
+                Prévia disponível. Publicação em preparação.
               </h2>
             </div>
             <div className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">
@@ -439,10 +467,10 @@ export function PortfolioExperience() {
                   key={plan.name}
                   className={`rounded-[1.5rem] border p-6 ${plan.featured ? "border-emerald-300/45 bg-emerald-300/[0.07]" : "border-white/10 bg-[#0a1012]"}`}
                 >
-                  <h3 className="font-display text-xl">{plan.name}</h3>
+                  <h3 className="font-display text-xl">{plan.price === "R$ 0" ? "Prévia gratuita" : plan.name}</h3>
                   <p className="mt-5 text-3xl font-semibold">{plan.price}</p>
                   <p className="mt-4 min-h-16 text-sm leading-relaxed text-white/50">
-                    {plan.description}
+                    {plan.price === "R$ 0" ? "Monte e revise uma prévia com seu briefing, gratuitamente neste navegador." : plan.description}
                   </p>
                   <button
                     type="button"
@@ -451,13 +479,13 @@ export function PortfolioExperience() {
                         ? () =>
                             document
                               .getElementById("create")
-                              ?.scrollIntoView({ behavior: "smooth" })
+                              ?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })
                         : undefined
                     }
                     disabled={plan.price !== "R$ 0"}
                     className={`mt-6 min-h-11 w-full rounded-xl text-sm font-semibold ${plan.price === "R$ 0" ? "bg-emerald-300 text-[#07100c]" : "border border-white/10 text-white/35"}`}
                   >
-                    {plan.price === "R$ 0" ? "Começar agora" : "Aguardar fintech"}
+                    {plan.price === "R$ 0" ? "Montar minha prévia" : "Em preparação"}
                   </button>
                 </article>
               ))}
@@ -471,14 +499,14 @@ export function PortfolioExperience() {
               Seu melhor trabalho merece uma apresentação à altura.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/50">
-              Gere a primeira estrutura, navegue pelo resultado e descubra o que precisa ficar mais
-              forte.
+              Organize o que você já fez, confira a apresentação e refine seu briefing.
+              Você decide quais informações incluir.
             </p>
             <a
               href="#create"
               className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-emerald-300 px-6 font-semibold text-[#07100c]"
             >
-              Criar meu portfólio gratuitamente <ArrowRight className="h-4 w-4" />
+              Montar minha prévia gratuita <ArrowRight className="h-4 w-4" />
             </a>
           </div>
         </section>

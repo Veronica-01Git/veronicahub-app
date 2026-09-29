@@ -4,7 +4,7 @@
 
 - `/portfolio`: registra `veronica_portfolio_describe` e `veronica_portfolio_prepare_brief` quando `document.modelContext.registerTool` estiver disponível.
 - A descrição retorna apenas capacidades públicas e profissões suportadas. O preparo aceita nome (1–80 caracteres) e uma profissão da lista existente.
-- O preparo cria uma sugestão visível. O usuário usa ou descarta essa sugestão; depois aciona o botão normal para gerar a simulação local existente.
+- O preparo cria uma sugestão visível. O usuário usa ou descarta essa sugestão; depois aciona o botão normal para montar a prévia local com o briefing.
 - As ferramentas não leem os campos atuais, não geram conteúdo, não persistem dados e não importam APIs de conta, pagamento ou providers. Não há cadastro de ferramenta para publicação.
 - As ferramentas pertencem à rota e são removidas com AbortSignal ao sair dela. Registro rejeitado resulta no formulário normal, sem depender do experimento.
 - `/studio-veronica`: referências existentes ganham filtros Todas/Imagens/Vídeo e contador anunciado. A seleção continua preenchendo o compositor.
@@ -24,7 +24,7 @@ Referências oficiais:
 
 ## Verificação manual
 
-1. Abra `/portfolio` em navegador comum: preencher e gerar a simulação deve continuar funcionando.
+1. Abra `/portfolio` em navegador comum: preencher e montar a prévia deve continuar funcionando.
 2. Em Chrome com o experimento habilitado, abra o Model Context Tool Inspector indicado na documentação. Confirme as duas ferramentas enquanto a rota está aberta.
 3. Execute a descrição; depois prepare `{ "name": "Marina Costa", "profession": "Designer" }`. A proposta aparece, mas os campos e o preview não mudam automaticamente.
 4. Teste Descartar e Usar sugestão; a geração exige o botão existente. Profissão inválida ou campos adicionais devem ser recusados.
