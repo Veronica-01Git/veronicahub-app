@@ -27,7 +27,7 @@ export function PortfolioAiPanel({ brief, onGenerated, isAi }: {
       const result = await getMyPortfolioGeneration();
       if (result.authenticated) {
         setStatus(result.status);
-        setAttempts("attempts" in result ? result.attempts : 0);
+        setAttempts("attempts" in result ? (result.attempts ?? 0) : 0);
         if (result.status === "complete" && result.draft) {
           setSavedDraft(result.draft);
           onGenerated(result.draft);
