@@ -24,7 +24,7 @@ export function createPortfolioTools(
     {
       name: "veronica_portfolio_describe",
       description:
-        "Describe the Veronica Portfolio local demo and its supported professions. Does not read personal information or existing form inputs.",
+        "Describe the Veronica Portfolio local briefing preview and its supported professions. Does not read personal information or existing form inputs.",
       inputSchema: {
         type: "object",
         properties: {},
@@ -33,19 +33,20 @@ export function createPortfolioTools(
       annotations: { readOnlyHint: true, untrustedContentHint: false },
       execute: async () =>
         JSON.stringify({
-          mode: "local_demo",
+          mode: "local_brief_preview",
           professions,
           canPrepareBrief: true,
           canGenerateViaTool: false,
           persistsData: false,
+          optionalBrowserStorageViaPage: true,
           nextStep:
-            "Prepare a brief with the user's name and one supported profession. The user reviews and applies it on the page before generating a local simulation.",
+            "Prepare a brief with the user's name and one supported profession. The user reviews and applies it on the page before assembling a local preview. Optional browser storage is available only through explicit page controls; tools cannot read or save briefings.",
         }),
     },
     {
       name: "veronica_portfolio_prepare_brief",
       description:
-        "Propose a name and profession supplied by the user for a local portfolio simulation. Creates a visible suggestion for review; does not overwrite form fields, generate, publish or save a portfolio. A second proposal replaces the pending suggestion only.",
+        "Propose a name and profession supplied by the user for a local portfolio preview. Creates a visible suggestion for review; does not overwrite form fields, generate, publish or save a portfolio. A second proposal replaces the pending suggestion only.",
       inputSchema: {
         type: "object",
         properties: {

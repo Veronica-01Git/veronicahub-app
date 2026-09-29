@@ -5,11 +5,11 @@ export const Route = createFileRoute("/portfolio")({
   component: PortfolioExperience,
   head: () => ({
     meta: [
-      { title: "Veronica Portfolio · Portfólios profissionais com IA" },
+      { title: "Veronica Portfolio · Monte a prévia do seu portfólio" },
       {
         name: "description",
         content:
-          "Crie, navegue e analise um portfólio profissional com a Veronica. Primeira geração gratuita.",
+          "Organize sua trajetória, projetos e competências em uma prévia profissional gratuita. Revise o resultado em desktop e celular.",
       },
       { property: "og:title", content: "Veronica Portfolio" },
       { property: "og:description", content: "Sua trajetória projetada para abrir portas." },

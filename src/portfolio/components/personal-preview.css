@@ -1,0 +1,77 @@
+.personal-preview {
+  container-type: inline-size;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 1.4rem;
+  background: #f7f6f2;
+  color: #16211e;
+  border: 1px solid rgb(255 255 255 / 0.15);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.2);
+  overflow-wrap: anywhere;
+}
+.personal-preview-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgb(0 0 0 / 0.1);
+}
+.personal-preview-hero {
+  display: grid;
+  gap: 2rem;
+  padding: 2.5rem 1.5rem;
+  align-items: center;
+}
+.personal-preview-title {
+  margin-top: 1.25rem;
+  font-size: clamp(2rem, 7cqi, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+.personal-preview-monogram {
+  min-height: 200px;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  color: #d4f8e9;
+  background:
+    radial-gradient(ellipse at 80% 0%, #467164, transparent 80%), #16372e;
+}
+.personal-preview-monogram > span:first-child {
+  font-size: 4rem;
+  font-weight: 500;
+  letter-spacing: -0.07em;
+}
+.personal-preview-section {
+  padding: 2rem 1.5rem;
+  border-top: 1px solid rgb(0 0 0 / 0.1);
+  scroll-margin-top: 6rem;
+}
+.personal-preview-projects {
+  display: grid;
+  gap: 1rem;
+}
+.personal-preview :focus-visible {
+  outline: 2px solid #146444;
+  outline-offset: 4px;
+}
+@container (min-width: 640px) {
+  .personal-preview-hero {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.7fr);
+    padding: 3.5rem 3rem;
+  }
+  .personal-preview-monogram {
+    min-height: 280px;
+  }
+  .personal-preview-section {
+    padding: 2.5rem 3rem;
+  }
+  .personal-preview-projects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,14 +1,18 @@
 import { ArrowUpRight } from "lucide-react";
 import { PORTFOLIO_SECTIONS } from "../config/sections";
 import type { PortfolioDraft, PreviewDevice } from "../types";
+import { PersonalPortfolioPreview } from "./PersonalPortfolioPreview";
 
 export function PortfolioPreview({
   draft,
   device,
+  personal = false,
 }: {
   draft: PortfolioDraft;
   device: PreviewDevice;
+  personal?: boolean;
 }) {
+  if (personal) return <PersonalPortfolioPreview draft={draft} device={device} />;
   const mobile = device === "mobile";
   return (
     <div
