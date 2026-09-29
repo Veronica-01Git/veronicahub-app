@@ -47,5 +47,9 @@ export function isEditorialSkip(error: string): boolean {
     "Só ",
     "Corpo com ",
     "As fontes precisam vir de pelo menos",
+    // Polícia e tragédia fora da editoria SC (pauta-sc.ts, RECUSA_PAUTA_SC).
+    // Texto repetido em vez de importado: este módulo não tem dependências e
+    // é carregado direto pelos testes. O teste confere que os dois batem.
+    "Pauta fora da linha editorial de Santa Catarina",
   ].some((prefix) => error.startsWith(prefix));
 }

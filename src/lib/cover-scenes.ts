@@ -433,7 +433,7 @@ export const COVER_SCENES: Record<Beat, readonly Scene[]> = {
       pistas: ["datacenter", "data center", "nuvem", "hiperescala", "capacidade", "expansao"],
     },
   ],
-  // Santa Catarina e IA (27/09/2026). Cenas genéricas e ilustrativas — nada
+  // Santa Catarina (27/09/2026, ampliada em 29/09). Cenas genéricas e ilustrativas — nada
   // de ponte ou praia reconhecível que "documente" um lugar que a foto não é.
   sc: [
     {
@@ -479,6 +479,28 @@ export const COVER_SCENES: Record<Beat, readonly Scene[]> = {
     {
       term: "coastal city skyline night",
       pistas: ["florianopolis", "capital", "cidade", "balneario", "litoral", "turismo"],
+    },
+    // SC geral, foco em Itajaí e BC (29/09/2026). Mesma regra de cima: cena
+    // genérica, que ilustra o assunto sem fingir ser o lugar da matéria.
+    {
+      term: "road construction workers asphalt",
+      pistas: ["obra", "paviment", "asfalt", "duplicac", "rodovia", "br-101", "mobilidade"],
+    },
+    {
+      term: "hospital corridor medical staff",
+      pistas: ["hospital", "saude", "ubs", "vacina", "atendimento medico", "leito"],
+    },
+    {
+      term: "school classroom students desks",
+      pistas: ["escola", "educac", "aluno", "matricul", "professor", "creche"],
+    },
+    {
+      term: "sailboats marina harbor",
+      pistas: ["marina", "nautic", "veleiro", "barco", "regata", "pesca"],
+    },
+    {
+      term: "street festival crowd night lights",
+      pistas: ["festa", "festival", "marejada", "evento", "show", "reveillon", "oktoberfest"],
     },
   ],
   // Veronica Hub — conteúdo da casa, fora do rodízio: a capa normalmente é
