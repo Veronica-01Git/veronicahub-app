@@ -200,6 +200,12 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/selos",
   "/selo-demo",
   "/aula-zero",
+  // Escola nova: /formacoes é a porta global. A prévia e o classroom são
+  // destinos internos alcançados a partir dela; /comandos fica só como
+  // compatibilidade do catálogo anterior.
+  "/formacoes/avatar-digital-ia",
+  "/classroom/avatar-digital-ia",
+  "/comandos",
   "/veronica-curriculo-certo-rh",
 ]);
 

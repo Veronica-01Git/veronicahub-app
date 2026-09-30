@@ -15,8 +15,9 @@ import {
 } from "./studio-criativo";
 import { curriculoCertoSteps, curriculoCertoSystemPrompt } from "./curriculo-certo";
 import { homeSteps, homeSystemPrompt } from "./home";
+import { schoolSteps, schoolSystemPrompt } from "./school";
 
-export type VeronicaSkillId = "studio-criativo" | "curriculo-certo" | "home";
+export type VeronicaSkillId = "studio-criativo" | "curriculo-certo" | "home" | "school";
 
 export type VeronicaSkill = {
   id: VeronicaSkillId;
@@ -43,6 +44,12 @@ export const VERONICA_SKILLS: Record<VeronicaSkillId, VeronicaSkill> = {
     label: "Home",
     steps: homeSteps,
     systemPrompt: homeSystemPrompt,
+  },
+  school: {
+    id: "school",
+    label: "Veronica Tutor",
+    steps: schoolSteps,
+    systemPrompt: schoolSystemPrompt,
   },
 };
 

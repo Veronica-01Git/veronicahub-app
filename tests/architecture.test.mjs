@@ -67,7 +67,7 @@ test("navegação pública não inclui administração nem destinos vazios", () 
   assert.deepEqual(
     PRIMARY_NAV.map((item) => item.to),
     [
-      "/comandos",
+      "/formacoes",
       "/clientes/veronica-fashion-operator",
       "/prompt-packs",
       "/blog",
@@ -1040,41 +1040,14 @@ test("a troca ampliada alcança o rodízio antigo, mas nunca a capa manual", () 
   );
 });
 
-test("todo produto da vitrine da Escola preservada tem ícone, senão o SSR morre", () => {
-  // O defeito que este teste trava, e que já tirou o site inteiro do ar em
-  // 22/09: "clientes" entrou em HOME_PRODUCTS (443fbd6) sem entrar em
-  // HOME_ICONS. `icon` virou undefined, o React recebeu <undefined />, o SSR
-  // da home lançou "Element type is invalid" e TODA página caiu na tela de
-  // erro — não só a home, porque é ela que o visitante abre primeiro.
-  //
-  // Por que nada pegou: `tsc` tipa HOME_ICONS como Record<string, Icone>, que
-  // promete um ícone para QUALQUER chave; o build compila sem reclamar; e o
-  // React trata o erro de SSR como fallback para render no cliente, sem
-  // derrubar o processo. Só abrindo a página dá para ver.
-  const home = readFileSync(new URL("../src/routes/escola.tsx", import.meta.url), "utf8");
-  const eco = readFileSync(new URL("../src/lib/ecosystem.ts", import.meta.url), "utf8");
+test("a Escola nova mantém entrada gratuita, catálogo e as quatro trilhas", () => {
+  const school = readFileSync(new URL("../src/routes/escola.tsx", import.meta.url), "utf8");
 
-  const listaHome = eco.match(/export const HOME_PRODUCTS = \[([\s\S]*?)\]\.map\(/);
-  assert.ok(listaHome, "HOME_PRODUCTS precisa continuar legível para este teste");
-  const ids = [...listaHome[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-  assert.ok(ids.length > 0, "HOME_PRODUCTS não pode estar vazio");
+  assert.match(school, /to="\/aula-zero"/, "Aula Zero continua sendo a entrada gratuita");
+  assert.match(school, /to="\/formacoes"/, "o catálogo canônico precisa estar ligado na Escola");
+  assert.match(school, /Veronica Tutor/, "o tutor precisa permanecer visível na arquitetura da Escola");
 
-  const mapa = home.match(/const HOME_ICONS[^=]*=\s*\{([\s\S]*?)\n\};/);
-  assert.ok(mapa, "HOME_ICONS precisa continuar legível para este teste");
-  const comIcone = new Set([...mapa[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*:/gm)].map((m) => m[1]));
-
-  const semIcone = ids.filter((id) => !comIcone.has(id));
-  assert.deepStrictEqual(
-    semIcone,
-    [],
-    `produto na vitrine da home sem ícone em HOME_ICONS: ${semIcone.join(", ")}`,
-  );
-
-  // Cinto e suspensório: mesmo com o teste acima, um id que escape não pode
-  // derrubar o site. O fallback transforma "ícone errado" em defeito visual.
-  assert.match(
-    home,
-    /icon:\s*HOME_ICONS\[item\.id\]\s*\?\?/,
-    "HOME_ICONS[item.id] precisa de fallback (??) para nunca renderizar undefined",
-  );
+  for (const trilha of ["CREATE", "BUILD", "GROW", "SECURE"]) {
+    assert.match(school, new RegExp(trilha), `trilha ausente na Escola: ${trilha}`);
+  }
 });
