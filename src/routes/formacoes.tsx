@@ -103,7 +103,7 @@ function Formacoes() {
             {tracks.map((track, trackIndex) => {
               const Icon = track.icon;
               const trackCourses = courses.filter((course) =>
-                track.titles.includes(course.title as (typeof track.titles)[number]),
+                (track.titles as readonly string[]).includes(course.title),
               );
               return (
                 <section
