@@ -13,9 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
 import { Route as ClientesVeronicaRouteImport } from './routes/clientes-veronica'
+import { Route as ClassroomAvatarDigitalIaRouteImport } from './routes/classroom/avatar-digital-ia'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as EscolaRouteImport } from './routes/escola'
+import { Route as FormacoesRouteImport } from './routes/formacoes'
 import { Route as FogueteAmareloRouteImport } from './routes/foguete-amarelo'
+import { Route as FormacoesAvatarDigitalIaRouteImport } from './routes/formacoes/avatar-digital-ia'
 import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as NoticiasRouteImport } from './routes/noticias'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -95,9 +98,19 @@ const ComandosRoute = ComandosRouteImport.update({
   path: '/comandos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClassroomAvatarDigitalIaRoute = ClassroomAvatarDigitalIaRouteImport.update({
+  id: '/classroom/avatar-digital-ia',
+  path: '/classroom/avatar-digital-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EscolaRoute = EscolaRouteImport.update({
   id: '/escola',
   path: '/escola',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormacoesRoute = FormacoesRouteImport.update({
+  id: '/formacoes',
+  path: '/formacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FogueteAmareloRoute = FogueteAmareloRouteImport.update({
@@ -277,6 +290,11 @@ const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
   path: '/blog/editoria/$beat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FormacoesAvatarDigitalIaRoute = FormacoesAvatarDigitalIaRouteImport.update({
+  id: '/formacoes/avatar-digital-ia',
+  path: '/avatar-digital-ia',
+  getParentRoute: () => FormacoesRoute,
+} as any)
 const BlogRedeDeFontesRelatoriosRoute =
   BlogRedeDeFontesRelatoriosRouteImport.update({
     id: '/relatorios',
@@ -396,7 +414,10 @@ export interface FileRoutesByFullPath {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/escola': typeof EscolaRoute
+  '/formacoes': typeof FormacoesRouteWithChildren
+  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
@@ -458,7 +479,10 @@ export interface FileRoutesByTo {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/escola': typeof EscolaRoute
+  '/formacoes': typeof FormacoesRouteWithChildren
+  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
@@ -520,7 +544,10 @@ export interface FileRoutesById {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
+  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/escola': typeof EscolaRoute
+  '/formacoes': typeof FormacoesRouteWithChildren
+  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
@@ -584,7 +611,10 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
+    | '/classroom/avatar-digital-ia'
     | '/escola'
+    | '/formacoes'
+    | '/formacoes/avatar-digital-ia'
     | '/foguete-amarelo'
     | '/membros'
     | '/noticias'
@@ -646,7 +676,10 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
+    | '/classroom/avatar-digital-ia'
     | '/escola'
+    | '/formacoes'
+    | '/formacoes/avatar-digital-ia'
     | '/foguete-amarelo'
     | '/membros'
     | '/noticias'
@@ -707,7 +740,10 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
+    | '/classroom/avatar-digital-ia'
     | '/escola'
+    | '/formacoes'
+    | '/formacoes/avatar-digital-ia'
     | '/foguete-amarelo'
     | '/membros'
     | '/noticias'
@@ -770,7 +806,9 @@ export interface RootRouteChildren {
   AulaZeroRoute: typeof AulaZeroRoute
   ClientesVeronicaRoute: typeof ClientesVeronicaRoute
   ComandosRoute: typeof ComandosRoute
+  ClassroomAvatarDigitalIaRoute: typeof ClassroomAvatarDigitalIaRoute
   EscolaRoute: typeof EscolaRoute
+  FormacoesRoute: typeof FormacoesRouteWithChildren
   FogueteAmareloRoute: typeof FogueteAmareloRoute
   MembrosRoute: typeof MembrosRoute
   NoticiasRoute: typeof NoticiasRoute
@@ -852,12 +890,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComandosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/classroom/avatar-digital-ia': {
+      id: '/classroom/avatar-digital-ia'
+      path: '/classroom/avatar-digital-ia'
+      fullPath: '/classroom/avatar-digital-ia'
+      preLoaderRoute: typeof ClassroomAvatarDigitalIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/escola': {
       id: '/escola'
       path: '/escola'
       fullPath: '/escola'
       preLoaderRoute: typeof EscolaRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/formacoes': {
+      id: '/formacoes'
+      path: '/formacoes'
+      fullPath: '/formacoes'
+      preLoaderRoute: typeof FormacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/formacoes/avatar-digital-ia': {
+      id: '/formacoes/avatar-digital-ia'
+      path: '/avatar-digital-ia'
+      fullPath: '/formacoes/avatar-digital-ia'
+      preLoaderRoute: typeof FormacoesAvatarDigitalIaRouteImport
+      parentRoute: typeof FormacoesRoute
     }
     '/foguete-amarelo': {
       id: '/foguete-amarelo'
@@ -1240,6 +1299,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface FormacoesRouteChildren {
+  FormacoesAvatarDigitalIaRoute: typeof FormacoesAvatarDigitalIaRoute
+}
+
+const FormacoesRouteChildren: FormacoesRouteChildren = {
+  FormacoesAvatarDigitalIaRoute: FormacoesAvatarDigitalIaRoute,
+}
+
+const FormacoesRouteWithChildren =
+  FormacoesRoute._addFileChildren(FormacoesRouteChildren)
+
 interface BlogRedeDeFontesRouteChildren {
   BlogRedeDeFontesRelatoriosRoute: typeof BlogRedeDeFontesRelatoriosRoute
 }
@@ -1313,7 +1383,9 @@ const rootRouteChildren: RootRouteChildren = {
   AulaZeroRoute: AulaZeroRoute,
   ClientesVeronicaRoute: ClientesVeronicaRoute,
   ComandosRoute: ComandosRoute,
+  ClassroomAvatarDigitalIaRoute: ClassroomAvatarDigitalIaRoute,
   EscolaRoute: EscolaRoute,
+  FormacoesRoute: FormacoesRouteWithChildren,
   FogueteAmareloRoute: FogueteAmareloRoute,
   MembrosRoute: MembrosRoute,
   NoticiasRoute: NoticiasRoute,
