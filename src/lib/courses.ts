@@ -139,6 +139,5 @@ export const courses: Course[] = catalog.map((course) => {
     availability: isAvatarPreview
       ? "Prévia do módulo 01 disponível; formação completa em produção"
       : "Em produção — acesso ainda indisponível",
-    href: isAvatarPreview ? "/formacoes/avatar-digital-ia" : undefined,
   };
 });
