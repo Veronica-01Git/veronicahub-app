@@ -121,6 +121,8 @@ export const courses: Course[] = catalog.map((course) => {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
+  const isAvatarPreview = slug === "avatar-digital-ia";
+
   return {
     ...course,
     topics: [...course.topics],
@@ -132,8 +134,11 @@ export const courses: Course[] = catalog.map((course) => {
     image: `/images/formacoes/${slug}.jpg`,
     futurePath: `/formacoes/${slug}`,
     status: "in-production",
-    cta: "Conteúdo em produção",
-    duration: "A definir",
-    availability: "Em produção — acesso ainda indisponível",
+    cta: isAvatarPreview ? "Prévia disponível" : "Conteúdo em produção",
+    duration: isAvatarPreview ? "Prévia prática" : "A definir",
+    availability: isAvatarPreview
+      ? "Prévia do módulo 01 disponível; formação completa em produção"
+      : "Em produção — acesso ainda indisponível",
+    href: isAvatarPreview ? "/formacoes/avatar-digital-ia" : undefined,
   };
 });
