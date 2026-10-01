@@ -1,3 +1,49 @@
+## Wire volta a publicar: apuração no servidor (2026-10-01)
+
+**Problema.** O Wire rodava toda hora, mas publicou só ~1 matéria por dia
+desde 29/09. A última, até esta correção, foi de 30/09 às 14:01 UTC. Das 40
+rodadas olhadas no Actions (29/09 16h → 01/10 05h), 32 terminaram sem
+publicação por 429. A causa é a cota grátis da Groq do `openai/gpt-oss-20b`
+(200 mil tokens/dia): cada rodada pedia ao modelo para pesquisar na web
+(`browser_search`), e a busca injeta páginas inteiras no contexto. Uma
+rodada passava de 50 mil tokens, então 3 a 4 rodadas esgotavam o dia. O
+mesmo 20B é a segunda reserva do agente de WhatsApp, que ficava sem ela.
+
+**Correção.** O servidor faz a apuração (`src/lib/wire-apuracao.ts`):
+1. lê feeds RSS de portais que trazem a URL real da matéria:
+   - SC: ND+, NSC Total, g1 SC, SCC10, Jornal Razão, Olhar SC, Página 3 e
+     O Município;
+   - nacionais: g1, Agência Brasil, CNN Brasil, InfoMoney, Exame, Poder360,
+     Estadão, Canaltech e Olhar Digital;
+2. escolhe a pauta: primeiro o fato publicado por dois portais diferentes;
+   senão, a mais recente. Em SC, Itajaí, BC e o litoral norte vão na frente,
+   e a pauta precisa citar SC. Polícia e tragédia continuam fora;
+3. baixa a página, extrai o texto e confere se ele é da matéria do título.
+   Isso descarta página de vídeo e de "ao vivo";
+4. chama o modelo **sem busca**, só para escrever a partir desse texto.
+   Gasta poucos milhares de tokens por rodada, uma chamada no máximo.
+
+As fontes gravadas são as URLs que o **servidor** abriu.
+
+**Regra de fontes.** O piso caiu de 2 para 1 fonte, por autorização do dono
+em 01/10/2026: "pode quebrar a regra de duas fontes indepepndentes para
+facilitar". Quando há par, as duas fontes são usadas.
+
+**Fica como estava:**
+- o cron não cai mais na busca na web; ela continua só no rascunho manual do
+  Admin;
+- o `gpt-oss-120b` continua reservado ao WhatsApp;
+- nenhum arquivo do WhatsApp foi alterado.
+
+**Fora do alcance:** DIARINHO, BC Notícias e Click Camboriú não têm RSS
+aberto (404/403) e seguem só no radar do Google Notícias, que alimenta o
+rascunho manual.
+
+**Validado.** `typecheck` limpo, 271/271 testes (7 novos em
+`tests/wire-apuracao.test.mjs`), lint limpo nos arquivos tocados. A
+simulação com os feeds reais de 01/10 achou pauta com texto legível em SC.
+Por exemplo, a obra da BR-101 em BC saiu com par Página 3 + Jornal Razão.
+
 ## V-IVA ligado à agente real de WhatsApp, pela sala de teste (2026-10-01)
 
 **Objetivo.** Tirar os agentes de "NEEDS_REVIEW": os cenários de execução do
