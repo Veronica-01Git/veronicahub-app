@@ -1,3 +1,29 @@
+## Tetos de custo e latência dos agentes em operação (2026-10-01)
+
+Matheus delegou a definição ("defina você, seja conservador"). Os números
+vieram do preço oficial do modelo e dos limites reais do runtime, não de
+estimativa de mercado; cada agente carrega a conta em `ceilingsBasis`
+(`src/lib/ai/agent-registry.ts`).
+
+| Agente | Custo por tarefa | Latência | De onde veio |
+| --- | --- | --- | --- |
+| `whatsapp-atendimento` | US$ 0,10 por resposta | 20 s | Pior caso de UMA chamada ao Claude Opus 5 (US$ 5 / US$ 25 por milhão, preço oficial): ~5.000 tokens de entrada + 2.048 de saída ≈ US$ 0,076. O teto cobre uma chamada completa e bloqueia uma segunda. Latência: a resposta roda em `ctx.waitUntil`, que a Cloudflare cancela 30 s depois da resposta HTTP. |
+| `wire-redacao` | US$ 0,01 por matéria | 90 s | Roda no plano gratuito da Groq (`gpt-oss-20b`), capas de Pexels/Pixabay gratuitas: custo real zero. O teto é alarme — qualquer gasto acima de 1 centavo indica mudança. Latência: o workflow corta a chamada em 120 s. |
+
+**Efeito no V-IVA:** os dois agentes saíram de **BLOCKED** para
+**NEEDS_REVIEW**, com 0 reprovações. O que resta em revisão são os cenários
+de execução, que esperam um executor real (sala de teste da Express). Nada
+foi promovido: lifecycle continua INTERNAL e PRODUCTION, como estava.
+
+**O que NÃO mudou:** nenhum comportamento em produção. O teto vive no
+registro e é critério de avaliação do V-IVA; o router ainda não está ligado
+a nenhum agente em operação. WhatsApp da Express não tocado.
+
+**Testes:** `tests/ai-platform.test.mjs` (38) trava a procedência de todo
+teto, o WhatsApp abaixo dos 30 s do `waitUntil`, o Wire abaixo do corte do
+workflow (lido do próprio YAML) e o teto do WhatsApp entre uma e duas
+chamadas completas. `typecheck` limpo, 256/256 testes, `build` ok.
+
 ## Migração 0019 aplicada no Neon de produção (2026-10-01)
 
 Aplicada com autorização explícita de Matheus, depois do merge do PR #164.

@@ -643,15 +643,50 @@ test("V-IVA: executor quebrado vira REVIEW, não PASS nem FAIL do agente", async
   );
 });
 
-test("V-IVA: os agentes que já operam são bloqueados por não ter teto declarado", async () => {
-  // Retrato honesto: ninguém definiu teto de custo nem de latência para eles.
+test("V-IVA: com os tetos definidos, nenhum agente real reprova na especificação", async () => {
+  // Até 01/10/2026 os dois saíam BLOCKED por teto ausente. Com os tetos
+  // definidos, o que sobra é REVIEW: os cenários de execução esperam um
+  // executor real. Promoção continua exigindo esse executor e uma pessoa.
   for (const slug of ["wire-redacao", "whatsapp-atendimento"]) {
     const report = await new VivaAgent(toSpecification(registeredAgent(slug))).runFullEvaluation();
-    assert.equal(report.recommendation.verdict, "BLOCKED", slug);
-    const falhas = report.results.filter((r) => r.verdict === "FAIL").map((r) => r.scenarioId);
-    assert.ok(falhas.includes("cost.ceiling-defined"), slug);
-    assert.ok(falhas.includes("latency.ceiling-defined"), slug);
+    assert.equal(report.summary.fail, 0, slug);
+    assert.equal(report.recommendation.verdict, "NEEDS_REVIEW", slug);
+    for (const id of ["cost.ceiling-defined", "latency.ceiling-defined"]) {
+      assert.equal(
+        report.results.find((r) => r.scenarioId === id).verdict,
+        "PASS",
+        `${slug}/${id}`,
+      );
+    }
   }
+});
+
+test("tetos: todo teto tem procedência e respeita o limite real do runtime", () => {
+  for (const a of AGENT_REGISTRY) {
+    if (a.maxCostPerTaskMicros !== null || a.maxLatencyMs !== null) {
+      assert.ok((a.ceilingsBasis ?? "").length > 40, `${a.slug}: teto sem procedência`);
+    }
+  }
+  // WhatsApp responde dentro de ctx.waitUntil, que a Cloudflare cancela 30 s
+  // depois da resposta HTTP. O teto precisa caber com folga.
+  const wa = registeredAgent("whatsapp-atendimento");
+  assert.ok(wa.maxLatencyMs < 30_000, "teto do WhatsApp não cabe no waitUntil");
+  assert.match(ler("../src/lib/whatsapp-webhook.ts"), /waitUntil\(processamento\)/);
+  // O Wire é chamado pelo workflow com corte de 120 s.
+  const workflow = ler("../.github/workflows/generate-article.yml");
+  const corte = Number(workflow.match(/--max-time (\d+)/)[1]) * 1_000;
+  assert.ok(
+    registeredAgent("wire-redacao").maxLatencyMs < corte,
+    "teto do Wire passa do corte do workflow",
+  );
+  // Teto de custo do WhatsApp cobre UMA chamada completa ao modelo principal
+  // (preço oficial do Claude Opus 5: US$ 5 / US$ 25 por milhão) e não duas.
+  const umaChamada = Math.round(5_000 * 5 + 2_048 * 25); // micros: tokens × US$/M
+  assert.ok(wa.maxCostPerTaskMicros >= umaChamada, "teto não cobre uma resposta completa");
+  assert.ok(
+    wa.maxCostPerTaskMicros < 2 * umaChamada,
+    "teto deixaria passar duas chamadas completas",
+  );
 });
 
 /* ============================================================ lifecycle */
@@ -807,6 +842,7 @@ test("API: DTO público tem só os campos permitidos e nada interno", () => {
       "allowedTenants",
       "businessRules",
       "statusBasis",
+      "ceilingsBasis",
       "Micros",
     ]) {
       assert.ok(!texto.includes(chave), `${a.slug}: DTO expõe ${chave}`);
