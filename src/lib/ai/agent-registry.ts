@@ -18,10 +18,12 @@
  * onde veio), não o resultado de uma avaliação. Daqui para frente, mudança
  * de estado só por transição auditada (./lifecycle.ts).
  *
- * TETOS NÃO DEFINIDOS FICAM null. Teto de custo e de latência é decisão de
- * quem paga a conta. Nenhum foi definido pelo dono para os agentes que já
- * operam — e o V-IVA reprova isso de propósito, em vez de este arquivo
- * inventar um número para passar no teste.
+ * TETOS COM PROCEDÊNCIA. Teto de custo e de latência é decisão de quem paga
+ * a conta. Até 01/10/2026 os agentes que já operam estavam com null (e o
+ * V-IVA os bloqueava por isso). Nessa data o dono delegou a definição, pedindo
+ * valores conservadores; os números abaixo foram calculados sobre o preço
+ * oficial do modelo e os limites reais do runtime, e cada agente carrega a
+ * conta em `ceilingsBasis`. Teto novo sem procedência não passa no teste.
  */
 
 import type { VeronicaSkillId } from "@/veronica/skills";
@@ -172,6 +174,12 @@ export type RegisteredAgent = AgentSpecification & {
   readonly ownDescription?: string;
   /** De onde veio o estado declarado. Obrigatório. */
   readonly statusBasis: string;
+  /**
+   * Quem definiu os tetos de custo e latência, quando e com que conta. O
+   * teste exige este campo sempre que algum teto não for null — teto sem
+   * procedência é número inventado.
+   */
+  readonly ceilingsBasis?: string;
 };
 
 /* ----------------------------------------------------------- agentes */
@@ -195,9 +203,19 @@ const WIRE_REDACAO: RegisteredAgent = {
     // conferência manual do primeiro post — então o uso exige aprovação.
     { key: "instagram.post.publish", requiresApproval: true },
   ],
-  maxCostPerTaskMicros: null,
+  // US$ 0,01 por matéria. O rascunho roda no plano gratuito da Groq
+  // (openai/gpt-oss-20b, articles-server.ts) e as capas vêm de Pexels/Pixabay,
+  // também gratuitos: o custo real hoje é zero. O teto não é orçamento, é
+  // alarme — qualquer gasto acima de 1 centavo por matéria quer dizer que
+  // algo mudou (modelo pago, plano pago ou laço de nova tentativa).
+  maxCostPerTaskMicros: 10_000,
   costCurrency: "USD",
-  maxLatencyMs: null,
+  // 90 s por matéria. O workflow generate-article.yml corta a chamada a
+  // /api/cron/generate-article em 120 s (`curl --max-time 120`); 90 s deixa
+  // 30 s de folga para gravar a matéria e a capa antes do corte.
+  maxLatencyMs: 90_000,
+  ceilingsBasis:
+    "Definido em 01/10/2026 por delegação do dono (pedido: conservador). Custo: plano gratuito da Groq, custo real zero — teto de US$ 0,01 funciona como alarme. Latência: 90 s contra o corte de 120 s do workflow generate-article.yml.",
   approval: {
     requiresApproval: false,
     handoffTriggers: ["guardião detecta redação parada", "capa repetida ou ausente"],
@@ -234,9 +252,22 @@ const WHATSAPP_ATENDIMENTO: RegisteredAgent = {
     { key: "whatsapp.message.reply", requiresApproval: false },
     { key: "handoff.human", requiresApproval: false },
   ],
-  maxCostPerTaskMicros: null,
+  // US$ 0,10 por resposta. Conta com o preço oficial do Claude Opus 5
+  // (US$ 5 / US$ 25 por milhão de tokens de entrada / saída), modelo padrão de
+  // whatsapp-provedores.ts. Pior caso realista de UMA chamada: ~6.000
+  // caracteres de instrução + 30 mensagens de memória ≈ 5.000 tokens de
+  // entrada (US$ 0,025) e o teto de saída de 2.048 tokens (US$ 0,051) —
+  // US$ 0,076. O teto cobre uma chamada completa e bloqueia uma segunda; as
+  // reservas Groq e Gemini são gratuitas.
+  maxCostPerTaskMicros: 100_000,
   costCurrency: "USD",
-  maxLatencyMs: null,
+  // 20 s por resposta. A resposta roda em ctx.waitUntil (whatsapp-webhook.ts),
+  // e a Cloudflare cancela o waitUntil 30 s depois da resposta HTTP
+  // (developers.cloudflare.com/workers/runtime-apis/context). 20 s deixa 10 s
+  // para gravar a conversa e entregar a mensagem pela Meta.
+  maxLatencyMs: 20_000,
+  ceilingsBasis:
+    "Definido em 01/10/2026 por delegação do dono (pedido: conservador). Custo: pior caso de uma chamada ao Claude Opus 5 ≈ US$ 0,076 (5.000 tokens de entrada a US$ 5/M + 2.048 de saída a US$ 25/M); teto de US$ 0,10 cobre uma chamada e bloqueia a segunda. Latência: 20 s contra o limite de 30 s do waitUntil da Cloudflare.",
   approval: {
     requiresApproval: false,
     handoffTriggers: [
@@ -282,8 +313,11 @@ const V_IVA: RegisteredAgent = {
   // Fato, não política: esta versão não chama modelo nenhum, então não gasta.
   maxCostPerTaskMicros: 0,
   costCurrency: "USD",
-  // Política proposta neste PR (avaliação local e determinística). Confirmar.
+  // Avaliação local e determinística: 5 s é folga larga para gerar e julgar
+  // os cenários sem chamar modelo nenhum.
   maxLatencyMs: 5_000,
+  ceilingsBasis:
+    "Custo zero por fato: esta versão não chama modelo. Latência de 5 s para avaliação local e determinística, sem rede.",
   approval: {
     requiresApproval: false,
     handoffTriggers: ["relatório com cenário em REVIEW", "relatório com cenário em FAIL"],
