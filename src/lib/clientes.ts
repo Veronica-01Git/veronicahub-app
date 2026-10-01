@@ -31,6 +31,12 @@ export type EntregaDeCliente = {
 export const ENTREGAS_POR_SELO: Record<string, readonly EntregaDeCliente[]> = {
   "VH-AUT-WA-2026-000001": [
     {
+      to: "/express-entulho",
+      rotulo: "Site oficial",
+      descricao: "Locação de caçambas, soluções, atendimento e orçamento",
+      publica: true,
+    },
+    {
       to: "/clientes/express-entulho/operacoes",
       rotulo: "Central de operações",
       descricao: "Painel de atendimento, aprovações, frota e regras do agente",

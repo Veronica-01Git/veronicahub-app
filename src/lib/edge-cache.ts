@@ -51,6 +51,7 @@ const ROTAS_CACHEAVEIS: readonly RegExp[] = [
   // Demonstrações e propostas — é o que o cliente abre no celular dele.
   /^\/preview\/express-operations-b(\/|$)/,
   /^\/clientes\/express-entulho(\/|$)/,
+  /^\/express-entulho\/?$/,
   // Institucional e vitrine, todas estáticas a partir do catálogo em código.
   /^\/$/,
   /^\/comandos$/,

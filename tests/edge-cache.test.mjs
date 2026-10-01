@@ -46,6 +46,7 @@ test("as páginas públicas e estáticas entram no cache compartilhado", () => {
     "https://veronicahub.com/preview/express-operations-b",
     "https://veronicahub.com/clientes/express-entulho/proposta",
     "https://veronicahub.com/clientes/express-entulho/operacoes-demo",
+    "https://veronicahub.com/express-entulho",
     "https://veronicahub.com/",
     "https://veronicahub.com/comandos",
     "https://veronicahub.com/selos",
@@ -78,6 +79,7 @@ test("o casamento de rota é exato — prefixo parecido não entra", () => {
     "https://veronicahub.com/blog",
     "https://veronicahub.com/blog/alguma-materia",
     "https://veronicahub.com/clientes/outra-empresa",
+    "https://veronicahub.com/express-entulho-extra",
   ]) {
     assert.equal(podeCachear(new Request(fora)), false, fora);
   }

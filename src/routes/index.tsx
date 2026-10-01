@@ -414,7 +414,11 @@ function EcosystemHome() {
                 <p className="yolab-browser-label">
                   Selecione uma área <span>· 11 plataformas</span>
                 </p>
-                <div className="yolab-browser-list" role="group" aria-label="Escolha uma plataforma">
+                <div
+                  className="yolab-browser-list"
+                  role="group"
+                  aria-label="Escolha uma plataforma"
+                >
                   {BROWSE.map((id, i) => {
                     const item = product(id);
                     return (
@@ -438,7 +442,11 @@ function EcosystemHome() {
                           </span>
                           {item.name}
                         </span>
-                        <ArrowUpRight size={15} aria-hidden="true" className="yolab-browser-arrow" />
+                        <ArrowUpRight
+                          size={15}
+                          aria-hidden="true"
+                          className="yolab-browser-arrow"
+                        />
                       </button>
                     );
                   })}
@@ -719,7 +727,7 @@ function EcosystemHome() {
                   category: "Operação + agente",
                   description:
                     "Arquitetura para atendimento, regras operacionais e evolução do agente de WhatsApp.",
-                  href: "/clientes/express-entulho",
+                  href: "/express-entulho",
                 },
                 {
                   name: "LZ Team",

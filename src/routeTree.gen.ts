@@ -13,12 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
 import { Route as ClientesVeronicaRouteImport } from './routes/clientes-veronica'
-import { Route as ClassroomAvatarDigitalIaRouteImport } from './routes/classroom/avatar-digital-ia'
 import { Route as ComandosRouteImport } from './routes/comandos'
 import { Route as EscolaRouteImport } from './routes/escola'
-import { Route as FormacoesRouteImport } from './routes/formacoes'
+import { Route as ExpressEntulhoRouteImport } from './routes/express-entulho'
 import { Route as FogueteAmareloRouteImport } from './routes/foguete-amarelo'
-import { Route as FormacoesAvatarDigitalIaRouteImport } from './routes/formacoes/avatar-digital-ia'
+import { Route as FormacoesRouteImport } from './routes/formacoes'
 import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as NoticiasRouteImport } from './routes/noticias'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -46,9 +45,11 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
 import { Route as BlogRedeDeFontesRouteImport } from './routes/blog/rede-de-fontes'
+import { Route as ClassroomAvatarDigitalIaRouteImport } from './routes/classroom/avatar-digital-ia'
 import { Route as ClientesIndexRouteImport } from './routes/clientes/index'
 import { Route as ClientesClientSlugRouteImport } from './routes/clientes/$clientSlug'
 import { Route as ClientesAdminRouteImport } from './routes/clientes/admin'
+import { Route as FormacoesAvatarDigitalIaRouteImport } from './routes/formacoes/avatar-digital-ia'
 import { Route as PreviewExpressOperationsBRouteImport } from './routes/preview/express-operations-b'
 import { Route as PropostaExpressEntulhoRouteImport } from './routes/proposta/express-entulho'
 import { Route as SeloSerialRouteImport } from './routes/selo/$serial'
@@ -98,24 +99,24 @@ const ComandosRoute = ComandosRouteImport.update({
   path: '/comandos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClassroomAvatarDigitalIaRoute = ClassroomAvatarDigitalIaRouteImport.update({
-  id: '/classroom/avatar-digital-ia',
-  path: '/classroom/avatar-digital-ia',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EscolaRoute = EscolaRouteImport.update({
   id: '/escola',
   path: '/escola',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FormacoesRoute = FormacoesRouteImport.update({
-  id: '/formacoes',
-  path: '/formacoes',
+const ExpressEntulhoRoute = ExpressEntulhoRouteImport.update({
+  id: '/express-entulho',
+  path: '/express-entulho',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FogueteAmareloRoute = FogueteAmareloRouteImport.update({
   id: '/foguete-amarelo',
   path: '/foguete-amarelo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormacoesRoute = FormacoesRouteImport.update({
+  id: '/formacoes',
+  path: '/formacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembrosRoute = MembrosRouteImport.update({
@@ -254,6 +255,12 @@ const BlogRedeDeFontesRoute = BlogRedeDeFontesRouteImport.update({
   path: '/blog/rede-de-fontes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClassroomAvatarDigitalIaRoute =
+  ClassroomAvatarDigitalIaRouteImport.update({
+    id: '/classroom/avatar-digital-ia',
+    path: '/classroom/avatar-digital-ia',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
   id: '/clientes/',
   path: '/clientes/',
@@ -269,6 +276,12 @@ const ClientesAdminRoute = ClientesAdminRouteImport.update({
   path: '/clientes/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FormacoesAvatarDigitalIaRoute =
+  FormacoesAvatarDigitalIaRouteImport.update({
+    id: '/avatar-digital-ia',
+    path: '/avatar-digital-ia',
+    getParentRoute: () => FormacoesRoute,
+  } as any)
 const PreviewExpressOperationsBRoute =
   PreviewExpressOperationsBRouteImport.update({
     id: '/preview/express-operations-b',
@@ -289,11 +302,6 @@ const BlogEditoriaBeatRoute = BlogEditoriaBeatRouteImport.update({
   id: '/blog/editoria/$beat',
   path: '/blog/editoria/$beat',
   getParentRoute: () => rootRouteImport,
-} as any)
-const FormacoesAvatarDigitalIaRoute = FormacoesAvatarDigitalIaRouteImport.update({
-  id: '/formacoes/avatar-digital-ia',
-  path: '/avatar-digital-ia',
-  getParentRoute: () => FormacoesRoute,
 } as any)
 const BlogRedeDeFontesRelatoriosRoute =
   BlogRedeDeFontesRelatoriosRouteImport.update({
@@ -414,11 +422,10 @@ export interface FileRoutesByFullPath {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
-  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/escola': typeof EscolaRoute
-  '/formacoes': typeof FormacoesRouteWithChildren
-  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
+  '/express-entulho': typeof ExpressEntulhoRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
+  '/formacoes': typeof FormacoesRouteWithChildren
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
@@ -444,8 +451,10 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/clientes/$clientSlug': typeof ClientesClientSlugRoute
   '/clientes/admin': typeof ClientesAdminRoute
+  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
@@ -479,11 +488,10 @@ export interface FileRoutesByTo {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
-  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/escola': typeof EscolaRoute
-  '/formacoes': typeof FormacoesRouteWithChildren
-  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
+  '/express-entulho': typeof ExpressEntulhoRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
+  '/formacoes': typeof FormacoesRouteWithChildren
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
@@ -509,8 +517,10 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/clientes/$clientSlug': typeof ClientesClientSlugRoute
   '/clientes/admin': typeof ClientesAdminRoute
+  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
@@ -544,11 +554,10 @@ export interface FileRoutesById {
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
-  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/escola': typeof EscolaRoute
-  '/formacoes': typeof FormacoesRouteWithChildren
-  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
+  '/express-entulho': typeof ExpressEntulhoRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
+  '/formacoes': typeof FormacoesRouteWithChildren
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
@@ -574,8 +583,10 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
+  '/classroom/avatar-digital-ia': typeof ClassroomAvatarDigitalIaRoute
   '/clientes/$clientSlug': typeof ClientesClientSlugRoute
   '/clientes/admin': typeof ClientesAdminRoute
+  '/formacoes/avatar-digital-ia': typeof FormacoesAvatarDigitalIaRoute
   '/preview/express-operations-b': typeof PreviewExpressOperationsBRouteWithChildren
   '/proposta/express-entulho': typeof PropostaExpressEntulhoRoute
   '/selo/$serial': typeof SeloSerialRoute
@@ -611,11 +622,10 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
-    | '/classroom/avatar-digital-ia'
     | '/escola'
-    | '/formacoes'
-    | '/formacoes/avatar-digital-ia'
+    | '/express-entulho'
     | '/foguete-amarelo'
+    | '/formacoes'
     | '/membros'
     | '/noticias'
     | '/portfolio'
@@ -641,8 +651,10 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/classroom/avatar-digital-ia'
     | '/clientes/$clientSlug'
     | '/clientes/admin'
+    | '/formacoes/avatar-digital-ia'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
@@ -676,11 +688,10 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
-    | '/classroom/avatar-digital-ia'
     | '/escola'
-    | '/formacoes'
-    | '/formacoes/avatar-digital-ia'
+    | '/express-entulho'
     | '/foguete-amarelo'
+    | '/formacoes'
     | '/membros'
     | '/noticias'
     | '/portfolio'
@@ -706,8 +717,10 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/classroom/avatar-digital-ia'
     | '/clientes/$clientSlug'
     | '/clientes/admin'
+    | '/formacoes/avatar-digital-ia'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
@@ -740,11 +753,10 @@ export interface FileRouteTypes {
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
-    | '/classroom/avatar-digital-ia'
     | '/escola'
-    | '/formacoes'
-    | '/formacoes/avatar-digital-ia'
+    | '/express-entulho'
     | '/foguete-amarelo'
+    | '/formacoes'
     | '/membros'
     | '/noticias'
     | '/portfolio'
@@ -770,8 +782,10 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
+    | '/classroom/avatar-digital-ia'
     | '/clientes/$clientSlug'
     | '/clientes/admin'
+    | '/formacoes/avatar-digital-ia'
     | '/preview/express-operations-b'
     | '/proposta/express-entulho'
     | '/selo/$serial'
@@ -806,10 +820,10 @@ export interface RootRouteChildren {
   AulaZeroRoute: typeof AulaZeroRoute
   ClientesVeronicaRoute: typeof ClientesVeronicaRoute
   ComandosRoute: typeof ComandosRoute
-  ClassroomAvatarDigitalIaRoute: typeof ClassroomAvatarDigitalIaRoute
   EscolaRoute: typeof EscolaRoute
-  FormacoesRoute: typeof FormacoesRouteWithChildren
+  ExpressEntulhoRoute: typeof ExpressEntulhoRoute
   FogueteAmareloRoute: typeof FogueteAmareloRoute
+  FormacoesRoute: typeof FormacoesRouteWithChildren
   MembrosRoute: typeof MembrosRoute
   NoticiasRoute: typeof NoticiasRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -835,6 +849,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   BlogExpedienteRoute: typeof BlogExpedienteRoute
   BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
+  ClassroomAvatarDigitalIaRoute: typeof ClassroomAvatarDigitalIaRoute
   ClientesClientSlugRoute: typeof ClientesClientSlugRoute
   ClientesAdminRoute: typeof ClientesAdminRoute
   PreviewExpressOperationsBRoute: typeof PreviewExpressOperationsBRouteWithChildren
@@ -890,13 +905,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComandosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/classroom/avatar-digital-ia': {
-      id: '/classroom/avatar-digital-ia'
-      path: '/classroom/avatar-digital-ia'
-      fullPath: '/classroom/avatar-digital-ia'
-      preLoaderRoute: typeof ClassroomAvatarDigitalIaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/escola': {
       id: '/escola'
       path: '/escola'
@@ -904,25 +912,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EscolaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/formacoes': {
-      id: '/formacoes'
-      path: '/formacoes'
-      fullPath: '/formacoes'
-      preLoaderRoute: typeof FormacoesRouteImport
+    '/express-entulho': {
+      id: '/express-entulho'
+      path: '/express-entulho'
+      fullPath: '/express-entulho'
+      preLoaderRoute: typeof ExpressEntulhoRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/formacoes/avatar-digital-ia': {
-      id: '/formacoes/avatar-digital-ia'
-      path: '/avatar-digital-ia'
-      fullPath: '/formacoes/avatar-digital-ia'
-      preLoaderRoute: typeof FormacoesAvatarDigitalIaRouteImport
-      parentRoute: typeof FormacoesRoute
     }
     '/foguete-amarelo': {
       id: '/foguete-amarelo'
       path: '/foguete-amarelo'
       fullPath: '/foguete-amarelo'
       preLoaderRoute: typeof FogueteAmareloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/formacoes': {
+      id: '/formacoes'
+      path: '/formacoes'
+      fullPath: '/formacoes'
+      preLoaderRoute: typeof FormacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/membros': {
@@ -1114,6 +1122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRedeDeFontesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/classroom/avatar-digital-ia': {
+      id: '/classroom/avatar-digital-ia'
+      path: '/classroom/avatar-digital-ia'
+      fullPath: '/classroom/avatar-digital-ia'
+      preLoaderRoute: typeof ClassroomAvatarDigitalIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/': {
       id: '/clientes/'
       path: '/clientes'
@@ -1134,6 +1149,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/clientes/admin'
       preLoaderRoute: typeof ClientesAdminRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/formacoes/avatar-digital-ia': {
+      id: '/formacoes/avatar-digital-ia'
+      path: '/avatar-digital-ia'
+      fullPath: '/formacoes/avatar-digital-ia'
+      preLoaderRoute: typeof FormacoesAvatarDigitalIaRouteImport
+      parentRoute: typeof FormacoesRoute
     }
     '/preview/express-operations-b': {
       id: '/preview/express-operations-b'
@@ -1307,8 +1329,9 @@ const FormacoesRouteChildren: FormacoesRouteChildren = {
   FormacoesAvatarDigitalIaRoute: FormacoesAvatarDigitalIaRoute,
 }
 
-const FormacoesRouteWithChildren =
-  FormacoesRoute._addFileChildren(FormacoesRouteChildren)
+const FormacoesRouteWithChildren = FormacoesRoute._addFileChildren(
+  FormacoesRouteChildren,
+)
 
 interface BlogRedeDeFontesRouteChildren {
   BlogRedeDeFontesRelatoriosRoute: typeof BlogRedeDeFontesRelatoriosRoute
@@ -1383,10 +1406,10 @@ const rootRouteChildren: RootRouteChildren = {
   AulaZeroRoute: AulaZeroRoute,
   ClientesVeronicaRoute: ClientesVeronicaRoute,
   ComandosRoute: ComandosRoute,
-  ClassroomAvatarDigitalIaRoute: ClassroomAvatarDigitalIaRoute,
   EscolaRoute: EscolaRoute,
-  FormacoesRoute: FormacoesRouteWithChildren,
+  ExpressEntulhoRoute: ExpressEntulhoRoute,
   FogueteAmareloRoute: FogueteAmareloRoute,
+  FormacoesRoute: FormacoesRouteWithChildren,
   MembrosRoute: MembrosRoute,
   NoticiasRoute: NoticiasRoute,
   PortfolioRoute: PortfolioRoute,
@@ -1412,6 +1435,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   BlogExpedienteRoute: BlogExpedienteRoute,
   BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,
+  ClassroomAvatarDigitalIaRoute: ClassroomAvatarDigitalIaRoute,
   ClientesClientSlugRoute: ClientesClientSlugRoute,
   ClientesAdminRoute: ClientesAdminRoute,
   PreviewExpressOperationsBRoute: PreviewExpressOperationsBRouteWithChildren,

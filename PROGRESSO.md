@@ -1,1896 +1,4 @@
-## Express Operations ‚Äî demonstra√ß√£o visual "Modo Sombra" (2026-09-24)
-
-- Nova aba **Demonstra√ß√£o ‚Äî Modo Sombra** dentro da mesma rota
-  `/clientes/express-entulho/operacoes`: lista de 5-6 conversas fict√≠cias com
-  selo de inten√ß√£o, thread simulado, painel de dados extra√≠dos (com destaque
-  para dado ausente), resposta sugerida pela IA e bot√£o "Aprovar" que s√≥ marca
-  estado local e mostra o aviso "Envio bloqueado ‚Äî modo sombra ativo".
-- **√â Demonstrativo, n√£o Funcionando.** Todos os dados v√™m de um array
-  mockado no pr√≥prio componente (TypeScript) ‚Äî sem tabela nova no Neon, sem
-  migration, sem webhook real, sem chamada ao Groq e sem qualquer API real do
-  WhatsApp. O backend real (n√∫mero dedicado, webhook, extra√ß√£o de dados de
-  conversa real) segue pendente, como j√° registrado nas entradas anteriores.
-- Valida√ß√£o local: typecheck e build (Vite/Nitro) aprovados.
-
-## Nova entrada YO LAB & CO / Escola Veronica (2026-09-23, branch de revis√£o)
-
-- A Home institucional do ecossistema foi criada em `/` com jornadas para aprender,
-  utilizar plataformas e explorar solu√ß√µes empresariais. O navegador de plataformas
-  l√™ nomes, links e disponibilidade de `src/lib/ecosystem.ts`; m√≠dias ausentes
-  recebem uma composi√ß√£o identificada, sem simular um produto funcional.
-- A Home educacional anterior foi preservada em `/escola`, com tema, efeitos,
-  imagem, componentes e conte√∫do originais. O cat√°logo can√¥nico agora aponta
-  a Escola para esta rota; o rodap√© tamb√©m oferece um link direto.
-- O logotipo oficial YO fornecido pelo respons√°vel foi incorporado √† entrada
-  institucional e convertido em favicon, √≠cones de instala√ß√£o e imagem
-  otimizada. A identidade Veronica permanece nas p√°ginas da Escola.
-- A oferta de arquitetura/white-label √© apresentada como conversa comercial
-  por e-mail; n√£o h√° checkout, pre√ßo ou licenciamento automatizado.
-- O c√≥digo est√° na branch `feat/yolab-ecosystem-home`; produ√ß√£o n√£o foi
-  alterada. A checagem visual em navegador externo n√£o foi conclu√≠da porque
-  o navegador remoto bloqueou o servidor local. As duas rotas foram
-  verificadas por resposta SSR local.
-- Valida√ß√£o de c√≥digo: **159 testes aprovados**, typecheck e build
-  Cloudflare/Nitro aprovados, lint direcionado sem erros (um aviso
-  preexistente de Fast Refresh em `SiteChrome.tsx`).
-
-## Express Operations ‚Äî rota operacional unificada (2026-09-23)
-
-- A central completa com navega√ß√£o lateral em
-  `/clientes/express-entulho/operacoes` passou a ser a √∫nica interface
-  operacional can√¥nica da Express Entulho.
-- A antiga demonstra√ß√£o em `/clientes/express-entulho/operacoes-demo` deixou
-  de renderizar uma segunda interface e agora redireciona para a central
-  can√¥nica, preservando favoritos e links j√° enviados.
-- O bot√£o da √°rea privada e o atalho administrativo foram corrigidos para
-  apontar diretamente para `/operacoes`. A interface duplicada foi removida,
-  sem alterar autentica√ß√£o, backend, WhatsApp ou dados.
-- A allowlist do ambiente foi informada pelo respons√°vel como salva no
-  Cloudflare; a valida√ß√£o final do recebimento e confirma√ß√£o do OTP em produ√ß√£o
-  ainda precisa ser conclu√≠da.
-- Valida√ß√£o local conclu√≠da: **159 testes aprovados**, typecheck aprovado e
-  build Cloudflare/Nitro aprovado.
-
-## Express Operations ‚Äî segunda barreira de acesso (2026-09-23, publicada)
-
-- O selo p√∫blico deixou de ser suficiente para abrir o ambiente operacional da
-  Express. O acesso agora exige tamb√©m uma conta confirmada pelo OTP de e-mail
-  j√° existente no Hub e presente na allowlist privada do servidor.
-- A pol√≠tica falha fechada: sem `EXPRESS_OPERATIONS_ALLOWED_EMAILS`, o painel
-  permanece bloqueado; conta n√£o listada tamb√©m n√£o entra. Nenhum endere√ßo de
-  e-mail foi colocado no c√≥digo ou no hist√≥rico Git.
-- O mesmo componente de confirma√ß√£o protege tanto o workspace privado quanto a
-  rota `/clientes/express-entulho/operacoes`. Outros clientes preservam o fluxo
-  atual at√© que dados privados justifiquem ativar a segunda barreira para eles.
-- Nenhuma conversa real foi ligada ao painel, nenhuma integra√ß√£o externa foi
-  ativada e nenhuma mensagem de WhatsApp foi enviada. O n√∫mero atual da empresa
-  continua intocado e a trava de envio permanece desligada.
-- Publicado na `main` e confirmado em produ√ß√£o: a rota operacional responde com
-  a barreira de acesso fechada para visitantes sem credencial. Valida√ß√£o final:
-  **158 testes aprovados**, typecheck e build Cloudflare/Nitro aprovados.
-- A allowlist foi informada pelo respons√°vel como cadastrada no ambiente
-  seguro do Cloudflare; o endere√ßo autorizado n√£o foi versionado no Git.
-- Pr√≥ximo passo: validar o OTP diretamente no painel; depois criar a consulta
-  das conversas por `tenant = express-entulho`, em modo somente leitura e sem
-  qualquer fun√ß√£o de resposta.
-
-## Express Operations ‚Äî observa√ß√£o e leitura operacional (2026-09-23, publicada)
-
-- A √°rea de atendimento da Express foi ajustada para o modo **somente
-  acompanhamento**: o campo de resposta e o bot√£o de envio foram removidos da
-  interface. Esta etapa n√£o permite responder clientes.
-- Criado um analisador operacional determin√≠stico para classificar inten√ß√£o,
-  extrair somente dados expl√≠citos da conversa, apontar informa√ß√µes que faltam
-  e sinalizar casos que exigem revis√£o humana. O m√≥dulo n√£o chama LLM, Meta ou
-  qualquer fun√ß√£o de envio.
-- A leitura cobre or√ßamento, agendamento, troca, retirada, prorroga√ß√£o,
-  altera√ß√£o/cancelamento, atraso/problema, pagamento/documenta√ß√£o e pedidos de
-  informa√ß√£o. Combina√ß√µes de pre√ßo desconhecidas, negocia√ß√£o, atraso,
-  cancelamento e assuntos financeiros permanecem sob aprova√ß√£o humana.
-- A trava `WHATSAPP_ENVIO_LIBERADO` foi preservada e nenhuma credencial,
-  conex√£o externa ou mensagem real foi utilizada. O n√∫mero atual da Express
-  n√£o foi tocado.
-- As conversas reais ainda n√£o foram ligadas ao painel. A sess√£o atual da √°rea
-  do cliente pode ser aberta a partir do selo p√∫blico e, portanto, n√£o oferece
-  prote√ß√£o suficiente para dados privados. O painel permanece com dados de
-  demonstra√ß√£o at√© existir autentica√ß√£o exclusiva do propriet√°rio/equipe.
-- Valida√ß√£o local conclu√≠da: **150 testes aprovados**, typecheck aprovado, lint
-  dos arquivos alterados aprovado e build Cloudflare/Nitro aprovado. A
-  verifica√ß√£o visual automatizada ficou bloqueada neste ambiente por aus√™ncia
-  de um Chrome instal√°vel e indisponibilidade do CDN do navegador; n√£o houve
-  erro de compila√ß√£o da aplica√ß√£o.
-- Pr√≥ximo passo recomendado: adicionar autentica√ß√£o privada com pap√©is e
-  auditoria; depois conectar uma consulta somente leitura √†s conversas
-  persistidas. Envio de mensagens deve permanecer desativado at√© homologa√ß√£o e
-  autoriza√ß√£o expl√≠cita em etapa separada.
-
-## Automa√ß√£o, deploy e ciclo de conte√∫do ‚Äî 2026-09-21
-
-### Routine agendada n√£o consegue publicar neste projeto
-
-> [!CAUTION]
-> **Routine (agendamento que cria sess√£o nova) n√£o publica em `main`.** Vale
-> para qualquer automa√ß√£o futura deste reposit√≥rio que precise empurrar
-> c√≥digo, n√£o s√≥ para o feed de v√≠deos.
-
-Medido, n√£o suposto. A Routine `trig_01X3fQC2UjMZxLGBJKQqcvJJ` ("V√≠deos em
-alta ‚Äî ciclo 48h") rodou em 20/09 √†s 16:34 por **5 minutos e 13 segundos** e
-terminou com status **`SUCCEEDED`**. N√£o deixou nada: nem commit em `main`,
-nem branch, nem PR ‚Äî conferido em todos os branches do remoto, nenhum tinha
-`refreshedAt` mais novo. O feed ficou **142 horas** no ar com conte√∫do velho
-at√© ser republicado √† m√£o.
-
-A causa prov√°vel √© o push em `main` ser barrado por disparar deploy em
-produ√ß√£o, sem humano na sess√£o para aprovar. O status `SUCCEEDED` √©
-enganoso: ele registra que a sess√£o terminou sem erro, n√£o que o trabalho
-chegou ao reposit√≥rio. A sess√£o `cse_01RkW7CzPeV1C1t8rc9Uk5HM` guarda o
-motivo real, se algu√©m quiser confirmar.
-
-A Routine foi apagada em 21/09. **O padr√£o que funciona** √© um agendamento
-que acorda uma sess√£o existente, onde a aprova√ß√£o de push existe ‚Äî foi assim
-que as levas de 15/09 e 21/09 foram publicadas.
-
-### Deploy autom√°tico limitado ao `main`
-
-At√© 13/09 a integra√ß√£o Git do Cloudflare tinha **"Builds for non-production
-branches" ligado**, e o *deploy command* √© `npx wrangler deploy` ‚Äî um deploy
-comum, que publica em produ√ß√£o. Na pr√°tica, **push em qualquer branch
-substitu√≠a o site**. Em 13/09 dois pushes quase simult√¢neos (um de branch
-paralelo, outro do `main`) derrubaram `/blog`, `/selos`, `/aula-zero` e
-`/admin` por ~25 minutos: o build do branch venceu e o site passou a servir
-uma linhagem reduzida do projeto.
-
-A caixa foi desmarcada e o *production branch* confirmado em `main`.
-Verificado por teste: um branch descart√°vel com commit trivial n√£o gerou
-build nenhum, enquanto antes o bot do Cloudflare comentava em 5 segundos.
-
-### Hist√≥rico de migra√ß√µes do drizzle estava fora de sincronia
-
-`drizzle.__drizzle_migrations` tinha **4 registros para 10 arquivos** de
-migra√ß√£o, o √∫ltimo de 14/08. As tabelas existiam mesmo assim porque os
-endpoints as criam sob demanda (`CREATE TABLE IF NOT EXISTS`, padr√£o do
-`/r/wire`). O efeito colateral: o bootstrap idempotente mascarava a deriva,
-e o pr√≥ximo `drizzle-kit migrate` teria **falhado** ao recriar
-`WireOfferClick`.
-
-Sincronizado em 13/09: registros de `0002` a `0009` inseridos, com hash
-conferido por c√°lculo contra o conte√∫do de cada arquivo. Os registros `id=3`
-e `id=4` s√£o duplicados de uma migra√ß√£o reescrita depois de aplicada ‚Äî
-inofensivos, deixados como est√£o.
-
-O bootstrap continua sendo boa rede de seguran√ßa, mas **enquanto ningu√©m
-rodar `migrate` no deploy, o hist√≥rico desanda de novo na pr√≥xima tabela.**
-
-### Ciclo de 48h dos v√≠deos em alta
-
-- Fonte: `src/data/trending-videos.json`. A rotina troca a leva e nada mais.
-- Capas: `node scripts/render-trending-covers.mjs` renderiza 9:16 com
-  Chromium/Playwright (mesma t√©cnica do `render-cover.mjs` do Wire, sem API
-  de imagem paga). **Obrigat√≥rio a cada leva** ‚Äî capa velha com t√≠tulo novo
-  √© pior que capa nenhuma. Nenhum arquivo em `public/images/trending/` pode
-  ficar sem v√≠deo correspondente, e vice-versa.
-- Trava de ciclo: **47h**, n√£o 48h. A margem de 1 hora n√£o √© descuido ‚Äî um
-  cron di√°rio cai sempre no mesmo minuto do rel√≥gio e raspa o limite por
-  segundos, o que em 15/09 transformou o ciclo em 72h.
-- N√∫meros de views e GMV s√£o **estimativa de curadoria por pesquisa p√∫blica**,
-  e a p√°gina diz isso ao leitor. N√£o escrever nada que sugira telemetria
-  auditada da plataforma.
-
-## Estado operacional consolidado ‚Äî 2026-09-13
-
-- Continuidade assumida integralmente pelo Codex a partir de `origin/main` no
-  commit `65e1a2b`, preservando as entregas anteriores e sem altera√ß√µes
-  paralelas em andamento.
-- Instagram `@wire__tv` confirmado pelo respons√°vel como conta profissional,
-  vinculada √† p√°gina do Facebook **Yezo Lab** e sincronizada no Meta Ads.
-  A publica√ß√£o autom√°tica segue deliberadamente desligada at√© a autoriza√ß√£o
-  segura do aplicativo Meta e a configura√ß√£o dos segredos no Worker; nenhum
-  token deve ser exposto em c√≥digo, commit ou conversa.
-- Pipeline editorial verificado: a execu√ß√£o autom√°tica n¬∫ 110, iniciada √†s
-  23:00 UTC, concluiu com sucesso e preservou a regra editorial ao n√£o publicar
-  quando n√£o encontrou fato verific√°vel suficiente.
-- Valida√ß√£o da base antes dos ajustes finais: 16 testes aprovados, typecheck
-  aprovado e build Cloudflare/Nitro aprovado. Home, Wire TV, mat√©ria, feeds,
-  sitemaps, selos e proposta da Express responderam em produ√ß√£o.
-- Proposta Express Entulho corrigida para registrar a entrada de R$ 750 paga em
-  12/09/2026 e o saldo de R$ 750 na entrega de 17/09/2026. Cronograma detalhado
-  de 13 a 17/09, atalho p√∫blico `/proposta/express-entulho` e liga√ß√£o rec√≠proca
-  entre proposta e selo `VH-AUT-WA-2026-000001` adicionados.
-- Experi√™ncia editorial refinada com estado de carregamento nas mat√©rias,
-  mensagens de erro em portugu√™s e cabe√ßalhos b√°sicos de seguran√ßa aplicados
-  tanto √†s respostas SSR/API quanto aos arquivos est√°ticos.
-
-## Veronica Wire ‚Äî credibilidade e receita editorial (2026-09-13)
-
-- O produto volta a se apresentar como **Veronica Wire**. O selo permanente
-  "Ao vivo" foi desligado e a home usa "√öltimas" com a manchete mais recente;
-  "Ao vivo" fica reservado para cobertura cont√≠nua real.
-- Nova rota p√∫blica `/blog/expediente`: identidade institucional, respons√°vel
-  pelo projeto, pol√≠tica editorial, m√©todo de verifica√ß√£o, uso transparente de
-  automa√ß√£o, corre√ß√µes, integridade comercial e contato da reda√ß√£o.
-- Mat√©rias ganharam classifica√ß√£o "Not√≠cia", assinatura institucional real,
-  publica√ß√£o e atualiza√ß√£o com hor√°rio de Bras√≠lia, tempo de leitura, texto com
-  tipografia editorial, solicita√ß√£o de corre√ß√£o e mat√©rias relacionadas.
-- Cada editoria possui uma oferta pr√≥pria contextual da Veronica depois do
-  conte√∫do. O redirecionamento `/r/wire` adiciona UTM e registra somente o
-  clique, sem IP, cookie, e-mail ou user-agent.
-- Nova √°rea protegida `/admin/wire` mostra inten√ß√µes comerciais dos √∫ltimos 30
-  dias e deixa expl√≠cito que clique n√£o √© venda. Receita confirmada permanece no
-  checkout e ser√° a pr√≥xima camada de atribui√ß√£o.
-- Schema/migra√ß√£o `0008_naive_phalanx.sql` adiciona `WireOfferClick`. O endpoint
-  possui bootstrap idempotente para criar a tabela antes do primeiro registro
-  caso o Worker chegue antes da migra√ß√£o formal.
-- SEO: `NewsArticle` agora referencia Reda√ß√£o, Expediente, data de atualiza√ß√£o e
-  organiza√ß√£o publicadora; criado `/news-sitemap.xml` apenas com mat√©rias dos
-  √∫ltimos dois dias e inclu√≠do em `robots.txt`.
-- Valida√ß√£o local: typecheck, build Cloudflare/Nitro e 8 testes passaram. O
-  servidor de preview deste ambiente n√£o abriu por erro de interface de rede;
-  a verifica√ß√£o p√∫blica deve ser feita ap√≥s o deploy.
-
-## Fase 3 ‚Äî Forma√ß√µes (2026-09-11, local)
-
-- Auditoria partiu de `origin/main` em `bf8568c`; √°rvore estava limpa. A
-  restaura√ß√£o visual aprovada da Home est√° em `ab353b0`, registrada como
-  publicada por `53cffd8`, e foi preservada.
-- `/comandos` mant√©m os 11 cards e agora usa o cat√°logo can√¥nico para t√≠tulo,
-  descri√ß√£o, n√≠vel, dura√ß√£o transparente, resultado esperado, status e CTA.
-- Removidas contagens e promessas n√£o comprovadas de aulas/horas. As forma√ß√µes
-  seguem como "Em produ√ß√£o" e n√£o recebem link falso; a legenda j√° distingue
-  "Dispon√≠vel", "Em produ√ß√£o" e "Em breve".
-- Aula Zero permanece como a entrada gratuita dispon√≠vel em `/aula-zero`.
-- Cada item reserva `futurePath: /formacoes/$slug`, mas nenhuma p√°gina individual
-  vazia foi criada. Home, Studio e Security continuam consumindo a mesma fonte.
-- Backend, autentica√ß√£o, pagamentos, banco, imagem da Veronica e design amplo da
-  Home n√£o foram alterados. Nenhuma depend√™ncia nova foi adicionada.
-- Valida√ß√£o: 5 testes, typecheck e build Cloudflare aprovados. A instala√ß√£o do
-  navegador para QA visual falhou por certificado `UnknownIssuer`; revis√£o de
-  conte√∫do, CTAs e classes responsivas conclu√≠da estaticamente. Sem push/deploy.
-
-## Publica√ß√£o da Fase 1 ‚Äî 2026-09-11
-
-- Publicado em produ√ß√£o pelo commit remoto `91c4cdd` na branch `main`.
-- Cloudflare propagou a nova vers√£o em `https://veronicahub.com`.
-- Verifica√ß√£o p√∫blica conclu√≠da em Home, Forma√ß√µes, Prompt Packs, Analytics,
-  Curr√≠culo-Certo, √Årea RH, Studio e Wire; todas carregaram com os t√≠tulos e
-  conte√∫dos esperados, sem erros da aplica√ß√£o no console.
-- O Wire carregou normalmente com o banco do ambiente de produ√ß√£o.
-- Typecheck, build e cinco testes de arquitetura passaram antes da publica√ß√£o.
-
-# Progresso ‚Äî redesign visual Veronica Hub
-
-## Express Operations ‚Äî demonstra√ß√£o visual (2026-09-14, local)
-
-- Criada a rota n√£o index√°vel `/clientes/express-entulho/operacoes-demo` como
-  demonstra√ß√£o front-end, sem backend, banco, webhook ou integra√ß√£o ativa.
-- A p√°gina abre diretamente numa superf√≠cie operacional clara e responsiva,
-  com vis√£o geral, atendimento, agenda e rotas, frota, clientes e financeiro.
-- Dados pessoais dos prints n√£o foram reutilizados. Conversas e opera√ß√µes s√£o
-  anonimizadas e rotuladas como simula√ß√£o; n√∫meros desconhecidos permanecem
-  como ‚ÄúAguardando cadastro‚Äù.
-- O prot√≥tipo materializa o fluxo de atraso, aprova√ß√£o humana, planejamento do
-  pr√≥ximo dia e a taxa de sucesso demonstrativa de 10%.
-- Marca de proced√™ncia aplicada com `VH-AUT-WA-2026-000001`, YO LAB & CO. e
-  Intelig√™ncias Veronica. Nenhuma mudan√ßa em schema, pagamentos ou backend.
-- Trabalho isolado na branch local `feat/express-operations-demo`; sem push e
-  sem deploy.
-
-Arquivo de retomada r√°pida. Se voc√™ abrir uma sess√£o nova do Claude Code
-(ou outro agente) neste diret√≥rio, leia isto primeiro.
-
-## Retomada da valida√ß√£o ‚Äî 2026-09-10
-
-- Verifica√ß√£o HTTP local: Home, Forma√ß√µes, Prompt Packs, Analytics,
-  Curr√≠culo-Certo, √Årea RH e Studio retornaram 200 com t√≠tulos espec√≠ficos.
-- Wire retornou 500 no ambiente local; DATABASE_URL n√£o est√° configurada.
-  N√£o foram alteradas credenciais, integra√ß√µes ou tratamento do backend.
-- Ap√≥s autoriza√ß√£o expl√≠cita para ferramentas de teste, o download do Chrome
-  falhou por certificado n√£o reconhecido no instalador agent-browser; o
-  download oficial do Playwright esgotou o tempo de conex√£o. QA visual
-  desktop/mobile permanece pendente por limita√ß√£o do ambiente.
-- Nenhum push/deploy realizado. Autoriza√ß√£o para publicar ap√≥s valida√ß√£o mantida.
-
-## Valida√ß√£o da Fase 1 ‚Äî atualiza√ß√£o em 2026-09-10
-
-- Depend√™ncias existentes instaladas com Bun e `--frozen-lockfile`, ap√≥s nova
-  autoriza√ß√£o do usu√°rio; package.json e bun.lock n√£o alterados nesta retomada.
-- `npm run typecheck`: passou. `npm run build`: passou (sa√≠da Cloudflare/Nitro).
-- Os cinco testes de arquitetura passaram; sem altera√ß√µes de backend.
-- QA visual desktop/mobile ainda pendente: instala√ß√£o adicional de agent-browser
-  rejeitada pela revis√£o autom√°tica; Playwright dispon√≠vel sem execut√°vel de
-  navegador, e navegador remoto bloqueia localhost (`ERR_BLOCKED_BY_CLIENT`).
-- Publica√ß√£o autorizada pelo usu√°rio quando a valida√ß√£o estiver completa.
-  Nenhum push ou deploy realizado nesta retomada.
-
-## Fase 1 ‚Äî funda√ß√£o da arquitetura (2026-09-10)
-
-Implementa√ß√£o local na branch `feat/architecture-foundation-phase1`, baseada em
-`b7e1e1f`. Sem push e sem deploy. Valida√ß√£o completa ainda pendente.
-
-- Registro can√¥nico em `src/lib/ecosystem.ts`: produtos, status editoriais,
-  categorias, seis inten√ß√µes e destinos. Adaptadores preservam os consumidores
-  existentes; Universe mant√©m a constela√ß√£o e lista todas as √°reas no diret√≥rio.
-- Header/footer compartilhados na Home e p√°ginas p√∫blicas. Desktop/mobile usam
-  as mesmas fontes. Sem Admin p√∫blico; redes no rodap√©. Curr√≠culo/RH mant√™m os
-  pr√≥prios controles de sess√£o/carteira, com navega√ß√£o global compartilhada.
-- Forma√ß√µes mant√©m `/comandos`; cat√°logo com slug, status, CTA, objetivo e
-  disponibilidade. As 11 forma√ß√µes sem entrega identificada ficam em produ√ß√£o.
-  Nenhum card simula acesso pela Home. Aula Zero permanece acess√≠vel.
-- Termos/privacidade e newsletter sem destino foram retirados temporariamente.
-  Contato usa o e-mail existente; comunidade sem grupo real virou acesso √† escola.
-- Analytics identifica dados demonstrativos; Wire n√£o promete publica√ß√£o por
-  hora/ao vivo; removida alega√ß√£o est√°tica de mais vendido. Metadados globais
-  posicionam a marca como Escola de Intelig√™ncia Artificial.
-- Backend, autentica√ß√£o, APIs, banco, pagamentos e imagem otimizada da Hero
-  n√£o foram alterados. AuthWidget comparado com a base: id√™ntico.
-- Verifica√ß√£o: 5 testes de contratos/rotas passaram com `npm test` (Node 24),
-  parse dos 21 arquivos TS/TSX alterados passou; `git diff --check` limpo.
-- `npm run typecheck` bloqueado: `tsc: not found`; `npm run build` bloqueado:
-  `vite: not found`. Depend√™ncias ausentes e nenhuma instalada. Scripts de
-  typecheck/test foram adicionados sem novas depend√™ncias.
-- Verifica√ß√£o real em navegador desktop/mobile n√£o executada: aplica√ß√£o n√£o
-  pode ser iniciada sem suas depend√™ncias. Revis√£o est√°tica n√£o substitui essa
-  etapa. Reexecutar tipos/build e QA das rotas antes de considerar a fase validada.
-- Pend√™ncias editoriais: destinos de entrega das forma√ß√µes, documentos legais,
-  newsletter/comunidade reais e comprova√ß√£o das integra√ß√µes de Analytics/Wire.
-
-## Onde estamos
-
-- Reposit√≥rio: `~/veronicahub-app` (WSL), GitHub `Veronica-01Git/veronicahub-app`.
-- **J√Å PUBLICADO:** `main`/`origin/main` est√° no commit `ee3ab65`
-  (PR #25 ‚Äî pagina√ß√£o por editoria + arquivamento da home do Veronica
-  Wire, ver se√ß√£o "Veronica Wire" abaixo) ‚Äî deploy autom√°tico do
-  Cloudflare disparou a partir desse push em `main`.
-  (O commit `a24d7c9`/PR #7 mencionado logo abaixo √© hist√≥rico ‚Äî muita
-  coisa aconteceu desde ent√£o, tudo documentado na se√ß√£o Veronica Wire.)
-- **Worker de produ√ß√£o correto: `veronicahub-app`** (n√£o
-  `veronica-01git-veronicahub-app`). A conta Cloudflare tem os dois ‚Äî
-  `veronica-01git-veronicahub-app` existe mas N√ÉO √© o que serve o
-  dom√≠nio (ficou parado no commit `99b006c`, desatualizado). Se for usar
-  `wrangler secret put` ou qualquer comando `--name`, usar
-  `veronicahub-app`.
-- **‚ö†Ô∏è CR√çTICO ‚Äî o deploy autom√°tico do Cloudflare dispara a CADA PUSH
-  em QUALQUER branch conectada, n√£o s√≥ em `main`.** Confirmado na
-  pr√°tica: dar `git push` numa branch de feature (`claude/‚Ä¶`) j√° gerou
-  um "Deployment successful!" direto no ambiente `production` do
-  Worker (coment√°rio do bot `cloudflare-workers-and-pages` no PR,
-  apontando pra `.../veronicahub-app/production/builds/...`). **N√£o
-  existe deploy de preview separado nesse projeto** ‚Äî todo push vira
-  produ√ß√£o na hora, esteja em `main` ou n√£o. Isso j√° causou um susto
-  real: uma mudan√ßa de schema (coluna `role` nova) foi publicada antes
-  da migration rodar no banco, o que quebraria login em todo o Hub at√©
-  a migration ser aplicada (resolvido r√°pido, mas foi por pouco).
-  **Regra pr√°tica daqui pra frente: rodar qualquer migration de banco
-  ANTES de dar `git push` em qualquer branch ‚Äî n√£o s√≥ antes de mesclar
-  em `main`.**
-- Branch antiga de trabalho `claude/veronicahub-redesign-cont-k92gt4`
-  (redesign visual ‚Äî se√ß√µes abaixo) ‚Äî status atual n√£o confirmado nesta
-  atualiza√ß√£o, n√£o tocada na sess√£o do Veronica Wire.
-- Branches de trabalho do Veronica Wire usadas nesta sess√£o
-  (`claude/wire-evolucao`, `claude/wire-pagination`) j√° tiveram seus PRs
-  mesclados ‚Äî nenhuma tem mudan√ßa pendente. Pra continuar o Wire, criar
-  branch nova a partir de `origin/main` (padr√£o j√° estabelecido: sempre
-  `git fetch origin main && git checkout -B <nome> origin/main` antes de
-  come√ßar, nunca reaproveitar uma branch cujo PR j√° foi mesclado por
-  squash ‚Äî o hist√≥rico diverge e o pr√≥ximo PR mostra diff duplicado).
-- Reposit√≥rio irm√£o `~/negocio-da-china-app` (China Exchange) n√£o foi
-  tocado.
-
-## O que j√° foi feito
-
-### Veronica Wire ‚Äî pipeline de publica√ß√£o autom√°tica (setembro 2026)
-
-O Wire (`/blog`) mant√©m um fluxo automatizado de publica√ß√£o: um cron do
-GitHub Actions (`.github/workflows/generate-article.yml`) roda a cada 5h,
-gera uma mat√©ria via Claude com `web_search` pra uma das 5 editorias (IA,
-clima, economia, geopol√≠tica, mercado tecnol√≥gico) e publica direto no
-Neon. Todo esse pipeline (e s√≥ ele) foi constru√≠do/evolu√≠do nesta sess√£o,
-em PRs sequenciais ‚Äî todos j√° mesclados em `main` exceto o que est√° listado
-em "Sess√£o em andamento":
-
-- **PR #14** ‚Äî infraestrutura pra servir imagem de capa por mat√©ria
-  (`coverImageUrl`/`coverImageData`/`coverImageMimeType` no schema).
-- **PR #17** ‚Äî capa autom√°tica via card HTML/CSS tipogr√°fico (Playwright +
-  Chromium, renderizado no pr√≥prio Action ‚Äî Cloudflare Workers n√£o
-  escrevem em `/public`), sem custo por imagem.
-- **PR #18** ‚Äî corrigiu falha silenciosa do cron: `DRAFT_MAX_TOKENS`
-  (2200) cortava a resposta da IA no meio quando `web_search` consumia
-  parte do budget. Subiu pra 4096 + uma retentativa autom√°tica s√≥ quando o
-  formato vem quebrado.
-- **PR #19** ‚Äî silhueta humana SVG no card tipogr√°fico (item visual,
-  substituindo a ideia inicial de gerar foto real via Higgsfield, que tem
-  custo recorrente por imagem).
-- **PR #20** ‚Äî banco de imagens admin (`/admin/imagens`): upload manual,
-  galeria, base64 no Postgres (mesmo caminho de `coverImageData` ‚Äî nunca
-  R2, j√° quebrou o build desse stack antes).
-- **PR #21** ‚Äî 5 corre√ß√µes pontuais: dedup de mat√©ria duplicada (checagem
-  por janela de `CYCLE_HOURS`, n√£o por URL), masthead com data/hora real
-  desde o primeiro render (fuso `America/Sao_Paulo` fixo), atribui√ß√£o
-  "Fonte: X ‚Ä∫" derivada de `sourceUrls[0]`, copy da se√ß√£o final reescrita
-  de "Reda√ß√£o global" pra "Monitoramento global" (honesta sobre ser
-  automa√ß√£o, n√£o correspondente local), placeholder de capa mostrando o
-  nome da editoria em vez de vazio.
-- **PR #22** ‚Äî capa fotorrealista de verdade via **Pexels** (principal) e
-  **Pixabay** (fallback): a IA j√° devolve `fotoTermos` (2-3 termos em
-  ingl√™s) na mesma chamada que escreve a mat√©ria; `scripts/fetch-cover-photo.mjs`
-  busca no GitHub Action (n√£o no Worker) e cai pro card tipogr√°fico s√≥ se
-  nada for encontrado. Testado ao vivo com sucesso (foto real do Pexels
-  publicada). `PEXELS_API_KEY` j√° cadastrada como secret do Actions;
-  `PIXABAY_API_KEY` ainda n√£o.
-- **PR #23** (brief "Veronica Wire ‚Äî evolu√ß√£o", item A de 3) ‚Äî piso de
-  qualidade antes de publicar (m√≠nimo 2 `sourceUrls`, corpo m√≠nimo 700
-  caracteres), dedup por similaridade de manchete (√∫ltimas 40 publica√ß√µes,
-  todas editorias, _overlap coefficient_ com limiar 0.35 calibrado √† m√£o ‚Äî
-  ver coment√°rio em `findSimilarHeadline` em `articles-server.ts`), prompt
-  ajustado pra mat√©rias mais curtas (900-1400 caracteres), endpoint
-  `?dryRun=1` em `/api/cron/generate-article` pra simular sem publicar, e
-  `scripts/fetch-fallback-covers.mjs` + workflow manual
-  `fetch-fallback-covers.yml` pra popular uma foto gen√©rica fixa por
-  editoria (n√≠vel 3 do fallback).
-- **PR #24** ‚Äî pedido direto no chat, fora do brief formal: segundos no
-  rel√≥gio do masthead (`formatMasthead` ganhou `second: "2-digit"`),
-  removido o overlay "hologr√°fico" global (`HudScanner`/`holo-beam` de
-  `HoloOrbits.tsx`) da rota `/blog` (adicionado `/blog` em
-  `LIGHT_THEME_ROUTES`, mecanismo de opt-out por rota que j√° existia),
-  link do menu "Blog" ‚Üí "Veronica Wire" (`SiteChrome.tsx`, desktop e
-  mobile), e novo componente `src/components/blog/WirePulseGlobe.tsx`
-  (SVG+SMIL, sem three.js ‚Äî a lib est√° no `package.json` mas n√£o √© usada
-  em nenhuma rota do app, adicionar custaria ~1.8MB de bundle) simulando
-  um globo girando com 4 pontos pulsando ‚Äî um por desk (S√£o Paulo/SF/
-  Pequim/Londres) ‚Äî no masthead ao lado do rel√≥gio.
-- **`fetch-fallback-covers.yml` j√° rodado** (workflow_dispatch manual,
-  commit direto em `main`: `816c53b`) ‚Äî as 5 fotos gen√©ricas por editoria
-  j√° existem em `public/images/blog-covers/_fallback/<beat>.jpg`.
-- **PR #25** (brief "evolu√ß√£o", item C de 3) ‚Äî pagina√ß√£o real por cursor
-  (n√£o offset) numa rota nova `/blog/editoria/$beat` (n√£o `/blog/$beat`:
-  dois segmentos din√¢micos irm√£os no mesmo n√≠vel seriam amb√≠guos pro
-  roteador do TanStack Router), "Carregar mais" em blocos de 15
-  (`getArticlesByBeat` em `articles-server.ts`); home (`getPublishedArticles`)
-  trocou o `.limit(60)` sem filtro de tempo por √∫ltimas 24h + bloco "Esta
-  semana" (24h-7d, teto de 20). Nota deixada no PR: no volume atual (cron
-  ainda a cada 5h, uma editoria por vez ‚Äî item B abaixo), √© normal a home
-  mostrar s√≥ 4 das 5 se√ß√µes de editoria √†s vezes, j√° que o round-robin
-  completo leva ~25h ‚Äî se resolve sozinho quando o item B aumentar a
-  frequ√™ncia.
-
-**‚ö†Ô∏è Cron pausado (03/set/2026) ‚Äî sem saldo na API da Anthropic.** A partir
-da execu√ß√£o #20 (02/set ~14h) todas as rodadas do cron passaram a falhar
-com `"Your credit balance is too low to access the Anthropic API"` ‚Äî n√£o √©
-bug de c√≥digo (confirmado: a run #19, mesmo commit de duas que j√°
-falhavam depois, tinha rodado com sucesso poucas horas antes). Usu√°rio sem
-or√ßamento pra recarregar cr√©ditos agora. A√ß√£o tomada: `schedule` comentado
-em `generate-article.yml` (`workflow_dispatch` continua dispon√≠vel pra
-disparo manual) ‚Äî nenhuma mat√©ria nova √© publicada automaticamente at√©
-isso ser resolvido.
-
-**Gemini abandonado ‚Äî cota bloqueada mesmo com faturamento.** Anthropic
-sem cr√©dito, Gemini foi a primeira tentativa de tier gr√°tis. Hist√≥rico
-completo de tentativas, cada uma corrigindo o erro anterior mas sempre
-esbarrando em cota:
-
-1. `gemini-flash-latest` (alias) ‚Üí `429 RESOURCE_EXHAUSTED`.
-2. `gemini-2.5-flash` (nome fixo) ‚Üí `404` ("no longer available to new
-   users", API recomendou `gemini-3.6-flash`).
-3. `gemini-3.6-flash` ‚Üí `429` de novo, mesmo com cota `0/5` (nada usado)
-   no painel "Limite de taxa" do AI Studio.
-4. Testado sem a tool `googleSearch` (hip√≥tese: grounding com cota
-   separada) ‚Üí mesmo `429`. Hip√≥tese descartada.
-5. Faturamento configurado no AI Studio com um cart√£o virtual (C6/
-   InfinityPay) com R$6,95 de saldo ‚Üí `429` **de novo**, sexta falha
-   seguida. Causa real: processadora do Google rejeita muitos cart√µes
-   virtuais/pr√©-pagos de bancos digitais brasileiros pra verifica√ß√£o,
-   independente de ter saldo ‚Äî n√£o √© sobre cobrar, √© a pr√©-autoriza√ß√£o
-   de verifica√ß√£o que falha nesse tipo de cart√£o.
-
-**Migrado pro Groq ‚Äî funcionando, sem cart√£o.** `attemptDraft()` em
-`articles-server.ts` e `veronicaChat` em `veronica-server.ts` chamam
-`groq-sdk` (API compat√≠vel com formato OpenAI ‚Äî `messages` com `role`/
-`content`, sem remapeamento de role como o Gemini exigia). Tier gr√°tis
-do Groq **n√£o pede cart√£o** ‚Äî confirmado antes de migrar (pesquisa via
-WebSearch, j√° que n√£o d√° pra testar rede daqui do sandbox).
-
-- **Wire**: modelo `groq/compound` (n√£o um modelo comum) ‚Äî tem busca na
-  web nativa embutida (via Tavily), √∫nico equivalente real ao
-  `web_search` da Anthropic/`googleSearch` do Gemini que sobrevive sem
-  cart√£o. Cota gr√°tis: 30 RPM / 250 RPD ‚Äî bem acima do nosso volume
-  (~5 chamadas/dia).
-- **Chat da Veronica**: modelo `qwen/qwen3.6-27b` (o mais forte do Groq,
-  segundo a doc) ‚Äî n√£o precisa buscar na web, s√≥ responder.
-- `@google/genai` removido do `package.json` (n√£o usado em lugar nenhum
-  mais) ‚Äî b√¥nus: `groq-sdk` bundla ~64kB no Worker vs ~844kB do
-  `@google/genai`.
-- `ANTHROPIC_API_KEY` continua s√≥ em `scripts/reprocess-covers.mjs`
-  (rodado local).
-
-Falta: usu√°rio gerar `GROQ_API_KEY` gr√°tis em console.groq.com/keys e
-configurar no Worker (`wrangler secret put GROQ_API_KEY`). Depois disso,
-testar via `workflow_dispatch` e, confirmado que funciona, reativar o
-`schedule` em `generate-article.yml` (descomentar as 2 linhas, hoje
-comentadas).
-
-**Brief completo da evolu√ß√£o dividido em 3 PRs** (A e C conclu√≠das, B n√£o
-iniciada):
-
-- **PR A** ‚Äî qualidade/dedup/capas fixas. ‚úÖ Mesclado (#23).
-- **PR C** ‚Äî pagina√ß√£o + arquivamento. ‚úÖ Mesclado (#25).
-- **PR B** ‚Äî reduzir `CYCLE_HOURS` de 5 pra 3 ou 4 + fan-out (cada disparo
-  do cron aciona as 5 editorias em paralelo via matrix do Actions, hoje s√≥
-  aciona uma por vez) + escalonamento de hor√°rio entre editorias + log
-  estruturado (`WireCronLog`, tabela nova ‚Äî precisa aprova√ß√£o expl√≠cita
-  antes de qualquer migration) + alerta quando uma rodada n√£o publica
-  nada. **N√ÉO iniciada** ‚Äî bloqueada em duas respostas do usu√°rio:
-  1. Repo p√∫blico/privado + plano do GitHub, pra calcular com seguran√ßa
-     se a cota de minutos do Actions aguenta o fan-out (5 jobs por
-     disparo). Sem essa resposta, n√£o d√° pra dimensionar o item com
-     seguran√ßa.
-  2. Confirma√ß√£o da janela (3h ou 4h) e aprova√ß√£o expl√≠cita da tabela
-     `WireCronLog` (regra do Neon: schema novo sempre com confirma√ß√£o
-     item a item).
-
-**Pend√™ncias pontuais que s√≥ o usu√°rio resolve** (n√£o s√£o coisa que d√°
-pra "fechar" programaticamente ‚Äî tentado e documentado por qu√™):
-
-- `PIXABAY_API_KEY` ‚Äî falta cadastrar como secret do GitHub Actions.
-  Nenhum agente consegue criar essa conta sozinho (cadastro externo,
-  sem navegador/rede pra isso no sandbox).
-- `scripts/reprocess-covers.mjs` (upgrada mat√©rias antigas sem foto real)
-  nunca rodou ‚Äî decis√£o j√° tomada: rodar LOCAL (n√£o como secret novo do
-  Actions, evita expor a connection string do banco). Precisa
-  `DATABASE_URL`+`ANTHROPIC_API_KEY`+`PEXELS_API_KEY` no ambiente.
-
-### Veronica Rede no menu hamb√∫rguer (PR #7, mesclado em `main`)
-
-- `/veronica-rede` (p√°gina do programa de afiliados/revendedores) j√°
-  existia no c√≥digo desde antes, mas era uma rota **√≥rf√£**: nenhum lugar
-  do site linkava pra ela (nem menu, nem rodap√©, nem outra p√°gina) ‚Äî
-  s√≥ acess√≠vel digitando a URL direto.
-- Adicionado um `<Link to="/veronica-rede">Veronica Rede</Link>` no menu
-  hamb√∫rguer mobile (`src/components/SiteChrome.tsx`, dentro de
-  `SiteHeader`), logo depois de "Blog" e antes da se√ß√£o "Ecossistema".
-  N√£o mexeu no dropdown desktop (`EcosystemMenu`) nem nos cards
-  "O Ecossistema" da home ‚Äî s√≥ no menu mobile, por pedido expl√≠cito.
-- PR: https://github.com/Veronica-01Git/veronicahub-app/pull/7 ‚Äî
-  mesclado (squash) em `main` no commit `a24d7c9`.
-
-### Home (`src/routes/index.tsx`) ‚Äî REVERTIDA
-
-Por pedido do usu√°rio, a home voltou a ser exatamente a vers√£o publicada
-(`main`, commit `70de73d`) ‚Äî `index.tsx` e `VeronicaHero.tsx` foram
-restaurados com `git checkout main -- <arquivo>`. O redesign clara/Apple
-que tinha sido feita **n√£o est√° mais em uso em nenhuma rota**, mas:
-
-- As classes CSS `.home-hybrid`, `.home-tint-green`, `.home-tint-cyan`,
-  `.home-hero-dark` continuam em `src/styles.css` **porque o Veronica
-  Wire (`blog.tsx`) depende delas** ‚Äî n√£o remover essas classes.
-- As imagens em `public/images/ecosystem/*.webp` (j√° otimizadas) ficaram
-  √≥rf√£s (n√£o usadas por nenhuma rota agora) ‚Äî dispon√≠veis se o redesign
-  da home for retomado no futuro.
-
-### Studio Criativo (`src/routes/video-ia.tsx`)
-
-- Renomeado de "Veronica Studio". Banner com foto de fundo + 4 cards de
-  modalidade (Imagem/V√≠deo/Voz/Avatar); compositor s√≥ aparece depois de
-  escolher modalidade (`modalityChosen`). Sidebar nova (`StudioSidebar`).
-- **Toda l√≥gica de carteira/autentica√ß√£o/Mercado Pago/gera√ß√£o real
-  (Nano Banana Pro via Higgsfield) ficou intocada.**
-
-### Veronica Wire (`src/routes/blog.tsx`)
-
-- Redesenhado como portal de not√≠cias de verdade (ticker "ao vivo", tira
-  de √≠ndices, mat√©ria principal + "mais lidas", newsletter, tags,
-  se√ß√µes por editoria, reda√ß√£o global, faixa final pro Hub). Geopol√≠tica
-  agora "China, EUA e Brasil"; Clima agora inclui "Energia Limpa"
-  explicitamente. P√°gina 100% est√°tica, sem l√≥gica de pagamento.
-
-### Assistente Veronica no Studio Criativo (branch `veronica-assistente-studio`)
-
-- `src/veronica/skills/studio-criativo.ts` ‚Äî contrato dos 7 passos
-  (steps, system prompt) fornecido pelo usu√°rio.
-- `src/veronica/skills/index.ts` ‚Äî registry (f√°cil adicionar novas skills).
-- `src/lib/veronica-server.ts` ‚Äî chat via `createServerFn` (n√£o
-  `/api/...` ‚Äî esse projeto n√£o usa esse padr√£o), chama a Anthropic
-  (modelo `claude-haiku-4-5-20251001`), limites de tamanho de
-  mensagem/hist√≥rico como prote√ß√£o b√°sica de custo.
-- `src/components/VeronicaDrawer.tsx` ‚Äî drawer deslizante: v√≠deo por
-  passo (com fallback se o arquivo ainda n√£o existir), progresso,
-  chat, chips de perguntas sugeridas.
-- Sidebar do Studio ("Assistente Veronica") e chips "perguntar √†
-  veronica" em cada passo do playbook abrem o drawer.
-- **PENDENTE CR√çTICO: `ANTHROPIC_API_KEY` n√£o est√° configurada.** Sem
-  ela em `.env.local`, o drawer abre normalmente mas o chat retorna erro
-  tratado ("Assistente indispon√≠vel no momento"). Adicionar a chave
-  direto no `.env.local` (nunca colar a chave no chat/terminal
-  compartilhado).
-- N√£o criada ainda: tabela `veronica_progress` (persist√™ncia do
-  progresso do usu√°rio) ‚Äî mencionada no arquivo de contrato como algo
-  que outras partes do sistema v√£o ler, mas n√£o fazia parte do pedido
-  original (s√≥ drawer + registry + chat).
-
-### Veronica Analytics (`src/routes/veronica-analytics.tsx`)
-
-- Reskin pra paleta clara e viva (rosa/ciano/dourado, inspirada no
-  duotone do TikTok) via vari√°veis `--tt-*` escopadas (j√° existiam,
-  s√≥ trocamos os valores) ‚Äî mesma t√©cnica da home antiga. Calculadora
-  de engajamento 100% intacta (client-side, sem l√≥gica tocada).
-- Ticker de tend√™ncias no topo + bloco escuro final puxando pro Studio
-  Criativo, no mesmo padr√£o do Wire.
-
-### Login vis√≠vel em todo o Hub + painel admin (branch `claude/veronicahub-redesign-cont-k92gt4`)
-
-- **`AuthWidget`** (novo componente em `src/components/SiteChrome.tsx`) ‚Äî
-  bot√£o "Entrar" (c√≥digo por e-mail, mesmo fluxo passwordless que j√°
-  existia s√≥ dentro do Curr√≠culo-Certo/RH/Studio) agora aparece no
-  cabe√ßalho de **todas** as p√°ginas que usam `<SiteHeader />` (Blog,
-  Comandos, Prompt Packs, Security, N√°utica, Rede, Studio, Analytics) e
-  tamb√©m no header pr√≥prio da Home (`index.tsx`). N√£o duplica l√≥gica ‚Äî
-  s√≥ chama as server functions que j√° existiam em `auth-server.ts`
-  (arquivo n√£o foi alterado). Curr√≠culo-Certo/RH continuam com seu
-  pr√≥prio header/modal de login (visual antigo, fora de escopo agora).
-- **Painel admin simples** (`/admin`, rota n√£o listada no menu ‚Äî s√≥ por
-  URL direta): lista usu√°rios cadastrados (e-mail, saldo, cr√©ditos,
-  papel) e dep√≥sitos recentes. Protegido de verdade no servidor ‚Äî
-  `src/lib/admin-server.ts` (novo arquivo, s√≥ leitura do banco, n√£o
-  toca em `auth-server.ts`/`wallet-server.ts`). Quem vira admin √©
-  definido pela env var `ADMIN_EMAILS` (lista de e-mails separados por
-  v√≠rgula) ‚Äî no primeiro acesso ao painel com uma sess√£o logada nesse
-  e-mail, o sistema promove a `role` do usu√°rio pra `admin`
-  automaticamente. Sem `ADMIN_EMAILS` configurada, ningu√©m acessa.
-- **Mudan√ßa no schema do banco** (`src/lib/schema.ts`): campo novo
-  `role` (`UserRole` enum: `user`/`admin`, default `user`) na tabela
-  `User`. Migration j√° gerada em `drizzle/0001_square_lady_ursula.sql`
-  (`CREATE TYPE` + `ALTER TABLE ... ADD COLUMN` ‚Äî aditiva, n√£o
-  destrutiva), **mas ainda n√£o aplicada no Neon de produ√ß√£o** ‚Äî este
-  ambiente remoto n√£o tem `DATABASE_URL` real pra rodar isso com
-  seguran√ßa. **Passo manual pendente, rodar no WSL com `.env.local`
-  configurado:**
-  ```bash
-  bunx drizzle-kit migrate
-  ```
-  Depois, adicionar `ADMIN_EMAILS=seu@email.com` no `.env.local` (dev)
-  e como secret do Worker de produ√ß√£o:
-  ```bash
-  wrangler secret put ADMIN_EMAILS --name veronicahub-app
-  ```
-  (nome do Worker de produ√ß√£o real ‚Äî ver nota acima, n√£o √©
-  `veronica-01git-veronicahub-app`).
-- `src/routeTree.gen.ts` foi editado manualmente pra registrar a rota
-  `/admin` (normalmente esse arquivo √© 100% autogerado pelo plugin do
-  TanStack Router ao rodar `vite dev`/`vite build` ‚Äî este ambiente
-  remoto n√£o conseguiu rodar `bun install` completo, um pacote privado
-  do registro bloqueou a instala√ß√£o, ent√£o n√£o deu pra rodar o gerador
-  de verdade). Rodar `bun run dev` ou `bun run build` uma vez no WSL
-  regenera esse arquivo do zero automaticamente e substitui essa edi√ß√£o
-  manual pela vers√£o can√¥nica ‚Äî n√£o deve dar conflito, s√≥ confirma que
-  ficou certo.
-
-## Pend√™ncias conhecidas
-
-**Veronica Wire (mais recente/ativo):** PRs A e C do brief de evolu√ß√£o j√°
-mesclados, capas gen√©ricas j√° populadas. S√≥ restam `PIXABAY_API_KEY`,
-`reprocess-covers.mjs` (local) e o PR B (frequ√™ncia/fan-out/log ‚Äî
-bloqueado em 2 respostas do usu√°rio) ‚Äî ver se√ß√£o "Veronica Wire" acima
-pros detalhes. Itens abaixo s√£o do redesign visual mais antigo, n√£o
-confirmados nesta atualiza√ß√£o.
-
-1. Adicionar `ANTHROPIC_API_KEY` em `.env.local` pra o chat da Veronica
-   funcionar de verdade.
-2. "Formalizar" trechos que ainda ficaram no estilo cyber antigo em
-   Studio Criativo/Wire, e o menu "Ecossistema" do cabe√ßalho
-   (`EcosystemMenu` em `SiteChrome.tsx`, compartilhado ‚Äî afeta todas as
-   rotas, n√£o mexido ainda).
-3. V√≠deos por passo do Studio Criativo (`studio-criativo/01-*.mp4` etc.)
-   ainda n√£o existem/foram gravados ‚Äî o drawer j√° trata isso com um
-   placeholder honesto ("V√≠deo deste passo em breve").
-4. ~~Merge pendente~~ ‚Äî RESOLVIDO: tudo j√° foi mesclado em `main`
-   (commit `99b006c`), publicado no GitHub e com deploy feito no
-   Cloudflare Worker. `veronicahub.com` j√° serve essa vers√£o.
-5. Rotas ainda no visual antigo, aguardando refer√™ncia de design do
-   usu√°rio: Curr√≠culo-Certo, Security, N√°utica.
-6. ~~P√°gina "/descobrir"~~ ‚Äî RESOLVIDO: a refer√™ncia HTML
-   (`descobrir-exemplar-v2-claro.html`) foi aplicada dentro do Veronica
-   Analytics (`src/routes/veronica-analytics.tsx`), n√£o como rota
-   separada. A p√°gina agora abre com a se√ß√£o "O que est√° bombando
-   agora" (ticker, chips de filtro por categoria, ordena√ß√£o, grid de
-   cards virais com GMV/crescimento mockados, cada card linkando pro
-   Studio Criativo) e a calculadora de engajamento original continua
-   logo abaixo, intacta. Ainda n√£o commitado/publicado ‚Äî feito na
-   branch `claude/veronicahub-redesign-cont-k92gt4`.
-
-## Como continuar
-
-```bash
-cd ~/veronicahub-app
-git status                  # confirma branch atual e se h√° mudan√ßas n√£o commitadas
-git branch                  # branch de trabalho atual: claude/veronicahub-redesign-cont-k92gt4
-bun run dev                  # sobe o servidor local em http://localhost:8080
-```
-
-Pra abrir uma sess√£o nova de agente de IA aqui (Claude Code ou outro)
-sem depender desta conversa: abra PowerShell ‚Üí `wsl` ‚Üí os comandos
-acima ‚Üí `claude` (ou o comando do agente escolhido) dentro da pasta do
-projeto. O agente consegue se situar lendo este arquivo e o `git log`.
-
-**Regras de seguran√ßa combinadas ‚Äî valem pra qualquer agente que
-continuar isso:**
-
-- Implementar/commitar localmente sem precisar perguntar a cada passo.
-- **Nunca** dar `git push`, publicar ou fazer deploy sem confirma√ß√£o
-  expl√≠cita do usu√°rio a cada vez ‚Äî √© o mesmo reposit√≥rio que roda
-  carteira e Mercado Pago reais em produ√ß√£o (`veronicahub.com`).
-- Nunca mexer em `src/lib/wallet-server.ts`, `src/lib/auth-server.ts`,
-  `src/lib/mercadopago.ts`, `src/lib/higgsfield.ts`, nem no schema do
-  banco ‚Äî essas partes j√° est√£o validadas em produ√ß√£o com dinheiro
-  real. Mudan√ßas nessa √°rea pedem confirma√ß√£o extra, sempre.
-- N√£o mexer no reposit√≥rio irm√£o `~/negocio-da-china-app` nem no app
-  principal `~/veronicahub-app` fora do que est√° documentado aqui sem
-  perguntar antes.
-- Nunca colar chaves/segredos (API keys, tokens) direto no chat ‚Äî sempre
-  pedir pro usu√°rio colocar direto no `.env.local`.
-
-## Fase 2 ‚Äî reorganiza√ß√£o e hierarquia da Home (2026-09-11)
-
-- Trabalho local na branch `feat/home-hierarchy-phase2`, criada a partir de
-  `origin/main` no commit `ff7042a`; `e1c1209` confirmado no hist√≥rico.
-- Home consolidada em sete blocos: Hero, prova objetiva, escolha por objetivo,
-  forma√ß√µes, ferramentas, m√©todo e Wire/encerramento.
-- Hero preserva `VeronicaPresence` e a imagem WebP aprovada, sem v√≠deo, WebGL
-  ou m√≠dia nova. CTA principal aponta para Aula Zero e o secund√°rio para
-  Forma√ß√µes.
-- Inten√ß√µes, ferramentas, projetos e destinos continuam derivados de
-  `src/lib/ecosystem.ts`. Destaques de forma√ß√£o usam `src/lib/courses.ts`.
-- Home passou a carregar as tr√™s mat√©rias mais recentes pelo fluxo real j√°
-  usado no Wire, com fallback honesto quando o banco n√£o est√° dispon√≠vel.
-- Projetos especiais ficaram pr√≥ximos ao rodap√© e exibem o status can√¥nico.
-- Removidos da Home os blocos repetidos de futuro, marquee, vitrine isolada da
-  Studio, produtos, collabs, prova promocional, FAQ e efeitos decorativos.
-- `npm run typecheck`, 5/5 testes e `npm run build` passaram. SSR local retornou
-  200, t√≠tulo/H1/CTAs corretos e exatamente sete se√ß√µes.
-- A rota da Home caiu de 41.520 para 14.477 bytes de fonte. Nenhuma depend√™ncia,
-  rota interna, autentica√ß√£o, backend, banco ou pagamento foi alterado.
-- QA responsivo estrutural conclu√≠do para breakpoints mobile/desktop, ordem
-  sem√¢ntica, foco vis√≠vel e alvos m√≠nimos. A captura visual automatizada ficou
-  bloqueada porque o provedor do Chromium retornou 502/arquivo truncado.
-- Publica√ß√£o aprovada pelo usu√°rio em 2026-09-11; envio para `main` e
-  verifica√ß√£o no dom√≠nio de produ√ß√£o executados na sequ√™ncia.
-
-## Restaura√ß√£o visual da Home (2026-09-11)
-
-- Restaurada a composi√ß√£o tecnol√≥gica anterior √† simplifica√ß√£o da Fase 2,
-  mantendo a arquitetura, as rotas e as fontes can√¥nicas da Fase 1.
-- Recuperados efeitos de hover, glow, HUD, microintera√ß√µes, vitrines e a
-  tipografia tecnol√≥gica da Hero.
-- A Hero mant√©m a imagem WebP otimizada da Veronica e n√£o reintroduz v√≠deo,
-  WebGL ou m√≠dia pesada.
-- Adicionado controle acess√≠vel de tema claro/escuro exclusivo da Home, com
-  prefer√™ncia persistida localmente.
-- Publica√ß√£o da restaura√ß√£o solicitada ap√≥s aprova√ß√£o expl√≠cita do usu√°rio.
-
-## Registro p√∫blico de selos (2026-09-11)
-
-- Criado o cat√°logo p√∫blico `/selos` e a verifica√ß√£o individual em
-  `/selo/$serial`, preparados para acesso direto por QR Code.
-- O primeiro registro real √© da Express Entulho, com s√©rie
-  `VH-AUT-WA-2026-000001` e status transparente ‚ÄúEm desenvolvimento‚Äù.
-- Quatro marcas autorais foram inclu√≠das apenas como demonstra√ß√µes fict√≠cias
-  para os segmentos t√™xtil e educacional; nenhuma marca global foi apresentada
-  indevidamente como cliente.
-- Cada p√°gina informa cliente, solu√ß√£o, escopo, vers√£o, respons√°vel, status e
-  linha do tempo, al√©m de esclarecer os limites do registro de proced√™ncia.
-- O selo existente foi preservado em SVG vetorial, com nitidez independente de
-  resolu√ß√£o e sem adicionar m√≠dia pesada ou depend√™ncias.
-- `/selos` foi inclu√≠da no sitemap. Backend, autentica√ß√£o, pagamentos e banco
-  permaneceram intactos.
-- `npm run typecheck`, 6/6 testes e `npm run build` aprovados.
-
-## Desativa√ß√£o da varredura vertical global (2026-09-13)
-
-- Base: `main` em `fe7218e`; branch de trabalho `fix/disable-global-scan-beam`.
-- `GLOBAL_SCAN_BEAM_ENABLED = false` em `src/components/HoloOrbits.tsx`
-  impede a montagem da linha verde que atravessava a tela de cima para baixo.
-- O elemento, sua anima√ß√£o `holo-beam` e os keyframes em `src/styles.css`
-  foram preservados; reativa√ß√£o dispon√≠vel alterando a constante para `true`.
-- Escopo global pelo componente j√° montado no RootShell. HUDs, demais efeitos,
-  temas, navega√ß√£o, imagem da Veronica e backend permanecem intactos.
-- 6/6 testes, typecheck e build de produ√ß√£o passaram. Lint direcionado:
-  somente ocorr√™ncias preexistentes de Prettier (32 na base, 28 ap√≥s a mudan√ßa),
-  nenhuma no bloco alterado. `git diff --check` sem erros.
-- QA visual local bloqueado: Vite com erro `uv_interface_addresses` neste
-  ambiente e navegador remoto com `ERR_BLOCKED_BY_CLIENT` para localhost.
-- Usu√°rio autorizou publica√ß√£o em 2026-09-13. Antes do envio, verifica√ß√£o no
-  navegador de produ√ß√£o confirmou uma linha `holo-beam` ativa na Home.
-- Publicado na `main` pelo commit `ae3edf1`. Cloudflare Workers confirmou
-  build/deploy com sucesso (build `54c25ed4-fa2a-467e-b596-0f3a0d0ac6bd`).
-- Verifica√ß√£o em produ√ß√£o ap√≥s hidrata√ß√£o: Home nos temas claro e escuro e
-  `/comandos` com zero elementos `holo-beam` e os dois HUDs globais preservados.
-- Pexels e Pixabay: acesso pelo navegador desta sess√£o bloqueado por CAPTCHA;
-  nenhuma conex√£o autenticada nova conclu√≠da.
-
-## Wire TV ‚Äî rename de nav + selo "ao vivo" (2026-09-13, sess√£o cloud)
-
-- Pedido do usu√°rio: renomear o link do Wire na navega√ß√£o pra "Wire TV" e
-  deixar visualmente claro que √© conte√∫do tipo canal de not√≠cia (ao vivo,
-  atualizado com frequ√™ncia).
-- `src/lib/ecosystem.ts`: produto `wire` renomeado de "Veronica Wire" pra
-  "Wire TV"; descri√ß√£o trocada pra "Not√≠cias verificadas, publicadas hora a
-  hora". Como √© fonte √∫nica, o rename j√° propagou pra nav desktop, nav
-  mobile, rodap√© e os dois menus "Ferramentas" (dropdown desktop/mobile)
-  sem editar cada um.
-- `src/components/SiteChrome.tsx`: novo `WireLiveBadge` (ponto pulsante +
-  "Ao vivo", reaproveitando `animate-pulse-dot`/`neon-green` j√° usados no
-  masthead do `/blog`) nos quatro pontos onde o link aparece. √â selo de
-  categoria fixo, n√£o rel√≥gio ao vivo ‚Äî n√£o busca artigo no header/rodap√©.
-- **Corre√ß√£o importante para quem ler as se√ß√µes de Wire mais acima**: a
-  cad√™ncia de publica√ß√£o **j√° est√° em `CYCLE_HOURS = 1`** (`src/lib/beats.ts`)
-  com dois disparos por hora no GitHub Actions (`.github/workflows/
-generate-article.yml`, minutos 17 e 47), j√° migrada pra Groq
-  (`openai/gpt-oss-20b`, fallback `120b`). **N√£o est√° pausada** e o "PR B"
-  (frequ√™ncia/fan-out) descrito como "n√£o iniciado" nas se√ß√µes anteriores
-  **j√° est√° parcialmente feito** ‚Äî a frequ√™ncia subiu de 5h pra 1h em algum
-  momento n√£o documentado aqui (commits de capa autom√°tica em 10-13/set
-  confirmam publica√ß√£o real acontecendo). Ainda faltam do PR B: log
-  estruturado (`WireCronLog`) e alerta de rodada silenciosa sem publicar.
-  As se√ß√µes "Onde estamos" / "Pend√™ncias conhecidas" mais acima ainda dizem
-  o contr√°rio ‚Äî s√£o texto desatualizado, n√£o refletem o c√≥digo atual.
-- `PIXABAY_API_KEY` e `scripts/reprocess-covers.mjs` continuam pendentes
-  como antes.
-- Valida√ß√£o: `npm run typecheck` passou (via stub local do pacote privado
-  `@lovable.dev/vite-tanstack-config`, bloqueado neste sandbox pela mesma
-  raz√£o j√° documentada acima ‚Äî sem cr√©dito de registro). 6/6 testes de
-  `npm test` passaram sem altera√ß√£o. Build completo (`npm run build`) n√£o
-  p√¥de ser validado no sandbox pelo mesmo bloqueio de pacote privado ‚Äî
-  precisa rodar localmente (WSL) antes de publicar.
-- Commitado localmente (`d90edcb`). **Sem push, sem deploy** ‚Äî aguardando
-  confirma√ß√£o expl√≠cita do usu√°rio, como de costume.
-
-## Wire TV ‚Äî rebrand completo e publicado (2026-09-13, sess√£o cloud seguinte)
-
-Continua√ß√£o direta da se√ß√£o acima. O patch daquela sess√£o foi aplicado com
-`git am --3way` em cima do `main` e os commits ganharam hashes novos
-(`ba821f4`, `2afdc7b`, `2480304` ‚Äî n√£o `d90edcb`/`e6c4a15`/`d0861af`).
-
-- **Corre√ß√£o da se√ß√£o acima**: o `npm run build` **rodou e passou aqui**, sem
-  stub. O `@lovable.dev/vite-tanstack-config` instalou normalmente (`npm
-install`, 492 pacotes) ‚Äî o bloqueio de registro descrito acima n√£o se
-  repetiu neste ambiente. Tamb√©m n√£o foi preciso validar em WSL antes de
-  publicar, como aquela se√ß√£o pedia. Trate "build n√£o validado" e "stub
-  local" como hist√≥ria daquela sess√£o, n√£o como estado atual.
-- Verificado antes de publicar, porque typecheck e teste n√£o cobrem: o selo
-  aparece mesmo nos quatro pontos (`PRIMARY_NAV` s√£o objetos `Product`, que
-  t√™m `id`; `INTENT_LINKS` t√™m `productId` ‚Äî as duas condi√ß√µes do patch batem
-  com as estruturas reais) e `animate-pulse-dot` existe em `src/styles.css`.
-- **O rename do patch cobria s√≥ a navega√ß√£o.** O nome estava hardcoded em ~15
-  outros pontos vis√≠veis, ent√£o quem clicasse em "Wire TV" chegava numa p√°gina
-  cujo t√≠tulo ainda dizia "Veronica Wire". Corrigido em dois commits:
-  - `0571e63` ‚Äî `WIRE_NAME` virou export de `ecosystem.ts` e passou a
-    alimentar t√≠tulo/OG do `/blog`, p√°ginas de mat√©ria e editoria, RSS
-    (`seo-feed.ts`), autor no schema.org, `ProofSection` da home, card de
-    `WireGrowth`, base de conhecimento do concierge (`veronica/skills/home.ts`)
-    e os dois r√≥tulos do admin.
-  - `2332d69` ‚Äî pipeline de gera√ß√£o: prompt do rep√≥rter em
-    `articles-server.ts` e os dois `altText` de capa em `article-cron.ts`.
-- Sobrou de prop√≥sito o User-Agent `VeronicaWire/1.0` em
-  `articles-server.ts:97` ‚Äî √© identifica√ß√£o HTTP pros servidores de not√≠cia
-  que o radar consulta, n√£o superf√≠cie de marca; mexer nisso muda
-  comportamento de rede sem ganho vis√≠vel. Coment√°rios de c√≥digo tamb√©m n√£o
-  foram tocados. Com a flag ligada, essa √© a **√∫nica** ocorr√™ncia do nome
-  antigo em todo o build.
-- **O rollback deixou de ser de custo zero, e o coment√°rio da flag em
-  `ecosystem.ts` foi reescrito por causa disso.** Ele antes prometia que
-  `false` "volta exatamente ao estado anterior". Verdade enquanto tudo era
-  montado em runtime; deixou de ser quando o nome passou a entrar em linha
-  gravada no banco. Cada mat√©ria que o cron publica com a flag ligada grava
-  `altText` "Capa Wire TV ‚Äî ...", e isso a flag n√£o desfaz. Desligar depois
-  deixa o acervo misturado ‚Äî consertar exige backfill no banco.
-- Valida√ß√£o, repetida **nos dois estados da flag** a cada commit: `typecheck`
-  exit 0, 6/6 testes, `npm run build` exit 0. Com `WIRE_TV_REBRAND_ENABLED =
-false` o build n√£o cont√©m nenhuma ocorr√™ncia de "Wire TV" nem do selo
-  "Ao vivo" ‚Äî o rollback alcan√ßa tudo que √© montado em runtime.
-- **Publicado.** `main` est√° em `2332d69`; os pushes foram feitos com
-  confirma√ß√£o expl√≠cita do usu√°rio a cada etapa. Ressalva honesta: confirmamos
-  que o push chegou e que o build passa localmente, **n√£o** que a p√°gina
-  renderizou certo em produ√ß√£o ‚Äî o selo na nav e os t√≠tulos das p√°ginas n√£o
-  foram conferidos no site publicado. Vale olhar `/blog`, uma mat√©ria e a home.
-- **Como reverter**: editar `WIRE_TV_REBRAND_ENABLED` para `false` em
-  `src/lib/ecosystem.ts` e dar push em `main`. √â uma linha. **N√£o** crie branch
-  de rollback parado no remoto ‚Äî ver o erro logo abaixo.
-- **‚ö†Ô∏è ERRO DESTA SESS√ÉO, leia antes de repetir o padr√£o**: cheguei a criar o
-  branch `rollback/wire-tv-rebrand` com a flag desligada e empurrei pro remoto,
-  raciocinando que branch n√£o-`main` n√£o publica. **Racioc√≠nio errado.** Eu
-  tinha inspecionado s√≥ `.github/workflows/` ‚Äî que de fato n√£o faz deploy ‚Äî e
-  conclu√≠ dali que push de branch era seguro. O deploy deste projeto vem da
-  integra√ß√£o Cloudflare‚ÜîGit, que n√£o aparece em workflow nenhum, e o aviso
-  CR√çTICO na se√ß√£o "Onde estamos" j√° registrava que **todo push em qualquer
-  branch vira produ√ß√£o, sem preview separado**. Eu n√£o tinha lido aquela se√ß√£o.
-  Consequ√™ncia prov√°vel: o push daquele branch publicou o rebrand DESLIGADO em
-  produ√ß√£o por alguns minutos, at√© o push seguinte (flag ligada) restaurar.
-  O branch `rollback/wire-tv-rebrand` est√° marcado para remo√ß√£o: se ainda
-  existir no remoto, apague e **n√£o empurre nada nele** ‚Äî qualquer push ali
-  republica o rebrand desligado. **Li√ß√£o: neste repo push de branch n√£o √©
-  backup barato ‚Äî √© deploy. Junte as mudan√ßas e empurre uma vez s√≥.**
-- Ressalva de verifica√ß√£o: os pushes em `main` tiveram confirma√ß√£o expl√≠cita do
-  usu√°rio a cada etapa, mas os pushes nos branches de trabalho n√£o ‚Äî eles foram
-  tratados como salvamento e, pelo que est√° acima, provavelmente tamb√©m foram
-  deploys. O estado real de produ√ß√£o n√£o foi conferido desta sess√£o: o proxy do
-  ambiente bloqueia `veronicahub.com` (403 no CONNECT).
-- `PIXABAY_API_KEY` e `scripts/reprocess-covers.mjs` continuam pendentes.
-
-## Remo√ß√£o da mira hologr√°fica flutuante (2026-09-13)
-
-- Base: `claude/elegant-bardeen-vzi64n` em `3a41094`; mesma branch de trabalho.
-- Identificada a pedido do usu√°rio: a "mira" √© o componente `HudScanner`
-  (`src/components/HoloOrbits.tsx`) ‚Äî SVG+SMIL com an√©is girando, ret√≠culo
-  central e cantos de HUD. Chegava √† tela por dois caminhos: duas inst√¢ncias
-  com `holo-drift-a/b` dentro do overlay global `HoloOrbits` (fixed, site-wide)
-  e o wrapper `HudAccent`, plantado como acento dentro do conte√∫do de p√°ginas.
-- Removidos: `HudScanner`, `HudAccent`, as duas inst√¢ncias do overlay global,
-  tr√™s usos de `HudAccent` na Home (`/`, se√ß√µes 01, 03 e 04) e um em
-  `/veronica-rede`, os keyframes `holo-drift-a` e `holo-drift-b` em
-  `src/styles.css` (√≥rf√£os ap√≥s a remo√ß√£o) e o export `GOLD`.
-- `HoloOrbits` segue montado no RootShell com o que n√£o √© mira: a vinheta
-  radial e os dois cantos de HUD. A `holo-beam` continua preservada e
-  desativada por `GLOBAL_SCAN_BEAM_ENABLED = false`, como registrado acima.
-- `GOLD` n√£o servia s√≥ √† mira: tamb√©m alimentava `PARTICLE_COLORS` em
-  `/veronica-rede`. O valor `oklch(0.75 0.15 85)` passou a literal na lista,
-  no mesmo padr√£o das outras duas cores, que j√° eram literais.
-- `RichEnvironment` perdeu a prop `accentClassName`, que s√≥ existia para
-  posicionar o acento; os dois chamadores (hero e CTA final) foram atualizados.
-- Coment√°rios que citavam `HudScanner` atualizados em `HoloOrbits.tsx`,
-  `src/components/blog/WirePulseGlobe.tsx` e no hero de `/veronica-rede`.
-- Backend, autentica√ß√£o, navega√ß√£o, temas, imagem da Veronica e demais efeitos
-  permanecem intactos. Nenhuma depend√™ncia adicionada ou removida.
-- 6/6 testes e typecheck limpo em `src/`. Lint direcionado aos quatro arquivos
-  tocados: apenas ocorr√™ncias preexistentes de Prettier (59 na base, 51 ap√≥s a
-  mudan√ßa), nenhuma introduzida.
-- Build de produ√ß√£o n√£o executado: `bun install` falha neste ambiente porque a
-  registry privada de `@lovable.dev/vite-tanstack-config` responde 403 pela
-  pol√≠tica de rede. A valida√ß√£o rodou com o pacote isolado; `package.json` e
-  `bun.lock` foram restaurados e ficaram fora do commit.
-- QA visual no navegador n√£o realizado pelo mesmo bloqueio de instala√ß√£o.
-- Enviado para `claude/elegant-bardeen-vzi64n` pelo commit `bd0b2b0`. Sem
-  publica√ß√£o em produ√ß√£o nesta etapa.
-
-## Compartilhamento da Wire TV no Instagram (2026-09-13, sess√£o cloud seguinte)
-
-- Base: `claude/bold-hawking-2ism1x` em `a3bd67d`. A sess√£o anterior acabou no
-  meio: `6d8edf8`/`1d4a2d4` (atalho da Wire TV no cabe√ßalho, sem duplicar),
-  `e3e9239` (indicador "ao vivo" reduzido a um ponto de 6 px com pulsa√ß√£o
-  suave e `prefers-reduced-motion` respeitado) e `a3bd67d` (o compartilhamento)
-  foram empurrados sem verifica√ß√£o e sem registro aqui. Esta sess√£o conferiu,
-  corrigiu e documentou os quatro.
-- **Estado herdado**: `ArticleShare` em `/blog/$slug` desenhava um card
-  1080 √ó 1350 num canvas e oferecia `navigator.share` com fallback de
-  download. O `@` do perfil (`wire__tv`) entrou em `SOCIAL_LINKS`, na nav do
-  `/blog` e no `sameAs` do expediente.
-- **Dois defeitos reais encontrados na verifica√ß√£o, ambos corrigidos**:
-  1. O rodap√© do card imprimia a URL can√¥nica inteira alinhada √† direita na
-     mesma linha do `@wire__tv`. Com slug longo (o caso comum ‚Äî os slugs t√™m
-     at√© 80 caracteres) os dois textos se atropelavam e o rodap√© sa√≠a
-     ileg√≠vel. Agora vai s√≥ o dom√≠nio; o endere√ßo completo continua na
-     legenda, que √© de onde o leitor copia.
-  2. A legenda s√≥ ia pra √°rea de transfer√™ncia no caminho de download. No
-     celular, que √© onde o `navigator.share` existe, o app do Instagram
-     descarta o texto que acompanha a imagem ‚Äî o card chegava ao feed sem
-     legenda nenhuma. Agora a legenda √© copiada nos dois caminhos, e h√° um
-     bot√£o "Copiar legenda" expl√≠cito ao lado de "Copiar link".
-- **Tra√ßado do card virou m√≥dulo**: `src/lib/wire-instagram-card.ts`
-  (dimens√µes, fontes, quebra da manchete, legenda, desenho). O componente s√≥
-  cuida do que √© do navegador ‚Äî `Image`, `toBlob`, download, Web Share.
-- **`scripts/render-instagram-card.mjs`**: gera o mesmo card fora do
-  navegador, com `@napi-rs/canvas` (j√° era depend√™ncia) importando o m√≥dulo
-  em TS direto, como os testes fazem. Serve pra preparar postagem sem abrir o
-  site. Sa√≠da em `out/` (ignorado no git). Achado do caminho Node: o `Image`
-  do `@napi-rs` s√≥ decodifica de verdade via `loadImage()` ‚Äî atribuir o buffer
-  em `.src` devolve as dimens√µes certas e desenha vazio.
-- Perfil da Wire TV tamb√©m no rodap√© do site (`SiteFooter`), que s√≥ listava o
-  Instagram da Veronica.
-- **Verifica√ß√£o**: 10/10 testes (dois novos ‚Äî o `@` do card e o do link do
-  site saem da mesma fonte; a quebra da manchete respeita o limite de linhas e
-  sinaliza corte com retic√™ncias), typecheck limpo em `src/`, Prettier nos
-  arquivos novos. O card foi renderizado de fato nos dois caminhos: Node
-  (`@napi-rs/canvas`) e Chromium headless rodando o m√≥dulo compilado ‚Äî capa,
-  manchete, editoria e rodap√© conferidos na imagem. Foi assim que os dois
-  defeitos acima apareceram.
-- N√£o verificado: a p√°gina publicada. `bun install` agora funciona, mas
-  `@lovable.dev/vite-tanstack-config` continua 403 pela pol√≠tica de rede, ent√£o
-  n√£o h√° `vite dev`/`build`; e o proxy segue bloqueando `veronicahub.com`
-  (403 no CONNECT), ent√£o n√£o d√° pra abrir o site publicado daqui.
-- Lembrete que continua valendo: **push em qualquer branch vira produ√ß√£o**
-  neste repo (integra√ß√£o Cloudflare‚ÜîGit). Foi um push s√≥, no fim.
-
-## Cron editorial: por que a cad√™ncia hor√°ria nunca existiu (2026-09-13)
-
-- Sintoma relatado: nenhuma mat√©ria nova depois das 14:03 UTC.
-- **Causa 1 ‚Äî o agendador do GitHub descarta disparo.** Com `:17` e `:47` s√£o
-  48 disparos/dia esperados. Rodaram 9 em 11/09, 15 em 12/09 e 6 em 13/09.
-  Nenhuma rodada come√ßou no minuto pedido: sempre 4 a 27 min atrasada
-  (11:47 ‚Üí 12:02, 05:47 ‚Üí 06:14). Buracos de 4h48 (01:26 ‚Üí 06:14) e 5h15
-  (06:47 ‚Üí 12:02) j√° tinham acontecido antes de hoje. Ou seja: a cad√™ncia
-  hor√°ria nunca funcionou; o sil√™ncio de hoje s√≥ foi o maior buraco. √â
-  comportamento documentado do GitHub ‚Äî `schedule` √© best-effort.
-  **Corre√ß√£o**: um √∫nico `*/15 * * * *` no lugar dos dois hor√°rios. Barato
-  nos dois eixos: `publishArticleFromCron` consulta `windowAlreadyPublished`
-  ANTES de `draftAndValidate`, ent√£o repetir na mesma janela n√£o gasta token;
-  e o reposit√≥rio √© **p√∫blico**, ent√£o minuto de Actions √© ilimitado. O custo
-  real √© nas horas sem publica√ß√£o: a√≠ as quatro tentativas chamam a IA.
-- **Causa 2 ‚Äî teto di√°rio da Groq.** Log da rodada das 12:02, textual:
-  `tokens per day (TPD): Limit 200000, Used 200000` no `openai/gpt-oss-120b`.
-  Tr√™s das cinco editorias morreram a√≠. Era o regime antigo (cinco mat√©rias
-  por hora); `0d0654e` das 13:25 cortou pra uma por hora, o que deve dividir
-  o consumo por ~5, mas isso ainda n√£o foi observado por um dia inteiro.
-  **Este √© o teto real de quantas mat√©rias saem por dia** ‚Äî nenhuma mudan√ßa
-  de cron contorna isso.
-- **Falso alarme registrado pra n√£o ser reinvestigado**: as respostas 502 com
-  `skipped:false` para "sem fato verific√°vel no momento" e para o 429 n√£o s√£o
-  bug do `isEditorialSkip`. Esses dois prefixos entraram na lista em `407e91e`,
-  publicado √†s 12:30; a rodada que falhou √© das 12:02, 28 min antes.
-- **Corre√ß√£o no backfill da biblioteca**: `resolveLibraryImageUrl` desviava
-  pro raw.githubusercontent apenas `/images/blog-covers/`. Mat√©ria com capa em
-  caminho antigo ficava fora da condi√ß√£o e o Worker buscava o pr√≥prio dom√≠nio
-  ‚Äî 403/522, as sete falhas do passo "Sincroniza capas". Todo o `public/` √©
-  versionado, ent√£o a condi√ß√£o passa a valer pra qualquer `/images/` do site.
-  Sete capas continuam ausentes do reposit√≥rio (nenhum arquivo em
-  `public/images/blog-covers/` pra esses slugs), ent√£o elas v√£o passar a
-  falhar com 404 honesto em vez de 403/522 ‚Äî isso √© pend√™ncia separada.
-- **Aten√ß√£o pra pr√≥xima sess√£o**: mudan√ßa de `schedule` s√≥ vale a partir do
-  branch padr√£o. Enquanto este trabalho n√£o entrar em `main`, o cron continua
-  em `:17`/`:47`.
-
-## Gatilho editorial migrado para o Cron Trigger do Cloudflare (2026-09-13)
-
-- Motivo na se√ß√£o anterior: o agendador do GitHub descarta disparo, e nenhuma
-  quantidade de hor√°rios no `schedule` resolve de fato.
-- **Worker separado, `workers/wire-cron/`**, n√£o o `scheduled` do Worker do
-  site. O site √© constru√≠do pelo nitro atrav√©s do preset da Lovable, que gera
-  a configura√ß√£o de deploy sozinho: n√£o existe arquivo do wrangler no
-  reposit√≥rio onde declarar `triggers`, o pacote √© privado e responde 403
-  neste ambiente (ent√£o n√£o d√° pra rodar o build e conferir), e todo push aqui
-  publica em produ√ß√£o. Um erro no entry do site derruba a aplica√ß√£o inteira; o
-  Worker de cron tem 40 linhas e falha sozinho.
-- **O que ele dispara**: `workflow_dispatch` de `generate-article.yml` na API
-  do GitHub ‚Äî n√£o o endpoint do site. O pipeline do GitHub √© quem tem a chave
-  do Pexels e o passo que commita a capa; chamar o endpoint direto publicaria
-  mat√©ria **sem capa**, porque os passos de capa s√£o condicionados a
-  `steps.generate.outputs.generated == 'true'`. Sem capa o card do Instagram
-  tamb√©m sai no fundo preto. Decis√£o confirmada com o usu√°rio.
-- **Cad√™ncia: `0 * * * *`, um disparo por hora.** A redund√¢ncia de hor√°rios s√≥
-  existia pra compensar o descarte do GitHub. Com gatilho confi√°vel ela vira
-  desperd√≠cio: numa hora que ainda n√£o publicou, cada tentativa gasta chamada
-  de IA, e o teto da Groq (200k tokens/dia) d√° pra ~20 chamadas por dia.
-- **Pendente, e s√≥ o usu√°rio pode fazer** (n√£o h√° credencial do Cloudflare nem
-  wrangler neste ambiente, e o MCP do Cloudflare √© somente leitura pra
-  Workers): criar o token fine-grained do GitHub com `Actions: Read and write`,
-  `wrangler deploy` e `wrangler secret put GITHUB_TOKEN`. Passo a passo em
-  `workers/wire-cron/README.md`.
-- **Depois de confirmado o disparo**: reduzir o `schedule` do
-  `generate-article.yml` (hoje em `*/15`) a um hor√°rio √∫nico de recupera√ß√£o ou
-  remov√™-lo. Antes disso n√£o ‚Äî enquanto o Worker n√£o estiver no ar com o
-  secret, o `*/15` √© o √∫nico gatilho que existe.
-- Teste novo cobre o acoplamento fr√°gil: o nome do arquivo de workflow que o
-  Worker dispara precisa existir em `.github/workflows`, sen√£o o disparo vira
-  404 silencioso e a falha apareceria s√≥ como aus√™ncia de mat√©ria nova.
-  11/11 testes, typecheck limpo.
-
-## Worker de cron publicado pelo painel do Cloudflare (2026-09-13)
-
-- **Estado que motivou a sess√£o, medido antes de agir**: nenhuma rodada de
-  `generate-article.yml` depois das 16:33 UTC, e a √∫ltima com `event=schedule`
-  √†s 12:51 UTC. O `*/15` de `9043851` est√° ativo desde 15:57 e passou por
-  **oito janelas seguidas** (16:00 a 17:45) sem disparar nenhuma vez. Aumentar
-  a quantidade de hor√°rios no `schedule` est√° descartado como estrat√©gia: n√£o
-  √© atraso, √© descarte.
-- **A rodada das 16:33 (manual) n√£o publicou**: `{"ok":true,"skipped":true,
-  "beat":"clima","error":"sem fato verific√°vel no momento"}`. N√£o √© cota nem
-  erro ‚Äî √© a trava editorial funcionando. Consequ√™ncia: os passos 3 a 12 foram
-  pulados, **incluindo o "Sincroniza capas publicadas com a biblioteca Admin"**,
-  ent√£o a corre√ß√£o do `resolveLibraryImageUrl` continua sem ter sido
-  exercitada uma √∫nica vez desde que entrou em produ√ß√£o.
-- **Os quatro passos do painel foram feitos pelo usu√°rio**, com o
-  `workers/wire-cron/README.md` como roteiro, cada um confirmado pelo lado da
-  API antes do seguinte:
-  - Worker `wire-tv-cron` criado √†s 17:08:25 UTC (`workers_list`).
-  - C√≥digo publicado: `workers_get_worker_code` devolveu conte√∫do **id√™ntico**
-    a `workers/wire-cron/dashboard.js` do `main` ‚Äî `diff` sem diferen√ßa.
-  - Secret `GITHUB_TOKEN` gravado como tipo Secret (valor criptografado).
-  - Cron Trigger `0 * * * *`, painel mostrando `Every hour` / pr√≥xima √†s
-    18:00:00 UTC.
-- **O caminho pelo painel cria um endere√ßo `workers.dev`** que o
-  `wrangler.jsonc` desliga (`workers_dev: false`). N√£o √© problema: o Worker s√≥
-  tem handler `scheduled`, ent√£o o endere√ßo responde erro e n√£o exp√µe nada.
-  Quem quiser alinhar desliga em Settings ‚Üí Domains & Routes.
-- **Disparo confirmado**: rodada #101 de `generate-article.yml`, criada
-  **18:00:05 UTC**, `event=workflow_dispatch`, ningu√©m clicou. Cinco segundos
-  depois da hora cheia ‚Äî o agendador do GitHub nunca acertou o minuto pedido
-  em tr√™s dias de medi√ß√£o. A rodada pulou a publica√ß√£o
-  (`{"ok":true,"skipped":true,"beat":"geopolitica","error":"sem fato
-  verific√°vel no momento"}`), o que √© decis√£o editorial e n√£o falha do
-  gatilho: o que estava em teste era o disparo.
-- **Pend√™ncia 2 continua aberta e n√£o √© poss√≠vel fechar por vontade pr√≥pria.**
-  As duas rodadas de hoje (16:33 e 18:00) pularam a publica√ß√£o, ent√£o o passo
-  "Sincroniza capas publicadas com a biblioteca Admin" n√£o rodou nenhuma vez
-  desde a corre√ß√£o. Ele √© condicionado a `outputs.generated == 'true'`. A
-  pr√≥xima sess√£o que pegar uma rodada com publica√ß√£o deve ler esse passo e ver
-  se os sete 403/522 viraram 404 (hip√≥tese do reposit√≥rio) ou continuam 403
-  (hip√≥tese do host externo, Pexels).
-- **Pend√™ncia 3 aplicada**: `schedule` do `generate-article.yml` de
-  `*/15 * * * *` para `30 11 * * *`. Rede de seguran√ßa di√°ria, n√£o gatilho.
-  Mantida em vez de removida porque o token fine-grained do Worker vence e,
-  quando vencer, o Worker para sem erro vis√≠vel; uma rodada por dia faz a
-  falha aparecer. Fora do minuto 0 porque o Worker dispara em `:00` e o
-  `concurrency` enfileira em vez de cancelar.
-- **Corre√ß√£o de um registro errado feito nesta mesma sess√£o**: o commit
-  `50cb2d9` afirma "typecheck exit 0". Est√° errado ‚Äî a medi√ß√£o foi
-  `npx tsc --noEmit | tail -3 ; echo $?`, e em pipeline o `$?` √© do `tail`.
-  Medido direito, o typecheck tem **1 erro pr√©-existente** neste ambiente:
-  `TS2688: Cannot find type definition file for 'vite/client'`, porque
-  `tsconfig.json` pede `types: ["vite/client"]` e `node_modules/vite` n√£o
-  existe aqui (consequ√™ncia do 403 no `@lovable.dev/vite-tanstack-config`).
-  O mesmo erro aparece no `origin/main` puro, ent√£o n√£o √© regress√£o. Para
-  medir de verdade: `npx tsc --noEmit; echo $?`, sem pipe, ou contar as
-  linhas `error TS`.
-
-## Pend√™ncia das capas resolvida pela metade, com causa medida (2026-09-13)
-
-- **A rodada das 21:00 publicou** ‚Äî primeira desde 15:49. Slug
-  `inundacoes-em-telangana-apos-chuvas-recordes-de-135-5-mm-em-mancherial`,
-  com foto real do Pexels (id 13865772). Com isso o passo "Sincroniza capas
-  publicadas com a biblioteca Admin" finalmente rodou, quase cinco horas
-  depois da corre√ß√£o que deveria consert√°-lo.
-- **Ele falhou de novo, com os mesmos sete slugs e os mesmos c√≥digos**:
-  `saved:0, alreadyPresent:15`, quatro 403 e tr√™s 522. Ou seja, a corre√ß√£o do
-  PR #89 (`resolveLibraryImageUrl` cobrindo todo `/images/`) **n√£o era a
-  causa** ‚Äî mirou no caminho errado.
-- **Causa real, lida no banco** (`SELECT slug, "coverImageUrl" FROM "Article"`
-  nos sete slugs, projeto Neon `aged-scene-12810096`). Os sete se dividem
-  exatamente nos dois c√≥digos de erro, e nenhum est√° sob `/images/`:
-  - **Tr√™s com 522**: `https://veronicahub.com/api/media-images/<id>`. √â a
-    pr√≥pria biblioteca servindo a imagem. Baixar isso √© o Worker fazendo
-    subrequest para si mesmo, que o Cloudflare encerra com 522 ‚Äî para trazer
-    bytes que j√° est√£o em `mediaImages`. Confirmado que os tr√™s ids existem na
-    tabela com bytes de verdade (120KB, 163KB e 957KB).
-  - **Quatro com 403**: `https://d3u0tzju9qaucj.cloudfront.net/...`. CDN
-    externo, provavelmente res√≠duo da Lovable. Nem a hip√≥tese do briefing
-    (Pexels) nem a do `/images/` estavam certas.
-- **Consertado**: `saveCoverToMediaLibrary` passa a reconhecer
-  `/api/media-images/<id>` antes de qualquer fetch e trata como j√° presente,
-  sem baixar e sem duplicar linha no banco. Teste novo trava a ordem ‚Äî se a
-  checagem for parar depois do fetch, o 522 volta.
-- **N√£o consertado, e n√£o d√° para consertar √†s cegas**: os quatro do
-  CloudFront. O proxy deste ambiente bloqueia o host (403 no CONNECT), ent√£o
-  n√£o d√° para saber se o 403 √© hotlink, URL assinada vencida ou remo√ß√£o. Se
-  for permanente, n√£o h√° solu√ß√£o em c√≥digo: algu√©m precisa reenviar essas
-  quatro capas pelo Admin. Vale medir na pr√≥xima publica√ß√£o se sobraram
-  exatamente quatro falhas ‚Äî isso confirma que os tr√™s do 522 sumiram.
-
-## Armadilha: push de branch derruba a capa rec√©m-publicada (2026-09-13)
-
-- **Sintoma**: a mat√©ria das 21:00 apareceu no site sem foto, mesmo com tudo
-  certo no banco (`coverImageUrl` gravada) e no reposit√≥rio (arquivo de 417 KB
-  commitado pelo pr√≥prio workflow em `2f939d3`).
-- **Causa, pela linha do tempo**: 21:00:46 o cron commita a capa no `main`;
-  21:01:59 o passo "Espera o deploy publicar o asset" confirma a capa no ar;
-  21:10:03 um commit de trabalho vai para o branch `claude/...`, que partiu do
-  `main` de ANTES da capa existir; 21:10:57 o Cloudflare publica em produ√ß√£o a
-  partir desse branch. A √°rvore publicada passou a n√£o ter o arquivo, e a URL
-  gravada no banco virou 404.
-- **Por que √© estrutural e n√£o azar**: todo push de qualquer branch publica em
-  produ√ß√£o, e o cron commita uma capa nova no `main` a cada publica√ß√£o. Ent√£o
-  qualquer branch que esteja atr√°s do `main` remove de produ√ß√£o todas as capas
-  commitadas depois do ponto de partida dele ‚Äî silenciosamente, porque o banco
-  e o reposit√≥rio continuam consistentes e nada falha.
-- **Regra para as pr√≥ximas sess√µes**: `git fetch origin main && git merge
-  origin/main` IMEDIATAMENTE antes de cada push, n√£o s√≥ no come√ßo do trabalho.
-  Uma publica√ß√£o pode ter acontecido no meio da sess√£o. E quanto mais tempo o
-  branch fica aberto, maior a janela ‚Äî mesclar o PR cedo reduz o risco.
-- Consertado nesta sess√£o em `226408b`, trazendo o `main` para o branch.
-
-## Capa passa a sair de banco curado, sem busca ao vivo (2026-09-13)
-
-- **Motivo**: a mat√©ria das 21:00, sobre enchente em Telangana (√çndia), saiu
-  com foto de uma rua alagada americana, com placa "ROAD CLOSED" e
-  sinaliza√ß√£o em ingl√™s. O problema n√£o √© ser gen√©rica ‚Äî √© *parecer
-  documentar* o fato. Foto escolhida por termo em ingl√™s que o modelo inventou
-  n√£o ilustra, finge registro. Decis√£o do dono do projeto: banco curado em
-  primeiro lugar, busca ao vivo removida.
-- **Como funciona**: as imagens ficam na biblioteca do Admin, com nome
-  come√ßando em `wire-banco-<editoria>-` (ex.:
-  `wire-banco-clima-chuva-cidade.webp`). √â conven√ß√£o de nome de arquivo em vez
-  de coluna nova porque o upload do Admin grava o nome enviado ‚Äî ent√£o d√° para
-  curar tudo pelo navegador, que √© o √∫nico caminho para quem n√£o tem terminal.
-- **Escolha e rod√≠zio**: `pickLibraryCover` pega a mais antiga que n√£o esteja
-  entre as √∫ltimas 40 usadas (`recentCoverPhotoIds`, a mesma antirrepeti√ß√£o
-  que j√° existia). Sem coluna de "√∫ltima vez usada": a exclus√£o j√° produz
-  rod√≠zio.
-- **Onde a imagem √© servida**: o id escolhido vai no JSON do endpoint, o
-  runner do Actions baixa por `/api/media-images/<id>` e o pipeline commita o
-  arquivo est√°tico como sempre fez. Assim a curadoria √© pelo navegador mas a
-  entrega √© pelo CDN, e a capa nunca vira uma URL `/api/media-images/` ‚Äî que
-  seria banco servindo imagem a cada leitor, e reabriria a classe de bug do
-  522 no backfill.
-- **Degrada em cascata**: banco vazio, ou download falhando, cai no fallback
-  fixo por editoria (`_fallback/<beat>.jpg`, 5 arquivos de 11/09) e depois no
-  card tipogr√°fico. O `catch` no n√≠vel 1 √© deliberado: a mat√©ria j√° est√°
-  publicada quando esse script roda, ent√£o morrer ali a deixaria sem capa.
-- **ATEN√á√ÉO ‚Äî o banco est√° vazio hoje.** Nenhuma imagem com esse prefixo foi
-  cadastrada ainda, ent√£o toda mat√©ria vai sair com a mesma foto fixa da
-  editoria at√© que algu√©m suba imagens pelo Admin. √â o comportamento pedido,
-  mas √© repetitivo: subir umas 5 a 10 por editoria resolve.
-
-## Card do Instagram passa a sair autom√°tico a cada publica√ß√£o (2026-09-13)
-
-- **Divis√£o acordada com o dono do projeto**: ele fornece a mat√©ria-prima
-  visual (imagens na biblioteca do Admin), a m√°quina aplica o padr√£o. O card
-  sai no estilo s√≥brio que j√° existia, n√£o no estilo telejornal com selo
-  URGENTE ‚Äî se todo post √© urgente, "urgente" deixa de significar algo, e o
-  site se apresenta como cobertura jornal√≠stica real.
-- **Como**: passo novo no workflow, entre otimizar a capa e commit√°-la, roda
-  `scripts/render-instagram-card.mjs` com `WIRE_OUT_DIR=public/images/instagram`.
-  O gerador ganhou suporte a esse destino; o padr√£o continua `out/instagram`
-  para uso manual. Mesmo tra√ßado do bot√£o de `/blog/$slug` (os dois importam
-  `src/lib/wire-instagram-card.ts`), ent√£o n√£o existem dois cards diferentes.
-- **Card e capa v√£o no MESMO commit**, de prop√≥sito: cada commit no `main` √©
-  um deploy, e cada deploy troca o que a produ√ß√£o est√° servindo. Um commit a
-  mais por publica√ß√£o dobraria essa troca.
-- **O endpoint passou a devolver `excerpt`**, que alimenta a legenda. Sem ele
-  a legenda sairia s√≥ com manchete e link.
-- **Onde encontrar o card**: `https://veronicahub.com/images/instagram/wire-tv-<slug>.jpg`
-  e a legenda no `.txt` de mesmo nome. Sem precisar abrir a mat√©ria nem rodar
-  nada ‚Äî o que importa para quem n√£o tem terminal.
-- **Por que n√£o guardar o card na biblioteca**: ~375 KB por mat√©ria, 24 por
-  dia, d√° ~9 MB/dia contra o limite de 512 MB do Neon ‚Äî estouraria em menos de
-  dois meses. A biblioteca fica para as imagens de origem, que s√£o poucas e
-  reaproveitadas; o card √© asset est√°tico servido pelo CDN.
-- `@napi-rs/canvas` N√ÉO est√° no `package.json`, ao contr√°rio do que diz o
-  coment√°rio do script. O passo instala com `npm install --no-save`, mesmo
-  padr√£o do Playwright.
-- Teste novo trava o acoplamento entre onde o card √© gerado e onde √©
-  commitado ‚Äî se divergirem, o card √© gerado e descartado sem nada falhar.
-
-## Wire TV ‚Üí Instagram oficial (2026-09-13)
-
-- Base consolidada: a `main` avan√ßou novamente durante a implementa√ß√£o; a
-  integra√ß√£o final foi aplicada sobre `8ac5d11`, preservando o trabalho
-  posterior de afiliados, capas, banco curado e cron editorial.
-- Perfil can√¥nico corrigido em todo o runtime para **`@wire__tv`** (dois
-  sublinhados), incluindo `SOCIAL_LINKS` e o card compartilh√°vel.
-- Novo conector server-only em `src/lib/instagram-publisher.server.ts` para a
-  Meta Graph API: valida a conta de destino, cria o container, aguarda o
-  processamento e publica a m√≠dia. A credencial nunca chega ao navegador.
-- Prote√ß√£o contra erro operacional: antes de publicar, o conector confirma que
-  a credencial pertence a `@wire__tv`; tamb√©m procura a URL can√¥nica em at√© 500
-  posts recentes e n√£o cria duplicata.
-- Endpoint `/api/cron/publish-instagram` protegido pelo mesmo `CRON_SECRET` do
-  pipeline. O workflow s√≥ o chama depois de o card vertical estar gerado,
-  publicado e a capa registrada no artigo; a URL aceita √© limitada ao diret√≥rio
-  oficial `/images/instagram/wire-tv-*`. Falha da Meta √© best-effort e n√£o
-  derruba a mat√©ria.
-- `/admin/artigos` ganhou diagn√≥stico da conex√£o e bot√£o de publica√ß√£o manual
-  por mat√©ria. O bot√£o manual funciona para homologa√ß√£o mesmo com o autom√°tico
-  desligado.
-- Vari√°veis documentadas em `.env.example`. Estado seguro inicial:
-  `META_INSTAGRAM_AUTOPUBLISH=false`. Para ativar faltam o ID da conta
-  profissional e o token oficial da Meta; nenhum segredo foi criado ou
-  inventado no c√≥digo.
-- Verifica√ß√£o local: 16/16 testes, typecheck e build Cloudflare completos.
-
-## Fim das imagens repetidas na Wire TV (2026-09-15)
-
-- **Medida antes de mexer**: 19 das 39 capas em `public/images/blog-covers`
-  eram c√≥pias byte a byte umas das outras ou de `_fallback/<editoria>.jpg` ‚Äî
-  cinco imagens ilustrando 19 mat√©rias. Heran√ßa direta do aviso da se√ß√£o
-  "Capa passa a sair de banco curado": o banco curado da biblioteca do Admin
-  continua vazio, e o n√≠vel 2 da cascata copiava a foto fixa da editoria. Como
-  o card do Instagram usa a capa como fundo, a repeti√ß√£o tamb√©m estava nas
-  pe√ßas de divulga√ß√£o.
-- **O que substituiu**: `src/lib/wire-cover-art.ts` desenha uma composi√ß√£o
-  abstrata 1200√ó630 a partir de um hash FNV-1a do slug. Cinco tra√ßados
-  (`sinal`, `orbita`, `espectro`, `malha`, `estratos`), paleta da editoria e
-  toda varia√ß√£o ‚Äî posi√ß√£o dos halos, amplitude, quantidade, √¢ngulo ‚Äî sorteada
-  por um mulberry32 com a semente do slug. Duas mat√©rias n√£o recebem a mesma
-  capa, e regerar a mesma mat√©ria devolve a mesma imagem (determinismo √©
-  requisito: sem ele, cada passagem do backfill trocaria capa j√° publicada).
-- **Por que arte e n√£o foto**: a decis√£o de 13/09 continua valendo ‚Äî foto de
-  banco escolhida por termo inventado finge documentar o fato. Arte geom√©trica
-  √© assumidamente ilustrativa. Feed de fotos de verdade continua sendo o banco
-  curado, que segue como n√≠vel 1 e n√£o foi tocado.
-- **Sem manchete na capa, de prop√≥sito**: o card do Instagram recorta a capa
-  pelo centro (504 px dos 1200) e escreve a manchete por cima. Manchete na
-  capa apareceria duas vezes. A marca "WIRE TV" fica no canto inferior
-  esquerdo, justamente na faixa que o recorte 4:5 descarta ‚Äî identifica a
-  imagem como og:image sem duplicar o "WIRE TV" do card.
-- **Cascata nova** em `generate-article.yml`: banco curado ‚Üí arte gerada
-  (`scripts/render-cover-art.mjs`) ‚Üí foto fixa da editoria, e esta s√≥ se o
-  canvas n√£o subir, dentro do pr√≥prio script. `scripts/fetch-cover-photo.mjs`
-  deixou de copiar o `_fallback`.
-- **Playwright saiu do pipeline do Wire**: `scripts/render-cover.mjs` (card
-  tipogr√°fico, n√≠vel 4) foi removido, e com ele os dois passos que baixavam um
-  Chromium a cada rodada para desenhar sempre o mesmo layout. O `@napi-rs/canvas`
-  agora √© instalado uma vez e serve a arte e o card do Instagram. O
-  `render-trending-covers.mjs` da Analytics continua com Playwright ‚Äî outro
-  pipeline, n√£o foi tocado.
-- **Backfill aplicado**: `scripts/refresh-repeated-covers.mjs` achou as 19
-  repetidas por hash, gerou arte para cada uma e redesenhou os 19 cards do
-  Instagram (18 existentes + 1 que faltava). As legendas `.txt` existentes
-  foram preservadas: elas trazem o resumo que o endpoint devolveu na
-  publica√ß√£o, que o manifesto nem sempre tem. O script √© dry-run por padr√£o e
-  precisa de `--manifest` com a lista de mat√©rias publicadas ‚Äî ele n√£o adivinha
-  editoria; a consulta SQL est√° no cabe√ßalho.
-- **Peso**: as capas repetidas pesavam 85‚Äì417 KB (fotos); a arte sai com
-  ~60 KB. O passo de otimiza√ß√£o com ImageMagick agora s√≥ roda em foto do banco
-  curado ‚Äî o 4:2:0 borraria as linhas finas da composi√ß√£o, e a arte j√° sai no
-  tamanho e no peso certos.
-- **Teste que trava a regress√£o**: `nenhuma capa publicada repete outra nem a
-  foto fixa da editoria` compara o hash de todos os arquivos commitados. Se a
-  repeti√ß√£o voltar por qualquer caminho, `npm test` acusa ‚Äî antes era um
-  defeito silencioso, com banco e reposit√≥rio consistentes e nada falhando.
-- Verifica√ß√£o local: 19/19 testes, typecheck limpo, build Cloudflare completo.
-  As capas e os cards foram conferidos como imagem, n√£o s√≥ como arquivo.
-- **Continua valendo**: subir 5 a 10 imagens por editoria no Admin com o
-  prefixo `wire-banco-<editoria>-` faz a mat√©ria voltar a sair com fotografia.
-  A arte √© o piso, n√£o o teto.
-
-## Banco de capas abastecido pelo Pexels (2026-09-15)
-
-- **Pedido**: voltar a ter fotografia de not√≠cia, n√£o arte gerada. Escolhido o
-  desenho (A): abastecer o banco curado da biblioteca do Admin, que o pipeline
-  **j√° prefere** como n√≠vel 1 ‚Äî nada no caminho da publica√ß√£o muda, e a arte
-  gerada do slug continua como piso para quando o banco n√£o tiver imagem.
-- **Por que n√£o a busca ao vivo por mat√©ria (desenho B)**: era exatamente o que
-  saiu em 13/09, quando a enchente em Telangana ganhou foto de rua americana
-  com placa "ROAD CLOSED". A diferen√ßa aqui √© que os termos s√£o **curados √†
-  m√£o, uma vez, e deliberadamente gen√©ricos** (`wind turbines field`,
-  `data center server room`): uma foto de parque e√≥lico na editoria de clima √©
-  assumidamente ilustrativa, n√£o finge registrar o fato da mat√©ria.
-- **Divis√£o de trabalho, igual √† do resto do pipeline**: quem tem a chave e a
-  rede √© o runner do Actions (`scripts/fill-cover-bank.mjs`) ‚Äî busca, filtra e
-  baixa; o Worker s√≥ valida e grava, pelo endpoint `/api/cron/cover-bank`
-  (GET invent√°rio, POST cadastro), protegido pelo mesmo `CRON_SECRET`. A
-  `PEXELS_API_KEY` n√£o vira secret do Cloudflare, e a `DATABASE_URL` n√£o vira
-  secret do Actions.
-- **Este workflow N√ÉO commita e N√ÉO dispara deploy** ‚Äî √© a diferen√ßa para o
-  cron editorial, que commita capa no `main`. `permissions: contents: read`, e
-  um teste trava a aus√™ncia de `git push`: se ganhar um, cada rodada semanal
-  passa a republicar o site.
-- **Dedupe sem coluna nova**: o nome do arquivo carrega o id da foto
-  (`wire-banco-<editoria>-pexels-<id>.jpg`), ent√£o o dedupe por filename que a
-  biblioteca j√° tem impede cadastrar a mesma foto duas vezes. Um id s√≥ entra
-  numa editoria ‚Äî a mesma foto em duas reabriria a repeti√ß√£o.
-- **Teto de 24 por editoria**, checado no servidor e n√£o s√≥ no script: a
-  biblioteca √© Postgres (Neon, 512 MB) e cada foto pesa 200‚Äì400 KB em base64.
-  O alvo padr√£o √© 8 por editoria, que j√° gira bem no rod√≠zio de
-  `pickLibraryCover` (ele evita as √∫ltimas 40 usadas).
-- **Cr√©dito do fot√≥grafo**: mora no `altText` da imagem, porque a biblioteca
-  n√£o tem coluna para ele ‚Äî e o `altText` √© justamente o campo que o Admin
-  mostra, ent√£o quem cura pelo navegador l√™ o cr√©dito. `buildBankAltText` e
-  `parseBankCredit` s√£o um par com teste de ida e volta. O cr√©dito atravessa
-  quatro elos at√© a coluna `photoCredit` da mat√©ria: resposta do cron ‚Üí
-  workflow ‚Üí `COVER_LIBRARY_CREDIT` ‚Üí sa√≠da do `fetch-cover-photo.mjs`. Um
-  teste trava os quatro, porque se um sumir a foto continua sendo publicada e
-  s√≥ o cr√©dito some, sem nada falhar.
-- **PENDENTE, decis√£o sua**: nenhuma p√°gina do site exibe `photoCredit` hoje ‚Äî
-  a coluna √© gravada e ningu√©m l√™. O dado passou a ser capturado agora porque
-  n√£o d√° para recuperar depois; onde mostrar (rodap√© da capa na mat√©ria,
-  legenda do Instagram, os dois) continua em aberto.
-- **Rodar**: `workflow_dispatch` em "Abastece o banco de capas (Wire TV)", com
-  `dry_run` para conferir antes de gravar. Usa os secrets `PEXELS_API_KEY` e
-  `CRON_SECRET`, que j√° existem no reposit√≥rio.
-- Verifica√ß√£o local: 22/22 testes, typecheck e build Cloudflare. **N√£o foi
-  poss√≠vel rodar o script de verdade daqui**: o proxy deste ambiente devolve
-  403 no CONNECT para `api.pexels.com` e `images.pexels.com`, e a
-  `PEXELS_API_KEY` n√£o existe na sess√£o. A primeira rodada de verdade √© no
-  Actions, e √© ela que vai dizer se os termos rendem foto boa.
-
-## Recusa editorial deixava a rodada vermelha (2026-09-16)
-
-- **Achado ao investigar "o main n√£o publica desde ontem"**: o cron N√ÉO parou.
-  Est√° disparando de hora em hora, cinco segundos depois da hora cheia ‚Äî o
-  token do Worker est√° v√°lido e o Cron Trigger do Cloudflare funciona. Foram
-  quatro rodadas seguidas sem publicar, por quatro motivos diferentes:
-  21:00 verde sem publica√ß√£o; 22:00 (economia) 400 do provedor de IA; 23:00
-  (geopol√≠tica) recusa do modelo; 00:00 (IA) data do fato fora da janela de
-  72h. Duas s√£o o piso editorial funcionando.
-- **Defeito real, este sim**: a recusa do modelo √© a √∫nica mensagem da lista de
-  `isEditorialSkip` que o pr√≥prio modelo escreve, e era casada por prefixo
-  exato. Nas duas rodadas vermelhas ele estava dizendo exatamente o que o
-  prompt manda dizer quando n√£o h√° fato, mas de formas que o prefixo n√£o
-  alcan√ßou:
-  - `"sem verif√°vel no momento (radar: 1 pauta)"` ‚Äî erro de digita√ß√£o dele.
-  - `400 ... tool_use_failed`, com `failed_generation` contendo a frase certa
-    embrulhada numa chamada de ferramenta inv√°lida.
-  Recusa editorial leg√≠tima virando 502 e rodada vermelha √© o que polui o
-  hist√≥rico e esconde falha de verdade no meio.
-- **Corrigido**: a compara√ß√£o da recusa do modelo ficou tolerante ‚Äî acento e
-  caixa normalizados, miolo da palavra frouxo (`verif\w*vel`) e busca em
-  qualquer posi√ß√£o, que √© o que alcan√ßa a frase dentro do corpo de erro do
-  provedor. As outras mensagens s√£o escritas pelo servidor, com texto
-  determin√≠stico, e continuam casando por prefixo exato. Um `tool_use_failed`
-  SEM a frase dentro continua vermelho, que √© o correto: a√≠ √© infraestrutura,
-  n√£o editorial.
-- `isEditorialSkip` saiu de `article-cron.ts` para `src/lib/editorial-skip.ts`,
-  m√≥dulo puro, para poder ser testado com as strings reais das duas rodadas ‚Äî
-  `article-cron` importa banco e n√£o sobe num teste de Node. O teste antigo
-  conferia o formato da lista de prefixos; passou a conferir comportamento.
-- **N√ÉO foi mexido no piso editorial.** Recusar publicar o que n√£o se
-  confirmou em duas fontes continua igual. O que mudou √© s√≥ como essa recusa
-  aparece no hist√≥rico do Actions.
-
-## Medi√ß√£o que contraria o aviso do deploy a cada push (2026-09-16)
-
-- **Dois pushes no branch `claude/wire-tv-instagram-images-whtsv7` N√ÉO geraram
-  deploy.** O Worker de produ√ß√£o `veronicahub-app` tem
-  `modified_on = 2026-09-15T20:03:28Z`, que √© o deploy do commit `30cbbb1`
-  (capa autom√°tica das 20:02 no `main`). Os pushes foram 23:50 e 00:03 e n√£o
-  tocaram o Worker.
-- Ou seja: hoje a produ√ß√£o segue o `main`, e n√£o "qualquer branch". N√£o d√° para
-  saber daqui se a configura√ß√£o do Cloudflare mudou desde o susto documentado
-  na se√ß√£o "Onde estamos" ‚Äî o que se sabe √© a medi√ß√£o acima.
-- **Consequ√™ncia pr√°tica**: nada do trabalho do branch est√° no ar at√© mesclar.
-  As 18 capas repetidas continuam sendo servidas, o endpoint do banco n√£o
-  existe em produ√ß√£o, e o workflow de abastecimento nem aparece no Actions
-  (o GitHub s√≥ lista `workflow_dispatch` de workflow que est√° no branch padr√£o).
-- **Regra que continua valendo por precau√ß√£o**: `git fetch origin main &&
-  git merge origin/main` imediatamente antes de qualquer push. Uma medi√ß√£o n√£o
-  derruba o risco de uma configura√ß√£o voltar a mudar.
-
-## Distribui√ß√£o dos termos no banco de capas (2026-09-16)
-
-- **Medido no primeiro dry run**, que √© para o que ele serve: o abastecimento
-  cadastraria 40 fotos, 8 por editoria, com fot√≥grafo em todas ‚Äî mas **as 8 de
-  cada editoria vindo de um √∫nico termo**. Clima inteiro de `wind turbines
-  field`, geopol√≠tica inteira de `international flags row`.
-- **Por que passaria despercebido**: s√£o fotos diferentes, ent√£o nem o dedupe
-  por id nem o teste de hash das capas acusariam nada. √â a mesma *cena* oito
-  vezes, que na home l√™ como repeti√ß√£o ‚Äî exatamente o que o banco existe para
-  resolver.
-- **Causa**: o la√ßo percorria os termos em ordem e s√≥ passava ao pr√≥ximo quando
-  o anterior n√£o rendia mais. O primeiro termo enchia a cota sozinho.
-- **Corrigido**: busca todos os termos antes de consumir e intercala
-  (`interleaveByTerm`, em `src/lib/cover-bank.ts`). Uma editoria com seis
-  termos e alvo de oito recebe pelo menos uma foto de cada cena antes de
-  repetir qualquer termo. Como agora todos os termos s√£o buscados antes de
-  qualquer consumo, dois podem devolver a mesma foto ‚Äî o la√ßo de consumo
-  checa `usedIds` de novo por isso.
-- Tamb√©m verificado nesta rodada: o merge do PR #100 disparou a rodada de
-  valida√ß√£o do pipeline editorial e publicou a mat√©ria da Calif√≥rnia com a
-  cascata nova. Arte de capa em 1 s, card do Instagram em 1 s, otimiza√ß√£o com
-  ImageMagick pulada (correto ‚Äî s√≥ roda em foto do banco curado). O Worker de
-  produ√ß√£o foi atualizado √†s 00:17:43Z, logo ap√≥s o merge das 00:16:51Z.
-
-## Capas de arte trocadas por fotografia (2026-09-16)
-
-- **Decis√£o do dono**: a arte gerada n√£o deve ficar no ar. Ela foi feita como
-  piso para quando o banco estava vazio; com o banco abastecido (16 fotos por
-  editoria), as 26 mat√©rias publicadas com `coverPhotoId` nulo passam a
-  receber foto.
-- `coverPhotoId IS NULL` √© o que identifica capa sem fotografia ‚Äî pega arte
-  gerada, card tipogr√°fico antigo e foto fixa da editoria de uma vez, sem
-  precisar comparar imagem.
-- **Quem escolhe √© o servidor** (`/api/cron/art-covers`): a distribui√ß√£o
-  precisa do banco inteiro √† vista para n√£o dar a mesma foto a duas mat√©rias,
-  e quem tem essa vis√£o √© o servidor, n√£o o runner. Ele devolve, por mat√©ria,
-  a foto atribu√≠da e o cr√©dito, e sinaliza `repetidas` quando o banco de uma
-  editoria n√£o d√° para todas.
-- **Quem baixa e commita √© o runner** (`scripts/swap-art-covers.mjs`), pelo
-  mesmo motivo de sempre: Workers n√£o escrevem em disco.
-- **Ordem que importa**: arquivos ‚Üí commit ‚Üí espera do deploy ‚Üí registro da
-  proced√™ncia. Gravar `coverPhotoId` antes de a capa nova estar publicada
-  apontaria a proced√™ncia para uma imagem que ainda √© arte, e nada falharia,
-  porque as duas coisas existem. Um teste trava essa ordem.
-- **Este workflow COMMITA**, ao contr√°rio do `fill-cover-bank.yml`, ent√£o
-  dispara deploy. Um commit s√≥ para as 26 capas e os 26 cards do Instagram ‚Äî
-  card junto porque ele usa a capa como fundo, e trocar uma sem a outra
-  deixaria a pe√ßa de divulga√ß√£o com a arte antiga.
-- `dry_run` √© o padr√£o `true`: trocar 26 capas no ar n√£o pode ser o clique
-  f√°cil.
-## Escopo editorial passa a ser Brasil e China (2026-09-16)
-
-- **Pedido do dono**: tirar not√≠cia dos EUA, deixar s√≥ China e Brasil, com foco
-  no Brasil, incluindo os assuntos mais comentados do dia.
-- **O recorte vale em quatro elos, e precisa dos quatro** ‚Äî mexer em um s√≥
-  deixa os outros trabalhando contra:
-  1. `GDELT_SCOPE` no radar principal;
-  2. `RSS_FEEDS` reapontados (os antigos eram `hl=en-US&gl=US` mais TechCrunch,
-     Federal Reserve e BBC ‚Äî um radar montado para enxergar os EUA, que era de
-     onde a pauta vinha);
-  3. `inEditorialScope`, aplicado a TODO sinal, nos dois caminhos de
-     descoberta;
-  4. a regra no prompt, que √© o elo decisivo quando o radar vem vazio.
-- **Duas portas no filtro, e a ordem importa**: ve√≠culo brasileiro ou chin√™s
-  entra pelo dom√≠nio, sem precisar dizer "Brasil" na manchete ‚Äî sen√£o
-  "Governo anuncia leil√£o de baterias", da Ag√™ncia Brasil, seria descartado
-  justamente por ser not√≠cia brasileira demais para se anunciar como tal. De
-  qualquer outro ve√≠culo, a manchete precisa trazer o v√≠nculo.
-- **"Mais comentados do dia"**: `BRASIL_EM_ALTA` √© o feed de principais
-  not√≠cias do Brasil, sem termo de busca, e entra nas cinco editorias. Quem
-  separa o que interessa a cada uma √© o `SIGNAL_KEYWORDS`, agora com termos em
-  portugu√™s (pix, selic, c√¢mbio, enchente, desmatamento, BRICS, Mercosul).
-- R√≥tulos p√∫blicos sem EUA: `BEAT_LABELS.geopolitica` virou "Geopol√≠tica ¬∑
-  Brasil e China", o `BEAT_BRIEF` virou "rela√ß√£o Brasil‚ÄìChina", e a meta
-  description de `/blog` acompanhou.
-- **Efeito colateral esperado, e n√£o escondido**: com o radar mais estreito, a
-  chance de rodada sem publica√ß√£o aumenta. O piso editorial continua igual ‚Äî
-  duas fontes independentes ‚Äî, e agora h√° um motivo a mais para recusar. Vale
-  medir na pr√≥xima semana quantas rodadas publicam; se cair demais, o caminho
-  √© ampliar os termos por editoria, n√£o afrouxar o escopo.
-- Verifica√ß√£o: 25/25 testes (1 novo, travando os quatro elos), typecheck e
-  build Cloudflare. **A efic√°cia real s√≥ se mede publicando** ‚Äî daqui n√£o d√°
-  para chamar o GDELT nem os feeds.
-
-## Capa manual n√£o entra mais na troca autom√°tica (2026-09-16)
-
-- **O que aconteceu**: a troca das capas de arte usou `coverPhotoId IS NULL`
-  como sinal de "sem fotografia". Esse campo tamb√©m fica nulo quando algu√©m
-  escolheu a capa √† m√£o pelo Admin ‚Äî e essas apontam para
-  `/api/media-images/`, n√£o para arquivo est√°tico.
-- **Tr√™s mat√©rias entraram por engano** (Piau√≠/Unesco, EUA/pain√©is bifaciais,
-  Itaja√≠/chuva). O `set-cover-image` recusou o registro com "capa √© manual" ‚Äî
-  a prote√ß√£o existia e funcionou ‚Äî, mas s√≥ depois de o arquivo j√° ter sido
-  baixado e commitado. Sobraram tr√™s capas √≥rf√£s que nenhuma mat√©ria usa e
-  tr√™s cards do Instagram com fundo diferente da capa que a mat√©ria mostra.
-- **Nada quebrou e nada aparecia para o leitor**, que √© justamente o que
-  torna esse tipo de sujeira dif√≠cil de notar: banco e reposit√≥rio continuam
-  consistentes, e o site serve a capa manual correta.
-- **Consertado nos dois lados**: a consulta de `/api/cron/art-covers` passa a
-  excluir capa que aponte para `/api/media-images/`, e os seis arquivos
-  √≥rf√£os foram removidos. Mat√©ria sem capa nenhuma continua entrando.
-- O caminho `/api/media-images/` aparece em dois lugares ‚Äî aqui e em
-  `mediaLibraryImageId`, de `article-cron.ts`. Um teste trava os dois: se um
-  mudar sem o outro, capa manual volta a ser sobrescrita.
-- Contagem depois da troca: 41 mat√©rias publicadas, 38 com fotografia do
-  banco, 38 fotos distintas (nenhuma repetida), 3 com capa manual preservada.
-
-## Cr√©dito do fot√≥grafo no rodap√© da capa e na legenda (2026-09-16)
-
-- **Corre√ß√£o de registro**: eu havia dito, nas se√ß√µes anteriores, que "nenhuma
-  p√°gina exibe `photoCredit`". Errado ‚Äî `/blog/$slug` j√° renderizava o cr√©dito
-  no rodap√© da capa desde antes, com link para a origem. O que faltava era o
-  dado, e depois da troca de capas 39 das 42 mat√©rias passaram a ter.
-- **Defeito que isso revelou**: `parseBankCredit` devolvia `"Nome/Pexels"`, e a
-  p√°gina monta `Foto: {cr√©dito} / {fonte}`. O rodap√© sa√≠a
-  **"Foto: Helena Jankoviƒçov√° Kov√°ƒçov√°/Pexels / Pexels"**. Agora
-  `parseBankCredit` devolve s√≥ o nome; quem escreve a fonte √© quem exibe.
-- **24 linhas j√° gravadas foram corrigidas no banco** com
-  `UPDATE "Article" SET "coverPhotoCredit" = left(..., length(...) - 7) WHERE
-  "coverPhotoCredit" LIKE '%/Pexels'`. As 15 anteriores, da √©poca da busca ao
-  vivo, j√° vinham s√≥ com o nome e n√£o foram tocadas.
-- **Legenda do Instagram passa a creditar**: `buildWireCaption` ganhou
-  `photoCredit` opcional e escreve `Foto: <nome> / Pexels` entre o link e o
-  `@wire__tv`. No feed n√£o h√° como linkar, ent√£o vai escrito. Sem cr√©dito, a
-  linha n√£o aparece ‚Äî creditar quem n√£o se sabe quem √© seria pior que n√£o
-  creditar.
-- O cr√©dito viaja por todos os caminhos que geram legenda: o bot√£o de
-  compartilhar em `/blog/$slug`, o `render-instagram-card.mjs` do cron (via
-  `WIRE_PHOTO_CREDIT`, repassado pelo workflow) e o `swap-art-covers.mjs`.
-- **Link morto removido**: foto do banco n√£o tem URL de origem gravada, e o
-  rodap√© virava um `<a href="#">` que n√£o leva a lugar nenhum e ainda abre
-  aba. Sem URL, o cr√©dito agora √© texto; com URL, continua link.
-- Verifica√ß√£o: 28/28 testes (1 novo, mais o de ida e volta do cr√©dito
-  ajustado), typecheck e build Cloudflare.
-
-## Agente da Express Entulho usa n√∫mero dedicado (2026-09-16)
-
-- Decis√£o registrada a pedido do respons√°vel: **o n√∫mero de WhatsApp atual da
-  Express Entulho n√£o ser√° migrado, alterado nem ter√° mensagens apagadas.** O
-  agente de IA vai operar em n√∫mero novo e dedicado.
-- Motivo: migrar um n√∫mero para a Cloud API desativa a conta daquele n√∫mero no
-  aplicativo e n√£o leva o hist√≥rico junto. O n√∫mero atual √© o canal que fatura
-  hoje; o risco n√£o se justifica.
-- Ganhos al√©m da seguran√ßa: o agente pode ser testado sem que nenhum cliente
-  real veja os erros; desistir do projeto n√£o exige migra√ß√£o de volta; e a
-  virada de chave pode ser gradual, divulgando o n√∫mero novo aos poucos.
-- A restri√ß√£o foi gravada em `AGENTS.md` para valer tamb√©m para qualquer outro
-  agente ou pessoa que pegue o projeto depois.
-- Estado do agente nesta data: nenhuma linha implementada. N√£o h√° integra√ß√£o
-  com a Cloud API no reposit√≥rio, nem webhook, nem persist√™ncia de conversas ‚Äî
-  o √∫nico uso de `graph.facebook.com` √© o publicador do Instagram, sem rela√ß√£o.
-  As demonstra√ß√µes em `/preview/express-operations-b` e
-  `/clientes/express-entulho/operacoes-demo` s√£o do painel operacional, n√£o do
-  agente.
-- Verifica√ß√£o do neg√≥cio na Meta e aprova√ß√£o de modelos de mensagem ainda n√£o
-  foram iniciadas. Como o prazo delas n√£o depende do desenvolvimento, s√£o o
-  caminho cr√≠tico para qualquer data de entrega.
-
-## Avalia√ß√£o: plataforma pronta (Umbler Talk) vs. construir (2026-09-16)
-
-- Levantada a hip√≥tese de usar o **Umbler Talk** ‚Äî caixa de entrada de WhatsApp
-  com IA sobre a API oficial da Meta ‚Äî em vez de construir o agente da Express
-  Entulho do zero.
-- **Ressalva de m√©todo:** a p√°gina do produto estava bloqueada pelo proxy do
-  ambiente de desenvolvimento. A avalia√ß√£o abaixo veio de busca, incluindo
-  material de marketing da pr√≥pria Umbler e de terceiros. Os n√∫meros precisam
-  ser conferidos na fonte antes de qualquer contrato.
-- **O que a plataforma resolve pronto:** burocracia da Meta (verifica√ß√£o,
-  modelos de mensagem, token), interface de atendimento com v√°rios atendentes
-  num n√∫mero s√≥, e agente com base de conhecimento ‚Äî suficiente para pre√ßo,
-  √°rea atendida e hor√°rio.
-- **Onde provavelmente n√£o chega sozinha:** estado operacional. Responder
-  "tem ca√ßamba livre hoje?" exige consultar sistema pr√≥prio. H√° webhook e API
-  aberta, mas foi encontrada a informa√ß√£o de que **APIs externas para os
-  Agentes de IA passam por homologa√ß√£o pr√©via do time Umbler** ‚Äî ponto a
-  confirmar, porque separa "resolve tudo" de "resolve o atendimento".
-- **Custos ‚Äî CORRIGIDO em 16/09 com a p√°gina oficial em m√£os.** A estimativa
-  anterior, tirada de busca, estava errada e baixa: dizia "R$ 100 a R$ 300/m√™s"
-  e "entrada de R$ 69/m√™s". O pre√ßo real √© **por atendente, com m√≠nimo
-  obrigat√≥rio de contrata√ß√£o**:
-  - Essencial ‚Äî R$ 99,90/atendente, m√≠nimo 2 ‚Üí **R$ 199,80/m√™s**
-  - Impulso ‚Äî R$ 149,90/atendente, m√≠nimo 3 ‚Üí **R$ 449,70/m√™s**
-  - Escala ‚Äî R$ 219,90/atendente, m√≠nimo 3 ‚Üí **R$ 659,70/m√™s**
-
-  A p√°gina tem seletor Trimestral/Anual ‚àí20% sem indicar qual valor est√°
-  exibido. As conversas cobradas pela Meta n√£o aparecem na p√°gina e s√£o √†
-  parte. N√£o h√° limite de consumo de IA declarado, nem men√ß√£o a teste gr√°tis.
-- **Achado decisivo:** **API e Webhooks s√≥ existem a partir do Impulso**
-  (R$ 449,70/m√™s) e **"Integra√ß√µes avan√ßadas para Agentes IA" s√≥ no Escala**
-  (R$ 659,70/m√™s). Fazer o agente consultar frota e agenda ‚Äî o caso de uso
-  que importa para a Express Entulho ‚Äî custa de R$ 5.400 a R$ 7.900 por ano,
-  permanentemente. "Multiunidade e multimarca", que permitiria atender v√°rios
-  clientes numa conta s√≥, tamb√©m √© exclusivo do Escala.
-- **Confirmado pela p√°gina:** o Agente IA responde sozinho, com o humano
-  assumindo quando quiser; a configura√ß√£o √© Comportamento + Roteiro +
-  Conhecimento (site, documentos e FAQ), que √© exatamente a tela "Regras do
-  agente" desenhada na demonstra√ß√£o.
-- **A decis√£o n√£o √© t√©cnica, √© de modelo de neg√≥cio.** Vender um servi√ßo √†
-  Express Entulho favorece a plataforma: entrega em dias, sem servidor para
-  manter, e permite cobrar implanta√ß√£o mais mensalidade de gest√£o, com a
-  assinatura no nome do cliente ‚Äî mais saud√°vel que os R$ 1.500 √∫nicos, que
-  ficam abaixo do custo de desenvolvimento sob medida. Construir s√≥ se
-  justifica se o alvo for o Veronica Operations como produto multiempresa,
-  e nesse caso R$ 1.500 n√£o financia o produto.
-- **Encaminhamento:** come√ßar pela plataforma, com n√∫mero dedicado, e usar as
-  conversas reais para descobrir as regras do neg√≥cio ‚Äî hoje elas seriam
-  adivinhadas. Se o gargalo virar a integra√ß√£o com frota e agenda, construir
-  depois, com a especifica√ß√£o vinda do uso.
-- O webhook da Cloud API j√° implementado (`claude/agente-whatsapp`) segue
-  v√°lido como base caso o caminho de construir volte √† mesa. N√£o √© motivo para
-  construir: s√£o poucas horas de trabalho, n√£o um investimento a proteger.
-
-## Decis√£o: construir o agente pr√≥prio (2026-09-16)
-
-- Avaliada a plataforma e **decidido construir**. O que pesou: a integra√ß√£o
-  com frota e agenda, que √© o caso de uso real da Express Entulho, fica presa
-  aos planos de R$ 449,70 a R$ 659,70 por m√™s, de forma permanente.
-- Prazo dado pelo respons√°vel: **19/09/2026**.
-- A verifica√ß√£o do neg√≥cio na Meta continua n√£o iniciada e n√£o depende do
-  desenvolvimento. Enquanto ela n√£o sair, o agente funciona em n√∫mero de teste
-  da Meta com destinat√°rios cadastrados ‚Äî suficiente para demonstrar de ponta
-  a ponta, insuficiente para atender cliente real.
-- Continua faltando o insumo que nenhum c√≥digo substitui: tabela de pre√ßos,
-  √°rea atendida, prazo padr√£o, pol√≠tica de prorroga√ß√£o e a al√ßada da IA.
-
-## Pre√ßo da Express Entulho depende do material (2026-09-16)
-
-- O respons√°vel do setor respondeu por √°udio e desfez a premissa do projeto:
-  **"n√£o existe nada fixo, o pre√ßo √© referente ao material de descarte"**.
-  Demoli√ß√£o e gesso custam diferente no mesmo produto, na mesma cidade.
-- Consequ√™ncia de engenharia: `whatsapp-rules.ts` deixou de ser tabela por
-  produto e virou matriz **produto √ó material √ó cidade**. E o agente ganhou
-  uma regra de ouro: quem pede pre√ßo sem dizer o material recebe uma
-  pergunta, n√£o um valor.
-- **Tr√™s produtos**: ca√ßamba menor (3 dias), tambor (3 dias) e ca√ßamba grande
-  (7 dias). Tambor s√≥ existe em Itaja√≠; nas outras cidades s√£o s√≥ menor e
-  grande. Prazos valem em todas as cidades.
-- **Pre√ßos confirmados** ‚Äî demoli√ß√£o em Itaja√≠: menor R$ 220, tambor R$ 180,
-  grande R$ 450. Gesso em Itaja√≠: menor R$ 280.
-- **N√£o confirmados e por isso ausentes**: tambor e grande com gesso ("eu n√£o
-  sei te passar o valor, n√£o sou vendedor"), qualquer pre√ßo fora de Itaja√≠,
-  qualquer outro material, e a di√°ria extra.
-- Uma conversa de 14/09 cotou a menor por **R$ 240**, valor que n√£o bate com
-  demoli√ß√£o nem com gesso. N√£o entrou na matriz ‚Äî √© a prova de que estimar
-  por semelhan√ßa erraria. H√° teste garantindo que a guarda barra esse valor.
-- **Cidades atendidas**: Itaja√≠, Balne√°rio Cambori√∫, Cambori√∫, Itapema, Porto
-  Belo, Ilhota, Navegantes e Penha. **Hor√°rio**: comercial.
-- **O sistema de gest√£o que a empresa paga hoje √© o MAIS Loca√ß√µes**, com app
-  pr√≥prio (abas Loca√ß√£o, Cliente, Home, Produto, Menu) e dashboard de
-  entregas e retiradas do dia. √â com ele que a integra√ß√£o de disponibilidade
-  deveria conversar, em vez de construirmos controle de frota do zero.
-
-## MAIS Loca√ß√µes: API n√£o confirmada (2026-09-16)
-
-- Investigada a exist√™ncia de API p√∫blica no **MAIS Loca√ß√µes**
-  (maislocacoes.com), o sistema que a Express Entulho paga hoje.
-- **N√£o encontrei documenta√ß√£o de API, webhook ou √°rea de desenvolvedor.**
-  Tr√™s buscas distintas e nenhuma men√ß√£o. O site pr√≥prio est√° bloqueado pelo
-  proxy do ambiente de desenvolvimento, ent√£o a checagem n√£o foi exaustiva ‚Äî
-  isso √© aus√™ncia de evid√™ncia, n√£o evid√™ncia de aus√™ncia.
-- O que o material p√∫blico confirma: gest√£o de contratos, prazos, log√≠stica e
-  geolocaliza√ß√£o de ativos; ordem de servi√ßo no celular do entregador; painel
-  log√≠stico; controle de pagamentos e prazos de retirada. Android, iOS e web.
-  Empresa nascida de locador, sistema em desenvolvimento desde 2014.
-- **Encaminhamento**: perguntar direto ao suporte deles. Se houver API, a
-  integra√ß√£o de disponibilidade fica barata e o agente passa a responder
-  "tenho ca√ßamba livre hoje" com dado real. Se n√£o houver, o agente continua
-  encaminhando disponibilidade a um humano ‚Äî que √© o comportamento correto e
-  j√° implementado, s√≥ menos impressionante.
-- Raspagem de tela do sistema n√£o √© op√ß√£o: √© fr√°gil e normalmente fere os
-  termos de uso do fornecedor.
-
-## Diagn√≥stico da agente vira um comando, e a hip√≥tese da cota n√£o se sustenta (2026-09-17)
-
-- A agente em produ√ß√£o cai no caminho offline. O PR #113 j√° mostrava o motivo
-  na tela do chat, mas ler o motivo custava caro: abrir a demonstra√ß√£o ‚Äî que √©
-  a p√°gina que o cliente abre ‚Äî e gastar uma conversa inteira do modelo, sendo
-  que a cota √© justamente o recurso sob suspeita.
-- Criado `GET /api/whatsapp/diagnostico`, protegido por `CRON_SECRET`. Faz uma
-  sonda de **um token** na Groq e devolve JSON com quatro respostas separadas:
-  se o Worker enxerga a `GROQ_API_KEY`, qual modelo a agente pede, o status HTTP
-  que a Groq devolveu e o motivo em portugu√™s. A chave n√£o sai na resposta.
-  Um `curl` responde a pend√™ncia, de qualquer terminal, sem abrir navegador.
-- **A suspeita principal n√£o se sustenta com a evid√™ncia do pr√≥prio
-  reposit√≥rio.** A hip√≥tese era "cota di√°ria da Groq estourada pelo pipeline
-  hor√°rio de mat√©rias". Mas na Groq **o teto di√°rio √© por modelo**, e os dois
-  caminhos usam modelos diferentes: a agente pede `qwen/qwen3.6-27b`, o
-  pipeline pede `openai/gpt-oss-20b`. O pr√≥prio `articles-server.ts` j√°
-  dependia disso antes desta sess√£o ‚Äî ele trata o 429 do 20b caindo para o
-  120b, com o coment√°rio "os modelos GPT-OSS t√™m cotas gratuitas separadas".
-  Se a cota fosse compartilhada, esse fallback nunca teria funcionado.
-- Mais: o pipeline de mat√©rias **n√£o roda no Worker**. Quem chama a Groq l√° √©
-  o runner do GitHub Actions (`generate-article.yml`); o Worker de cron s√≥
-  dispara o workflow. S√£o processos, chaves de ambiente e modelos distintos.
-- Corrigido o coment√°rio e a mensagem de 429 em `whatsapp-agent.ts`, que
-  afirmavam o teto compartilhado. Uma explica√ß√£o errada dentro do c√≥digo √© pior
-  que nenhuma: ela manda a pr√≥xima pessoa procurar no lugar errado.
-- Novo teste de regress√£o trava a premissa: se algum dia a agente e o pipeline
-  apontarem para o mesmo modelo, o teste quebra e avisa que o racioc√≠nio das
-  cotas separadas deixou de valer.
-- **O que ainda n√£o foi confirmado, e por qu√™.** N√£o consegui medir produ√ß√£o
-  desta sess√£o: o proxy do ambiente recusa `veronicahub.com` com 403 no CONNECT.
-  A confirma√ß√£o √© uma chamada ao endpoint novo depois do deploy. As tr√™s
-  hip√≥teses que restam, em ordem de suspeita: `chaveVisivel: false` (segredo
-  configurado no painel n√£o √© o mesmo que segredo chegando em `process.env`
-  dentro do runtime do Worker ‚Äî e esse caminho nunca foi provado em produ√ß√£o,
-  porque o √∫nico outro consumidor da Groq roda no Actions); `404` (o modelo
-  `qwen/qwen3.6-27b` pode n√£o existir mais com esse nome); e `429` de verdade.
-- **Ressalva √† conclus√£o pr√°tica que estava anotada.** "Se for 429, a corre√ß√£o
-  √© chave separada ou plano maior, n√£o c√≥digo" ‚Äî n√£o necessariamente. O
-  pipeline de mat√©rias resolve o 429 dele em c√≥digo, caindo para um segundo
-  modelo com cota pr√≥pria. A agente n√£o tem fallback nenhum. Se o diagn√≥stico
-  der 429, esse √© o caminho mais barato. N√£o foi implementado nesta sess√£o de
-  prop√≥sito: antes de escolher o rem√©dio, √© preciso saber a doen√ßa.
-- 57 testes passando (eram 53), typecheck limpo, lint limpo nos arquivos
-  alterados. Sem tocar nas demonstra√ß√µes existentes.
-
-## Os cinco bloqueios que s√£o do cliente, num documento s√≥ (2026-09-17)
-
-- Criado `PENDENCIAS-CLIENTE.md`: o que s√≥ o dono da Express Entulho pode
-  responder, escrito para ser lido junto com ele, com o efeito de cada lacuna
-  sobre o que a agente faz ‚Äî e a garantia, em todos os casos, de que ela
-  encaminha em vez de inventar.
-- **A matriz de pre√ßos medida, e o n√∫mero √© duro:** 8 cidades √ó produtos
-  dispon√≠veis √ó 2 materiais d√° **34 combina√ß√µes; 4 est√£o preenchidas; 30 est√£o
-  vazias**. Duas em Itaja√≠ (tambor com gesso, ca√ßamba grande com gesso) e 28
-  fora de Itaja√≠. E isso supondo que s√≥ existam dois materiais ‚Äî cada material
-  novo multiplica a matriz (com tr√™s, ela vai a 51).
-- Em vez de pedir trinta n√∫meros, o documento faz tr√™s perguntas. A que mais
-  vale √© **"fora de Itaja√≠, o pre√ßo muda como?"**: se for o valor de Itaja√≠
-  mais um deslocamento por cidade, s√£o sete n√∫meros e a tabela se propaga
-  sozinha; se cada cidade tiver tabela pr√≥pria, s√£o vinte e oito, e todo pre√ßo
-  novo no futuro vira mais sete. A resposta muda a forma da estrutura de dados,
-  ent√£o tem de vir antes do preenchimento.
-- **Sobre o tambor a R$ 180 sair mais barato que a ca√ßamba menor a R$ 220:**
-  provavelmente n√£o h√° erro nenhum. Se o tambor for menor em volume, custar
-  menos √© o esperado ‚Äî a estranheza vinha de supormos que "tambor" fosse o
-  equipamento maior, suposi√ß√£o nossa e n√£o informa√ß√£o da empresa. A pergunta
-  que resolve √© a capacidade em m¬≥ dos tr√™s, e ela rende duas vezes: confirma a
-  ordem de pre√ßo e d√° √† agente o que ela mais precisa para vender, porque hoje,
-  perguntada "qual eu escolho?", ela n√£o sabe o tamanho de nada.
-- **Meta e endere√ßo, na ordem certa:** decidir qual bairro consta no Cart√£o CNPJ
-  (a NFS-e diz Vila Oper√°ria, o Google Meu Neg√≥cio diz S√£o Jo√£o), **corrigir o
-  que estiver errado, e s√≥ ent√£o submeter**. Submeter com os dois divergentes √©
-  gastar uma rodada de an√°lise para receber "n√£o" ‚Äî e o rel√≥gio da Meta n√£o
-  acelera com esfor√ßo nosso. Com a verifica√ß√£o parada, o software pode estar
-  pronto em 19/09 e mesmo assim a agente n√£o atender ningu√©m: s√≥ o n√∫mero de
-  teste da Meta, com destinat√°rios cadastrados √† m√£o.
-- Registrado tamb√©m o que n√£o estava na lista mas depende do cliente: **o chip
-  novo**. N√£o √© necess√°rio para a demonstra√ß√£o de 19/09, √© para atender cliente
-  real, e leva dias entre comprar, ativar e cadastrar.
-- **MAIS Loca√ß√µes:** mensagem pronta para o suporte, para o cliente copiar e
-  enviar ‚Äî ele √© quem tem contrato. Duas coisas a observar na resposta: se a API
-  √© s√≥ de leitura ou tamb√©m de escrita, e se h√° custo adicional.
-
-## Erro 1102 no celular: o que √©, o que n√£o √©, e o que d√° para blindar (2026-09-17)
-
-- **Sintoma**: `Error 1102 ‚Äî Worker exceeded resource limits` ao abrir o site
-  pelo celular √†s 21:39 de Bras√≠lia (00:39 UTC), enquanto o mesmo site
-  navegava normalmente no computador.
-- **N√£o foi push de branch.** O Worker `veronicahub-app` estava publicado
-  desde 16/09 23:03:57 UTC; o push do branch saiu √†s ~00:30 e, √†s 00:47, o
-  Worker seguia marcado na mesma vers√£o. O `main` tamb√©m n√£o tinha andado,
-  ent√£o a armadilha da capa (13/09) n√£o estava em jogo. O erro caiu sobre um
-  build de 1h36 antes.
-- **1102 n√£o √© cr√©dito, cota nem fatura.** Cota di√°ria de requisi√ß√£o estourada
-  √© o c√≥digo **1027**. 1102 √© uma requisi√ß√£o espec√≠fica passando do teto de
-  **CPU ou mem√≥ria** no data center. Mas o teto de CPU √© do plano: **10 ms por
-  requisi√ß√£o no Workers gratuito, 30 s no pago** ‚Äî ent√£o "√© o plano?" √©
-  pergunta leg√≠tima, e √© a primeira coisa a conferir.
-- **Por que num aparelho sim e no outro n√£o**, em ordem: (a) o celular entra
-  na rede por um ponto de presen√ßa diferente do da internet de casa, com
-  isolate pr√≥prio, frio; (b) no computador a navega√ß√£o √© client-side pelo
-  TanStack Router, sem passar pelo Worker; (c) mem√≥ria do isolate acumula
-  conforme ele serve rotas. Nada disso tem a ver com o aparelho.
-- **Uma hip√≥tese minha foi descartada por medi√ß√£o, e vale registrar para n√£o
-  voltar.** Eu suspeitei que `/veronica-curriculo-certo` parseasse ~4 MB de
-  `three.js`, `docx`, `pdf-lib` e `pdfjs-dist` no SSR. **Est√° errado**: essas
-  bibliotecas n√£o est√£o no grafo est√°tico de nenhuma rota ‚Äî `three` j√° √©
-  `await import("three")` dentro do componente, e o bundler separou o resto.
-  Medido: o boot do Worker carrega 0,12 MB em 3 m√≥dulos, e cada rota parseia
-  1,6‚Äì2,0 MB quando o isolate a serve pela primeira vez.
-- **O que a medi√ß√£o mostrou de verdade**: o peso √© igual em todas as rotas e
-  vem de `_ssr/ssr.mjs`, que arrasta `@tanstack/react-router` (641 KB),
-  `neondatabase/serverless` (178 KB), `drizzle-orm` (174 KB) e `mercadopago`
-  (170 KB) para qualquer p√°gina ‚Äî inclusive a demonstra√ß√£o da Express, que
-  n√£o toca em pagamento nem em banco. √â como o TanStack Start empacota as
-  server functions, n√£o √© defeito de uma rota.
-- **Consequ√™ncia**: num isolate frio, a renderiza√ß√£o paga o parse desse bundle
-  dentro da requisi√ß√£o do cliente. Com teto de 10 ms isso estoura; com 30 s,
-  n√£o. √â o que faz o plano ser a suspeita principal.
-- **O que foi blindado**: cache de borda para `/preview/express-operations-b`,
-  em `src/lib/edge-cache.ts`. As telas de demonstra√ß√£o n√£o t√™m loader, n√£o
-  consultam banco e n√£o dependem de quem olha ‚Äî o conte√∫do vem de
-  `whatsapp-rules.ts`, que √© c√≥digo. A primeira visita em cada data center
-  paga a renderiza√ß√£o; as seguintes saem do cache, sem React e sem pico. O
-  cliente abrindo a demonstra√ß√£o no celular dele em 19/09 cai no caminho
-  barato.
-- **O que o cache nunca faz**, porque o risco de cache compartilhado de HTML √©
-  entregar a p√°gina de uma pessoa para outra: lista de rotas fechada e
-  expl√≠cita; requisi√ß√£o com `cookie` ou `Authorization` n√£o √© servida do
-  cache; resposta com `Set-Cookie` n√£o √© guardada; s√≥ HTML com status 200
-  entra ‚Äî guardar um erro transformaria uma falha moment√¢nea em cinco minutos
-  de falha para todo mundo naquele data center. TTL de 5 minutos porque o
-  deploy n√£o limpa este cache.
-- **Isto n√£o corrige a causa.** Se o teto for o do plano gratuito, o resto do
-  site continua exposto. A verifica√ß√£o √© um clique no painel da Cloudflare em
-  *Workers & Pages > Plans*, e os Workers Logs do Worker `veronicahub-app`
-  dizem se a exce√ß√£o foi de CPU ou de mem√≥ria ‚Äî o Ray ID do caso √©
-  `a3c40d768d97cab3`, 00:39 UTC de 17/09.
-- **Limite desta sess√£o**: produ√ß√£o √© inalcan√ß√°vel daqui. O proxy de rede do
-  ambiente recusa `veronicahub.com` por pol√≠tica, tanto no `curl` quanto no
-  WebFetch. Nada foi medido em produ√ß√£o; tudo acima veio do build local e da
-  API da Cloudflare.
-- 62 testes passando (eram 57), typecheck, lint e build Cloudflare/Nitro
-  limpos. Nenhuma rota, componente ou tabela foi removida.
-
-## Auditoria de credenciais: o que vence, e o token de 24h que morderia no dia 19 (2026-09-17)
-
-- Pergunta do respons√°vel: "n√£o √© alguma chave que venceu? geralmente deixo
-  30 dias". **Para o 1102, n√£o** ‚Äî 1102 √© teto de CPU do Worker, dispara antes
-  de qualquer chamada de API e independe de chave. Chave vencida daria 401 da
-  API em quest√£o e uma p√°gina normal, n√£o tela de erro da Cloudflare.
-- **Mas a pergunta achou outra coisa, e essa √© s√©ria.** O token que a tela
-  *Configura√ß√£o da API* da Meta entrega √© **tempor√°rio: vale 24 horas**.
-  Gerado na v√©spera da demonstra√ß√£o de 19/09, estaria morto na hora. O sintoma
-  √© o pior poss√≠vel: a agente recebe a mensagem, o webhook processa, e a
-  resposta n√£o sai. S√≥ token de **Usu√°rio do Sistema** pode ser permanente.
-- Levantadas as 37 vari√°veis de ambiente do projeto e separadas por validade.
-  Vencem: `WHATSAPP_ACCESS_TOKEN` (24h, ou permanente se for Usu√°rio do
-  Sistema), `META_INSTAGRAM_ACCESS_TOKEN` (~60 dias) e o `GITHUB_TOKEN` do
-  Worker `wire-tv-cron` (PAT fine-grained sempre tem prazo; o padr√£o do
-  formul√°rio √© 30 dias, e o Worker foi criado em 13/09). N√£o vencem:
-  `GROQ_API_KEY` (s√≥ se revogada), Mercado Pago, Neon, Pexels, Resend, e os
-  segredos gerados por n√≥s.
-- O `GITHUB_TOKEN` do cron merece aten√ß√£o porque **falha calado**: quando
-  vencer, o Cron Trigger continua disparando, o GitHub recusa, e as mat√©rias
-  param de sair sem nenhuma tela avisando.
-- **Virou verific√°vel em vez de virar recado**: o endpoint de diagn√≥stico
-  agora sonda as duas pontas. O bloco `groq` continua como estava; o bloco
-  `whatsapp` l√™ o pr√≥prio n√∫mero na Graph API ‚Äî n√£o envia mensagem, n√£o toca
-  em conversa de ningu√©m ‚Äî e um 401 responde "provavelmente expirou; o token
-  da tela Configura√ß√£o da API vale 24h". Nenhum token sai na resposta, e h√°
-  teste garantindo isso.
-- Tabela de validade das credenciais registrada em `AGENTE-WHATSAPP.md`,
-  se√ß√£o 6, com bloco CAUTION sobre o token de 24h.
-- 67 testes passando (eram 64), typecheck, lint e build limpos.
-
-## Cache de borda ganha a vers√£o do build na chave (2026-09-17)
-
-- Falha encontrada antes de ir ao ar, e ela apareceria na pior hora: o HTML
-  guardado no cache referencia arquivos de JS com hash no nome, e o deploy
-  seguinte apaga esses arquivos. O visitante receberia HTML velho pedindo
-  script que n√£o existe mais ‚Äî **p√°gina branca por at√© cinco minutos depois
-  de cada publica√ß√£o**. E aqui publica-se a cada push, mais o cron editorial
-  de hora em hora: seria recorrente, n√£o raro.
-- Corre√ß√£o: a chave do cache passou a carregar um carimbo do build, injetado
-  pelo Vite via `define` (`__VERONICA_BUILD_ID__`, usando `CF_VERSION_ID` ou
-  `GITHUB_SHA` quando existem, e o hor√°rio do build como reserva). Deploy novo
-  n√£o encontra nada no cache e renderiza; o que ficou para tr√°s expira
-  sozinho. Conferido no bundle gerado: a fun√ß√£o sai com o valor literal.
-- `vite.config.ts` foi tocado s√≥ pelo ponto de extens√£o que j√° era usado
-  (`vite: { ... }`), sem mexer nos plugins do preset da Lovable.
-- 67 testes, typecheck, lint e build limpos.
+Y™Áäx-ÆÈ‹j◊ù¢Îi∫⁄+äßj[hëÈ‹¢ÈÌ„]∑Ì:-jZ.∂õ≠ñ)ﬁ≥R22Wá&W72VÁGV∆ÜÚ(	B∆ÊFñÊrvR;¶&∆ñ6É##b””ê†¢“7&ñFÊ˜f&˜F;¶&∆ñ6ˆWá&W72÷VÁGV∆Üˆ¬6W&FF6VÁG&¬&ófF¢ˆ6∆ñVÁFW2ˆWá&W72÷VÁGV∆ÜÚˆ˜W&6ˆW6‚∆ÊFñÊrÏ:6Ú6ˆÁ7V«FÚñÊV¬¬Ï:6¢«FW&FF˜2˜W&6ñˆÊó2RÏ:6ÚFñ6ñˆÊÊVÊáV÷gVÏ:|:6ÚFRVÁfñÚV∆¢vÜG4‡¢“Ê'&FófRñFVÁFñFFRf˜&“&6VF2ÊÚW&fñ¬;¶&∆ñ6Úˆfñ6ñ¬F¢Wá&W72VÁGV∆ÜÛ¢fW&FR¬÷&V∆ÚR'&Ê6Û≤&ˆ÷W76$VÁGV∆ÜÚ6V–¢6ˆ◊∆ñ6:|:6Ú#≤GV:|:6ÚV“óF¶:“R&Vvú:6Û≤6:v÷&WVVÊ¬6:v÷&w&ÊFRP¢F÷&˜"‚G,:ß2ñ÷vVÁ2;¶&∆ñ62ˆfñ6ñó2f˜&“G&FF2R&÷¶VÊF0¢∆ˆ6∆÷VÁFRV“vV%&Ï:6ÚFWVÊFW"FÚ6'&Vv÷VÁFÚFÚñÁ7Fw&“‡¢“:vñÊñÊ6«VíÜW&Ú¬6ˆ«\:|;VW2¬W6˜2¬&ˆ6W76ÚFÚVFñFÚ:&WFó&F¿¢VÊFW&\:vÚ¬FV∆VfˆÊR¬W&wVÁF2g&WVVÁFW2¬5D‹;7fV¬R÷WFFF˜2FR4TÚ‚Ï:6¢fˆíÁVÊ6ñFÚ&\:vÚfóÜÛ¢Ú˜,:v÷VÁFÚñÊf˜&÷6˜'&WF÷VÁFRVRÚf∆˜ ¢FWVÊFRFÚ÷FW&ñ¬¬F6ˆ«\:|:6ÚRFÚ∆ˆ6¬FRFVÊFñ÷VÁFÚ‡¢“FˆF˜2˜25D2FR˜,:v÷VÁFÚ'&V“ÚvÜG4ˆfñ6ñ¬V“Ê˜f&6ˆ÷VÁFP¢FWˆó2FÚ6∆óVRFÚfó6óFÁFR‚Ï:6ÚWÜó7FRFó7&ÚWFˆ‹:Fñ6Ú¬∆VóGW&FP¢6ˆÁfW'62¬ñÁFVw&:|:6Ú6ˆ“6∆˜VBí˜R6W76ÚÚvÜG4'W6ñÊW72GV¿¢FV◊&W6ÊW7FVÁG&Vv‡¢“&˜FVÁG&˜RÊÚ6L:∆ˆvÚ;¶&∆ñ6ÚFÚ6V∆Ú¬ÊfóG&ñÊRFÜˆ÷RRÊÚ66ÜRFP¢&˜&FFR:vñÊ2W7L:Fñ62‚ÚFV÷fó7V¬v∆ˆ&¬W67W&ÚfˆíFW6FófFÚVÊ0¢ÊW76:vñÊ&&W6W'f"&W6VÁF:|:6Ú6∆&F÷&6‡¢“76ñÊGW&Fó67&WFñÊ6«\:÷FÊÚ&ˆF:ì¢¢•îÚƒ"b4Ú‚+rñÁFV∆ñ|:¶Ê6ñ0¢fW&ˆÊñ6¢¢‡¢“f∆ñF:|:6Ú∆ˆ6¬6ˆÊ6«\:÷F¢¢£#RFW7FW2&˜fF˜2¢¢¬GóV6ÜV6≤¬∆ñÁ@¢Fó&V6ñˆÊFÚR'Vñ∆B6∆˜VFf∆&RÙÊóG&Ú&˜fF˜2‚Ú'VÊF∆RW7V<:÷fñ6ÚF&˜F¢fˆívW&FÚ‚&Wfó<:6Úfó7V¬WFˆ÷Fó¶FV“ÊfVvF˜"Ï:6ÚfˆíWÜV7WFF¢ÊW7FR÷&ñVÁFR˜"W<:¶Ê6ñFRV“6á&ˆ÷RFó7ˆÏ:◊fV¬‡¢“ÊVÊáV÷V&∆ñ6:|:6Ú˜R«FW&:|:6ÚFR6W'fú:vÚWáFW&ÊÚfˆíWÜV7WFFÊW7F¢WF‡†¢22Wá&W72˜W&FñˆÁ2(	BFV÷ˆÁ7G&:|:6Úfó7V¬$÷ˆFÚ6ˆ÷'&"É##b”í”#Bê†¢“Ê˜f&¢§FV÷ˆÁ7G&:|:6Ú(	B÷ˆFÚ6ˆ÷'&¢¢FVÁG&ÚF÷W6÷&˜F¢ˆ6∆ñVÁFW2ˆWá&W72÷VÁGV∆ÜÚˆ˜W&6ˆW6¢∆ó7FFRR”b6ˆÁfW'62fñ7L:÷6ñ26ˆ–¢6V∆ÚFRñÁFVÏ:|:6Ú¬Fá&VB6ñ◊V∆FÚ¬ñÊV¬FRFF˜2WáG&:÷F˜2Ü6ˆ“FW7FVP¢&FFÚW6VÁFRí¬&W7˜7F7VvW&ñFV∆îR&˜L:6Ú$&˜f""VR<;2÷&6¢W7FFÚ∆ˆ6¬R÷˜7G&Úfó6Ú$VÁfñÚ&∆˜VVFÚ(	B÷ˆFÚ6ˆ÷'&FófÚ"‡¢“¢¨8íFV÷ˆÁ7G&FófÚ¬Ï:6ÚgVÊ6ñˆÊÊFÚ‚¢¢FˆF˜2˜2FF˜2l:¶“FRV“'&ê¢÷ˆ6∂FÚÊÚ,;7&ñÚ6ˆ◊ˆÊVÁFRÖGóU67&óBí(	B6V“F&V∆Ê˜fÊÚÊVˆ‚¬6V–¢÷ñw&Fñˆ‚¬6V“vV&Üˆˆ≤&V¬¬6V“6Ü÷FÚw&˜R6V“V«VW"í&V¬F¢vÜG4‚Ú&6∂VÊB&V¬ÜÏ;¶÷W&ÚFVFñ6FÚ¬vV&Üˆˆ≤¬WáG&:|:6ÚFRFF˜2FP¢6ˆÁfW'6&V¬í6VwVRVÊFVÁFR¬6ˆ÷Ú¨:&Vvó7G&FÚÊ2VÁG&F2ÁFW&ñ˜&W2‡¢“f∆ñF:|:6Ú∆ˆ6√¢GóV6ÜV6≤R'Vñ∆BÖfóFRÙÊóG&Úí&˜fF˜2‡†¢22Ê˜fVÁG&FîÚƒ"b4ÚÚW66ˆ∆fW&ˆÊñ6É##b”í”#2¬'&Ê6ÇFR&Wfó<:6Úê†¢“Üˆ÷RñÁ7FóGV6ñˆÊ¬FÚV6˜76ó7FV÷fˆí7&ñFV“ˆ6ˆ“¶˜&ÊF2&&VÊFW"¿¢WFñ∆ó¶"∆Ff˜&÷2RWá∆˜&"6ˆ«\:|;VW2V◊&W6&ñó2‚ÚÊfVvF˜"FR∆Ff˜&÷0¢Ã:¢Êˆ÷W2¬∆ñÊ∑2RFó7ˆÊñ&ñ∆ñFFRFR7&2ˆ∆ñ"ˆV6˜7ó7FV“ÁG6≤‹:÷Fñ2W6VÁFW0¢&V6V&V“V÷6ˆ◊˜6ú:|:6ÚñFVÁFñfñ6F¬6V“6ñ◊V∆"V“&ˆGWFÚgVÊ6ñˆÊ¬‡¢“Üˆ÷RVGV66ñˆÊ¬ÁFW&ñ˜"fˆí&W6W'fFV“ˆW66ˆ∆¬6ˆ“FV÷¬VfVóF˜2¿¢ñ÷vV“¬6ˆ◊ˆÊVÁFW2R6ˆÁF\;¶FÚ˜&ñvñÊó2‚Ú6L:∆ˆvÚ6Ï;FÊñ6Úv˜&ˆÁF¢W66ˆ∆&W7F&˜F≤Ú&ˆF:íF÷,:ñ“ˆfW&V6RV“∆ñÊ≤Fó&WFÚ‡¢“Ú∆ˆv˜FóÚˆfñ6ñ¬îÚf˜&ÊV6ñFÚV∆Ú&W7ˆÁ<:fV¬fˆíñÊ6˜'˜&FÚ:VÁG&F¢ñÁ7FóGV6ñˆÊ¬R6ˆÁfW'FñFÚV“ffñ6ˆ‚¬:÷6ˆÊW2FRñÁ7F∆:|:6ÚRñ÷vV–¢˜Fñ÷ó¶F‚ñFVÁFñFFRfW&ˆÊñ6W&÷ÊV6RÊ2:vñÊ2FW66ˆ∆‡¢“ˆfW'FFR'VóFWGW&˜vÜóFR÷∆&V¬:í&W6VÁFF6ˆ÷Ú6ˆÁfW'66ˆ÷W&6ñ¿¢˜"R÷÷ñ√≤Ï:6Úå:6ÜV6∂˜WB¬&\:vÚ˜R∆ñ6VÊ6ñ÷VÁFÚWFˆ÷Fó¶FÚ‡¢“Ú<;6FñvÚW7L:Ê'&Ê6ÇfVB˜ñˆ∆"÷V6˜7ó7FV“÷Üˆ÷V≤&ˆG\:|:6ÚÏ:6Úfˆê¢«FW&F‚6ÜV6vV“fó7V¬V“ÊfVvF˜"WáFW&ÊÚÏ:6Úfˆí6ˆÊ6«\:÷F˜'VP¢ÚÊfVvF˜"&V÷˜FÚ&∆˜VV˜RÚ6W'fñF˜"∆ˆ6¬‚2GV2&˜F2f˜&–¢fW&ñfñ6F2˜"&W7˜7F55"∆ˆ6¬‡¢“f∆ñF:|:6ÚFR<;6FñvÛ¢¢£SíFW7FW2&˜fF˜2¢¢¬GóV6ÜV6≤R'Vñ∆@¢6∆˜VFf∆&RÙÊóG&Ú&˜fF˜2¬∆ñÁBFó&V6ñˆÊFÚ6V“W'&˜2áV“fó6¢&VWÜó7FVÁFRFRf7B&Vg&W6ÇV“6óFT6á&ˆ÷RÁG7Üí‡†¢22Wá&W72˜W&FñˆÁ2(	B&˜F˜W&6ñˆÊ¬VÊñfñ6FÉ##b”í”#2ê†¢“6VÁG&¬6ˆ◊∆WF6ˆ“ÊfVv:|:6Ú∆FW&¬V–¢ˆ6∆ñVÁFW2ˆWá&W72÷VÁGV∆ÜÚˆ˜W&6ˆW676˜R6W";¶Êñ6ñÁFW&f6P¢˜W&6ñˆÊ¬6Ï;FÊñ6FWá&W72VÁGV∆ÜÚ‡¢“ÁFñvFV÷ˆÁ7G&:|:6ÚV“ˆ6∆ñVÁFW2ˆWá&W72÷VÁGV∆ÜÚˆ˜W&6ˆW2÷FV÷ˆFVóÜ˜P¢FR&VÊFW&ó¶"V÷6VwVÊFñÁFW&f6RRv˜&&VFó&V6ñˆÊ&6VÁG&¿¢6Ï;FÊñ6¬&W6W'fÊFÚff˜&óF˜2R∆ñÊ∑2¨:VÁfñF˜2‡¢“Ú&˜L:6ÚF:&V&ófFRÚF∆ÜÚF÷ñÊó7G&FófÚf˜&“6˜'&ñvñF˜2&¢ˆÁF"Fó&WF÷VÁFR&ˆ˜W&6ˆW6‚ñÁFW&f6RGW∆ñ6Ffˆí&V÷˜fñF¿¢6V“«FW&"WFVÁFñ6:|:6Ú¬&6∂VÊB¬vÜG4˜RFF˜2‡¢“∆∆˜v∆ó7BFÚ÷&ñVÁFRfˆíñÊf˜&÷FV∆Ú&W7ˆÁ<:fV¬6ˆ÷Ú6«fÊ¢6∆˜VFf∆&S≤f∆ñF:|:6ÚfñÊ¬FÚ&V6V&ñ÷VÁFÚR6ˆÊfó&÷:|:6ÚFÚıEV“&ˆG\:|:6¢ñÊF&V6ó66W"6ˆÊ6«\:÷F‡¢“f∆ñF:|:6Ú∆ˆ6¬6ˆÊ6«\:÷F¢¢£SíFW7FW2&˜fF˜2¢¢¬GóV6ÜV6≤&˜fFÚP¢'Vñ∆B6∆˜VFf∆&RÙÊóG&Ú&˜fFÚ‡†¢22Wá&W72˜W&FñˆÁ2(	B6VwVÊF&'&Vó&FR6W76ÚÉ##b”í”#2¬V&∆ñ6Fê†¢“Ú6V∆Ú;¶&∆ñ6ÚFVóÜ˜RFR6W"7Vfñ6ñVÁFR&'&ó"Ú÷&ñVÁFR˜W&6ñˆÊ¬F¢Wá&W72‚Ú6W76Úv˜&WÜñvRF÷,:ñ“V÷6ˆÁF6ˆÊfó&÷FV∆ÚıEFRR÷÷ñ¿¢¨:WÜó7FVÁFRÊÚáV"R&W6VÁFRÊ∆∆˜v∆ó7B&ófFFÚ6W'fñF˜"‡¢“ˆÃ:◊Fñ6f∆ÜfV6ÜF¢6V“UÖ$U55ÙıU$DîÙÂ5ÙƒƒıtTEÙT‘î≈6¬ÚñÊV¿¢W&÷ÊV6R&∆˜VVFÛ≤6ˆÁFÏ:6Ú∆ó7FFF÷,:ñ“Ï:6ÚVÁG&‚ÊVÊáV“VÊFW&\:vÚFP¢R÷÷ñ¬fˆí6ˆ∆ˆ6FÚÊÚ<;6FñvÚ˜RÊÚÜó7L;7&ñ6ÚvóB‡¢“Ú÷W6÷Ú6ˆ◊ˆÊVÁFRFR6ˆÊfó&÷:|:6Ú&˜FVvRFÁFÚÚv˜&∑76R&ófFÚVÁFÚ¢&˜Fˆ6∆ñVÁFW2ˆWá&W72÷VÁGV∆ÜÚˆ˜W&6ˆW6‚˜WG&˜26∆ñVÁFW2&W6W'f“Úf«WÜ¢GV¬L:íVRFF˜2&ófF˜2ßW7FñfóVV“Fóf"6VwVÊF&'&Vó&&V∆W2‡¢“ÊVÊáV÷6ˆÁfW'6&V¬fˆí∆ñvFÚñÊV¬¬ÊVÊáV÷ñÁFVw&:|:6ÚWáFW&Êfˆê¢FófFRÊVÊáV÷÷VÁ6vV“FRvÜG4fˆíVÁfñF‚ÚÏ;¶÷W&ÚGV¬FV◊&W6¢6ˆÁFñÁVñÁFˆ6FÚRG&fFRVÁfñÚW&÷ÊV6RFW6∆ñvF‡¢“V&∆ñ6FÚÊ÷ñÊR6ˆÊfó&÷FÚV“&ˆG\:|:6Û¢&˜F˜W&6ñˆÊ¬&W7ˆÊFR6ˆ–¢&'&Vó&FR6W76ÚfV6ÜF&fó6óFÁFW26V“7&VFVÊ6ñ¬‚f∆ñF:|:6ÚfñÊ√†¢¢£SÇFW7FW2&˜fF˜2¢¢¬GóV6ÜV6≤R'Vñ∆B6∆˜VFf∆&RÙÊóG&Ú&˜fF˜2‡¢“∆∆˜v∆ó7BfˆíñÊf˜&÷FV∆Ú&W7ˆÁ<:fV¬6ˆ÷Ú6F7G&FÊÚ÷&ñVÁFP¢6VwW&ÚFÚ6∆˜VFf∆&S≤ÚVÊFW&\:vÚWF˜&ó¶FÚÏ:6ÚfˆífW'6ñˆÊFÚÊÚvóB‡¢“,;7Üñ÷Ú76Û¢f∆ñF"ÚıEFó&WF÷VÁFRÊÚñÊV√≤FWˆó27&ñ"6ˆÁ7V«F¢F26ˆÁfW'62˜"FVÊÁB“Wá&W72÷VÁGV∆Üˆ¬V“÷ˆFÚ6ˆ÷VÁFR∆VóGW&R6V–¢V«VW"gVÏ:|:6ÚFR&W7˜7F‡†¢22Wá&W72˜W&FñˆÁ2(	Bˆ'6W'f:|:6ÚR∆VóGW&˜W&6ñˆÊ¬É##b”í”#2¬V&∆ñ6Fê†¢“:&VFRFVÊFñ÷VÁFÚFWá&W72fˆíßW7FF&Ú÷ˆFÚ¢ß6ˆ÷VÁFP¢6ˆ◊ÊÜ÷VÁFÚ¢£¢Ú6◊ÚFR&W7˜7FRÚ&˜L:6ÚFRVÁfñÚf˜&“&V÷˜fñF˜2F¢ñÁFW&f6R‚W7FWFÏ:6ÚW&÷óFR&W7ˆÊFW"6∆ñVÁFW2‡¢“7&ñFÚV“Ê∆ó6F˜"˜W&6ñˆÊ¬FWFW&÷ñÏ:◊7Fñ6Ú&6∆76ñfñ6"ñÁFVÏ:|:6Ú¿¢WáG&ó"6ˆ÷VÁFRFF˜2WáÃ:÷6óF˜2F6ˆÁfW'6¬ˆÁF"ñÊf˜&÷:|;VW2VRf«F–¢R6ñÊ∆ó¶"66˜2VRWÜñvV“&Wfó<:6ÚáV÷Ê‚Ú‹;6GV∆ÚÏ:6Ú6Ü÷ƒƒ“¬÷WF˜P¢V«VW"gVÏ:|:6ÚFRVÁfñÚ‡¢“∆VóGW&6ˆ'&R˜,:v÷VÁFÚ¬vVÊF÷VÁFÚ¬G&ˆ6¬&WFó&F¬&˜'&ˆv:|:6Ú¿¢«FW&:|:6Úˆ6Ê6V∆÷VÁFÚ¬G&6Ú˜&ˆ&∆V÷¬v÷VÁFÚˆFˆ7V÷VÁF:|:6ÚRVFñF˜2FP¢ñÊf˜&÷:|:6Ú‚6ˆ÷&ñÊ:|;VW2FR&\:vÚFW66ˆÊÜV6ñF2¬ÊVvˆ6ñ:|:6Ú¬G&6Ú¿¢6Ê6V∆÷VÁFÚR77VÁF˜2fñÊÊ6Vó&˜2W&÷ÊV6V“6ˆ"&˜f:|:6ÚáV÷Ê‡¢“G&ftÑE4ÙTÂdîıÙƒî$U$Dˆfˆí&W6W'fFRÊVÊáV÷7&VFVÊ6ñ¬¿¢6ˆÊWå:6ÚWáFW&Ê˜R÷VÁ6vV“&V¬fˆíWFñ∆ó¶F‚ÚÏ;¶÷W&ÚGV¬FWá&W70¢Ï:6ÚfˆíFˆ6FÚ‡¢“26ˆÁfW'62&Vó2ñÊFÏ:6Úf˜&“∆ñvF2ÚñÊV¬‚6W7<:6ÚGV¬F:&V¢FÚ6∆ñVÁFRˆFR6W"&W'F'Fó"FÚ6V∆Ú;¶&∆ñ6ÚR¬˜'FÁFÚ¬Ï:6ÚˆfW&V6P¢&˜F\:|:6Ú7Vfñ6ñVÁFR&FF˜2&ófF˜2‚ÚñÊV¬W&÷ÊV6R6ˆ“FF˜2FP¢FV÷ˆÁ7G&:|:6ÚL:íWÜó7Fó"WFVÁFñ6:|:6ÚWÜ6«W6ófFÚ&˜&ñWL:&ñÚˆWVóR‡¢“f∆ñF:|:6Ú∆ˆ6¬6ˆÊ6«\:÷F¢¢£SFW7FW2&˜fF˜2¢¢¬GóV6ÜV6≤&˜fFÚ¬∆ñÁ@¢F˜2'Vóf˜2«FW&F˜2&˜fFÚR'Vñ∆B6∆˜VFf∆&RÙÊóG&Ú&˜fFÚ‚¢fW&ñfñ6:|:6Úfó7V¬WFˆ÷Fó¶Ffñ6˜R&∆˜VVFÊW7FR÷&ñVÁFR˜"W<:¶Ê6ñ¢FRV“6á&ˆ÷RñÁ7FÃ:fV¬RñÊFó7ˆÊñ&ñ∆ñFFRFÚ4D‚FÚÊfVvF˜#≤Ï:6ÚÜ˜WfP¢W'&ÚFR6ˆ◊ñ∆:|:6ÚF∆ñ6:|:6Ú‡¢“,;7Üñ÷Ú76Ú&V6ˆ÷VÊFFÛ¢Fñ6ñˆÊ"WFVÁFñ6:|:6Ú&ófF6ˆ“:ñó2P¢VFóF˜&ñ≤FWˆó26ˆÊV7F"V÷6ˆÁ7V«F6ˆ÷VÁFR∆VóGW&:26ˆÁfW'60¢W'6ó7FñF2‚VÁfñÚFR÷VÁ6vVÁ2FWfRW&÷ÊV6W"FW6FófFÚL:íÜˆ÷ˆ∆ˆv:|:6ÚP¢WF˜&ó¶:|:6ÚWáÃ:÷6óFV“WF6W&F‡†¢22WFˆ÷:|:6Ú¬FW∆˜íR6ñ6∆ÚFR6ˆÁF\;¶FÚ(	B##b”í”#†¢222&˜WFñÊRvVÊFFÏ:6Ú6ˆÁ6VwVRV&∆ñ6"ÊW7FR&ˆ¶WF†£‚≤4UDîÙÂ–£‚¢•&˜WFñÊRÜvVÊF÷VÁFÚVR7&ñ6W7<:6ÚÊ˜fíÏ:6ÚV&∆ñ6V“÷ñÊ‚¢¢f∆P£‚&V«VW"WFˆ÷:|:6ÚgWGW&FW7FR&W˜6óL;7&ñÚVR&V6ó6RV◊W'& £‚<;6FñvÚ¬Ï:6Ú<;2&ÚfVVBFRl:÷FV˜2‡†§÷VFñFÚ¬Ï:6Ú7W˜7FÚ‚&˜WFñÊRG&ñuÛÉ6e3%V§’ßÑƒt$§µ7d§¶Ç%l:÷FV˜2V–¶«F(	B6ñ6∆ÚCÜÇ"í&ˆF˜RV“#Ûí:2c£3B˜"¢£R÷ñÁWF˜2R26VwVÊF˜2¢¢PßFW&÷ñÊ˜R6ˆ“7FGW2¢¶5T44TTDTF¢¢‚Ï:6ÚFVóÜ˜RÊF¢ÊV“6ˆ÷÷óBV“÷ñÊ¿¶ÊV“'&Ê6Ç¬ÊV“"(	B6ˆÊfW&ñFÚV“FˆF˜2˜2'&Ê6ÜW2FÚ&V÷˜FÚ¬ÊVÊáV“FñÊÜ¶&Vg&W6ÜVDF÷ó2Ê˜fÚ‚ÚfVVBfñ6˜R¢£C"Ü˜&2¢¢ÊÚ"6ˆ“6ˆÁF\;¶FÚfV∆Ü¶L:í6W"&WV&∆ñ6FÚ:‹:6Ú‡†§6W6&˜l:fV¬:íÚW6ÇV“÷ñÊ6W"&'&FÚ˜"Fó7&"FW∆˜íV–ß&ˆG\:|:6Ú¬6V“áV÷ÊÚÊ6W7<:6Ú&&˜f"‚Ú7FGW25T44TTDTF:ê¶VÊvÊ˜6Û¢V∆R&Vvó7G&VR6W7<:6ÚFW&÷ñÊ˜R6V“W'&Ú¬Ï:6ÚVRÚG&&∆Ü¶6ÜVv˜RÚ&W˜6óL;7&ñÚ‚6W7<:6Ú76UÛ&µst7•Uc3Cá&3ïV≥TÑ÷wV&F¶÷˜FófÚ&V¬¬6R∆w\:ñ“Vó6W"6ˆÊfó&÷"‡†§&˜WFñÊRfˆívFV“#Ûí‚¢§ÚG,:6ÚVRgVÊ6ñˆÊ¢¢:íV“vVÊF÷VÁFßVR6˜&FV÷6W7<:6ÚWÜó7FVÁFR¬ˆÊFR&˜f:|:6ÚFRW6ÇWÜó7FR(	Bfˆí76ñ–ßVR2∆Wf2FRRÛíR#Ûíf˜&“V&∆ñ6F2‡†¢222FW∆˜íWFˆ‹:Fñ6Ú∆ñ÷óFFÚÚ÷ñÊ †§L:í2ÛíñÁFVw&:|:6ÚvóBFÚ6∆˜VFf∆&RFñÊÜ¢¢$'Vñ∆G2f˜"Êˆ‚◊&ˆGV7Fñˆ‡¶'&Ê6ÜW2"∆ñvFÚ¢¢¬RÚ¶FW∆˜í6ˆ÷÷ÊB¢:íÁÇw&Êv∆W"FW∆˜ñ(	BV“FW∆˜ê¶6ˆ◊V“¬VRV&∆ñ6V“&ˆG\:|:6Ú‚Ê,:Fñ6¬¢ßW6ÇV“V«VW"'&Ê6Äß7V'7FóG\:÷Ú6óFR¢¢‚V“2ÛíFˆó2W6ÜW2V6R6ñ◊V«L:&ÊV˜2áV“FR'&Ê6Äß&∆V∆Ú¬˜WG&ÚFÚ÷ñÊíFW''V&&“ˆ&∆ˆv¬˜6V∆˜6¬ˆV∆◊¶W&ˆP¶ˆF÷ñÊ˜"„#R÷ñÁWF˜3¢Ú'Vñ∆BFÚ'&Ê6ÇfVÊ6WRRÚ6óFR76˜R6W'fó ßV÷∆ñÊÜvV“&VGW¶ñFFÚ&ˆ¶WFÚ‡†§6óÜfˆíFW6÷&6FRÚß&ˆGV7Fñˆ‚'&Ê6Ç¢6ˆÊfó&÷FÚV“÷ñÊ‡•fW&ñfñ6FÚ˜"FW7FS¢V“'&Ê6ÇFW66'L:fV¬6ˆ“6ˆ÷÷óBG&ófñ¬Ï:6ÚvW&˜P¶'Vñ∆BÊVÊáV“¬VÁVÁFÚÁFW2Ú&˜BFÚ6∆˜VFf∆&R6ˆ÷VÁFfV“R6VwVÊF˜2‡†¢222Üó7L;7&ñ6ÚFR÷ñw&:|;VW2FÚG&óß¶∆RW7Fff˜&FR6ñÊ7&ˆÊñ†¶G&óß¶∆RÂıˆG&óß¶∆Uˆ÷ñw&FñˆÁ6FñÊÜ¢£B&Vvó7G&˜2&'Vóf˜2¢¢FP¶÷ñw&:|:6Ú¬Ú;¶«Fñ÷ÚFRBÛÇ‚2F&V∆2WÜó7Fñ“÷W6÷Ú76ñ“˜'VR˜0¶VÊGˆñÁG227&ñ“6ˆ"FV÷ÊFÜ5$TDRD$ƒRîb‰ıBUÑï5E6¬G,:6ÚF¶˜"˜vó&Ví‚ÚVfVóFÚ6ˆ∆FW&√¢Ú&ˆ˜G7G&ñFV◊˜FVÁFR÷66&fFW&óf¿¶RÚ,;7Üñ÷ÚG&óß¶∆R÷∂óB÷ñw&FVFW&ñ¢¶f∆ÜFÚ¢¢Ú&V7&ñ ¶vó&TˆffW$6∆ñ6∂‡†•6ñÊ7&ˆÊó¶FÚV“2Ûì¢&Vvó7G&˜2FR&ññÁ6W&ñF˜2¬6ˆ“Ü6Ä¶6ˆÊfW&ñFÚ˜"<:∆7V∆Ú6ˆÁG&Ú6ˆÁF\;¶FÚFR6F'VófÚ‚˜2&Vvó7G&˜2ñC”6 ¶RñC”F<:6ÚGW∆ñ6F˜2FRV÷÷ñw&:|:6Ú&VW67&óFFWˆó2FR∆ñ6F(	@¶ñÊˆfVÁ6óf˜2¬FVóÜF˜26ˆ÷ÚW7L:6Ú‡†§Ú&ˆ˜G7G&6ˆÁFñÁV6VÊFÚ&ˆ&VFRFR6VwW&Ï:v¬÷2¢¶VÁVÁFÚÊñÊw\:ñ–ß&ˆF"÷ñw&FVÊÚFW∆˜í¬ÚÜó7L;7&ñ6ÚFW6ÊFFRÊ˜fÚÊ,;7Üñ÷F&V∆‚¢††¢2226ñ6∆ÚFRCÜÇF˜2l:÷FV˜2V“«F†¢“fˆÁFS¢7&2ˆFF˜G&VÊFñÊr◊fñFV˜2Êß6ˆÊ‚&˜FñÊG&ˆ6∆WfRÊF÷ó2‡¢“63¢ÊˆFR67&óG2˜&VÊFW"◊G&VÊFñÊr÷6˜fW'2Ê÷ß6&VÊFW&ó¶ì£b6ˆ–¢6á&ˆ÷óV“ı∆ów&ñváBÜ÷W6÷L:ñ6Êñ6FÚ&VÊFW"÷6˜fW"Ê÷ß6FÚvó&R¬6V“ê¢FRñ÷vV“ví‚¢§ˆ'&ñvL;7&ñÚ6F∆Wf¢¢(	B6fV∆Ü6ˆ“L:◊GV∆ÚÊ˜f¢:íñ˜"VR6ÊVÊáV÷‚ÊVÊáV“'VófÚV“V&∆ñ2ˆñ÷vW2˜G&VÊFñÊrˆˆFP¢fñ6"6V“l:÷FVÚ6˜'&W7ˆÊFVÁFR¬Rfñ6R◊fW'6‡¢“G&fFR6ñ6∆Û¢¢£CvÇ¢¢¬Ï:6ÚCÜÇ‚÷&vV“FRÜ˜&Ï:6Ú:íFW67VñFÚ(	BV–¢7&ˆ‚Fú:&ñÚ6í6V◊&RÊÚ÷W6÷Ú÷ñÁWFÚFÚ&VÃ;6vñÚR&7Ú∆ñ÷óFR˜ ¢6VwVÊF˜2¬ÚVRV“RÛíG&Á6f˜&÷˜RÚ6ñ6∆ÚV“s&Ç‡¢“Ï;¶÷W&˜2FRfñWw2Rt’b<:6Ú¢¶W7Fñ÷FófFR7W&F˜&ñ˜"W7Vó6;¶&∆ñ6¢¢¿¢R:vñÊFó¢ó76ÚÚ∆VóF˜"‚Ï:6ÚW67&WfW"ÊFVR7Vvó&FV∆V÷WG&ñ¢VFóFFF∆Ff˜&÷‡†¢22W7FFÚ˜W&6ñˆÊ¬6ˆÁ6ˆ∆ñFFÚ(	B##b”í”0†¢“6ˆÁFñÁVñFFR77V÷ñFñÁFVw&∆÷VÁFRV∆Ú6ˆFWÇ'Fó"FR˜&ñvñ‚ˆ÷ñÊÊ¢6ˆ÷÷óBcVS&&¬&W6W'fÊFÚ2VÁG&Vv2ÁFW&ñ˜&W2R6V“«FW&:|;VW0¢&∆V∆2V“ÊF÷VÁFÚ‡¢“ñÁ7Fw&“vó&Uı˜Gf6ˆÊfó&÷FÚV∆Ú&W7ˆÁ<:fV¬6ˆ÷Ú6ˆÁF&ˆfó76ñˆÊ¬¿¢fñÊ7V∆F::vñÊFÚf6V&ˆˆ≤¢•ñW¶Ú∆"¢¢R6ñÊ7&ˆÊó¶FÊÚ÷WFG2‡¢V&∆ñ6:|:6ÚWFˆ‹:Fñ66VwVRFV∆ñ&W&F÷VÁFRFW6∆ñvFL:íWF˜&ó¶:|:6¢6VwW&FÚ∆ñ6FófÚ÷WFR6ˆÊfñwW&:|:6ÚF˜26Vw&VF˜2ÊÚv˜&∂W#≤ÊVÊáV–¢Fˆ∂V‚FWfR6W"Wá˜7FÚV“<;6FñvÚ¬6ˆ÷÷óB˜R6ˆÁfW'6‡¢“óV∆ñÊRVFóF˜&ñ¬fW&ñfñ6FÛ¢WÜV7\:|:6ÚWFˆ‹:Fñ6Ï+¢¬ñÊñ6ñF:0¢#3£UD2¬6ˆÊ6«VóR6ˆ“7V6W76ÚR&W6W'f˜R&Vw&VFóF˜&ñ¬ÚÏ:6ÚV&∆ñ6 ¢VÊFÚÏ:6ÚVÊ6ˆÁG&˜RfFÚfW&ñfñ<:fV¬7Vfñ6ñVÁFR‡¢“f∆ñF:|:6ÚF&6RÁFW2F˜2ßW7FW2fñÊó3¢bFW7FW2&˜fF˜2¬GóV6ÜV6∞¢&˜fFÚR'Vñ∆B6∆˜VFf∆&RÙÊóG&Ú&˜fFÚ‚Üˆ÷R¬vó&REb¬÷L:ó&ñ¬fVVG2¿¢6óFV÷2¬6V∆˜2R&˜˜7FFWá&W72&W7ˆÊFW&“V“&ˆG\:|:6Ú‡¢“&˜˜7FWá&W72VÁGV∆ÜÚ6˜'&ñvñF&&Vvó7G&"VÁG&FFR"BsSvV–¢"ÛíÛ##bRÚ6∆FÚFR"BsSÊVÁG&VvFRrÛíÛ##b‚7&ˆÊˆw&÷FWF∆ÜF¢FR2rÛí¬F∆ÜÚ;¶&∆ñ6Ú˜&˜˜7FˆWá&W72÷VÁGV∆ÜˆR∆ñv:|:6Ú&V<:◊&ˆ6¢VÁG&R&˜˜7FR6V∆ÚdÇ‘UB’t”##b”Fñ6ñˆÊF˜2‡¢“WáW&ú:¶Ê6ñVFóF˜&ñ¬&VfñÊF6ˆ“W7FFÚFR6'&Vv÷VÁFÚÊ2÷L:ó&ñ2¿¢÷VÁ6vVÁ2FRW'&ÚV“˜'GVw\:ß2R6&\:v∆Ü˜2,:6ñ6˜2FR6VwW&Ï:v∆ñ6F˜0¢FÁFÚ:2&W7˜7F255"ÙíVÁFÚ˜2'Vóf˜2W7L:Fñ6˜2‡†¢22fW&ˆÊñ6vó&R(	B7&VFñ&ñ∆ñFFRR&V6VóFVFóF˜&ñ¬É##b”í”2ê†¢“Ú&ˆGWFÚfˆ«F6R&W6VÁF"6ˆ÷Ú¢•fW&ˆÊñ6vó&R¢¢‚Ú6V∆ÚW&÷ÊVÁFP¢$ÚfófÚ"fˆíFW6∆ñvFÚRÜˆ÷RW6,9¶«Fñ÷2"6ˆ“÷Ê6ÜWFR÷ó2&V6VÁFS∞¢$ÚfófÚ"fñ6&W6W'fFÚ&6ˆ&W'GW&6ˆÁL:÷ÁV&V¬‡¢“Ê˜f&˜F;¶&∆ñ6ˆ&∆ˆrˆWáVFñVÁFV¢ñFVÁFñFFRñÁ7FóGV6ñˆÊ¬¬&W7ˆÁ<:fV¿¢V∆Ú&ˆ¶WFÚ¬ˆÃ:◊Fñ6VFóF˜&ñ¬¬‹:óFˆFÚFRfW&ñfñ6:|:6Ú¬W6ÚG&Á7&VÁFRFP¢WFˆ÷:|:6Ú¬6˜'&\:|;VW2¬ñÁFVw&ñFFR6ˆ÷W&6ñ¬R6ˆÁFFÚF&VF:|:6Ú‡¢“÷L:ó&ñ2vÊÜ&“6∆76ñfñ6:|:6Ú$Ê˜L:÷6ñ"¬76ñÊGW&ñÁ7FóGV6ñˆÊ¬&V¬¿¢V&∆ñ6:|:6ÚRGV∆ó¶:|:6Ú6ˆ“Ü˜,:&ñÚFR'&<:÷∆ñ¬FV◊ÚFR∆VóGW&¬FWáFÚ6ˆ–¢Fóˆw&fñVFóF˜&ñ¬¬6ˆ∆ñ6óF:|:6ÚFR6˜'&\:|:6ÚR÷L:ó&ñ2&V∆6ñˆÊF2‡¢“6FVFóF˜&ñ˜77VíV÷ˆfW'F,;7&ñ6ˆÁFWáGV¬FfW&ˆÊñ6FWˆó2F¢6ˆÁF\;¶FÚ‚Ú&VFó&V6ñˆÊ÷VÁFÚ˜"˜vó&VFñ6ñˆÊUD“R&Vvó7G&6ˆ÷VÁFR¢6∆óVR¬6V“ï¬6ˆˆ∂ñR¬R÷÷ñ¬˜RW6W"÷vVÁB‡¢“Ê˜f:&V&˜FVvñFˆF÷ñ‚˜vó&V÷˜7G&ñÁFVÏ:|;VW26ˆ÷W&6ñó2F˜2;¶«Fñ÷˜23 ¢Fñ2RFVóÜWáÃ:÷6óFÚVR6∆óVRÏ:6Ú:ífVÊF‚&V6VóF6ˆÊfó&÷FW&÷ÊV6RÊ¢6ÜV6∂˜WBR6W,:,;7Üñ÷6÷FFRG&ñ'Vú:|:6Ú‡¢“66ÜV÷ˆ÷ñw&:|:6ÚÖˆÊófU˜Ü∆ÁÇÁ7∆Fñ6ñˆÊvó&TˆffW$6∆ñ6∂‚ÚVÊGˆñÁ@¢˜77Ví&ˆ˜G7G&ñFV◊˜FVÁFR&7&ñ"F&V∆ÁFW2FÚ&ñ÷Vó&Ú&Vvó7G&¢66ÚÚv˜&∂W"6ÜVwVRÁFW2F÷ñw&:|:6Úf˜&÷¬‡¢“4TÛ¢ÊWw4'Fñ6∆Vv˜&&VfW&VÊ6ñ&VF:|:6Ú¬WáVFñVÁFR¬FFFRGV∆ó¶:|:6ÚP¢˜&vÊó¶:|:6ÚV&∆ñ6F˜&≤7&ñFÚˆÊWw2◊6óFV÷ÁÜ÷∆VÊ26ˆ“÷L:ó&ñ2F˜0¢;¶«Fñ÷˜2Fˆó2Fñ2RñÊ6«\:÷FÚV“&ˆ&˜G2ÁGáF‡¢“f∆ñF:|:6Ú∆ˆ6√¢GóV6ÜV6≤¬'Vñ∆B6∆˜VFf∆&RÙÊóG&ÚRÇFW7FW276&“‚¢6W'fñF˜"FR&WfñWrFW7FR÷&ñVÁFRÏ:6Ú'&óR˜"W'&ÚFRñÁFW&f6RFR&VFS∞¢fW&ñfñ6:|:6Ú;¶&∆ñ6FWfR6W"fVóF;72ÚFW∆˜í‡†¢22f6R2(	Bf˜&÷:|;VW2É##b”í”¬∆ˆ6¬ê†¢“VFóF˜&ñ'FóRFR˜&ñvñ‚ˆ÷ñÊV“&cÉScÜ6≤:'f˜&RW7Ff∆ñ◊‚¢&W7FW&:|:6Úfó7V¬&˜fFFÜˆ÷RW7L:V“#3S6#¬&Vvó7G&F6ˆ÷¢V&∆ñ6F˜"S66ffCÜ¬Rfˆí&W6W'fF‡¢“ˆ6ˆ÷ÊF˜6÷ÁL:ñ“˜26&G2Rv˜&W6Ú6L:∆ˆvÚ6Ï;FÊñ6Ú&L:◊GV∆Ú¿¢FW67&ú:|:6Ú¬Ï:◊fV¬¬GW&:|:6ÚG&Á7&VÁFR¬&W7V«FFÚW7W&FÚ¬7FGW2R5D‡¢“&V÷˜fñF26ˆÁFvVÁ2R&ˆ÷W762Ï:6Ú6ˆ◊&˜fF2FRV∆2ˆÜ˜&2‚2f˜&÷:|;VW0¢6VwVV“6ˆ÷Ú$V“&ˆG\:|:6Ú"RÏ:6Ú&V6V&V“∆ñÊ≤f«6Û≤∆VvVÊF¨:Fó7FñÊwVP¢$Fó7ˆÏ:◊fV¬"¬$V“&ˆG\:|:6Ú"R$V“'&WfR"‡¢“V∆¶W&ÚW&÷ÊV6R6ˆ÷ÚVÁG&Fw&GVóFFó7ˆÏ:◊fV¬V“ˆV∆◊¶W&ˆ‡¢“6FóFV“&W6W'fgWGW&UFÉ¢ˆf˜&÷6ˆW2ÚG6«Vv¬÷2ÊVÊáV÷:vñÊñÊFófñGV¿¢f¶ñfˆí7&ñF‚Üˆ÷R¬7GVFñÚR6V7W&óGí6ˆÁFñÁV“6ˆÁ7V÷ñÊFÚ÷W6÷fˆÁFR‡¢“&6∂VÊB¬WFVÁFñ6:|:6Ú¬v÷VÁF˜2¬&Ê6Ú¬ñ÷vV“FfW&ˆÊñ6RFW6ñv‚◊∆ÚF¢Üˆ÷RÏ:6Úf˜&“«FW&F˜2‚ÊVÊáV÷FWVÊL:¶Ê6ñÊ˜ffˆíFñ6ñˆÊF‡¢“f∆ñF:|:6Û¢RFW7FW2¬GóV6ÜV6≤R'Vñ∆B6∆˜VFf∆&R&˜fF˜2‚ñÁ7F∆:|:6ÚF¢ÊfVvF˜"&fó7V¬f∆Ü˜R˜"6W'Fñfñ6FÚVÊ∂Ê˜v‰ó77VW&≤&Wfó<:6ÚFP¢6ˆÁF\;¶FÚ¬5D2R6∆76W2&W7ˆÁ6óf26ˆÊ6«\:÷FW7FFñ6÷VÁFR‚6V“W6ÇˆFW∆˜í‡†¢22V&∆ñ6:|:6ÚFf6R(	B##b”í”†¢“V&∆ñ6FÚV“&ˆG\:|:6ÚV∆Ú6ˆ÷÷óB&V÷˜FÚì3F6FFÊ'&Ê6Ç÷ñÊ‡¢“6∆˜VFf∆&R&˜v˜RÊ˜ffW'<:6ÚV“áGG3¢Ú˜fW&ˆÊñ6áV"Ê6ˆ÷‡¢“fW&ñfñ6:|:6Ú;¶&∆ñ66ˆÊ6«\:÷FV“Üˆ÷R¬f˜&÷:|;VW2¬&ˆ◊B6∑2¬Ê«óFñ72¿¢7W',:÷7V∆Ú‘6W'FÚ¬8&V$Ç¬7GVFñÚRvó&S≤FˆF26'&Vv&“6ˆ“˜2L:◊GV∆˜2P¢6ˆÁF\;¶F˜2W7W&F˜2¬6V“W'&˜2F∆ñ6:|:6ÚÊÚ6ˆÁ6ˆ∆R‡¢“Úvó&R6'&Vv˜RÊ˜&÷∆÷VÁFR6ˆ“Ú&Ê6ÚFÚ÷&ñVÁFRFR&ˆG\:|:6Ú‡¢“GóV6ÜV6≤¬'Vñ∆BR6ñÊ6ÚFW7FW2FR'VóFWGW&76&“ÁFW2FV&∆ñ6:|:6Ú‡†¢2&ˆw&W76Ú(	B&VFW6ñv‚fó7V¬fW&ˆÊñ6áV †¢22Wá&W72˜W&FñˆÁ2(	BFV÷ˆÁ7G&:|:6Úfó7V¬É##b”í”B¬∆ˆ6¬ê†¢“7&ñF&˜FÏ:6ÚñÊFWå:fV¬ˆ6∆ñVÁFW2ˆWá&W72÷VÁGV∆ÜÚˆ˜W&6ˆW2÷FV÷ˆ6ˆ÷¢FV÷ˆÁ7G&:|:6Úg&ˆÁB÷VÊB¬6V“&6∂VÊB¬&Ê6Ú¬vV&Üˆˆ≤˜RñÁFVw&:|:6ÚFóf‡¢“:vñÊ'&RFó&WF÷VÁFRÁV÷7WW&l:÷6ñR˜W&6ñˆÊ¬6∆&R&W7ˆÁ6óf¿¢6ˆ“fó<:6ÚvW&¬¬FVÊFñ÷VÁFÚ¬vVÊFR&˜F2¬g&˜F¬6∆ñVÁFW2RfñÊÊ6Vó&Ú‡¢“FF˜2W76ˆó2F˜2&ñÁG2Ï:6Úf˜&“&WWFñ∆ó¶F˜2‚6ˆÁfW'62R˜W&:|;VW2<:6¢ÊˆÊñ÷ó¶F2R&˜GV∆F26ˆ÷Ú6ñ◊V∆:|:6Û≤Ï;¶÷W&˜2FW66ˆÊÜV6ñF˜2W&÷ÊV6V–¢6ˆ÷Ú(	ƒwV&FÊFÚ6F7G&˛(	“‡¢“Ú&˜L;7FóÚ÷FW&ñ∆ó¶Úf«WÜÚFRG&6Ú¬&˜f:|:6ÚáV÷Ê¬∆ÊV¶÷VÁFÚF¢,;7Üñ÷ÚFñRFÜFR7V6W76ÚFV÷ˆÁ7G&FófFRR‡¢“÷&6FR&ˆ6VL:¶Ê6ñ∆ñ6F6ˆ“dÇ‘UB’t”##b”¬îÚƒ"b4Ú‚P¢ñÁFV∆ñ|:¶Ê6ñ2fW&ˆÊñ6‚ÊVÊáV÷◊VFÏ:vV“66ÜV÷¬v÷VÁF˜2˜R&6∂VÊB‡¢“G&&∆ÜÚó6ˆ∆FÚÊ'&Ê6Ç∆ˆ6¬fVBˆWá&W72÷˜W&FñˆÁ2÷FV÷ˆ≤6V“W6ÇP¢6V“FW∆˜í‡†§'VófÚFR&WFˆ÷F,:ñF‚6Rfˆ<:¢'&ó"V÷6W7<:6ÚÊ˜fFÚ6∆VFR6ˆFP¢Ü˜R˜WG&ÚvVÁFRíÊW7FRFó&WL;7&ñÚ¬∆Vñó7FÚ&ñ÷Vó&Ú‡†¢22&WFˆ÷FFf∆ñF:|:6Ú(	B##b”í” †¢“fW&ñfñ6:|:6ÚÖEE∆ˆ6√¢Üˆ÷R¬f˜&÷:|;VW2¬&ˆ◊B6∑2¬Ê«óFñ72¿¢7W',:÷7V∆Ú‘6W'FÚ¬8&V$ÇR7GVFñÚ&WF˜&Ê&“#6ˆ“L:◊GV∆˜2W7V<:÷fñ6˜2‡¢“vó&R&WF˜&Ê˜RSÊÚ÷&ñVÁFR∆ˆ6√≤DD$4UıU$¬Ï:6ÚW7L:6ˆÊfñwW&F‡¢Ï:6Úf˜&“«FW&F27&VFVÊ6ñó2¬ñÁFVw&:|;VW2˜RG&F÷VÁFÚFÚ&6∂VÊB‡¢“;72WF˜&ó¶:|:6ÚWáÃ:÷6óF&fW'&÷VÁF2FRFW7FR¬ÚF˜vÊ∆ˆBFÚ6á&ˆ÷P¢f∆Ü˜R˜"6W'Fñfñ6FÚÏ:6Ú&V6ˆÊÜV6ñFÚÊÚñÁ7F∆F˜"vVÁB÷'&˜w6W#≤¢F˜vÊ∆ˆBˆfñ6ñ¬FÚ∆ów&ñváBW6v˜F˜RÚFV◊ÚFR6ˆÊWå:6Ú‚fó7V¿¢FW6∑F˜ˆ÷ˆ&ñ∆RW&÷ÊV6RVÊFVÁFR˜"∆ñ÷óF:|:6ÚFÚ÷&ñVÁFR‡¢“ÊVÊáV“W6ÇˆFW∆˜í&V∆ó¶FÚ‚WF˜&ó¶:|:6Ú&V&∆ñ6";72f∆ñF:|:6Ú÷ÁFñF‡†¢22f∆ñF:|:6ÚFf6R(	BGV∆ó¶:|:6ÚV“##b”í” †¢“FWVÊL:¶Ê6ñ2WÜó7FVÁFW2ñÁ7F∆F26ˆ“'V‚R“÷g&˜¶V‚÷∆ˆ6∂fñ∆V¬;72Ê˜f¢WF˜&ó¶:|:6ÚFÚW7\:&ñÛ≤6∂vRÊß6ˆ‚R'V‚Ê∆ˆ6≤Ï:6Ú«FW&F˜2ÊW7F&WFˆ÷F‡¢“Á“'V‚GóV6ÜV6∂¢76˜R‚Á“'V‚'Vñ∆F¢76˜Rá6:÷F6∆˜VFf∆&RÙÊóG&Úí‡¢“˜26ñÊ6ÚFW7FW2FR'VóFWGW&76&”≤6V“«FW&:|;VW2FR&6∂VÊB‡¢“fó7V¬FW6∑F˜ˆ÷ˆ&ñ∆RñÊFVÊFVÁFS¢ñÁ7F∆:|:6ÚFñ6ñˆÊ¬FRvVÁB÷'&˜w6W ¢&V¶VóFFV∆&Wfó<:6ÚWFˆ‹:Fñ6≤∆ów&ñváBFó7ˆÏ:◊fV¬6V“WÜV7WL:fV¬FP¢ÊfVvF˜"¬RÊfVvF˜"&V÷˜FÚ&∆˜VVñ∆ˆ6∆Ü˜7BÜU%%Ù$ƒÙ4¥TEÙ%ïÙ4ƒîTÂFí‡¢“V&∆ñ6:|:6ÚWF˜&ó¶FV∆ÚW7\:&ñÚVÊFÚf∆ñF:|:6ÚW7FófW"6ˆ◊∆WF‡¢ÊVÊáV“W6Ç˜RFW∆˜í&V∆ó¶FÚÊW7F&WFˆ÷F‡†¢22f6R(	BgVÊF:|:6ÚF'VóFWGW&É##b”í”ê†§ñ◊∆V÷VÁF:|:6Ú∆ˆ6¬Ê'&Ê6ÇfVBˆ&6ÜóFV7GW&R÷f˜VÊFFñˆ‚◊Ü6S¬&6VFV–¶#vSSf‚6V“W6ÇR6V“FW∆˜í‚f∆ñF:|:6Ú6ˆ◊∆WFñÊFVÊFVÁFR‡†¢“&Vvó7G&Ú6Ï;FÊñ6ÚV“7&2ˆ∆ñ"ˆV6˜7ó7FV“ÁG6¢&ˆGWF˜2¬7FGW2VFóF˜&ñó2¿¢6FVv˜&ñ2¬6Vó2ñÁFVÏ:|;VW2RFW7FñÊ˜2‚FFF˜&W2&W6W'f“˜26ˆÁ7V÷ñF˜&W0¢WÜó7FVÁFW3≤VÊófW'6R÷ÁL:ñ“6ˆÁ7FV∆:|:6ÚR∆ó7FFˆF22:&V2ÊÚFó&WL;7&ñÚ‡¢“ÜVFW"ˆfˆ˜FW"6ˆ◊'Fñ∆ÜF˜2ÊÜˆ÷RR:vñÊ2;¶&∆ñ62‚FW6∑F˜ˆ÷ˆ&ñ∆RW6–¢2÷W6÷2fˆÁFW2‚6V“F÷ñ‚;¶&∆ñ6Û≤&VFW2ÊÚ&ˆF:í‚7W',:÷7V∆Úı$Ç÷ÁL:¶“˜0¢,;7&ñ˜26ˆÁG&ˆ∆W2FR6W7<:6Úˆ6'FVó&¬6ˆ“ÊfVv:|:6Úv∆ˆ&¬6ˆ◊'Fñ∆ÜF‡¢“f˜&÷:|;VW2÷ÁL:ñ“ˆ6ˆ÷ÊF˜6≤6L:∆ˆvÚ6ˆ“6«Vr¬7FGW2¬5D¬ˆ&¶WFófÚP¢Fó7ˆÊñ&ñ∆ñFFR‚2f˜&÷:|;VW26V“VÁG&VvñFVÁFñfñ6Ffñ6“V“&ˆG\:|:6Ú‡¢ÊVÊáV“6&B6ñ◊V∆6W76ÚV∆Üˆ÷R‚V∆¶W&ÚW&÷ÊV6R6W7<:◊fV¬‡¢“FW&÷˜2˜&óf6ñFFRRÊWw6∆WGFW"6V“FW7FñÊÚf˜&“&WFó&F˜2FV◊˜&&ñ÷VÁFR‡¢6ˆÁFFÚW6ÚR÷÷ñ¬WÜó7FVÁFS≤6ˆ◊VÊñFFR6V“w'WÚ&V¬fó&˜R6W76Ú:W66ˆ∆‡¢“Ê«óFñ72ñFVÁFñfñ6FF˜2FV÷ˆÁ7G&Fóf˜3≤vó&RÏ:6Ú&ˆ÷WFRV&∆ñ6:|:6Ú˜ ¢Ü˜&ˆÚfófÛ≤&V÷˜fñF∆Vv:|:6ÚW7L:Fñ6FR÷ó2fVÊFñFÚ‚÷WFFF˜2v∆ˆ&ó0¢˜6ñ6ñˆÊ“÷&66ˆ÷ÚW66ˆ∆FRñÁFV∆ñ|:¶Ê6ñ'Fñfñ6ñ¬‡¢“&6∂VÊB¬WFVÁFñ6:|:6Ú¬ó2¬&Ê6Ú¬v÷VÁF˜2Rñ÷vV“˜Fñ÷ó¶FFÜW&¢Ï:6Úf˜&“«FW&F˜2‚WFÖvñFvWB6ˆ◊&FÚ6ˆ“&6S¢ñL:¶ÁFñ6Ú‡¢“fW&ñfñ6:|:6Û¢RFW7FW2FR6ˆÁG&F˜2˜&˜F276&“6ˆ“Á“FW7FÑÊˆFR#Bí¿¢'6RF˜2#'Vóf˜2E2ıE5Ç«FW&F˜276˜S≤vóBFñfb“÷6ÜV6∂∆ñ◊Ú‡¢“Á“'V‚GóV6ÜV6∂&∆˜VVFÛ¢G63¢Ê˜Bf˜VÊF≤Á“'V‚'Vñ∆F&∆˜VVFÛ†¢fóFS¢Ê˜Bf˜VÊF‚FWVÊL:¶Ê6ñ2W6VÁFW2RÊVÊáV÷ñÁ7F∆F‚67&óG2FP¢GóV6ÜV6≤˜FW7Bf˜&“Fñ6ñˆÊF˜26V“Ê˜f2FWVÊL:¶Ê6ñ2‡¢“fW&ñfñ6:|:6Ú&V¬V“ÊfVvF˜"FW6∑F˜ˆ÷ˆ&ñ∆RÏ:6ÚWÜV7WFF¢∆ñ6:|:6ÚÏ:6¢ˆFR6W"ñÊñ6ñF6V“7V2FWVÊL:¶Ê6ñ2‚&Wfó<:6ÚW7L:Fñ6Ï:6Ú7V'7FóGVíW76¢WF‚&VWÜV7WF"Fó˜2ˆ'Vñ∆BRF2&˜F2ÁFW2FR6ˆÁ6ñFW&"f6Rf∆ñFF‡¢“VÊL:¶Ê6ñ2VFóF˜&ñó3¢FW7FñÊ˜2FRVÁG&VvF2f˜&÷:|;VW2¬Fˆ7V÷VÁF˜2∆Vvó2¿¢ÊWw6∆WGFW"ˆ6ˆ◊VÊñFFR&Vó2R6ˆ◊&˜f:|:6ÚF2ñÁFVw&:|;VW2FRÊ«óFñ72ıvó&R‡†¢22ˆÊFRW7F÷˜0†¢“&W˜6óL;7&ñÛ¢‚˜fW&ˆÊñ6áV"÷Öu4¬í¬vóDáV"fW&ˆÊñ6”vóB˜fW&ˆÊñ6áV"÷‡¢“¢§¨8T$ƒî4DÛ¢¢¢÷ñÊˆ˜&ñvñ‚ˆ÷ñÊW7L:ÊÚ6ˆ÷÷óBVS6#cV ¢Ö"3#R(	BvñÊ:|:6Ú˜"VFóF˜&ñ≤'Vóf÷VÁFÚFÜˆ÷RFÚfW&ˆÊñ6¢vó&R¬fW"6\:|:6Ú%fW&ˆÊñ6vó&R"&óÜÚí(	BFW∆˜íWFˆ‹:Fñ6ÚF¢6∆˜VFf∆&RFó7&˜R'Fó"FW76RW6ÇV“÷ñÊ‡¢ÑÚ6ˆ÷÷óB#FCv3ñı"3r÷VÊ6ñˆÊFÚ∆ˆvÚ&óÜÚ:íÜó7L;7&ñ6Ú(	B◊VóF¢6ˆó66ˆÁFV6WRFW6FRVÁL:6Ú¬GVFÚFˆ7V÷VÁFFÚÊ6\:|:6ÚfW&ˆÊñ6vó&R‚ê¢“¢•v˜&∂W"FR&ˆG\:|:6Ú6˜'&WFÛ¢fW&ˆÊñ6áV"÷¢¢ÜÏ:6¢fW&ˆÊñ6”vóB◊fW&ˆÊñ6áV"÷í‚6ˆÁF6∆˜VFf∆&RFV“˜2Fˆó2(	@¢fW&ˆÊñ6”vóB◊fW&ˆÊñ6áV"÷WÜó7FR÷2Ï84Ú:íÚVR6W'fR¢Fˆ‹:÷ÊñÚÜfñ6˜R&FÚÊÚ6ˆ÷÷óBìñ#f6¬FW6GV∆ó¶FÚí‚6Rf˜"W6 ¢w&Êv∆W"6V7&WBWF˜RV«VW"6ˆ÷ÊFÚ“÷Ê÷V¬W6 ¢fW&ˆÊñ6áV"÷‡¢“¢Æ)™˚àÚ5,8’Dî4Ú(	BÚFW∆˜íWFˆ‹:Fñ6ÚFÚ6∆˜VFf∆&RFó7&4DU4Ä¢V“T≈TU"'&Ê6Ç6ˆÊV7FF¬Ï:6Ú<;2V“÷ñÊ‚¢¢6ˆÊfó&÷FÚÊ¢,:Fñ6¢F"vóBW6ÜÁV÷'&Ê6ÇFRfVGW&RÜ6∆VFR˛(
+fí¨:vW&˜P¢V“$FW∆˜ñ÷VÁB7V66W76gV¬"Fó&WFÚÊÚ÷&ñVÁFR&ˆGV7FñˆÊF¢v˜&∂W"Ü6ˆ÷VÁL:&ñÚFÚ&˜B6∆˜VFf∆&R◊v˜&∂W'2÷ÊB◊vW6ÊÚ"¿¢ˆÁFÊFÚ&‚‚‚˜fW&ˆÊñ6áV"÷˜&ˆGV7Fñˆ‚ˆ'Vñ∆G2Ú‚‚Êí‚¢§Ï:6¢WÜó7FRFW∆˜íFR&WfñWr6W&FÚÊW76R&ˆ¶WFÚ¢¢(	BFˆFÚW6Çfó&¢&ˆG\:|:6ÚÊÜ˜&¬W7FV¶V“÷ñÊ˜RÏ:6Ú‚ó76Ú¨:6W6˜RV“7W7F¢&V√¢V÷◊VFÏ:vFR66ÜV÷Ü6ˆ«VÊ&ˆ∆VÊ˜fífˆíV&∆ñ6FÁFW0¢F÷ñw&Fñˆ‚&ˆF"ÊÚ&Ê6Ú¬ÚVRVV'&&ñ∆ˆvñ‚V“FˆFÚÚáV"L:ê¢÷ñw&Fñˆ‚6W"∆ñ6Fá&W6ˆ«fñFÚ,:ñFÚ¬÷2fˆí˜"˜V6Úí‡¢¢•&Vw&,:Fñ6FVí&g&VÁFS¢&ˆF"V«VW"÷ñw&Fñˆ‚FR&Ê6¢ÂDU2FRF"vóBW6ÜV“V«VW"'&Ê6Ç(	BÏ:6Ú<;2ÁFW2FR÷W66∆ ¢V“÷ñÊ‚¢†¢“'&Ê6ÇÁFñvFRG&&∆ÜÚ6∆VFR˜fW&ˆÊñ6áV"◊&VFW6ñv‚÷6ˆÁB÷≥ì&wCF ¢á&VFW6ñv‚fó7V¬(	B6\:|;VW2&óÜÚí(	B7FGW2GV¬Ï:6Ú6ˆÊfó&÷FÚÊW7F¢GV∆ó¶:|:6Ú¬Ï:6ÚFˆ6FÊ6W7<:6ÚFÚfW&ˆÊñ6vó&R‡¢“'&Ê6ÜW2FRG&&∆ÜÚFÚfW&ˆÊñ6vó&RW6F2ÊW7F6W7<:6¢Ü6∆VFR˜vó&R÷Wfˆ«V6ˆ¬6∆VFR˜vó&R◊vñÊFñˆÊí¨:FófW&“6WW2'0¢÷W66∆F˜2(	BÊVÊáV÷FV“◊VFÏ:vVÊFVÁFR‚&6ˆÁFñÁV"Úvó&R¬7&ñ ¢'&Ê6ÇÊ˜f'Fó"FR˜&ñvñ‚ˆ÷ñÊáG,:6Ú¨:W7F&V∆V6ñFÛ¢6V◊&P¢vóBfWF6Ç˜&ñvñ‚÷ñ‚bbvóB6ÜV6∂˜WB‘"∆Êˆ÷S‚˜&ñvñ‚ˆ÷ñÊÁFW2FP¢6ˆ÷\:v"¬ÁVÊ6&V&˜fVóF"V÷'&Ê6Ç7V¶Ú"¨:fˆí÷W66∆FÚ˜ ¢7V6Ç(	BÚÜó7L;7&ñ6ÚFófW&vRRÚ,;7Üñ÷Ú"÷˜7G&FñfbGW∆ñ6FÚí‡¢“&W˜6óL;7&ñÚó&‹:6Ú‚ˆÊVvˆ6ñÚ÷F÷6ÜñÊ÷Ñ6ÜñÊWÜ6ÜÊvRíÏ:6Úfˆê¢Fˆ6FÚ‡†¢22ÚVR¨:fˆífVóF†¢222fW&ˆÊñ6vó&R(	BóV∆ñÊRFRV&∆ñ6:|:6ÚWFˆ‹:Fñ6á6WFV÷'&Ú##bê†§Úvó&RÜˆ&∆ˆví÷ÁL:ñ“V“f«WÜÚWFˆ÷Fó¶FÚFRV&∆ñ6:|:6Û¢V“7&ˆ‚F§vóDáV"7FñˆÁ2ÜÊvóFáV"˜v˜&∂f∆˜w2ˆvVÊW&FR÷'Fñ6∆RÁñ÷∆í&ˆF6FVÇ¿¶vW&V÷÷L:ó&ñfñ6∆VFR6ˆ“vV%˜6V&6Ü&V÷F2RVFóF˜&ñ2Ñî¿¶6∆ñ÷¬V6ˆÊˆ÷ñ¬vV˜ˆÃ:◊Fñ6¬÷W&6FÚFV6ÊˆÃ;6vñ6ÚíRV&∆ñ6Fó&WFÚÊ§ÊVˆ‚‚FˆFÚW76RóV∆ñÊRÜR<;2V∆Rífˆí6ˆÁ7G'\:÷FÚˆWfˆ«\:÷FÚÊW7F6W7<:6Ú¿¶V“'26WVVÊ6ñó2(	BFˆF˜2¨:÷W66∆F˜2V“÷ñÊWÜ6WFÚÚVRW7L:∆ó7FF¶V“%6W7<:6ÚV“ÊF÷VÁFÚ#††¢“¢•"3B¢¢(	BñÊg&W7G'WGW&&6W'fó"ñ÷vV“FR6˜"÷L:ó&ñ¢Ü6˜fW$ñ÷vUW&∆ˆ6˜fW$ñ÷vTFFˆ6˜fW$ñ÷vT÷ñ÷UGóVÊÚ66ÜV÷í‡¢“¢•"3r¢¢(	B6WFˆ‹:Fñ6fñ6&BÖD‘¬Ù552Fóˆw,:fñ6ÚÖ∆ów&ñváB∞¢6á&ˆ÷óV“¬&VÊFW&ó¶FÚÊÚ,;7&ñÚ7Fñˆ‚(	B6∆˜VFf∆&Rv˜&∂W'2Ï:6¢W67&WfV“V“˜V&∆ñ6í¬6V“7W7FÚ˜"ñ÷vV“‡¢“¢•"3Ç¢¢(	B6˜'&ñvóRf∆Ü6ñ∆VÊ6ñ˜6FÚ7&ˆ„¢E$eEÙ‘ÖıDÙ¥TÂ6 ¢É##í6˜'Ff&W7˜7FFîÊÚ÷VñÚVÊFÚvV%˜6V&6Ü6ˆÁ7V÷ñ¢'FRFÚ'VFvWB‚7V&óR&Cìb≤V÷&WFVÁFFófWFˆ‹:Fñ6<;2VÊFÚ¢f˜&÷FÚfV“VV'&FÚ‡¢“¢•"3í¢¢(	B6ñ∆áVWFáV÷Ê5drÊÚ6&BFóˆw,:fñ6ÚÜóFV“fó7V¬¿¢7V'7FóGVñÊFÚñFVññÊñ6ñ¬FRvW&"f˜FÚ&V¬fñÜñvw6fñV∆B¬VRFV–¢7W7FÚ&V6˜'&VÁFR˜"ñ÷vV“í‡¢“¢•"3#¢¢(	B&Ê6ÚFRñ÷vVÁ2F÷ñ‚ÜˆF÷ñ‚ˆñ÷vVÁ6ì¢W∆ˆB÷ÁV¬¿¢v∆W&ñ¬&6ScBÊÚ˜7Fw&W2Ü÷W6÷Ú6÷ñÊÜÚFR6˜fW$ñ÷vTFF(	BÁVÊ6¢#"¬¨:VV'&˜RÚ'Vñ∆BFW76R7F6≤ÁFW2í‡¢“¢•"3#¢¢(	BR6˜'&\:|;VW2ˆÁGVó3¢FVGWFR÷L:ó&ñGW∆ñ6FÜ6ÜV6vV–¢˜"¶ÊV∆FR5î4ƒUÙÑıU%6¬Ï:6Ú˜"U$¬í¬÷7FÜVB6ˆ“FFˆÜ˜&&V¿¢FW6FRÚ&ñ÷Vó&Ú&VÊFW"ÜgW6Ú÷W&ñ6ı6ııV∆ˆfóÜÚí¬G&ñ'Vú:|:6¢$fˆÁFS¢Ç(¢"FW&ófFFR6˜W&6UW&«5≥÷¬6˜íF6\:|:6ÚfñÊ¬&VW67&óF¢FR%&VF:|:6Úv∆ˆ&¬"&$÷ˆÊóF˜&÷VÁFÚv∆ˆ&¬"ÜÜˆÊW7F6ˆ'&R6W ¢WFˆ÷:|:6Ú¬Ï:6Ú6˜'&W7ˆÊFVÁFR∆ˆ6¬í¬∆6VÜˆ∆FW"FR6÷˜7G&ÊFÚ¢Êˆ÷RFVFóF˜&ñV“fW¢FRf¶ñÚ‡¢“¢•"3#"¢¢(	B6f˜F˜'&V∆ó7FFRfW&FFRfñ¢•WÜV«2¢¢á&ñÊ6ó¬íP¢¢•óÜ&í¢¢Üf∆∆&6≤ì¢î¨:FWfˆ«fRf˜FıFW&÷˜6É"”2FW&÷˜2V–¢ñÊvÃ:ß2íÊ÷W6÷6Ü÷FVRW67&WfR÷L:ó&ñ≤67&óG2ˆfWF6Ç÷6˜fW"◊Ü˜FÚÊ÷ß6 ¢'W66ÊÚvóDáV"7Fñˆ‚ÜÏ:6ÚÊÚv˜&∂W"íR6í&Ú6&BFóˆw,:fñ6Ú<;26P¢ÊFf˜"VÊ6ˆÁG&FÚ‚FW7FFÚÚfófÚ6ˆ“7V6W76ÚÜf˜FÚ&V¬FÚWÜV«0¢V&∆ñ6Fí‚UÑT≈5ÙïÙ¥Uñ¨:6F7G&F6ˆ÷Ú6V7&WBFÚ7FñˆÁ3∞¢ïÑ$ïÙïÙ¥UññÊFÏ:6Ú‡¢“¢•"3#2¢¢Ü'&ñVb%fW&ˆÊñ6vó&R(	BWfˆ«\:|:6Ú"¬óFV“FR2í(	Bó6ÚFP¢V∆ñFFRÁFW2FRV&∆ñ6"Ü‹:÷Êñ÷Ú"6˜W&6UW&«6¬6˜'Ú‹:÷Êñ÷Ús ¢6&7FW&W2í¬FVGW˜"6ñ÷ñ∆&ñFFRFR÷Ê6ÜWFRå;¶«Fñ÷2CV&∆ñ6:|;VW2¿¢FˆF2VFóF˜&ñ2¬ˆ˜fW&∆6ˆVffñ6ñVÁEÚ6ˆ“∆ñ÷ñ"„3R6∆ñ'&FÚ:‹:6Ú(	@¢fW"6ˆ÷VÁL:&ñÚV“fñÊE6ñ÷ñ∆$ÜVF∆ñÊVV“'Fñ6∆W2◊6W'fW"ÁG6í¬&ˆ◊@¢ßW7FFÚ&÷L:ó&ñ2÷ó27W'F2Éì”C6&7FW&W2í¬VÊGˆñÁ@¢ˆG'ï'V„”V“ˆíˆ7&ˆ‚ˆvVÊW&FR÷'Fñ6∆V&6ñ◊V∆"6V“V&∆ñ6"¬P¢67&óG2ˆfWF6Ç÷f∆∆&6≤÷6˜fW'2Ê÷ß6≤v˜&∂f∆˜r÷ÁV¿¢fWF6Ç÷f∆∆&6≤÷6˜fW'2Áñ÷∆&˜V∆"V÷f˜FÚvVÏ:ó&ñ6fóÜ˜ ¢VFóF˜&ñÜÏ:◊fV¬2FÚf∆∆&6≤í‡¢“¢•"3#B¢¢(	BVFñFÚFó&WFÚÊÚ6ÜB¬f˜&FÚ'&ñVbf˜&÷√¢6VwVÊF˜2Ê¢&VÃ;6vñÚFÚ÷7FÜVBÜf˜&÷D÷7FÜVFvÊÜ˜R6V6ˆÊC¢#"÷FñvóB&í¿¢&V÷˜fñFÚÚ˜fW&∆í&Üˆ∆ˆw,:fñ6Ú"v∆ˆ&¬ÜáVE66ÊÊW&ˆÜˆ∆Ú÷&V÷FP¢Üˆ∆Ù˜&&óG2ÁG7ÜíF&˜Fˆ&∆ˆvÜFñ6ñˆÊFÚˆ&∆ˆvV–¢ƒîtÖEıDÑT‘Uı$ıUDU6¬÷V6Êó6÷ÚFR˜B÷˜WB˜"&˜FVR¨:WÜó7Fñí¿¢∆ñÊ≤FÚ÷VÁR$&∆ˆr"(i"%fW&ˆÊñ6vó&R"Ü6óFT6á&ˆ÷RÁG7Ü¬FW6∑F˜P¢÷ˆ&ñ∆Rí¬RÊ˜fÚ6ˆ◊ˆÊVÁFR7&2ˆ6ˆ◊ˆÊVÁG2ˆ&∆ˆrıvó&UV«6Tv∆ˆ&RÁG7Ü ¢Ö5drµ4‘î¬¬6V“Fá&VRÊß2(	B∆ñ"W7L:ÊÚ6∂vRÊß6ˆÊ÷2Ï:6Ú:íW6F¢V“ÊVÊáV÷&˜FFÚ¬Fñ6ñˆÊ"7W7F&ñ„„Ñ‘"FR'VÊF∆Rí6ñ◊V∆ÊF¢V“v∆ˆ&Úvó&ÊFÚ6ˆ“BˆÁF˜2V«6ÊFÚ(	BV“˜"FW6≤Ö<:6ÚV∆Úı4b¢WVñ“Ù∆ˆÊG&W2í(	BÊÚ÷7FÜVBÚ∆FÚFÚ&VÃ;6vñÚ‡¢“¢¶fWF6Ç÷f∆∆&6≤÷6˜fW'2Áñ÷∆¨:&ˆFFÚ¢¢áv˜&∂f∆˜uˆFó7F6Ç÷ÁV¬¿¢6ˆ÷÷óBFó&WFÚV“÷ñÊ¢Éf3S6&í(	B2Rf˜F˜2vVÏ:ó&ñ62˜"VFóF˜&ñ¢¨:WÜó7FV“V“V&∆ñ2ˆñ÷vW2ˆ&∆ˆr÷6˜fW'2ıˆf∆∆&6≤Û∆&VC‚Êßv‡¢“¢•"3#R¢¢Ü'&ñVb&Wfˆ«\:|:6Ú"¬óFV“2FR2í(	BvñÊ:|:6Ú&V¬˜"7W'6˜ ¢ÜÏ:6Úˆfg6WBíÁV÷&˜FÊ˜fˆ&∆ˆrˆVFóF˜&ñÚF&VFÜÏ:6Úˆ&∆ˆrÚF&VF†¢Fˆó26Vv÷VÁF˜2FñÏ:&÷ñ6˜2ó&‹:6˜2ÊÚ÷W6÷ÚÏ:◊fV¬6W&ñ“÷,:÷wV˜2&¢&˜FVF˜"FÚFÂ7F6≤&˜WFW"í¬$6'&Vv"÷ó2"V“&∆ˆ6˜2FRP¢ÜvWD'Fñ6∆W4'î&VFV“'Fñ6∆W2◊6W'fW"ÁG6ì≤Üˆ÷RÜvWEV&∆ó6ÜVD'Fñ6∆W6ê¢G&ˆ6˜RÚÊ∆ñ÷óBÉcñ6V“fñ«G&ÚFRFV◊Ú˜";¶«Fñ÷2#FÇ≤&∆ˆ6Ú$W7F¢6V÷Ê"É#FÇ”vB¬FWFÚFR#í‚Ê˜FFVóÜFÊÚ#¢ÊÚfˆ«V÷RGV¬Ü7&ˆ‡¢ñÊF6FVÇ¬V÷VFóF˜&ñ˜"fW¢(	BóFV“"&óÜÚí¬:íÊ˜&÷¬Üˆ÷P¢÷˜7G&"<;2BF2R6\:|;VW2FRVFóF˜&ñ:2fW¶W2¬¨:VRÚ&˜VÊB◊&ˆ&ñ‡¢6ˆ◊∆WFÚ∆Wf„#VÇ(	B6R&W6ˆ«fR6˜¶ñÊÜÚVÊFÚÚóFV“"V÷VÁF"¢g&W\:¶Ê6ñ‡†¢¢Æ)™˚àÚ7&ˆ‚W6FÚÉ2˜6WBÛ##bí(	B6V“6∆FÚÊíFÁFá&˜ñ2‚¢¢'Fó ¶FWÜV7\:|:6Ú3#É"˜6WB„FÇíFˆF22&ˆFF2FÚ7&ˆ‚76&“f∆Ü ¶6ˆ“%ñ˜W"7&VFóB&∆Ê6Ró2FˆÚ∆˜rFÚ66W72FÜRÁFá&˜ñ2í&(	BÏ:6Ú:ê¶'VrFR<;6FñvÚÜ6ˆÊfó&÷FÛ¢'V‚3í¬÷W6÷Ú6ˆ÷÷óBFRGV2VR¨:¶f∆Üf“FWˆó2¬FñÊÜ&ˆFFÚ6ˆ“7V6W76Ú˜V62Ü˜&2ÁFW2í‚W7\:&ñÚ6V–¶˜,:v÷VÁFÚ&&V6'&Vv"7,:ñFóF˜2v˜&‚:|:6ÚFˆ÷F¢66ÜVGV∆V6ˆ÷VÁFF¶V“vVÊW&FR÷'Fñ6∆RÁñ÷∆Üv˜&∂f∆˜uˆFó7F6Ü6ˆÁFñÁVFó7ˆÏ:◊fV¬&¶Fó7&Ú÷ÁV¬í(	BÊVÊáV÷÷L:ó&ñÊ˜f:íV&∆ñ6FWFˆ÷Fñ6÷VÁFRL:ê¶ó76Ú6W"&W6ˆ«fñFÚ‡†¢¢§vV÷ñÊí&ÊFˆÊFÚ(	B6˜F&∆˜VVF÷W6÷Ú6ˆ“fGW&÷VÁFÚ‚¢¢ÁFá&˜ñ0ß6V“7,:ñFóFÚ¬vV÷ñÊífˆí&ñ÷Vó&FVÁFFófFRFñW"w,:Fó2‚Üó7L;7&ñ6¶6ˆ◊∆WFÚFRFVÁFFóf2¬6FV÷6˜'&ñvñÊFÚÚW'&ÚÁFW&ñ˜"÷26V◊&P¶W6&'&ÊFÚV“6˜F††£‚vV÷ñÊí÷f∆6Ç÷∆FW7FÜ∆ñ2í(i"C#í$U4ıU$4UÙUÑÑU5DTF‡£"‚vV÷ñÊí”"„R÷f∆6ÜÜÊˆ÷RfóÜÚí(i"CFÇ&ÊÚ∆ˆÊvW"fñ∆&∆RFÚÊWp¢W6W'2"¬í&V6ˆ÷VÊF˜RvV÷ñÊí”2„b÷f∆6Üí‡£2‚vV÷ñÊí”2„b÷f∆6Ü(i"C#ñFRÊ˜fÚ¬÷W6÷Ú6ˆ“6˜FÛVÜÊFW6FÚê¢ÊÚñÊV¬$∆ñ÷óFRFRFÜ"FÚí7GVFñÚ‡£B‚FW7FFÚ6V“Fˆˆ¬vˆˆv∆U6V&6ÜÜÜó;7FW6S¢w&˜VÊFñÊr6ˆ“6˜F¢6W&Fí(i"÷W6÷ÚC#ñ‚Üó;7FW6RFW66'FF‡£R‚fGW&÷VÁFÚ6ˆÊfñwW&FÚÊÚí7GVFñÚ6ˆ“V“6'L:6Úfó'GV¬Ñ3b¢ñÊfñÊóGïíí6ˆ“"Cb√ìRFR6∆FÚ(i"C#ñ¢¶FRÊ˜fÚ¢¢¬6WáFf∆Ü¢6VwVñF‚6W6&V√¢&ˆ6W76F˜&FÚvˆˆv∆R&V¶VóF◊VóF˜26'L;VW0¢fó'GVó2˜,:í◊v˜2FR&Ê6˜2FñvóFó2'&6ñ∆Vó&˜2&fW&ñfñ6:|:6Ú¿¢ñÊFWVÊFVÁFRFRFW"6∆FÚ(	BÏ:6Ú:í6ˆ'&R6ˆ'&"¬:í,:í÷WF˜&ó¶:|:6¢FRfW&ñfñ6:|:6ÚVRf∆ÜÊW76RFóÚFR6'L:6Ú‡†¢¢§÷ñw&FÚ&Úw&˜(	BgVÊ6ñˆÊÊFÚ¬6V“6'L:6Ú‚¢¢GFV◊DG&gBÇñV–¶'Fñ6∆W2◊6W'fW"ÁG6RfW&ˆÊñ66ÜFV“fW&ˆÊñ6◊6W'fW"ÁG66Ü÷–¶w&˜◊6F∂Ñí6ˆ◊L:◊fV¬6ˆ“f˜&÷FÚ˜V‰í(	B÷W76vW66ˆ“&ˆ∆V¶6ˆÁFVÁF¬6V“&V÷V÷VÁFÚFR&ˆ∆R6ˆ÷ÚÚvV÷ñÊíWÜñvñí‚FñW"w,:Fó0¶FÚw&˜¢¶Ï:6ÚVFR6'L:6Ú¢¢(	B6ˆÊfó&÷FÚÁFW2FR÷ñw&"áW7Vó6fñ•vV%6V&6Ç¬¨:VRÏ:6ÚL:&FW7F"&VFRFVíFÚ6ÊF&˜Çí‡†¢“¢•vó&R¢£¢÷ˆFV∆Úw&˜ˆ6ˆ◊˜VÊFÜÏ:6ÚV“÷ˆFV∆Ú6ˆ◊V“í(	BFV“'W66Ê¢vV"ÊFófV÷'WFñFáfñFfñ«íí¬;¶Êñ6ÚWVóf∆VÁFR&V¬¢vV%˜6V&6ÜFÁFá&˜ñ2ˆvˆˆv∆U6V&6ÜFÚvV÷ñÊíVR6ˆ'&WfófR6V–¢6'L:6Ú‚6˜Fw,:Fó3¢3%“Ú#S%B(	B&V“6ñ÷FÚÊ˜76Úfˆ«V÷P¢á„R6Ü÷F2ˆFñí‡¢“¢§6ÜBFfW&ˆÊñ6¢£¢÷ˆFV∆ÚvV‚˜vV„2„b”#v&ÜÚ÷ó2f˜'FRFÚw&˜¿¢6VwVÊFÚFˆ2í(	BÏ:6Ú&V6ó6'W66"ÊvV"¬<;2&W7ˆÊFW"‡¢“vˆˆv∆RˆvVÊñ&V÷˜fñFÚFÚ6∂vRÊß6ˆÊÜÏ:6ÚW6FÚV“«Vv"ÊVÊáV–¢÷ó2í(	B,;FÁW3¢w&˜◊6F∂'VÊF∆„cF¥"ÊÚv˜&∂W"g2„ÉCF¥"F¢vˆˆv∆RˆvVÊñ‡¢“ÂDÖ$ıî5ÙïÙ¥Uñ6ˆÁFñÁV<;2V“67&óG2˜&W&ˆ6W72÷6˜fW'2Ê÷ß6 ¢á&ˆFFÚ∆ˆ6¬í‡†§f«F¢W7\:&ñÚvW&"u$ıÙïÙ¥Uñw,:Fó2V“6ˆÁ6ˆ∆RÊw&˜Ê6ˆ“ˆ∂Wó2P¶6ˆÊfñwW&"ÊÚv˜&∂W"Üw&Êv∆W"6V7&WBWBu$ıÙïÙ¥Uñí‚FWˆó2Fó76Ú¿ßFW7F"fñv˜&∂f∆˜uˆFó7F6ÜR¬6ˆÊfó&÷FÚVRgVÊ6ñˆÊ¬&VFóf"¶66ÜVGV∆VV“vVÊW&FR÷'Fñ6∆RÁñ÷∆ÜFW66ˆ÷VÁF"2"∆ñÊÜ2¬Üˆ¶P¶6ˆ÷VÁFF2í‡†¢¢§'&ñVb6ˆ◊∆WFÚFWfˆ«\:|:6ÚFófñFñFÚV“2'2¢¢ÑR26ˆÊ6«\:÷F2¬"Ï:6¶ñÊñ6ñFì††¢“¢•"¢¢(	BV∆ñFFRˆFVGWˆ62fóÜ2‚)»R÷W66∆FÚÇ3#2í‡¢“¢•"2¢¢(	BvñÊ:|:6Ú≤'Vóf÷VÁFÚ‚)»R÷W66∆FÚÇ3#Rí‡¢“¢•""¢¢(	B&VGW¶ó"5î4ƒUÙÑıU%6FRR&2˜RB≤f‚÷˜WBÜ6FFó7&¢FÚ7&ˆ‚6ñˆÊ2RVFóF˜&ñ2V“&∆V∆Úfñ÷G&óÇFÚ7FñˆÁ2¬Üˆ¶R<;0¢6ñˆÊV÷˜"fW¢í≤W66∆ˆÊ÷VÁFÚFRÜ˜,:&ñÚVÁG&RVFóF˜&ñ2≤∆ˆp¢W7G'WGW&FÚÜvó&T7&ˆ‰∆ˆv¬F&V∆Ê˜f(	B&V6ó6&˜f:|:6ÚWáÃ:÷6óF¢ÁFW2FRV«VW"÷ñw&Fñˆ‚í≤∆W'FVÊFÚV÷&ˆFFÏ:6ÚV&∆ñ6¢ÊF‚¢§Ï84ÚñÊñ6ñF¢¢(	B&∆˜VVFV“GV2&W7˜7F2FÚW7\:&ñÛ†¢‚&WÚ;¶&∆ñ6Ú˜&ófFÚ≤∆ÊÚFÚvóDáV"¬&6∆7V∆"6ˆ“6VwW&Ï:v¢6R6˜FFR÷ñÁWF˜2FÚ7FñˆÁ2wVVÁFÚf‚÷˜WBÉR¶ˆ'2˜ ¢Fó7&Úí‚6V“W76&W7˜7F¬Ï:6ÚL:&Fñ÷VÁ6ñˆÊ"ÚóFV“6ˆ–¢6VwW&Ï:v‡¢"‚6ˆÊfó&÷:|:6ÚF¶ÊV∆É6Ç˜RFÇíR&˜f:|:6ÚWáÃ:÷6óFFF&V∆¢vó&T7&ˆ‰∆ˆvá&Vw&FÚÊVˆ„¢66ÜV÷Ê˜fÚ6V◊&R6ˆ“6ˆÊfó&÷:|:6¢óFV“óFV“í‡†¢¢•VÊL:¶Ê6ñ2ˆÁGVó2VR<;2ÚW7\:&ñÚ&W6ˆ«fR¢¢ÜÏ:6Ú<:6Ú6ˆó6VRL:ß&&fV6Ü""&ˆw&÷Fñ6÷VÁFR(	BFVÁFFÚRFˆ7V÷VÁFFÚ˜"\:¢ì††¢“ïÑ$ïÙïÙ¥Uñ(	Bf«F6F7G&"6ˆ÷Ú6V7&WBFÚvóDáV"7FñˆÁ2‡¢ÊVÊáV“vVÁFR6ˆÁ6VwVR7&ñ"W766ˆÁF6˜¶ñÊÜÚÜ6F7G&ÚWáFW&ÊÚ¿¢6V“ÊfVvF˜"˜&VFR&ó76ÚÊÚ6ÊF&˜Çí‡¢“67&óG2˜&W&ˆ6W72÷6˜fW'2Ê÷ß6áWw&F÷L:ó&ñ2ÁFñv26V“f˜FÚ&V¬ê¢ÁVÊ6&ˆF˜R(	BFV6ó<:6Ú¨:Fˆ÷F¢&ˆF"ƒÙ4¬ÜÏ:6Ú6ˆ÷Ú6V7&WBÊ˜fÚF¢7FñˆÁ2¬WfóFWá˜"6ˆÊÊV7Fñˆ‚7G&ñÊrFÚ&Ê6Úí‚&V6ó6¢DD$4UıU$∆∂ÂDÖ$ıî5ÙïÙ¥Uñ∂UÑT≈5ÙïÙ¥UñÊÚ÷&ñVÁFR‡†¢222fW&ˆÊñ6&VFRÊÚ÷VÁRÜ÷,;ß&wVW"Ö"3r¬÷W66∆FÚV“÷ñÊê†¢“˜fW&ˆÊñ6◊&VFVá:vñÊFÚ&ˆw&÷FRfñ∆ñF˜2˜&WfVÊFVF˜&W2í¨:¢WÜó7FñÊÚ<;6FñvÚFW6FRÁFW2¬÷2W&V÷&˜F¢¨;7&l:2¢£¢ÊVÊáV“«Vv ¢FÚ6óFR∆ñÊ∂f&V∆ÜÊV“÷VÁR¬ÊV“&ˆF:í¬ÊV“˜WG&:vñÊí(	@¢<;26W7<:◊fV¬FñvóFÊFÚU$¬Fó&WFÚ‡¢“Fñ6ñˆÊFÚV“ƒ∆ñÊ≤FÛ“"˜fW&ˆÊñ6◊&VFR#ÂfW&ˆÊñ6&VFS¬Ù∆ñÊ≥ÊÊÚ÷VÁP¢Ü÷,;ß&wVW"÷ˆ&ñ∆RÜ7&2ˆ6ˆ◊ˆÊVÁG2ı6óFT6á&ˆ÷RÁG7Ü¬FVÁG&ÚFP¢6óFTÜVFW&í¬∆ˆvÚFWˆó2FR$&∆ˆr"RÁFW2F6\:|:6Ú$V6˜76ó7FV÷"‡¢Ï:6Ú÷WÜWRÊÚG&˜F˜v‚FW6∑F˜ÜV6˜7ó7FV‘÷VÁVíÊV“Ê˜26&G0¢$ÚV6˜76ó7FV÷"FÜˆ÷R(	B<;2ÊÚ÷VÁR÷ˆ&ñ∆R¬˜"VFñFÚWáÃ:÷6óFÚ‡¢“#¢áGG3¢ÚˆvóFáV"Ê6ˆ“ıfW&ˆÊñ6”vóB˜fW&ˆÊñ6áV"÷˜V∆¬Ûr(	@¢÷W66∆FÚá7V6ÇíV“÷ñÊÊÚ6ˆ÷÷óB#FCv3ñ‡†¢222Üˆ÷RÜ7&2˜&˜WFW2ˆñÊFWÇÁG7Üí(	B$UdU%DîD†•˜"VFñFÚFÚW7\:&ñÚ¬Üˆ÷Rfˆ«F˜R6W"WÜF÷VÁFRfW'<:6ÚV&∆ñ6F¢Ü÷ñÊ¬6ˆ÷÷óBsFSs6Fí(	BñÊFWÇÁG7ÜRfW&ˆÊñ6ÜW&ÚÁG7Üf˜&–ß&W7FW&F˜26ˆ“vóB6ÜV6∂˜WB÷ñ‚““∆'VófÛÊ‚Ú&VFW6ñv‚6∆&Ù∆PßVRFñÊÜ6ñFÚfVóF¢¶Ï:6ÚW7L:÷ó2V“W6ÚV“ÊVÊáV÷&˜F¢¢¬÷3††¢“26∆76W2552ÊÜˆ÷R÷áñ'&ñF¬ÊÜˆ÷R◊FñÁB÷w&VVÊ¬ÊÜˆ÷R◊FñÁB÷7ñÊ¿¢ÊÜˆ÷R÷ÜW&Ú÷F&∂6ˆÁFñÁV“V“7&2˜7Gñ∆W2Ê776¢ß˜'VRÚfW&ˆÊñ6¢vó&RÜ&∆ˆrÁG7ÜíFWVÊFRFV∆2¢¢(	BÏ:6Ú&V÷˜fW"W7626∆76W2‡¢“2ñ÷vVÁ2V“V&∆ñ2ˆñ÷vW2ˆV6˜7ó7FV“Ú¢ÁvV'Ü¨:˜Fñ÷ó¶F2ífñ6&–¢;7&l:72ÜÏ:6ÚW6F2˜"ÊVÊáV÷&˜Fv˜&í(	BFó7ˆÏ:◊fVó26RÚ&VFW6ñv‡¢FÜˆ÷Rf˜"&WFˆ÷FÚÊÚgWGW&Ú‡†¢2227GVFñÚ7&ñFófÚÜ7&2˜&˜WFW2˜fñFVÚ÷ñÁG7Üê†¢“&VÊˆ÷VFÚFR%fW&ˆÊñ67GVFñÚ"‚&ÊÊW"6ˆ“f˜FÚFRgVÊFÚ≤B6&G2FP¢÷ˆF∆ñFFRÑñ÷vV“ıl:÷FVÚıf˜¢ÙfF"ì≤6ˆ◊˜6óF˜"<;2&V6RFWˆó2FP¢W66ˆ∆ÜW"÷ˆF∆ñFFRÜ÷ˆF∆óGî6Ü˜6VÊí‚6ñFV&"Ê˜fÜ7GVFñı6ñFV&&í‡¢“¢•FˆFÃ;6vñ6FR6'FVó&ˆWFVÁFñ6:|:6ÚÙ÷W&6FÚvÚˆvW&:|:6Ú&V¿¢ÑÊÊÚ&ÊÊ&ÚfñÜñvw6fñV∆Bífñ6˜RñÁFˆ6F‚¢††¢222fW&ˆÊñ6vó&RÜ7&2˜&˜WFW2ˆ&∆ˆrÁG7Üê†¢“&VFW6VÊÜFÚ6ˆ÷Ú˜'F¬FRÊ˜L:÷6ñ2FRfW&FFRáFñ6∂W"&ÚfófÚ"¬Fó&¢FR:÷ÊFñ6W2¬÷L:ó&ñ&ñÊ6ó¬≤&÷ó2∆ñF2"¬ÊWw6∆WGFW"¬Fw2¿¢6\:|;VW2˜"VFóF˜&ñ¬&VF:|:6Úv∆ˆ&¬¬fóÜfñÊ¬&ÚáV"í‚vV˜ˆÃ:◊Fñ6¢v˜&$6ÜñÊ¬UTR'&6ñ¬#≤6∆ñ÷v˜&ñÊ6«Ví$VÊW&vñ∆ñ◊ ¢Wá∆ñ6óF÷VÁFR‚:vñÊRW7L:Fñ6¬6V“Ã;6vñ6FRv÷VÁFÚ‡†¢22276ó7FVÁFRfW&ˆÊñ6ÊÚ7GVFñÚ7&ñFófÚÜ'&Ê6ÇfW&ˆÊñ6÷76ó7FVÁFR◊7GVFñˆê†¢“7&2˜fW&ˆÊñ6˜6∂ñ∆«2˜7GVFñÚ÷7&ñFófÚÁG6(	B6ˆÁG&FÚF˜2r76˜0¢á7FW2¬7ó7FV“&ˆ◊Bíf˜&ÊV6ñFÚV∆ÚW7\:&ñÚ‡¢“7&2˜fW&ˆÊñ6˜6∂ñ∆«2ˆñÊFWÇÁG6(	B&Vvó7G'íÜl:6ñ¬Fñ6ñˆÊ"Ê˜f26∂ñ∆«2í‡¢“7&2ˆ∆ñ"˜fW&ˆÊñ6◊6W'fW"ÁG6(	B6ÜBfñ7&VFU6W'fW$fÊÜÏ:6¢ˆíÚ‚‚Ê(	BW76R&ˆ¶WFÚÏ:6ÚW6W76RG,:6Úí¬6Ü÷ÁFá&˜ñ0¢Ü÷ˆFV∆Ú6∆VFR÷Üñ∑R”B”R”##Sí¬∆ñ÷óFW2FRF÷ÊÜÚFP¢÷VÁ6vV“ˆÜó7L;7&ñ6Ú6ˆ÷Ú&˜F\:|:6Ú,:6ñ6FR7W7FÚ‡¢“7&2ˆ6ˆ◊ˆÊVÁG2ıfW&ˆÊñ6G&vW"ÁG7Ü(	BG&vW"FW6∆ó¶ÁFS¢l:÷FVÚ˜ ¢76ÚÜ6ˆ“f∆∆&6≤6RÚ'VófÚñÊFÏ:6ÚWÜó7Fó"í¬&ˆw&W76Ú¿¢6ÜB¬6Üó2FRW&wVÁF27VvW&ñF2‡¢“6ñFV&"FÚ7GVFñÚÇ$76ó7FVÁFRfW&ˆÊñ6"íR6Üó2'W&wVÁF": ¢fW&ˆÊñ6"V“6F76ÚFÚ∆ñ&ˆˆ≤'&V“ÚG&vW"‡¢“¢•T‰DTÂDR5,8’Dî4Û¢ÂDÖ$ıî5ÙïÙ¥UñÏ:6ÚW7L:6ˆÊfñwW&F‚¢¢6V–¢V∆V“ÊVÁbÊ∆ˆ6∆¬ÚG&vW"'&RÊ˜&÷∆÷VÁFR÷2Ú6ÜB&WF˜&ÊW'&¢G&FFÚÇ$76ó7FVÁFRñÊFó7ˆÏ:◊fV¬ÊÚ÷ˆ÷VÁFÚ"í‚Fñ6ñˆÊ"6ÜfP¢Fó&WFÚÊÚÊVÁbÊ∆ˆ6∆ÜÁVÊ66ˆ∆"6ÜfRÊÚ6ÜB˜FW&÷ñÊ¿¢6ˆ◊'Fñ∆ÜFÚí‡¢“Ï:6Ú7&ñFñÊF¢F&V∆fW&ˆÊñ6˜&ˆw&W76áW'6ó7L:¶Ê6ñF¢&ˆw&W76ÚFÚW7\:&ñÚí(	B÷VÊ6ñˆÊFÊÚ'VófÚFR6ˆÁG&FÚ6ˆ÷Ú∆v¢VR˜WG&2'FW2FÚ6ó7FV÷l:6Ú∆W"¬÷2Ï:6Úf¶ñ'FRFÚVFñF¢˜&ñvñÊ¬á<;2G&vW"≤&Vvó7G'í≤6ÜBí‡†¢222fW&ˆÊñ6Ê«óFñ72Ü7&2˜&˜WFW2˜fW&ˆÊñ6÷Ê«óFñ72ÁG7Üê†¢“&W6∂ñ‚&∆WF6∆&Rfófá&˜6ˆ6ñÊÚˆF˜W&FÚ¬ñÁ7ó&FÊ¢GV˜FˆÊRFÚFñµFˆ≤ífñf&ú:fVó2“◊GB“¶W66˜F2Ü¨:WÜó7Fñ“¿¢<;2G&ˆ6÷˜2˜2f∆˜&W2í(	B÷W6÷L:ñ6Êñ6FÜˆ÷RÁFñv‚6∆7V∆F˜&¢FRVÊv¶÷VÁFÚRñÁF7FÜ6∆ñVÁB◊6ñFR¬6V“Ã;6vñ6Fˆ6Fí‡¢“Fñ6∂W"FRFVÊL:¶Ê6ñ2ÊÚF˜Ú≤&∆ˆ6ÚW67W&ÚfñÊ¬WÜÊFÚ&Ú7GVFñ¢7&ñFófÚ¬ÊÚ÷W6÷ÚG,:6ÚFÚvó&R‡†¢222∆ˆvñ‚fó<:◊fV¬V“FˆFÚÚáV"≤ñÊV¬F÷ñ‚Ü'&Ê6Ç6∆VFR˜fW&ˆÊñ6áV"◊&VFW6ñv‚÷6ˆÁB÷≥ì&wCFê†¢“¢¶WFÖvñFvWF¢¢ÜÊ˜fÚ6ˆ◊ˆÊVÁFRV“7&2ˆ6ˆ◊ˆÊVÁG2ı6óFT6á&ˆ÷RÁG7Üí(	@¢&˜L:6Ú$VÁG&""Ü<;6FñvÚ˜"R÷÷ñ¬¬÷W6÷Úf«WÜÚ77v˜&F∆W72VR¨:¢WÜó7Fñ<;2FVÁG&ÚFÚ7W',:÷7V∆Ú‘6W'FÚı$Çı7GVFñÚív˜&&V6RÊ¢6&\:v∆ÜÚFR¢ßFˆF2¢¢2:vñÊ2VRW6“≈6óFTÜVFW"ÛÊÑ&∆ˆr¿¢6ˆ÷ÊF˜2¬&ˆ◊B6∑2¬6V7W&óGí¬Ï:WFñ6¬&VFR¬7GVFñÚ¬Ê«óFñ72íP¢F÷,:ñ“ÊÚÜVFW",;7&ñÚFÜˆ÷RÜñÊFWÇÁG7Üí‚Ï:6ÚGW∆ñ6Ã;6vñ6(	@¢<;26Ü÷26W'fW"gVÊ7FñˆÁ2VR¨:WÜó7Fñ“V“WFÇ◊6W'fW"ÁG6 ¢Ü'VófÚÏ:6Úfˆí«FW&FÚí‚7W',:÷7V∆Ú‘6W'FÚı$Ç6ˆÁFñÁV“6ˆ“6WP¢,;7&ñÚÜVFW"ˆ÷ˆF¬FR∆ˆvñ‚áfó7V¬ÁFñvÚ¬f˜&FRW66˜Úv˜&í‡¢“¢•ñÊV¬F÷ñ‚6ñ◊∆W2¢¢ÜˆF÷ñÊ¬&˜FÏ:6Ú∆ó7FFÊÚ÷VÁR(	B<;2˜ ¢U$¬Fó&WFì¢∆ó7FW7\:&ñ˜26F7G&F˜2ÜR÷÷ñ¬¬6∆FÚ¬7,:ñFóF˜2¿¢V¬íRFW;76óF˜2&V6VÁFW2‚&˜FVvñFÚFRfW&FFRÊÚ6W'fñF˜"(	@¢7&2ˆ∆ñ"ˆF÷ñ‚◊6W'fW"ÁG6ÜÊ˜fÚ'VófÚ¬<;2∆VóGW&FÚ&Ê6Ú¬Ï:6¢Fˆ6V“WFÇ◊6W'fW"ÁG6ˆv∆∆WB◊6W'fW"ÁG6í‚VV“fó&F÷ñ‚:ê¢FVfñÊñFÚV∆VÁbf"D‘îÂÙT‘î≈6Ü∆ó7FFRR÷÷ñ«26W&F˜2˜ ¢l:◊&wV∆í(	BÊÚ&ñ÷Vó&Ú6W76ÚÚñÊV¬6ˆ“V÷6W7<:6Ú∆ˆvFÊW76P¢R÷÷ñ¬¬Ú6ó7FV÷&ˆ÷˜fR&ˆ∆VFÚW7\:&ñÚ&F÷ñÊ ¢WFˆ÷Fñ6÷VÁFR‚6V“D‘îÂÙT‘î≈66ˆÊfñwW&F¬ÊñÊw\:ñ“6W76‡¢“¢§◊VFÏ:vÊÚ66ÜV÷FÚ&Ê6Ú¢¢Ü7&2ˆ∆ñ"˜66ÜV÷ÁG6ì¢6◊ÚÊ˜f¢&ˆ∆VÜW6W%&ˆ∆VVÁV”¢W6W&ˆF÷ñÊ¬FVfV«BW6W&íÊF&V∆¢W6W&‚÷ñw&Fñˆ‚¨:vW&FV“G&óß¶∆RÛ˜7V&Uˆ∆Gï˜W'7V∆Á7∆ ¢Ü5$TDREïV≤≈DU"D$ƒR‚‚‚DB4Ù≈T‘Ê(	BFóFóf¬Ï:6¢FW7G'WFófí¬¢¶÷2ñÊFÏ:6Ú∆ñ6FÊÚÊVˆ‚FR&ˆG\:|:6Ú¢¢(	BW7FP¢÷&ñVÁFR&V÷˜FÚÏ:6ÚFV“DD$4UıU$∆&V¬&&ˆF"ó76Ú6ˆ–¢6VwW&Ï:v‚¢•76Ú÷ÁV¬VÊFVÁFR¬&ˆF"ÊÚu4¬6ˆ“ÊVÁbÊ∆ˆ6∆ ¢6ˆÊfñwW&FÛ¢¢†¢&6Ä¢'VÁÇG&óß¶∆R÷∂óB÷ñw&FP¢ ¢FWˆó2¬Fñ6ñˆÊ"D‘îÂÙT‘î≈3◊6WTV÷ñ¬Ê6ˆ÷ÊÚÊVÁbÊ∆ˆ6∆ÜFWbê¢R6ˆ÷Ú6V7&WBFÚv˜&∂W"FR&ˆG\:|:6Û†¢&6Ä¢w&Êv∆W"6V7&WBWBD‘îÂÙT‘î≈2“÷Ê÷RfW&ˆÊñ6áV"÷ ¢ ¢ÜÊˆ÷RFÚv˜&∂W"FR&ˆG\:|:6Ú&V¬(	BfW"Ê˜F6ñ÷¬Ï:6Ú:ê¢fW&ˆÊñ6”vóB◊fW&ˆÊñ6áV"÷í‡¢“7&2˜&˜WFUG&VRÊvV‚ÁG6fˆíVFóFFÚ÷ÁV∆÷VÁFR&&Vvó7G&"&˜F¢ˆF÷ñÊÜÊ˜&÷∆÷VÁFRW76R'VófÚ:íRWFˆvW&FÚV∆Ú«Vvñ‚F¢FÂ7F6≤&˜WFW"Ú&ˆF"fóFRFWfˆfóFR'Vñ∆F(	BW7FR÷&ñVÁFP¢&V÷˜FÚÏ:6Ú6ˆÁ6VwVóR&ˆF"'V‚ñÁ7F∆∆6ˆ◊∆WFÚ¬V“6˜FR&ófF¢FÚ&Vvó7G&Ú&∆˜VV˜RñÁ7F∆:|:6Ú¬VÁL:6ÚÏ:6ÚFWR&&ˆF"ÚvW&F˜ ¢FRfW&FFRí‚&ˆF"'V‚'V‚FWf˜R'V‚'V‚'Vñ∆FV÷fW¢ÊÚu4¿¢&VvVÊW&W76R'VófÚFÚ¶W&ÚWFˆ÷Fñ6÷VÁFRR7V'7FóGVíW76VFú:|:6¢÷ÁV¬V∆fW'<:6Ú6Ï;FÊñ6(	BÏ:6ÚFWfRF"6ˆÊf∆óFÚ¬<;26ˆÊfó&÷VP¢fñ6˜R6W'FÚ‡†¢22VÊL:¶Ê6ñ26ˆÊÜV6ñF0†¢¢•fW&ˆÊñ6vó&RÜ÷ó2&V6VÁFRˆFófÚì¢¢¢'2R2FÚ'&ñVbFRWfˆ«\:|:6Ú¨:¶÷W66∆F˜2¬62vVÏ:ó&ñ62¨:˜V∆F2‚<;2&W7F“ïÑ$ïÙïÙ¥Uñ¿¶&W&ˆ6W72÷6˜fW'2Ê÷ß6Ü∆ˆ6¬íRÚ""Üg&W\:¶Ê6ñˆf‚÷˜WBˆ∆ˆr(	@¶&∆˜VVFÚV“"&W7˜7F2FÚW7\:&ñÚí(	BfW"6\:|:6Ú%fW&ˆÊñ6vó&R"6ñ÷ß&˜2FWF∆ÜW2‚óFVÁ2&óÜÚ<:6ÚFÚ&VFW6ñv‚fó7V¬÷ó2ÁFñvÚ¬Ï:6¶6ˆÊfó&÷F˜2ÊW7FGV∆ó¶:|:6Ú‡†£‚Fñ6ñˆÊ"ÂDÖ$ıî5ÙïÙ¥UñV“ÊVÁbÊ∆ˆ6∆&Ú6ÜBFfW&ˆÊñ6¢gVÊ6ñˆÊ"FRfW&FFR‡£"‚$f˜&÷∆ó¶""G&V6Ü˜2VRñÊFfñ6&“ÊÚW7Fñ∆Ú7ñ&W"ÁFñvÚV–¢7GVFñÚ7&ñFófÚıvó&R¬RÚ÷VÁR$V6˜76ó7FV÷"FÚ6&\:v∆Ü¢ÜV6˜7ó7FV‘÷VÁVV“6óFT6á&ˆ÷RÁG7Ü¬6ˆ◊'Fñ∆ÜFÚ(	BfWFFˆF20¢&˜F2¬Ï:6Ú÷WÜñFÚñÊFí‡£2‚l:÷FV˜2˜"76ÚFÚ7GVFñÚ7&ñFófÚÜ7GVFñÚ÷7&ñFófÚÛ“¢Ê◊FWF2‚ê¢ñÊFÏ:6ÚWÜó7FV“ˆf˜&“w&fF˜2(	BÚG&vW"¨:G&Fó76Ú6ˆ“V–¢∆6VÜˆ∆FW"ÜˆÊW7FÚÇ%l:÷FVÚFW7FR76ÚV“'&WfR"í‡£B‚Á‰÷W&vRVÊFVÁFWÁ‚(	B$U4Ù≈dîDÛ¢GVFÚ¨:fˆí÷W66∆FÚV“÷ñÊ ¢Ü6ˆ÷÷óBìñ#f6í¬V&∆ñ6FÚÊÚvóDáV"R6ˆ“FW∆˜ífVóFÚÊ¢6∆˜VFf∆&Rv˜&∂W"‚fW&ˆÊñ6áV"Ê6ˆ÷¨:6W'fRW76fW'<:6Ú‡£R‚&˜F2ñÊFÊÚfó7V¬ÁFñvÚ¬wV&FÊFÚ&VfW,:¶Ê6ñFRFW6ñv‚F¢W7\:&ñÛ¢7W',:÷7V∆Ú‘6W'FÚ¬6V7W&óGí¬Ï:WFñ6‡£b‚ÁÂ:vñÊ"ˆFW66ˆ'&ó"'Á‚(	B$U4Ù≈dîDÛ¢&VfW,:¶Ê6ñÖD‘¿¢ÜFW66ˆ'&ó"÷WÜV◊∆"◊c"÷6∆&ÚÊáF÷∆ífˆí∆ñ6FFVÁG&ÚFÚfW&ˆÊñ6¢Ê«óFñ72Ü7&2˜&˜WFW2˜fW&ˆÊñ6÷Ê«óFñ72ÁG7Üí¬Ï:6Ú6ˆ÷Ú&˜F¢6W&F‚:vñÊv˜&'&R6ˆ“6\:|:6Ú$ÚVRW7L:&ˆ÷&ÊF¢v˜&"áFñ6∂W"¬6Üó2FRfñ«G&Ú˜"6FVv˜&ñ¬˜&FVÊ:|:6Ú¬w&ñBFP¢6&G2fó&ó26ˆ“t’bˆ7&W66ñ÷VÁFÚ÷ˆ6∂F˜2¬6F6&B∆ñÊ∂ÊFÚ&¢7GVFñÚ7&ñFófÚíR6∆7V∆F˜&FRVÊv¶÷VÁFÚ˜&ñvñÊ¬6ˆÁFñÁV¢∆ˆvÚ&óÜÚ¬ñÁF7F‚ñÊFÏ:6Ú6ˆ÷÷óFFÚ˜V&∆ñ6FÚ(	BfVóFÚÊ¢'&Ê6Ç6∆VFR˜fW&ˆÊñ6áV"◊&VFW6ñv‚÷6ˆÁB÷≥ì&wCF‡†¢226ˆ÷Ú6ˆÁFñÁV †¶&6Ä¶6B‚˜fW&ˆÊñ6áV"÷ ¶vóB7FGW226ˆÊfó&÷'&Ê6ÇGV¬R6Rå:◊VFÏ:v2Ï:6Ú6ˆ÷÷óFF0¶vóB'&Ê6Ç2'&Ê6ÇFRG&&∆ÜÚGV√¢6∆VFR˜fW&ˆÊñ6áV"◊&VFW6ñv‚÷6ˆÁB÷≥ì&wC@¶'V‚'V‚FWb26ˆ&RÚ6W'fñF˜"∆ˆ6¬V“áGG¢Úˆ∆ˆ6∆Ü˜7C£ÉÉ ¶ †•&'&ó"V÷6W7<:6ÚÊ˜fFRvVÁFRFRîVíÑ6∆VFR6ˆFR˜R˜WG&Úêß6V“FWVÊFW"FW7F6ˆÁfW'6¢'&˜vW%6ÜV∆¬(i"w6∆(i"˜26ˆ÷ÊF˜0¶6ñ÷(i"6∆VFVÜ˜RÚ6ˆ÷ÊFÚFÚvVÁFRW66ˆ∆ÜñFÚíFVÁG&ÚF7FFß&ˆ¶WFÚ‚ÚvVÁFR6ˆÁ6VwVR6R6óGV"∆VÊFÚW7FR'VófÚRÚvóB∆ˆv‡†¢¢•&Vw&2FR6VwW&Ï:v6ˆ÷&ñÊF2(	Bf∆V“&V«VW"vVÁFRVP¶6ˆÁFñÁV"ó76Û¢¢††¢“ñ◊∆V÷VÁF"ˆ6ˆ÷÷óF"∆ˆ6∆÷VÁFR6V“&V6ó6"W&wVÁF"6F76Ú‡¢“¢§ÁVÊ6¢¢F"vóBW6Ü¬V&∆ñ6"˜Rf¶W"FW∆˜í6V“6ˆÊfó&÷:|:6¢WáÃ:÷6óFFÚW7\:&ñÚ6FfW¢(	B:íÚ÷W6÷Ú&W˜6óL;7&ñÚVR&ˆF¢6'FVó&R÷W&6FÚvÚ&Vó2V“&ˆG\:|:6ÚÜfW&ˆÊñ6áV"Ê6ˆ÷í‡¢“ÁVÊ6÷WÜW"V“7&2ˆ∆ñ"˜v∆∆WB◊6W'fW"ÁG6¬7&2ˆ∆ñ"ˆWFÇ◊6W'fW"ÁG6¿¢7&2ˆ∆ñ"ˆ÷W&6F˜vÚÁG6¬7&2ˆ∆ñ"ˆÜñvw6fñV∆BÁG6¬ÊV“ÊÚ66ÜV÷F¢&Ê6Ú(	BW762'FW2¨:W7L:6Úf∆ñFF2V“&ˆG\:|:6Ú6ˆ“FñÊÜVó&¢&V¬‚◊VFÏ:v2ÊW76:&VVFV“6ˆÊfó&÷:|:6ÚWáG&¬6V◊&R‡¢“Ï:6Ú÷WÜW"ÊÚ&W˜6óL;7&ñÚó&‹:6Ú‚ˆÊVvˆ6ñÚ÷F÷6ÜñÊ÷ÊV“ÊÚ ¢&ñÊ6ó¬‚˜fW&ˆÊñ6áV"÷f˜&FÚVRW7L:Fˆ7V÷VÁFFÚVí6V–¢W&wVÁF"ÁFW2‡¢“ÁVÊ66ˆ∆"6ÜfW2˜6Vw&VF˜2Ñí∂Wó2¬Fˆ∂VÁ2íFó&WFÚÊÚ6ÜB(	B6V◊&P¢VFó"&ÚW7\:&ñÚ6ˆ∆ˆ6"Fó&WFÚÊÚÊVÁbÊ∆ˆ6∆‡†¢22f6R"(	B&V˜&vÊó¶:|:6ÚRÜñW&'VñFÜˆ÷RÉ##b”í”ê†¢“G&&∆ÜÚ∆ˆ6¬Ê'&Ê6ÇfVBˆÜˆ÷R÷ÜñW&&6áí◊Ü6S&¬7&ñF'Fó"FP¢˜&ñvñ‚ˆ÷ñÊÊÚ6ˆ÷÷óBfcsC&≤S3#ñ6ˆÊfó&÷FÚÊÚÜó7L;7&ñ6Ú‡¢“Üˆ÷R6ˆÁ6ˆ∆ñFFV“6WFR&∆ˆ6˜3¢ÜW&Ú¬&˜fˆ&¶WFóf¬W66ˆ∆Ü˜"ˆ&¶WFófÚ¿¢f˜&÷:|;VW2¬fW'&÷VÁF2¬‹:óFˆFÚRvó&RˆVÊ6W'&÷VÁFÚ‡¢“ÜW&Ú&W6W'ffW&ˆÊñ6&W6VÊ6VRñ÷vV“vV%&˜fF¬6V“l:÷FVÚ¬vV$t¿¢˜R‹:÷FñÊ˜f‚5D&ñÊ6ó¬ˆÁF&V∆¶W&ÚRÚ6V7VÊL:&ñÚ&¢f˜&÷:|;VW2‡¢“ñÁFVÏ:|;VW2¬fW'&÷VÁF2¬&ˆ¶WF˜2RFW7FñÊ˜26ˆÁFñÁV“FW&ófF˜2FP¢7&2ˆ∆ñ"ˆV6˜7ó7FV“ÁG6‚FW7FVW2FRf˜&÷:|:6ÚW6“7&2ˆ∆ñ"ˆ6˜W'6W2ÁG6‡¢“Üˆ÷R76˜R6'&Vv"2G,:ß2÷L:ó&ñ2÷ó2&V6VÁFW2V∆Úf«WÜÚ&V¬¨:¢W6FÚÊÚvó&R¬6ˆ“f∆∆&6≤ÜˆÊW7FÚVÊFÚÚ&Ê6ÚÏ:6ÚW7L:Fó7ˆÏ:◊fV¬‡¢“&ˆ¶WF˜2W7V6ñó2fñ6&“,;7Üñ÷˜2Ú&ˆF:íRWÜñ&V“Ú7FGW26Ï;FÊñ6Ú‡¢“&V÷˜fñF˜2FÜˆ÷R˜2&∆ˆ6˜2&WWFñF˜2FRgWGW&Ú¬÷'VVR¬fóG&ñÊRó6ˆ∆FF¢7GVFñÚ¬&ˆGWF˜2¬6ˆ∆∆'2¬&˜f&ˆ÷ˆ6ñˆÊ¬¬dRVfVóF˜2FV6˜&Fóf˜2‡¢“Á“'V‚GóV6ÜV6∂¬RÛRFW7FW2RÁ“'V‚'Vñ∆F76&“‚55"∆ˆ6¬&WF˜&Ê˜P¢#¬L:◊GV∆ÚÙÉÙ5D26˜'&WF˜2RWÜF÷VÁFR6WFR6\:|;VW2‡¢“&˜FFÜˆ÷R6óRFRC„S#&B„Csr'óFW2FRfˆÁFR‚ÊVÊáV÷FWVÊL:¶Ê6ñ¿¢&˜FñÁFW&Ê¬WFVÁFñ6:|:6Ú¬&6∂VÊB¬&Ê6Ú˜Rv÷VÁFÚfˆí«FW&FÚ‡¢“&W7ˆÁ6ófÚW7G'WGW&¬6ˆÊ6«\:÷FÚ&'&V∑ˆñÁG2÷ˆ&ñ∆RˆFW6∑F˜¬˜&FV–¢6V‹:&ÁFñ6¬fˆ6Úfó<:◊fV¬R«f˜2‹:÷Êñ÷˜2‚6GW&fó7V¬WFˆ÷Fó¶Ffñ6˜P¢&∆˜VVF˜'VRÚ&˜fVF˜"FÚ6á&ˆ÷óV“&WF˜&Ê˜RS"ˆ'VófÚG'VÊ6FÚ‡¢“V&∆ñ6:|:6Ú&˜fFV∆ÚW7\:&ñÚV“##b”í”≤VÁfñÚ&÷ñÊP¢fW&ñfñ6:|:6ÚÊÚFˆ‹:÷ÊñÚFR&ˆG\:|:6ÚWÜV7WFF˜2Ê6W\:¶Ê6ñ‡†¢22&W7FW&:|:6Úfó7V¬FÜˆ÷RÉ##b”í”ê†¢“&W7FW&F6ˆ◊˜6ú:|:6ÚFV6ÊˆÃ;6vñ6ÁFW&ñ˜":6ñ◊∆ñfñ6:|:6ÚFf6R"¿¢÷ÁFVÊFÚ'VóFWGW&¬2&˜F2R2fˆÁFW26Ï;FÊñ62Ff6R‡¢“&V7WW&F˜2VfVóF˜2FRÜ˜fW"¬v∆˜r¬ÖTB¬÷ñ7&ˆñÁFW&:|;VW2¬fóG&ñÊW2R¢Fóˆw&fñFV6ÊˆÃ;6vñ6FÜW&Ú‡¢“ÜW&Ú÷ÁL:ñ“ñ÷vV“vV%˜Fñ÷ó¶FFfW&ˆÊñ6RÏ:6Ú&VñÁG&ˆGW¢l:÷FVÚ¿¢vV$t¬˜R‹:÷FñW6F‡¢“Fñ6ñˆÊFÚ6ˆÁG&ˆ∆R6W7<:◊fV¬FRFV÷6∆&ÚˆW67W&ÚWÜ6«W6ófÚFÜˆ÷R¬6ˆ–¢&VfW,:¶Ê6ñW'6ó7FñF∆ˆ6∆÷VÁFR‡¢“V&∆ñ6:|:6ÚF&W7FW&:|:6Ú6ˆ∆ñ6óFF;72&˜f:|:6ÚWáÃ:÷6óFFÚW7\:&ñÚ‡†¢22&Vvó7G&Ú;¶&∆ñ6ÚFR6V∆˜2É##b”í”ê†¢“7&ñFÚÚ6L:∆ˆvÚ;¶&∆ñ6Ú˜6V∆˜6RfW&ñfñ6:|:6ÚñÊFófñGV¬V–¢˜6V∆ÚÚG6W&ñ∆¬&W&F˜2&6W76ÚFó&WFÚ˜""6ˆFR‡¢“Ú&ñ÷Vó&Ú&Vvó7G&Ú&V¬:íFWá&W72VÁGV∆ÜÚ¬6ˆ“<:ó&ñP¢dÇ‘UB’t”##b”R7FGW2G&Á7&VÁFR(	ƒV“FW6VÁfˆ«fñ÷VÁF˛(	“‡¢“VG&Ú÷&62WF˜&ó2f˜&“ñÊ6«\:÷F2VÊ26ˆ÷ÚFV÷ˆÁ7G&:|;VW2fñ7L:÷6ñ0¢&˜26Vv÷VÁF˜2L:ßáFñ¬RVGV66ñˆÊ√≤ÊVÊáV÷÷&6v∆ˆ&¬fˆí&W6VÁFF¢ñÊFWfñF÷VÁFR6ˆ÷Ú6∆ñVÁFR‡¢“6F:vñÊñÊf˜&÷6∆ñVÁFR¬6ˆ«\:|:6Ú¬W66˜Ú¬fW'<:6Ú¬&W7ˆÁ<:fV¬¬7FGW2P¢∆ñÊÜFÚFV◊Ú¬Ã:ñ“FRW66∆&V6W"˜2∆ñ÷óFW2FÚ&Vvó7G&ÚFR&ˆ6VL:¶Ê6ñ‡¢“Ú6V∆ÚWÜó7FVÁFRfˆí&W6W'fFÚV“5drfWF˜&ñ¬¬6ˆ“ÊóFñFW¢ñÊFWVÊFVÁFRFP¢&W6ˆ«\:|:6ÚR6V“Fñ6ñˆÊ"‹:÷FñW6F˜RFWVÊL:¶Ê6ñ2‡¢“˜6V∆˜6fˆíñÊ6«\:÷FÊÚ6óFV÷‚&6∂VÊB¬WFVÁFñ6:|:6Ú¬v÷VÁF˜2R&Ê6¢W&÷ÊV6W&“ñÁF7F˜2‡¢“Á“'V‚GóV6ÜV6∂¬bÛbFW7FW2RÁ“'V‚'Vñ∆F&˜fF˜2‡†¢22FW6Fóf:|:6ÚFf'&VGW&fW'Fñ6¬v∆ˆ&¬É##b”í”2ê†¢“&6S¢÷ñÊV“fSs#ÜV≤'&Ê6ÇFRG&&∆ÜÚfóÇˆFó6&∆R÷v∆ˆ&¬◊66‚÷&V÷‡¢“tƒÙ$≈ı44ÂÙ$T’ÙT‰$ƒTB“f«6VV“7&2ˆ6ˆ◊ˆÊVÁG2ÙÜˆ∆Ù˜&&óG2ÁG7Ü ¢ñ◊VFR÷ˆÁFvV“F∆ñÊÜfW&FRVRG&fW76fFV∆FR6ñ÷&&óÜÚ‡¢“ÚV∆V÷VÁFÚ¬7VÊñ÷:|:6ÚÜˆ∆Ú÷&V÷R˜2∂Wñg&÷W2V“7&2˜7Gñ∆W2Ê776 ¢f˜&“&W6W'fF˜3≤&VFóf:|:6ÚFó7ˆÏ:◊fV¬«FW&ÊFÚ6ˆÁ7FÁFR&G'VV‡¢“W66˜Úv∆ˆ&¬V∆Ú6ˆ◊ˆÊVÁFR¨:÷ˆÁFFÚÊÚ&ˆ˜E6ÜV∆¬‚ÖTG2¬FV÷ó2VfVóF˜2¿¢FV÷2¬ÊfVv:|:6Ú¬ñ÷vV“FfW&ˆÊñ6R&6∂VÊBW&÷ÊV6V“ñÁF7F˜2‡¢“bÛbFW7FW2¬GóV6ÜV6≤R'Vñ∆BFR&ˆG\:|:6Ú76&“‚∆ñÁBFó&V6ñˆÊFÛ†¢6ˆ÷VÁFRˆ6˜',:¶Ê6ñ2&VWÜó7FVÁFW2FR&WGFñW"É3"Ê&6R¬#Ç;72◊VFÏ:ví¿¢ÊVÊáV÷ÊÚ&∆ˆ6Ú«FW&FÚ‚vóBFñfb“÷6ÜV6∂6V“W'&˜2‡¢“fó7V¬∆ˆ6¬&∆˜VVFÛ¢fóFR6ˆ“W'&ÚWeˆñÁFW&f6UˆFG&W76W6ÊW7FP¢÷&ñVÁFRRÊfVvF˜"&V÷˜FÚ6ˆ“U%%Ù$ƒÙ4¥TEÙ%ïÙ4ƒîTÂF&∆ˆ6∆Ü˜7B‡¢“W7\:&ñÚWF˜&ó¶˜RV&∆ñ6:|:6ÚV“##b”í”2‚ÁFW2FÚVÁfñÚ¬fW&ñfñ6:|:6ÚÊ¢ÊfVvF˜"FR&ˆG\:|:6Ú6ˆÊfó&÷˜RV÷∆ñÊÜÜˆ∆Ú÷&V÷FófÊÜˆ÷R‡¢“V&∆ñ6FÚÊ÷ñÊV∆Ú6ˆ÷÷óBS6VFc‚6∆˜VFf∆&Rv˜&∂W'26ˆÊfó&÷˜P¢'Vñ∆BˆFW∆˜í6ˆ“7V6W76ÚÜ'Vñ∆BSF3#VVCB÷f&”CcvR÷#Sìb”c6C3f&Fí‡¢“fW&ñfñ6:|:6ÚV“&ˆG\:|:6Ú;72ÜñG&F:|:6Û¢Üˆ÷RÊ˜2FV÷26∆&ÚRW67W&ÚP¢ˆ6ˆ÷ÊF˜66ˆ“¶W&ÚV∆V÷VÁF˜2Üˆ∆Ú÷&V÷R˜2Fˆó2ÖTG2v∆ˆ&ó2&W6W'fF˜2‡¢“WÜV«2RóÜ&ì¢6W76ÚV∆ÚÊfVvF˜"FW7F6W7<:6Ú&∆˜VVFÚ˜"4D4Ñ∞¢ÊVÊáV÷6ˆÊWå:6ÚWFVÁFñ6FÊ˜f6ˆÊ6«\:÷F‡†¢22vó&REb(	B&VÊ÷RFRÊb≤6V∆Ú&ÚfófÚ"É##b”í”2¬6W7<:6Ú6∆˜VBê†¢“VFñFÚFÚW7\:&ñÛ¢&VÊˆ÷V"Ú∆ñÊ≤FÚvó&RÊÊfVv:|:6Ú&%vó&REb"P¢FVóÜ"fó7V∆÷VÁFR6∆&ÚVR:í6ˆÁF\;¶FÚFóÚ6Ê¬FRÊ˜L:÷6ñÜÚfófÚ¿¢GV∆ó¶FÚ6ˆ“g&W\:¶Ê6ñí‡¢“7&2ˆ∆ñ"ˆV6˜7ó7FV“ÁG6¢&ˆGWFÚvó&V&VÊˆ÷VFÚFR%fW&ˆÊñ6vó&R"&¢%vó&REb#≤FW67&ú:|:6ÚG&ˆ6F&$Ê˜L:÷6ñ2fW&ñfñ6F2¬V&∆ñ6F2Ü˜&¢Ü˜&"‚6ˆ÷Ú:ífˆÁFR;¶Êñ6¬Ú&VÊ÷R¨:&˜v˜R&ÊbFW6∑F˜¬Ê`¢÷ˆ&ñ∆R¬&ˆF:íR˜2Fˆó2÷VÁW2$fW'&÷VÁF2"ÜG&˜F˜v‚FW6∑F˜ˆ÷ˆ&ñ∆Rê¢6V“VFóF"6FV“‡¢“7&2ˆ6ˆ◊ˆÊVÁG2ı6óFT6á&ˆ÷RÁG7Ü¢Ê˜fÚvó&T∆ófT&FvVáˆÁFÚV«6ÁFR∞¢$ÚfófÚ"¬&V&˜fVóFÊFÚÊñ÷FR◊V«6R÷F˜FˆÊVˆ‚÷w&VVÊ¨:W6F˜2Ê¢÷7FÜVBFÚˆ&∆ˆvíÊ˜2VG&ÚˆÁF˜2ˆÊFRÚ∆ñÊ≤&V6R‚8í6V∆ÚFP¢6FVv˜&ñfóÜÚ¬Ï:6Ú&VÃ;6vñÚÚfófÚ(	BÏ:6Ú'W66'FñvÚÊÚÜVFW"˜&ˆF:í‡¢“¢§6˜'&\:|:6Úñ◊˜'FÁFR&VV“∆W"26\:|;VW2FRvó&R÷ó26ñ÷¢£¢¢6L:¶Ê6ñFRV&∆ñ6:|:6Ú¢¶¨:W7L:V“5î4ƒUÙÑıU%2“¢¢Ü7&2ˆ∆ñ"ˆ&VG2ÁG6ê¢6ˆ“Fˆó2Fó7&˜2˜"Ü˜&ÊÚvóDáV"7FñˆÁ2ÜÊvóFáV"˜v˜&∂f∆˜w2¶vVÊW&FR÷'Fñ6∆RÁñ÷∆¬÷ñÁWF˜2rRCrí¬¨:÷ñw&F&w&˜¢Ü˜VÊíˆwB÷˜72”#&¬f∆∆&6≤#&í‚¢§Ï:6ÚW7L:W6F¢¢RÚ%"" ¢Üg&W\:¶Ê6ñˆf‚÷˜WBíFW67&óFÚ6ˆ÷Ú&Ï:6ÚñÊñ6ñFÚ"Ê26\:|;VW2ÁFW&ñ˜&W0¢¢¶¨:W7L:&6ñ∆÷VÁFRfVóFÚ¢¢(	Bg&W\:¶Ê6ñ7V&óRFRVÇ&ÇV“∆wV–¢÷ˆ÷VÁFÚÏ:6ÚFˆ7V÷VÁFFÚVíÜ6ˆ÷÷óG2FR6WFˆ‹:Fñ6V“”2˜6W@¢6ˆÊfó&÷“V&∆ñ6:|:6Ú&V¬6ˆÁFV6VÊFÚí‚ñÊFf«F“FÚ"#¢∆ˆp¢W7G'WGW&FÚÜvó&T7&ˆ‰∆ˆvíR∆W'FFR&ˆFF6ñ∆VÊ6ñ˜66V“V&∆ñ6"‡¢26\:|;VW2$ˆÊFRW7F÷˜2"Ú%VÊL:¶Ê6ñ26ˆÊÜV6ñF2"÷ó26ñ÷ñÊFFó¶V–¢Ú6ˆÁG,:&ñÚ(	B<:6ÚFWáFÚFW6GV∆ó¶FÚ¬Ï:6Ú&Vf∆WFV“Ú<;6FñvÚGV¬‡¢“ïÑ$ïÙïÙ¥UñR67&óG2˜&W&ˆ6W72÷6˜fW'2Ê÷ß66ˆÁFñÁV“VÊFVÁFW0¢6ˆ÷ÚÁFW2‡¢“f∆ñF:|:6Û¢Á“'V‚GóV6ÜV6∂76˜Ráfñ7GV"∆ˆ6¬FÚ6˜FR&ófF¢∆˜f&∆RÊFWb˜fóFR◊FÁ7F6≤÷6ˆÊfñv¬&∆˜VVFÚÊW7FR6ÊF&˜ÇV∆÷W6÷¢&¨:6Ú¨:Fˆ7V÷VÁFF6ñ÷(	B6V“7,:ñFóFÚFR&Vvó7G&Úí‚bÛbFW7FW2FP¢Á“FW7F76&“6V“«FW&:|:6Ú‚'Vñ∆B6ˆ◊∆WFÚÜÁ“'V‚'Vñ∆FíÏ:6¢;FFR6W"f∆ñFFÚÊÚ6ÊF&˜ÇV∆Ú÷W6÷Ú&∆˜VVñÚFR6˜FR&ófFÚ(	@¢&V6ó6&ˆF"∆ˆ6∆÷VÁFRÖu4¬íÁFW2FRV&∆ñ6"‡¢“6ˆ÷÷óFFÚ∆ˆ6∆÷VÁFRÜCìVF6&í‚¢•6V“W6Ç¬6V“FW∆˜í¢¢(	BwV&FÊF¢6ˆÊfó&÷:|:6ÚWáÃ:÷6óFFÚW7\:&ñÚ¬6ˆ÷ÚFR6˜7GV÷R‡†¢22vó&REb(	B&V'&ÊB6ˆ◊∆WFÚRV&∆ñ6FÚÉ##b”í”2¬6W7<:6Ú6∆˜VB6VwVñÁFRê†§6ˆÁFñÁV:|:6ÚFó&WFF6\:|:6Ú6ñ÷‚ÚF6ÇFVV∆6W7<:6Úfˆí∆ñ6FÚ6ˆ–¶vóB““”7vñV“6ñ÷FÚ÷ñÊR˜26ˆ÷÷óG2vÊÜ&“Ü6ÜW2Ê˜f˜0¢Ü&É#cF¬&fF3v&¬#CÉ3F(	BÏ:6ÚCìVF6&ˆSf3FVˆCÉcfí‡†¢“¢§6˜'&\:|:6ÚF6\:|:6Ú6ñ÷¢£¢ÚÁ“'V‚'Vñ∆F¢ß&ˆF˜RR76˜RVí¢¢¬6V–¢7GV"‚Ú∆˜f&∆RÊFWb˜fóFR◊FÁ7F6≤÷6ˆÊfñvñÁ7F∆˜RÊ˜&÷∆÷VÁFRÜÁ–¶ñÁ7F∆∆¬Cì"6˜FW2í(	BÚ&∆˜VVñÚFR&Vvó7G&ÚFW67&óFÚ6ñ÷Ï:6Ú6P¢&WWFóRÊW7FR÷&ñVÁFR‚F÷,:ñ“Ï:6Úfˆí&V6ó6Úf∆ñF"V“u4¬ÁFW2FP¢V&∆ñ6"¬6ˆ÷ÚVV∆6\:|:6ÚVFñ‚G&FR&'Vñ∆BÏ:6Úf∆ñFFÚ"R'7GV ¢∆ˆ6¬"6ˆ÷ÚÜó7L;7&ñFVV∆6W7<:6Ú¬Ï:6Ú6ˆ÷ÚW7FFÚGV¬‡¢“fW&ñfñ6FÚÁFW2FRV&∆ñ6"¬˜'VRGóV6ÜV6≤RFW7FRÏ:6Ú6ˆ'&V”¢Ú6V∆¢&V6R÷W6÷ÚÊ˜2VG&ÚˆÁF˜2Ü$î‘%ïÙ‰f<:6Úˆ&¶WF˜2&ˆGV7F¬VP¢L:¶“ñF≤îÂDTÂEÙƒî‰µ6L:¶“&ˆGV7DñF(	B2GV26ˆÊFú:|;VW2FÚF6Ç&FV–¢6ˆ“2W7G'WGW&2&Vó2íRÊñ÷FR◊V«6R÷F˜FWÜó7FRV“7&2˜7Gñ∆W2Ê776‡¢“¢§Ú&VÊ÷RFÚF6Ç6ˆ'&ñ<;2ÊfVv:|:6Ú‚¢¢ÚÊˆ÷RW7FfÜ&F6ˆFVBV“„P¢˜WG&˜2ˆÁF˜2fó<:◊fVó2¬VÁL:6ÚVV“6∆ñ676RV“%vó&REb"6ÜVvfÁV÷:vñÊ¢7V¶ÚL:◊GV∆ÚñÊFFó¶ñ%fW&ˆÊñ6vó&R"‚6˜'&ñvñFÚV“Fˆó26ˆ÷÷óG3†¢“SsSc6(	Btï$UÙ‰‘Vfó&˜RWá˜'BFRV6˜7ó7FV“ÁG6R76˜R¢∆ñ÷VÁF"L:◊GV∆ÚÙÙrFÚˆ&∆ˆv¬:vñÊ2FR÷L:ó&ñRVFóF˜&ñ¬%50¢Ü6VÚ÷fVVBÁG6í¬WF˜"ÊÚ66ÜV÷Ê˜&r¬&ˆˆe6V7FñˆÊFÜˆ÷R¬6&BFP¢vó&Tw&˜wFÜ¬&6RFR6ˆÊÜV6ñ÷VÁFÚFÚ6ˆÊ6ñW&vRÜfW&ˆÊñ6˜6∂ñ∆«2ˆÜˆ÷RÁG6ê¢R˜2Fˆó2,;7GV∆˜2FÚF÷ñ‚‡¢“#33&Ccñ(	BóV∆ñÊRFRvW&:|:6Û¢&ˆ◊BFÚ&W;7'FW"V–¢'Fñ6∆W2◊6W'fW"ÁG6R˜2Fˆó2«EFWáFFR6V“'Fñ6∆R÷7&ˆ‚ÁG6‡¢“6ˆ'&˜RFR&˜;76óFÚÚW6W"‘vVÁBfW&ˆÊñ6vó&RÛ„V–¢'Fñ6∆W2◊6W'fW"ÁG3£ìv(	B:íñFVÁFñfñ6:|:6ÚÖEE&˜26W'fñF˜&W2FRÊ˜L:÷6ñ¢VRÚ&F"6ˆÁ7V«F¬Ï:6Ú7WW&l:÷6ñRFR÷&6≤÷WÜW"Êó76Ú◊VF¢6ˆ◊˜'F÷VÁFÚFR&VFR6V“vÊÜÚfó<:◊fV¬‚6ˆ÷VÁL:&ñ˜2FR<;6FñvÚF÷,:ñ“Ï:6¢f˜&“Fˆ6F˜2‚6ˆ“f∆r∆ñvF¬W76:í¢¨;¶Êñ6¢¢ˆ6˜',:¶Ê6ñFÚÊˆ÷P¢ÁFñvÚV“FˆFÚÚ'Vñ∆B‡¢“¢§Ú&ˆ∆∆&6≤FVóÜ˜RFR6W"FR7W7FÚ¶W&Ú¬RÚ6ˆ÷VÁL:&ñÚFf∆rV–¢V6˜7ó7FV“ÁG6fˆí&VW67&óFÚ˜"6W6Fó76Ú‚¢¢V∆RÁFW2&ˆ÷WFñVP¢f«6V'fˆ«FWÜF÷VÁFRÚW7FFÚÁFW&ñ˜""‚fW&FFRVÁVÁFÚGVFÚW&¢÷ˆÁFFÚV“'VÁFñ÷S≤FVóÜ˜RFR6W"VÊFÚÚÊˆ÷R76˜RVÁG&"V“∆ñÊÜ¢w&fFÊÚ&Ê6Ú‚6F÷L:ó&ñVRÚ7&ˆ‚V&∆ñ66ˆ“f∆r∆ñvFw&f¢«EFWáF$6vó&REb(	B‚‚‚"¬Ró76Úf∆rÏ:6ÚFW6f¢‚FW6∆ñv"FWˆó0¢FVóÜÚ6W'fÚ÷ó7GW&FÚ(	B6ˆÁ6W'F"WÜñvR&6∂fñ∆¬ÊÚ&Ê6Ú‡¢“f∆ñF:|:6Ú¬&WWFñF¢¶Ê˜2Fˆó2W7FF˜2Ff∆r¢¢6F6ˆ÷÷óC¢GóV6ÜV6∂ ¢WÜóB¬bÛbFW7FW2¬Á“'V‚'Vñ∆FWÜóB‚6ˆ“tï$UıEeı$T%$‰EÙT‰$ƒTB–¶f«6VÚ'Vñ∆BÏ:6Ú6ˆÁL:ñ“ÊVÊáV÷ˆ6˜',:¶Ê6ñFR%vó&REb"ÊV“FÚ6V∆¢$ÚfófÚ"(	BÚ&ˆ∆∆&6≤∆6Ï:vGVFÚVR:í÷ˆÁFFÚV“'VÁFñ÷R‡¢“¢•V&∆ñ6FÚ‚¢¢÷ñÊW7L:V“#33&Ccñ≤˜2W6ÜW2f˜&“fVóF˜26ˆ–¢6ˆÊfó&÷:|:6ÚWáÃ:÷6óFFÚW7\:&ñÚ6FWF‚&W76«fÜˆÊW7F¢6ˆÊfó&÷÷˜0¢VRÚW6Ç6ÜVv˜RRVRÚ'Vñ∆B76∆ˆ6∆÷VÁFR¬¢¶Ï:6Ú¢¢VR:vñÊ¢&VÊFW&ó¶˜R6W'FÚV“&ˆG\:|:6Ú(	BÚ6V∆ÚÊÊbR˜2L:◊GV∆˜2F2:vñÊ2Ï:6¢f˜&“6ˆÊfW&ñF˜2ÊÚ6óFRV&∆ñ6FÚ‚f∆Rˆ∆Ü"ˆ&∆ˆv¬V÷÷L:ó&ñRÜˆ÷R‡¢“¢§6ˆ÷Ú&WfW'FW"¢£¢VFóF"tï$UıEeı$T%$‰EÙT‰$ƒTF&f«6VV–¢7&2ˆ∆ñ"ˆV6˜7ó7FV“ÁG6RF"W6ÇV“÷ñÊ‚8íV÷∆ñÊÜ‚¢§Ï:6Ú¢¢7&ñR'&Ê6Ä¢FR&ˆ∆∆&6≤&FÚÊÚ&V÷˜FÚ(	BfW"ÚW'&Ú∆ˆvÚ&óÜÚ‡¢“¢Æ)™˚àÚU%$ÚDU5D4U5<84Ú¬∆VñÁFW2FR&WWFó"ÚG,:6Ú¢£¢6ÜVwVVí7&ñ"¢'&Ê6Ç&ˆ∆∆&6≤˜vó&R◊Gb◊&V'&ÊF6ˆ“f∆rFW6∆ñvFRV◊W'&Ví&Ú&V÷˜FÚ¿¢&6ñˆ6ñÊÊFÚVR'&Ê6ÇÏ:6Ú÷÷ñÊÏ:6ÚV&∆ñ6‚¢•&6ñˆ<:÷ÊñÚW'&FÚ‚¢¢WP¢FñÊÜñÁ7V6ñˆÊFÚ<;2ÊvóFáV"˜v˜&∂f∆˜w2ˆ(	BVRFRfFÚÏ:6Úf¢FW∆˜í(	BP¢6ˆÊ6«\:“F∆íVRW6ÇFR'&Ê6ÇW&6VwW&Ú‚ÚFW∆˜íFW7FR&ˆ¶WFÚfV“F¢ñÁFVw&:|:6Ú6∆˜VFf∆&^(iDvóB¬VRÏ:6Ú&V6RV“v˜&∂f∆˜rÊVÊáV“¬RÚfó6¢5,8’Dî4ÚÊ6\:|:6Ú$ˆÊFRW7F÷˜2"¨:&Vvó7G&fVR¢ßFˆFÚW6ÇV“V«VW ¢'&Ê6Çfó&&ˆG\:|:6Ú¬6V“&WfñWr6W&FÚ¢¢‚WRÏ:6ÚFñÊÜ∆ñFÚVV∆6\:|:6Ú‡¢6ˆÁ6W\:¶Ê6ñ&˜l:fV√¢ÚW6ÇFVV∆R'&Ê6ÇV&∆ñ6˜RÚ&V'&ÊBDU4ƒîtDÚV–¢&ˆG\:|:6Ú˜"∆wVÁ2÷ñÁWF˜2¬L:íÚW6Ç6VwVñÁFRÜf∆r∆ñvFí&W7FW&"‡¢Ú'&Ê6Ç&ˆ∆∆&6≤˜vó&R◊Gb◊&V'&ÊFW7L:÷&6FÚ&&V÷¸:|:6Û¢6RñÊF¢WÜó7Fó"ÊÚ&V÷˜FÚ¬wVRR¢¶Ï:6ÚV◊W'&RÊFÊV∆R¢¢(	BV«VW"W6Ç∆ê¢&WV&∆ñ6Ú&V'&ÊBFW6∆ñvFÚ‚¢§∆ú:|:6Û¢ÊW7FR&WÚW6ÇFR'&Ê6ÇÏ:6Ú:ê¢&6∑W&&FÚ(	B:íFW∆˜í‚ßVÁFR2◊VFÏ:v2RV◊W'&RV÷fW¢<;2‚¢†¢“&W76«fFRfW&ñfñ6:|:6Û¢˜2W6ÜW2V“÷ñÊFófW&“6ˆÊfó&÷:|:6ÚWáÃ:÷6óFF¢W7\:&ñÚ6FWF¬÷2˜2W6ÜW2Ê˜2'&Ê6ÜW2FRG&&∆ÜÚÏ:6Ú(	BV∆W2f˜&–¢G&FF˜26ˆ÷Ú6«f÷VÁFÚR¬V∆ÚVRW7L:6ñ÷¬&˜ffV∆÷VÁFRF÷,:ñ“f˜&–¢FW∆˜ó2‚ÚW7FFÚ&V¬FR&ˆG\:|:6ÚÏ:6Úfˆí6ˆÊfW&ñFÚFW7F6W7<:6Û¢Ú&˜áíF¢÷&ñVÁFR&∆˜VVñfW&ˆÊñ6áV"Ê6ˆ÷ÉC2ÊÚ4Ù‰‰T5Bí‡¢“ïÑ$ïÙïÙ¥UñR67&óG2˜&W&ˆ6W72÷6˜fW'2Ê÷ß66ˆÁFñÁV“VÊFVÁFW2‡†¢22&V÷¸:|:6ÚF÷ó&Üˆ∆ˆw,:fñ6f«WGVÁFRÉ##b”í”2ê†¢“&6S¢6∆VFRˆV∆VvÁB÷&&FVV‚◊g¶ìcFÊV“6CìF≤÷W6÷'&Ê6ÇFRG&&∆ÜÚ‡¢“ñFVÁFñfñ6FVFñFÚFÚW7\:&ñÛ¢&÷ó&":íÚ6ˆ◊ˆÊVÁFRáVE66ÊÊW& ¢Ü7&2ˆ6ˆ◊ˆÊVÁG2ÙÜˆ∆Ù˜&&óG2ÁG7Üí(	B5drµ4‘î¬6ˆ“Ï:ñó2vó&ÊFÚ¬&WL:÷7V∆¢6VÁG&¬R6ÁF˜2FRÖTB‚6ÜVvf:FV∆˜"Fˆó26÷ñÊÜ˜3¢GV2ñÁ7L:&Ê6ñ0¢6ˆ“Üˆ∆Ú÷G&ñgB÷ˆ&FVÁG&ÚFÚ˜fW&∆ív∆ˆ&¬Üˆ∆Ù˜&&óG6ÜfóÜVB¬6óFR◊vñFRê¢RÚw&W"áVD66VÁF¬∆ÁFFÚ6ˆ÷Ú6VÁFÚFVÁG&ÚFÚ6ˆÁF\;¶FÚFR:vñÊ2‡¢“&V÷˜fñF˜3¢áVE66ÊÊW&¬áVD66VÁF¬2GV2ñÁ7L:&Ê6ñ2FÚ˜fW&∆ív∆ˆ&¬¿¢G,:ß2W6˜2FRáVD66VÁFÊÜˆ÷RÜˆ¬6\:|;VW2¬2RBíRV“V–¢˜fW&ˆÊñ6◊&VFV¬˜2∂Wñg&÷W2Üˆ∆Ú÷G&ñgB÷RÜˆ∆Ú÷G&ñgB÷&V–¢7&2˜7Gñ∆W2Ê776å;7&l:6˜2;72&V÷¸:|:6ÚíRÚWá˜'BtÙƒF‡¢“Üˆ∆Ù˜&&óG66VwVR÷ˆÁFFÚÊÚ&ˆ˜E6ÜV∆¬6ˆ“ÚVRÏ:6Ú:í÷ó&¢fñÊÜWF¢&Fñ¬R˜2Fˆó26ÁF˜2FRÖTB‚Üˆ∆Ú÷&V÷6ˆÁFñÁV&W6W'fFP¢FW6FófF˜"tƒÙ$≈ı44ÂÙ$T’ÙT‰$ƒTB“f«6V¬6ˆ÷Ú&Vvó7G&FÚ6ñ÷‡¢“tÙƒFÏ:6Ú6W'fñ<;2:÷ó&¢F÷,:ñ“∆ñ÷VÁFf%Dî4ƒUÙ4Ùƒı%6V–¢˜fW&ˆÊñ6◊&VFV‚Úf∆˜"ˆ∂∆6ÇÉ„sR„RÉRñ76˜R∆óFW&¬Ê∆ó7F¿¢ÊÚ÷W6÷ÚG,:6ÚF2˜WG&2GV26˜&W2¬VR¨:W&“∆óFW&ó2‡¢“&ñ6ÑVÁfó&ˆÊ÷VÁFW&FWR&˜66VÁD6∆74Ê÷V¬VR<;2WÜó7Fñ&¢˜6ñ6ñˆÊ"Ú6VÁFÛ≤˜2Fˆó26Ü÷F˜&W2ÜÜW&ÚR5DfñÊ¬íf˜&“GV∆ó¶F˜2‡¢“6ˆ÷VÁL:&ñ˜2VR6óFf“áVE66ÊÊW&GV∆ó¶F˜2V“Üˆ∆Ù˜&&óG2ÁG7Ü¿¢7&2ˆ6ˆ◊ˆÊVÁG2ˆ&∆ˆrıvó&UV«6Tv∆ˆ&RÁG7ÜRÊÚÜW&ÚFR˜fW&ˆÊñ6◊&VFV‡¢“&6∂VÊB¬WFVÁFñ6:|:6Ú¬ÊfVv:|:6Ú¬FV÷2¬ñ÷vV“FfW&ˆÊñ6RFV÷ó2VfVóF˜0¢W&÷ÊV6V“ñÁF7F˜2‚ÊVÊáV÷FWVÊL:¶Ê6ñFñ6ñˆÊF˜R&V÷˜fñF‡¢“bÛbFW7FW2RGóV6ÜV6≤∆ñ◊ÚV“7&2ˆ‚∆ñÁBFó&V6ñˆÊFÚ˜2VG&Ú'Vóf˜0¢Fˆ6F˜3¢VÊ2ˆ6˜',:¶Ê6ñ2&VWÜó7FVÁFW2FR&WGFñW"ÉSíÊ&6R¬S;72¢◊VFÏ:ví¬ÊVÊáV÷ñÁG&ˆGW¶ñF‡¢“'Vñ∆BFR&ˆG\:|:6ÚÏ:6ÚWÜV7WFFÛ¢'V‚ñÁ7F∆∆f∆ÜÊW7FR÷&ñVÁFR˜'VR¢&Vvó7G'í&ófFFR∆˜f&∆RÊFWb˜fóFR◊FÁ7F6≤÷6ˆÊfñv&W7ˆÊFRC2V∆¢ˆÃ:◊Fñ6FR&VFR‚f∆ñF:|:6Ú&ˆF˜R6ˆ“Ú6˜FRó6ˆ∆FÛ≤6∂vRÊß6ˆÊP¢'V‚Ê∆ˆ6∂f˜&“&W7FW&F˜2Rfñ6&“f˜&FÚ6ˆ÷÷óB‡¢“vﬂªhëÈÏ∂ªßq´^uÕ¡ï…ÖëΩÃ∏ÅIΩëÖ…Ö¥Ä‰Åï¥Äƒƒº¿‰∞Äƒ‘Åï¥Äƒ»º¿‰ÅîÄÿÅï¥ÄƒÃº¿‰∏(ÄÅ9ïπ°’µÑÅ…ΩëÖëÑÅçΩµóùΩ‘ÅπºÅµ•π’—ºÅ¡ïë•ëºËÅÕïµ¡…îÄ–ÅÑÄ»‹Åµ•∏ÅÖ—…ÖÕÖëÑ(ÄÄ†ƒƒË–‹ÉäHÄƒ»Ë¿»∞Ä¿‘Ë–‹ÉäHÄ¿ÿËƒ–§∏Å	’…ÖçΩÃÅëîÄ—†–‡Ä†¿ƒË»ÿÉäHÄ¿ÿËƒ–§ÅîÄ’†ƒ‘(ÄÄ†¿ÿË–‹ÉäHÄƒ»Ë¿»§Å´ÑÅ—•π°Ö¥ÅÖçΩπ—ïç•ëºÅÖπ—ïÃÅëîÅ°Ω©î∏Å=‘ÅÕï©ÑËÅÑÅçÖì©πç•Ñ(ÄÅ°ΩÀÖ…•ÑÅπ’πçÑÅô’πç•ΩπΩ‘ÏÅºÅÕ•≥©πç•ºÅëîÅ°Ω©îÅœÃÅôΩ§ÅºÅµÖ•Ω»Åâ’…Öçº∏É$(ÄÅçΩµ¡Ω…—Öµïπ—ºÅëΩç’µïπ—ÖëºÅëºÅ•—!’àÉäPÅÅÕç°ïë’±ïÄÉ§ÅâïÕ–µïôôΩ…–∏(ÄÄ®©Ω……óüçº®®ËÅ’¥ÉÈπ•çºÅÄ®ºƒ‘Ä®Ä®Ä®Ä©ÄÅπºÅ±’ùÖ»ÅëΩÃÅëΩ•ÃÅ°ΩÀÖ…•ΩÃ∏Å	Ö…Ö—º(ÄÅπΩÃÅëΩ•ÃÅï•·ΩÃËÅÅ¡’â±•Õ°…—•ç±ï…Ωµ…ΩπÄÅçΩπÕ’±—ÑÅÅ›•πëΩ›±…ïÖëÂA’â±•Õ°ïëÄ(ÄÅ9QLÅëîÅÅë…Öô—πëYÖ±•ëÖ—ïÄ∞Åïπ”çºÅ…ï¡ï—•»ÅπÑÅµïÕµÑÅ©Öπï±ÑÅªçºÅùÖÕ—ÑÅ—Ω≠ï∏Ï(ÄÅîÅºÅ…ï¡ΩÕ•”Õ…•ºÉ§Ä®©√Èâ±•çº®®∞Åïπ”çºÅµ•π’—ºÅëîÅç—•ΩπÃÉ§Å•±•µ•—Öëº∏Å<Åç’Õ—º(ÄÅ…ïÖ∞É§ÅπÖÃÅ°Ω…ÖÃÅÕï¥Å¡’â±•çáüçºËÅá¥ÅÖÃÅ≈’Ö—…ºÅ—ïπ—Ö—•ŸÖÃÅç°ÖµÖ¥ÅÑÅ%∏(¥Ä®©Ö’ÕÑÄ»ÉäPÅ—ï—ºÅëßÖ…•ºÅëÑÅ…Ωƒ∏®®Å1ΩúÅëÑÅ…ΩëÖëÑÅëÖÃÄƒ»Ë¿»∞Å—ï·—’Ö∞Ë(ÄÅÅ—Ω≠ïπÃÅ¡ï»ÅëÖ‰Ä°QA§ËÅ1•µ•–Ä»¿¿¿¿¿∞ÅUÕïêÄ»¿¿¿¿¡ÄÅπºÅÅΩ¡ïπÖ§Ωù¡–µΩÕÃ¥ƒ»¡âÄ∏(ÄÅQÀ©ÃÅëÖÃÅç•πçºÅïë•—Ω…•ÖÃÅµΩ……ï…Ö¥Åá¥∏Å…ÑÅºÅ…ïù•µîÅÖπ—•ùºÄ°ç•πçºÅµÖ”•…•ÖÃ(ÄÅ¡Ω»Å°Ω…Ñ§ÏÅÄ¡ê¿ÿ‘—ïÄÅëÖÃÄƒÃË»‘ÅçΩ…—Ω‘Å¡…ÑÅ’µÑÅ¡Ω»Å°Ω…Ñ∞ÅºÅ≈’îÅëïŸîÅë•Ÿ•ë•»(ÄÅºÅçΩπÕ’µºÅ¡Ω»Å¯‘∞ÅµÖÃÅ•ÕÕºÅÖ•πëÑÅªçºÅôΩ§ÅΩâÕï…ŸÖëºÅ¡Ω»Å’¥Åë•ÑÅ•π—ï•…º∏(ÄÄ®©Õ—îÉ§ÅºÅ—ï—ºÅ…ïÖ∞ÅëîÅ≈’Öπ—ÖÃÅµÖ”•…•ÖÃÅÕÖï¥Å¡Ω»Åë•Ñ®®ÉäPÅπïπ°’µÑÅµ’ëÖªùÑ(ÄÅëîÅç…Ω∏ÅçΩπ—Ω…πÑÅ•ÕÕº∏(¥Ä®©Ö±ÕºÅÖ±Ö…µîÅ…ïù•Õ—…ÖëºÅ¡…ÑÅªçºÅÕï»Å…ï•πŸïÕ—•ùÖëº®®ËÅÖÃÅ…ïÕ¡ΩÕ—ÖÃÄ‘¿»ÅçΩ¥(ÄÅÅÕ≠•¡¡ïêÈôÖ±ÕïÄÅ¡Ö…ÑÄâÕï¥ÅôÖ—ºÅŸï…•ô•èÖŸï∞ÅπºÅµΩµïπ—ºàÅîÅ¡Ö…ÑÅºÄ–»‰ÅªçºÅœçº(ÄÅâ’úÅëºÅÅ•Õë•—Ω…•Ö±M≠•¡Ä∏ÅÕÕïÃÅëΩ•ÃÅ¡…ïô•·ΩÃÅïπ—…Ö…Ö¥ÅπÑÅ±•Õ—ÑÅï¥ÅÄ–¿›î‰≈ïÄ∞(ÄÅ¡’â±•çÖëºÉÅÃÄƒ»ËÃ¿ÏÅÑÅ…ΩëÖëÑÅ≈’îÅôÖ±°Ω‘É§ÅëÖÃÄƒ»Ë¿»∞Ä»‡Åµ•∏ÅÖπ—ïÃ∏(¥Ä®©Ω……óüçºÅπºÅâÖç≠ô•±∞ÅëÑÅâ•â±•Ω—ïçÑ®®ËÅÅ…ïÕΩ±Ÿï1•â…Ö…Â%µÖùïU…±ÄÅëïÕŸ•ÖŸÑ(ÄÅ¡…ºÅ…Ö‹πù•—°’â’Õï…çΩπ—ïπ–ÅÖ¡ïπÖÃÅÄΩ•µÖùïÃΩâ±ΩúµçΩŸï…ÃΩÄ∏Å5Ö”•…•ÑÅçΩ¥ÅçÖ¡ÑÅï¥(ÄÅçÖµ•π°ºÅÖπ—•ùºÅô•çÖŸÑÅôΩ…ÑÅëÑÅçΩπëßüçºÅîÅºÅ]Ω…≠ï»Åâ’ÕçÖŸÑÅºÅ¡ÀÕ¡…•ºÅëΩ∑µπ•º(ÄÉäPÄ–¿Ãº‘»»∞ÅÖÃÅÕï—îÅôÖ±°ÖÃÅëºÅ¡ÖÕÕºÄâM•πç…Ωπ•ÈÑÅçÖ¡ÖÃà∏ÅQΩëºÅºÅÅ¡’â±•åΩÄÉ§(ÄÅŸï…Õ•ΩπÖëº∞Åïπ”çºÅÑÅçΩπëßüçºÅ¡ÖÕÕÑÅÑÅŸÖ±ï»Å¡…ÑÅ≈’Ö±≈’ï»ÅÄΩ•µÖùïÃΩÄÅëºÅÕ•—î∏(ÄÅMï—îÅçÖ¡ÖÃÅçΩπ—•π’Ö¥ÅÖ’Õïπ—ïÃÅëºÅ…ï¡ΩÕ•”Õ…•ºÄ°πïπ°’¥ÅÖ…≈’•ŸºÅï¥(ÄÅÅ¡’â±•åΩ•µÖùïÃΩâ±ΩúµçΩŸï…ÃΩÄÅ¡…ÑÅïÕÕïÃÅÕ±’ùÃ§∞Åïπ”çºÅï±ÖÃÅ€çºÅ¡ÖÕÕÖ»ÅÑ(ÄÅôÖ±°Ö»ÅçΩ¥Ä–¿–Å°ΩπïÕ—ºÅï¥ÅŸïËÅëîÄ–¿Ãº‘»»ÉäPÅ•ÕÕºÉ§Å¡ïπì©πç•ÑÅÕï¡Ö…ÖëÑ∏(¥Ä®©—ïªüçºÅ¡…ÑÅ¡ÀÕ·•µÑÅÕïÕœçº®®ËÅµ’ëÖªùÑÅëîÅÅÕç°ïë’±ïÄÅœÃÅŸÖ±îÅÑÅ¡Ö…—•»Åëº(ÄÅâ…Öπç†Å¡ÖëÀçº∏Åπ≈’Öπ—ºÅïÕ—îÅ—…ÖâÖ±°ºÅªçºÅïπ—…Ö»Åï¥ÅÅµÖ•πÄ∞ÅºÅç…Ω∏ÅçΩπ—•π’Ñ(ÄÅï¥ÅÄËƒ›ÄΩÄË–›Ä∏((ååÅÖ—•±°ºÅïë•—Ω…•Ö∞Åµ•ù…ÖëºÅ¡Ö…ÑÅºÅ…Ω∏ÅQ…•ùùï»ÅëºÅ±Ω’ëô±Ö…îÄ†»¿»ÿ¥¿‰¥ƒÃ§((¥Å5Ω—•ŸºÅπÑÅÕóüçºÅÖπ—ï…•Ω»ËÅºÅÖùïπëÖëΩ»ÅëºÅ•—!’àÅëïÕçÖ…—ÑÅë•Õ¡Ö…º∞ÅîÅπïπ°’µÑ(ÄÅ≈’Öπ—•ëÖëîÅëîÅ°ΩÀÖ…•ΩÃÅπºÅÅÕç°ïë’±ïÄÅ…ïÕΩ±ŸîÅëîÅôÖ—º∏(¥Ä®©]Ω…≠ï»ÅÕï¡Ö…Öëº∞ÅÅ›Ω…≠ï…ÃΩ›•…îµç…Ω∏ΩÄ®®∞ÅªçºÅºÅÅÕç°ïë’±ïëÄÅëºÅ]Ω…≠ï»Åëº(ÄÅÕ•—î∏Å<ÅÕ•—îÉ§ÅçΩπÕ—…◊µëºÅ¡ï±ºÅπ•—…ºÅÖ—…Ö€•ÃÅëºÅ¡…ïÕï–ÅëÑÅ1ΩŸÖâ±î∞Å≈’îÅùï…Ñ(ÄÅÑÅçΩπô•ù’…áüçºÅëîÅëï¡±Ω‰ÅÕΩÈ•π°ºËÅªçºÅï·•Õ—îÅÖ…≈’•ŸºÅëºÅ›…Öπù±ï»Åπº(ÄÅ…ï¡ΩÕ•”Õ…•ºÅΩπëîÅëïç±Ö…Ö»ÅÅ—…•ùùï…ÕÄ∞ÅºÅ¡ÖçΩ—îÉ§Å¡…•ŸÖëºÅîÅ…ïÕ¡ΩπëîÄ–¿Ã(ÄÅπïÕ—îÅÖµâ•ïπ—îÄ°ïπ”çºÅªçºÅìÑÅ¡…ÑÅ…ΩëÖ»ÅºÅâ’•±êÅîÅçΩπôï…•»§∞ÅîÅ—ΩëºÅ¡’Õ†ÅÖ≈’§(ÄÅ¡’â±•çÑÅï¥Å¡…Ωë◊üçº∏ÅU¥Åï……ºÅπºÅïπ—…‰ÅëºÅÕ•—îÅëï……’âÑÅÑÅÖ¡±•çáüçºÅ•π—ï•…ÑÏÅº(ÄÅ]Ω…≠ï»ÅëîÅç…Ω∏Å—ï¥Ä–¿Å±•π°ÖÃÅîÅôÖ±°ÑÅÕΩÈ•π°º∏(¥Ä®©<Å≈’îÅï±îÅë•Õ¡Ö…Ñ®®ËÅÅ›Ω…≠ô±Ω›}ë•Õ¡Ö—ç°ÄÅëîÅÅùïπï…Ö—îµÖ…—•ç±îπÂµ±ÄÅπÑÅA$(ÄÅëºÅ•—!’àÉäPÅªçºÅºÅïπë¡Ω•π–ÅëºÅÕ•—î∏Å<Å¡•¡ï±•πîÅëºÅ•—!’àÉ§Å≈’ï¥Å—ï¥ÅÑÅç°ÖŸî(ÄÅëºÅAï·ï±ÃÅîÅºÅ¡ÖÕÕºÅ≈’îÅçΩµµ•—ÑÅÑÅçÖ¡ÑÏÅç°ÖµÖ»ÅºÅïπë¡Ω•π–Åë•…ï—ºÅ¡’â±•çÖ…•Ñ(ÄÅµÖ”•…•ÑÄ®©Õï¥ÅçÖ¡Ñ®®∞Å¡Ω…≈’îÅΩÃÅ¡ÖÕÕΩÃÅëîÅçÖ¡ÑÅœçºÅçΩπë•ç•ΩπÖëΩÃÅÑ(ÄÅÅÕ—ï¡Ãπùïπï…Ö—îπΩ’—¡’—Ãπùïπï…Ö—ïêÄÙÙÄù—…’îùÄ∏ÅMï¥ÅçÖ¡ÑÅºÅçÖ…êÅëºÅ%πÕ—Öù…Ö¥(ÄÅ—Öµã•¥ÅÕÖ§ÅπºÅô’πëºÅ¡…ï—º∏Åïç•œçºÅçΩπô•…µÖëÑÅçΩ¥ÅºÅ’Õ◊Ö…•º∏(¥Ä®©Öì©πç•ÑËÅÄ¿Ä®Ä®Ä®Ä©Ä∞Å’¥Åë•Õ¡Ö…ºÅ¡Ω»Å°Ω…Ñ∏®®ÅÅ…ïë’πìâπç•ÑÅëîÅ°ΩÀÖ…•ΩÃÅœÃ(ÄÅï·•Õ—•ÑÅ¡…ÑÅçΩµ¡ïπÕÖ»ÅºÅëïÕçÖ…—îÅëºÅ•—!’à∏ÅΩ¥ÅùÖ—•±°ºÅçΩπôßÖŸï∞Åï±ÑÅŸ•…Ñ(ÄÅëïÕ¡ï…ìµç•ºËÅπ’µÑÅ°Ω…ÑÅ≈’îÅÖ•πëÑÅªçºÅ¡’â±•çΩ‘∞ÅçÖëÑÅ—ïπ—Ö—•ŸÑÅùÖÕ—ÑÅç°ÖµÖëÑ(ÄÅëîÅ%∞ÅîÅºÅ—ï—ºÅëÑÅ…ΩƒÄ†»¿¡¨Å—Ω≠ïπÃΩë•Ñ§ÅìÑÅ¡…ÑÅ¯»¿Åç°ÖµÖëÖÃÅ¡Ω»Åë•Ñ∏(¥Ä®©Aïπëïπ—î∞ÅîÅœÃÅºÅ’Õ◊Ö…•ºÅ¡ΩëîÅôÖÈï»®®Ä°ªçºÅ£ÑÅç…ïëïπç•Ö∞ÅëºÅ±Ω’ëô±Ö…îÅπï¥(ÄÅ›…Öπù±ï»ÅπïÕ—îÅÖµâ•ïπ—î∞ÅîÅºÅ5@ÅëºÅ±Ω’ëô±Ö…îÉ§ÅÕΩµïπ—îÅ±ï•—’…ÑÅ¡…Ñ(ÄÅ]Ω…≠ï…Ã§ËÅç…•Ö»ÅºÅ—Ω≠ï∏Åô•πîµù…Ö•πïêÅëºÅ•—!’àÅçΩ¥ÅÅç—•ΩπÃËÅIïÖêÅÖπêÅ›…•—ïÄ∞(ÄÅÅ›…Öπù±ï»Åëï¡±ΩÂÄÅîÅÅ›…Öπù±ï»ÅÕïç…ï–Å¡’–Å%Q!U	}Q=-9Ä∏ÅAÖÕÕºÅÑÅ¡ÖÕÕºÅï¥(ÄÅÅ›Ω…≠ï…ÃΩ›•…îµç…Ω∏ΩI5πµëÄ∏(¥Ä®©ï¡Ω•ÃÅëîÅçΩπô•…µÖëºÅºÅë•Õ¡Ö…º®®ËÅ…ïë’È•»ÅºÅÅÕç°ïë’±ïÄÅëº(ÄÅÅùïπï…Ö—îµÖ…—•ç±îπÂµ±ÄÄ°°Ω©îÅï¥ÅÄ®ºƒ’Ä§ÅÑÅ’¥Å°ΩÀÖ…•ºÉÈπ•çºÅëîÅ…ïç’¡ï…áüçºÅΩ‘(ÄÅ…ïµΩ€®µ±º∏Åπ—ïÃÅë•ÕÕºÅªçºÉäPÅïπ≈’Öπ—ºÅºÅ]Ω…≠ï»ÅªçºÅïÕ—•Ÿï»ÅπºÅÖ»ÅçΩ¥Åº(ÄÅÕïç…ï–∞ÅºÅÄ®ºƒ’ÄÉ§ÅºÉÈπ•çºÅùÖ—•±°ºÅ≈’îÅï·•Õ—î∏(¥ÅQïÕ—îÅπΩŸºÅçΩâ…îÅºÅÖçΩ¡±Öµïπ—ºÅôÀÖù•∞ËÅºÅπΩµîÅëºÅÖ…≈’•ŸºÅëîÅ›Ω…≠ô±Ω‹Å≈’îÅº(ÄÅ]Ω…≠ï»Åë•Õ¡Ö…ÑÅ¡…ïç•ÕÑÅï·•Õ—•»Åï¥ÅÄπù•—°’àΩ›Ω…≠ô±Ω›ÕÄ∞ÅÕïªçºÅºÅë•Õ¡Ö…ºÅŸ•…Ñ(ÄÄ–¿–ÅÕ•±ïπç•ΩÕºÅîÅÑÅôÖ±°ÑÅÖ¡Ö…ïçï…•ÑÅœÃÅçΩµºÅÖ’œ©πç•ÑÅëîÅµÖ”•…•ÑÅπΩŸÑ∏(ÄÄƒƒºƒƒÅ—ïÕ—ïÃ∞Å—Â¡ïç°ïç¨Å±•µ¡º∏((ååÅ]Ω…≠ï»ÅëîÅç…Ω∏Å¡’â±•çÖëºÅ¡ï±ºÅ¡Ö•πï∞ÅëºÅ±Ω’ëô±Ö…îÄ†»¿»ÿ¥¿‰¥ƒÃ§((¥Ä®©Õ—ÖëºÅ≈’îÅµΩ—•ŸΩ‘ÅÑÅÕïÕœçº∞Åµïë•ëºÅÖπ—ïÃÅëîÅÖù•»®®ËÅπïπ°’µÑÅ…ΩëÖëÑÅëî(ÄÅÅùïπï…Ö—îµÖ…—•ç±îπÂµ±ÄÅëï¡Ω•ÃÅëÖÃÄƒÿËÃÃÅUQ∞ÅîÅÑÉÈ±—•µÑÅçΩ¥ÅÅïŸïπ–ıÕç°ïë’±ïÄ(ÄÉÅÃÄƒ»Ë‘ƒÅUQ∏Å<ÅÄ®ºƒ’ÄÅëîÅÄ‰¿–Ã‡‘≈ÄÅïÕ”ÑÅÖ—•ŸºÅëïÕëîÄƒ‘Ë‘‹ÅîÅ¡ÖÕÕΩ‘Å¡Ω»(ÄÄ®©Ω•—ºÅ©Öπï±ÖÃÅÕïù’•ëÖÃ®®Ä†ƒÿË¿¿ÅÑÄƒ‹Ë–‘§ÅÕï¥Åë•Õ¡Ö…Ö»Åπïπ°’µÑÅŸïË∏Å’µïπ—Ö»(ÄÅÑÅ≈’Öπ—•ëÖëîÅëîÅ°ΩÀÖ…•ΩÃÅπºÅÅÕç°ïë’±ïÄÅïÕ”ÑÅëïÕçÖ…—ÖëºÅçΩµºÅïÕ—…Ö”•ù•ÑËÅªçº(ÄÉ§ÅÖ—…ÖÕº∞É§ÅëïÕçÖ…—î∏(¥Ä®©Å…ΩëÖëÑÅëÖÃÄƒÿËÃÃÄ°µÖπ’Ö∞§ÅªçºÅ¡’â±•çΩ‘®®ËÅÅÏâΩ¨àÈ—…’î∞âÕ≠•¡¡ïêàÈ—…’î∞(ÄÄââïÖ–àËâç±•µÑà∞âï……Ω»àËâÕï¥ÅôÖ—ºÅŸï…•ô•èÖŸï∞ÅπºÅµΩµïπ—ºâıÄ∏Å;çºÉ§ÅçΩ—ÑÅπï¥(ÄÅï……ºÉäPÉ§ÅÑÅ—…ÖŸÑÅïë•—Ω…•Ö∞Åô’πç•ΩπÖπëº∏ÅΩπÕï≈◊©πç•ÑËÅΩÃÅ¡ÖÕÕΩÃÄÃÅÑÄƒ»ÅôΩ…Ö¥(ÄÅ¡’±ÖëΩÃ∞Ä®©•πç±’•πëºÅºÄâM•πç…Ωπ•ÈÑÅçÖ¡ÖÃÅ¡’â±•çÖëÖÃÅçΩ¥ÅÑÅâ•â±•Ω—ïçÑÅëµ•∏à®®∞(ÄÅïπ”çºÅÑÅçΩ……óüçºÅëºÅÅ…ïÕΩ±Ÿï1•â…Ö…Â%µÖùïU…±ÄÅçΩπ—•π’ÑÅÕï¥Å—ï»ÅÕ•ëº(ÄÅï·ï…ç•—ÖëÑÅ’µÑÉÈπ•çÑÅŸïËÅëïÕëîÅ≈’îÅïπ—…Ω‘Åï¥Å¡…Ωë◊üçº∏(¥Ä®©=ÃÅ≈’Ö—…ºÅ¡ÖÕÕΩÃÅëºÅ¡Ö•πï∞ÅôΩ…Ö¥Åôï•—ΩÃÅ¡ï±ºÅ’Õ◊Ö…•º®®∞ÅçΩ¥Åº(ÄÅÅ›Ω…≠ï…ÃΩ›•…îµç…Ω∏ΩI5πµëÄÅçΩµºÅ…Ω—ï•…º∞ÅçÖëÑÅ’¥ÅçΩπô•…µÖëºÅ¡ï±ºÅ±ÖëºÅëÑ(ÄÅA$ÅÖπ—ïÃÅëºÅÕïù’•π—îË(ÄÄ¥Å]Ω…≠ï»ÅÅ›•…îµ—ÿµç…ΩπÄÅç…•ÖëºÉÅÃÄƒ‹Ë¿‡Ë»‘ÅUQÄ°Å›Ω…≠ï…Õ}±•Õ—Ä§∏(ÄÄ¥ÅÕë•ùºÅ¡’â±•çÖëºËÅÅ›Ω…≠ï…Õ}ùï—}›Ω…≠ï…}çΩëïÄÅëïŸΩ±Ÿï‘ÅçΩπ—óÈëºÄ®©•ì©π—•çº®®(ÄÄÄÅÑÅÅ›Ω…≠ï…ÃΩ›•…îµç…Ω∏ΩëÖÕ°âΩÖ…êπ©ÕÄÅëºÅÅµÖ•πÄÉäPÅÅë•ôôÄÅÕï¥Åë•ôï…ïªùÑ∏(ÄÄ¥ÅMïç…ï–ÅÅ%Q!U	}Q=-9ÄÅù…ÖŸÖëºÅçΩµºÅ—•¡ºÅMïç…ï–Ä°ŸÖ±Ω»Åç…•¡—Ωù…ÖôÖëº§∏(ÄÄ¥Å…Ω∏ÅQ…•ùùï»ÅÄ¿Ä®Ä®Ä®Ä©Ä∞Å¡Ö•πï∞ÅµΩÕ—…ÖπëºÅÅŸï…‰Å°Ω’…ÄÄºÅ¡ÀÕ·•µÑÉÅÃ(ÄÄÄÄƒ‡Ë¿¿Ë¿¿ÅUQ∏(¥Ä®©<ÅçÖµ•π°ºÅ¡ï±ºÅ¡Ö•πï∞Åç…•ÑÅ’¥Åïπëï…óùºÅÅ›Ω…≠ï…ÃπëïŸÄ®®Å≈’îÅº(ÄÅÅ›…Öπù±ï»π©ÕΩπçÄÅëïÕ±•ùÑÄ°Å›Ω…≠ï…Õ}ëïÿËÅôÖ±ÕïÄ§∏Å;çºÉ§Å¡…Ωâ±ïµÑËÅºÅ]Ω…≠ï»ÅœÃ(ÄÅ—ï¥Å°Öπë±ï»ÅÅÕç°ïë’±ïëÄ∞Åïπ”çºÅºÅïπëï…óùºÅ…ïÕ¡ΩπëîÅï……ºÅîÅªçºÅï·√’îÅπÖëÑ∏(ÄÅE’ï¥Å≈’•Õï»ÅÖ±•π°Ö»ÅëïÕ±•ùÑÅï¥ÅMï——•πùÃÉäHÅΩµÖ•πÃÄòÅIΩ’—ïÃ∏(¥Ä®©•Õ¡Ö…ºÅçΩπô•…µÖëº®®ËÅ…ΩëÖëÑÄåƒ¿ƒÅëîÅÅùïπï…Ö—îµÖ…—•ç±îπÂµ±Ä∞Åç…•ÖëÑ(ÄÄ®®ƒ‡Ë¿¿Ë¿‘ÅUQ®®∞ÅÅïŸïπ–ı›Ω…≠ô±Ω›}ë•Õ¡Ö—ç°Ä∞Åπ•πù◊•¥Åç±•çΩ‘∏Å•πçºÅÕïù’πëΩÃ(ÄÅëï¡Ω•ÃÅëÑÅ°Ω…ÑÅç°ï•ÑÉäPÅºÅÖùïπëÖëΩ»ÅëºÅ•—!’àÅπ’πçÑÅÖçï…—Ω‘ÅºÅµ•π’—ºÅ¡ïë•ëº(ÄÅï¥Å—À©ÃÅë•ÖÃÅëîÅµïëßüçº∏ÅÅ…ΩëÖëÑÅ¡’±Ω‘ÅÑÅ¡’â±•çáüçº(ÄÄ°ÅÏâΩ¨àÈ—…’î∞âÕ≠•¡¡ïêàÈ—…’î∞ââïÖ–àËâùïΩ¡Ω±•—•çÑà∞âï……Ω»àËâÕï¥ÅôÖ—º(ÄÅŸï…•ô•èÖŸï∞ÅπºÅµΩµïπ—ºâıÄ§∞ÅºÅ≈’îÉ§Åëïç•œçºÅïë•—Ω…•Ö∞ÅîÅªçºÅôÖ±°ÑÅëº(ÄÅùÖ—•±°ºËÅºÅ≈’îÅïÕ—ÖŸÑÅï¥Å—ïÕ—îÅï…ÑÅºÅë•Õ¡Ö…º∏(¥Ä®©Aïπì©πç•ÑÄ»ÅçΩπ—•π’ÑÅÖâï…—ÑÅîÅªçºÉ§Å¡ΩÕœµŸï∞Åôïç°Ö»Å¡Ω»ÅŸΩπ—ÖëîÅ¡ÀÕ¡…•Ñ∏®®(ÄÅÃÅë’ÖÃÅ…ΩëÖëÖÃÅëîÅ°Ω©îÄ†ƒÿËÃÃÅîÄƒ‡Ë¿¿§Å¡’±Ö…Ö¥ÅÑÅ¡’â±•çáüçº∞Åïπ”çºÅºÅ¡ÖÕÕº(ÄÄâM•πç…Ωπ•ÈÑÅçÖ¡ÖÃÅ¡’â±•çÖëÖÃÅçΩ¥ÅÑÅâ•â±•Ω—ïçÑÅëµ•∏àÅªçºÅ…ΩëΩ‘Åπïπ°’µÑÅŸïË(ÄÅëïÕëîÅÑÅçΩ……óüçº∏Å±îÉ§ÅçΩπë•ç•ΩπÖëºÅÑÅÅΩ’—¡’—Ãπùïπï…Ö—ïêÄÙÙÄù—…’îùÄ∏Å(ÄÅ¡ÀÕ·•µÑÅÕïÕœçºÅ≈’îÅ¡ïùÖ»Å’µÑÅ…ΩëÖëÑÅçΩ¥Å¡’â±•çáüçºÅëïŸîÅ±ï»ÅïÕÕîÅ¡ÖÕÕºÅîÅŸï»(ÄÅÕîÅΩÃÅÕï—îÄ–¿Ãº‘»»ÅŸ•…Ö…Ö¥Ä–¿–Ä°°•√Õ—ïÕîÅëºÅ…ï¡ΩÕ•”Õ…•º§ÅΩ‘ÅçΩπ—•π’Ö¥Ä–¿Ã(ÄÄ°°•√Õ—ïÕîÅëºÅ°ΩÕ–Åï·—ï…πº∞ÅAï·ï±Ã§∏(¥Ä®©Aïπì©πç•ÑÄÃÅÖ¡±•çÖëÑ®®ËÅÅÕç°ïë’±ïÄÅëºÅÅùïπï…Ö—îµÖ…—•ç±îπÂµ±ÄÅëî(ÄÅÄ®ºƒ‘Ä®Ä®Ä®Ä©ÄÅ¡Ö…ÑÅÄÃ¿ÄƒƒÄ®Ä®Ä©Ä∏ÅIïëîÅëîÅÕïù’…ÖªùÑÅëßÖ…•Ñ∞ÅªçºÅùÖ—•±°º∏(ÄÅ5Öπ—•ëÑÅï¥ÅŸïËÅëîÅ…ïµΩŸ•ëÑÅ¡Ω…≈’îÅºÅ—Ω≠ï∏Åô•πîµù…Ö•πïêÅëºÅ]Ω…≠ï»ÅŸïπçîÅî∞(ÄÅ≈’ÖπëºÅŸïπçï»∞ÅºÅ]Ω…≠ï»Å¡Ö…ÑÅÕï¥Åï……ºÅŸ•œµŸï∞ÏÅ’µÑÅ…ΩëÖëÑÅ¡Ω»Åë•ÑÅôÖËÅÑ(ÄÅôÖ±°ÑÅÖ¡Ö…ïçï»∏ÅΩ…ÑÅëºÅµ•π’—ºÄ¿Å¡Ω…≈’îÅºÅ]Ω…≠ï»Åë•Õ¡Ö…ÑÅï¥ÅÄË¿¡ÄÅîÅº(ÄÅÅçΩπç’……ïπçÂÄÅïπô•±ï•…ÑÅï¥ÅŸïËÅëîÅçÖπçï±Ö»∏(¥Ä®©Ω……óüçºÅëîÅ’¥Å…ïù•Õ—…ºÅï……ÖëºÅôï•—ºÅπïÕ—ÑÅµïÕµÑÅÕïÕœçº®®ËÅºÅçΩµµ•–(ÄÅÄ‘¡çà…êÂÄÅÖô•…µÑÄâ—Â¡ïç°ïç¨Åï·•–Ä¿à∏ÅÕ”ÑÅï……ÖëºÉäPÅÑÅµïëßüçºÅôΩ§(ÄÅÅπ¡‡Å—ÕåÄ¥µπΩµ•–ÅÅ—Ö•∞Ä¥ÃÄÏÅïç°ºÄê˝Ä∞ÅîÅï¥Å¡•¡ï±•πîÅºÅÄê˝ÄÉ§ÅëºÅÅ—Ö•±Ä∏(ÄÅ5ïë•ëºÅë•…ï•—º∞ÅºÅ—Â¡ïç°ïç¨Å—ï¥Ä®®ƒÅï……ºÅ¡À§µï·•Õ—ïπ—î®®ÅπïÕ—îÅÖµâ•ïπ—îË(ÄÅÅQL»ÿ‡‡ËÅÖππΩ–Åô•πêÅ—Â¡îÅëïô•π•—•Ω∏Åô•±îÅôΩ»ÄùŸ•—îΩç±•ïπ–ùÄ∞Å¡Ω…≈’î(ÄÅÅ—ÕçΩπô•úπ©ÕΩπÄÅ¡ïëîÅÅ—Â¡ïÃËÅlâŸ•—îΩç±•ïπ–âuÄÅîÅÅπΩëï}µΩë’±ïÃΩŸ•—ïÄÅªçº(ÄÅï·•Õ—îÅÖ≈’§Ä°çΩπÕï≈◊©πç•ÑÅëºÄ–¿ÃÅπºÅÅ±ΩŸÖâ±îπëïÿΩŸ•—îµ—ÖπÕ—Öç¨µçΩπô•ùÄ§∏(ÄÅ<ÅµïÕµºÅï……ºÅÖ¡Ö…ïçîÅπºÅÅΩ…•ù•∏ΩµÖ•πÄÅ¡’…º∞Åïπ”çºÅªçºÉ§Å…ïù…ïÕœçº∏ÅAÖ…Ñ(ÄÅµïë•»ÅëîÅŸï…ëÖëîËÅÅπ¡‡Å—ÕåÄ¥µπΩµ•–ÏÅïç°ºÄê˝Ä∞ÅÕï¥Å¡•¡î∞ÅΩ‘ÅçΩπ—Ö»ÅÖÃ(ÄÅ±•π°ÖÃÅÅï……Ω»ÅQMÄ∏((ååÅAïπì©πç•ÑÅëÖÃÅçÖ¡ÖÃÅ…ïÕΩ±Ÿ•ëÑÅ¡ï±ÑÅµï—Öëî∞ÅçΩ¥ÅçÖ’ÕÑÅµïë•ëÑÄ†»¿»ÿ¥¿‰¥ƒÃ§((¥Ä®©Å…ΩëÖëÑÅëÖÃÄ»ƒË¿¿Å¡’â±•çΩ‘®®ÉäPÅ¡…•µï•…ÑÅëïÕëîÄƒ‘Ë–‰∏ÅM±’ú(ÄÅÅ•π’πëÖçΩïÃµï¥µ—ï±ÖπùÖπÑµÖ¡ΩÃµç°’ŸÖÃµ…ïçΩ…ëïÃµëî¥ƒÃ‘¥‘µµ¥µï¥µµÖπç°ï…•Ö±Ä∞(ÄÅçΩ¥ÅôΩ—ºÅ…ïÖ∞ÅëºÅAï·ï±ÃÄ°•êÄƒÃ‡ÿ‘‹‹»§∏ÅΩ¥Å•ÕÕºÅºÅ¡ÖÕÕºÄâM•πç…Ωπ•ÈÑÅçÖ¡ÖÃ(ÄÅ¡’â±•çÖëÖÃÅçΩ¥ÅÑÅâ•â±•Ω—ïçÑÅëµ•∏àÅô•πÖ±µïπ—îÅ…ΩëΩ‘∞Å≈’ÖÕîÅç•πçºÅ°Ω…ÖÃ(ÄÅëï¡Ω•ÃÅëÑÅçΩ……óüçºÅ≈’îÅëïŸï…•ÑÅçΩπÕï…”Ñµ±º∏(¥Ä®©±îÅôÖ±°Ω‘ÅëîÅπΩŸº∞ÅçΩ¥ÅΩÃÅµïÕµΩÃÅÕï—îÅÕ±’ùÃÅîÅΩÃÅµïÕµΩÃÅèÕë•ùΩÃ®®Ë(ÄÅÅÕÖŸïêË¿∞ÅÖ±…ïÖëÂA…ïÕïπ–Ëƒ’Ä∞Å≈’Ö—…ºÄ–¿ÃÅîÅ—À©ÃÄ‘»»∏Å=‘ÅÕï©Ñ∞ÅÑÅçΩ……óüçºÅëº(ÄÅAHÄå‡‰Ä°Å…ïÕΩ±Ÿï1•â…Ö…Â%µÖùïU…±ÄÅçΩâ…•πëºÅ—ΩëºÅÄΩ•µÖùïÃΩÄ§Ä®©ªçºÅï…ÑÅÑ(ÄÅçÖ’ÕÑ®®ÉäPÅµ•…Ω‘ÅπºÅçÖµ•π°ºÅï……Öëº∏(¥Ä®©Ö’ÕÑÅ…ïÖ∞∞Å±•ëÑÅπºÅâÖπçº®®Ä°ÅM1PÅÕ±’ú∞ÄâçΩŸï…%µÖùïU…∞àÅI=4Äâ…—•ç±îâÄ(ÄÅπΩÃÅÕï—îÅÕ±’ùÃ∞Å¡…Ω©ï—ºÅ9ïΩ∏ÅÅÖùïêµÕçïπî¥ƒ»‡ƒ¿¿‰ŸÄ§∏Å=ÃÅÕï—îÅÕîÅë•Ÿ•ëï¥(ÄÅï·Ö—Öµïπ—îÅπΩÃÅëΩ•ÃÅèÕë•ùΩÃÅëîÅï……º∞ÅîÅπïπ°’¥ÅïÕ”ÑÅÕΩàÅÄΩ•µÖùïÃΩÄË(ÄÄ¥Ä®©QÀ©ÃÅçΩ¥Ä‘»»®®ËÅÅ°——¡ÃËºΩŸï…Ωπ•çÖ°’àπçΩ¥ΩÖ¡§Ωµïë•Ñµ•µÖùïÃºÒ•ê˘Ä∏É$ÅÑ(ÄÄÄÅ¡ÀÕ¡…•ÑÅâ•â±•Ω—ïçÑÅÕï…Ÿ•πëºÅÑÅ•µÖùï¥∏Å	Ö•·Ö»Å•ÕÕºÉ§ÅºÅ]Ω…≠ï»ÅôÖÈïπëº(ÄÄÄÅÕ’â…ï≈’ïÕ–Å¡Ö…ÑÅÕ§ÅµïÕµº∞Å≈’îÅºÅ±Ω’ëô±Ö…îÅïπçï……ÑÅçΩ¥Ä‘»»ÉäPÅ¡Ö…ÑÅ—…ÖÈï»(ÄÄÄÅâÂ—ïÃÅ≈’îÅ´ÑÅïÕ”çºÅï¥ÅÅµïë•Ö%µÖùïÕÄ∏ÅΩπô•…µÖëºÅ≈’îÅΩÃÅ—À©ÃÅ•ëÃÅï·•Õ—ï¥ÅπÑ(ÄÄÄÅ—Öâï±ÑÅçΩ¥ÅâÂ—ïÃÅëîÅŸï…ëÖëîÄ†ƒ»¡-∞ÄƒÿÕ-ÅîÄ‰‘›-§∏(ÄÄ¥Ä®©E’Ö—…ºÅçΩ¥Ä–¿Ã®®ËÅÅ°——¡ÃËºΩêÕ‘¡—È©‘Â≈Ö’ç®πç±Ω’ëô…Ωπ–ππï–º∏∏πÄ∏Å8(ÄÄÄÅï·—ï…πº∞Å¡…ΩŸÖŸï±µïπ—îÅ…ïœµë’ºÅëÑÅ1ΩŸÖâ±î∏Å9ï¥ÅÑÅ°•√Õ—ïÕîÅëºÅâ…•ïô•πú(ÄÄÄÄ°Aï·ï±Ã§Åπï¥ÅÑÅëºÅÄΩ•µÖùïÃΩÄÅïÕ—ÖŸÖ¥Åçï…—ÖÃ∏(¥Ä®©ΩπÕï…—Öëº®®ËÅÅÕÖŸïΩŸï…QΩ5ïë•Ö1•â…Ö…ÂÄÅ¡ÖÕÕÑÅÑÅ…ïçΩπ°ïçï»(ÄÅÄΩÖ¡§Ωµïë•Ñµ•µÖùïÃºÒ•ê˘ÄÅÖπ—ïÃÅëîÅ≈’Ö±≈’ï»Åôï—ç†ÅîÅ—…Ö—ÑÅçΩµºÅ´ÑÅ¡…ïÕïπ—î∞(ÄÅÕï¥ÅâÖ•·Ö»ÅîÅÕï¥Åë’¡±•çÖ»Å±•π°ÑÅπºÅâÖπçº∏ÅQïÕ—îÅπΩŸºÅ—…ÖŸÑÅÑÅΩ…ëï¥ÉäPÅÕîÅÑ(ÄÅç°ïçÖùï¥ÅôΩ»Å¡Ö…Ö»Åëï¡Ω•ÃÅëºÅôï—ç†∞ÅºÄ‘»»ÅŸΩ±—Ñ∏(¥Ä®©;çºÅçΩπÕï…—Öëº∞ÅîÅªçºÅìÑÅ¡Ö…ÑÅçΩπÕï…—Ö»ÉÅÃÅçïùÖÃ®®ËÅΩÃÅ≈’Ö—…ºÅëº(ÄÅ±Ω’ë…Ωπ–∏Å<Å¡…Ω·‰ÅëïÕ—îÅÖµâ•ïπ—îÅâ±Ω≈’ï•ÑÅºÅ°ΩÕ–Ä†–¿ÃÅπºÅ=99P§∞Åïπ”çº(ÄÅªçºÅìÑÅ¡Ö…ÑÅÕÖâï»ÅÕîÅºÄ–¿ÃÉ§Å°Ω—±•π¨∞ÅUI0ÅÖÕÕ•πÖëÑÅŸïπç•ëÑÅΩ‘Å…ïµøüçº∏ÅMî(ÄÅôΩ»Å¡ï…µÖπïπ—î∞ÅªçºÅ£ÑÅÕΩ±◊üçºÅï¥ÅèÕë•ùºËÅÖ±ù◊•¥Å¡…ïç•ÕÑÅ…ïïπŸ•Ö»ÅïÕÕÖÃ(ÄÅ≈’Ö—…ºÅçÖ¡ÖÃÅ¡ï±ºÅëµ•∏∏ÅYÖ±îÅµïë•»ÅπÑÅ¡ÀÕ·•µÑÅ¡’â±•çáüçºÅÕîÅÕΩâ…Ö…Ö¥(ÄÅï·Ö—Öµïπ—îÅ≈’Ö—…ºÅôÖ±°ÖÃÉäPÅ•ÕÕºÅçΩπô•…µÑÅ≈’îÅΩÃÅ—À©ÃÅëºÄ‘»»ÅÕ’µ•…Ö¥∏((ååÅ…µÖë•±°ÑËÅ¡’Õ†ÅëîÅâ…Öπç†Åëï……’âÑÅÑÅçÖ¡ÑÅ…ïè•¥µ¡’â±•çÖëÑÄ†»¿»ÿ¥¿‰¥ƒÃ§((¥Ä®©M•π—ΩµÑ®®ËÅÑÅµÖ”•…•ÑÅëÖÃÄ»ƒË¿¿ÅÖ¡Ö…ïçï‘ÅπºÅÕ•—îÅÕï¥ÅôΩ—º∞ÅµïÕµºÅçΩ¥Å—’ëº(ÄÅçï…—ºÅπºÅâÖπçºÄ°ÅçΩŸï…%µÖùïU…±ÄÅù…ÖŸÖëÑ§ÅîÅπºÅ…ï¡ΩÕ•”Õ…•ºÄ°Ö…≈’•ŸºÅëîÄ–ƒ‹Å-(ÄÅçΩµµ•—ÖëºÅ¡ï±ºÅ¡ÀÕ¡…•ºÅ›Ω…≠ô±Ω‹Åï¥ÅÄ…ò‰ÃÂêÕÄ§∏(¥Ä®©Ö’ÕÑ∞Å¡ï±ÑÅ±•π°ÑÅëºÅ—ïµ¡º®®ËÄ»ƒË¿¿Ë–ÿÅºÅç…Ω∏ÅçΩµµ•—ÑÅÑÅçÖ¡ÑÅπºÅÅµÖ•πÄÏ(ÄÄ»ƒË¿ƒË‘‰ÅºÅ¡ÖÕÕºÄâÕ¡ï…ÑÅºÅëï¡±Ω‰Å¡’â±•çÖ»ÅºÅÖÕÕï–àÅçΩπô•…µÑÅÑÅçÖ¡ÑÅπºÅÖ»Ï(ÄÄ»ƒËƒ¿Ë¿ÃÅ’¥ÅçΩµµ•–ÅëîÅ—…ÖâÖ±°ºÅŸÖ§Å¡Ö…ÑÅºÅâ…Öπç†ÅÅç±Ö’ëîº∏∏πÄ∞Å≈’îÅ¡Ö…—•‘Åëº(ÄÅÅµÖ•πÄÅëîÅ9QLÅëÑÅçÖ¡ÑÅï·•Õ—•»ÏÄ»ƒËƒ¿Ë‘‹ÅºÅ±Ω’ëô±Ö…îÅ¡’â±•çÑÅï¥Å¡…Ωë◊üçºÅÑ(ÄÅ¡Ö…—•»ÅëïÕÕîÅâ…Öπç†∏ÅÉÖ…ŸΩ…îÅ¡’â±•çÖëÑÅ¡ÖÕÕΩ‘ÅÑÅªçºÅ—ï»ÅºÅÖ…≈’•Ÿº∞ÅîÅÑÅUI0(ÄÅù…ÖŸÖëÑÅπºÅâÖπçºÅŸ•…Ω‘Ä–¿–∏(¥Ä®©AΩ»Å≈’îÉ§ÅïÕ—…’—’…Ö∞ÅîÅªçºÅÖÈÖ»®®ËÅ—ΩëºÅ¡’Õ†ÅëîÅ≈’Ö±≈’ï»Åâ…Öπç†Å¡’â±•çÑÅï¥(ÄÅ¡…Ωë◊üçº∞ÅîÅºÅç…Ω∏ÅçΩµµ•—ÑÅ’µÑÅçÖ¡ÑÅπΩŸÑÅπºÅÅµÖ•πÄÅÑÅçÖëÑÅ¡’â±•çáüçº∏Åπ”çº(ÄÅ≈’Ö±≈’ï»Åâ…Öπç†Å≈’îÅïÕ—ï©ÑÅÖ—ÀÖÃÅëºÅÅµÖ•πÄÅ…ïµΩŸîÅëîÅ¡…Ωë◊üçºÅ—ΩëÖÃÅÖÃÅçÖ¡ÖÃ(ÄÅçΩµµ•—ÖëÖÃÅëï¡Ω•ÃÅëºÅ¡Ωπ—ºÅëîÅ¡Ö…—•ëÑÅëï±îÉäPÅÕ•±ïπç•ΩÕÖµïπ—î∞Å¡Ω…≈’îÅºÅâÖπçº(ÄÅîÅºÅ…ï¡ΩÕ•”Õ…•ºÅçΩπ—•π’Ö¥ÅçΩπÕ•Õ—ïπ—ïÃÅîÅπÖëÑÅôÖ±°Ñ∏(¥Ä®©Iïù…ÑÅ¡Ö…ÑÅÖÃÅ¡ÀÕ·•µÖÃÅÕïÕœ’ïÃ®®ËÅÅù•–Åôï—ç†ÅΩ…•ù•∏ÅµÖ•∏ÄòòÅù•–Åµï…ùî(ÄÅΩ…•ù•∏ΩµÖ•πÄÅ%5%Q59QÅÖπ—ïÃÅëîÅçÖëÑÅ¡’Õ†∞ÅªçºÅœÃÅπºÅçΩµóùºÅëºÅ—…ÖâÖ±°º∏(ÄÅUµÑÅ¡’â±•çáüçºÅ¡ΩëîÅ—ï»ÅÖçΩπ—ïç•ëºÅπºÅµï•ºÅëÑÅÕïÕœçº∏ÅÅ≈’Öπ—ºÅµÖ•ÃÅ—ïµ¡ºÅº(ÄÅâ…Öπç†Åô•çÑÅÖâï…—º∞ÅµÖ•Ω»ÅÑÅ©Öπï±ÑÉäPÅµïÕç±Ö»ÅºÅAHÅçïëºÅ…ïë’ËÅºÅ…•Õçº∏(¥ÅΩπÕï…—ÖëºÅπïÕ—ÑÅÕïÕœçºÅï¥ÅÄ»»ÿ–¿·âÄ∞Å—…ÖÈïπëºÅºÅÅµÖ•πÄÅ¡Ö…ÑÅºÅâ…Öπç†∏((ååÅÖ¡ÑÅ¡ÖÕÕÑÅÑÅÕÖ•»ÅëîÅâÖπçºÅç’…Öëº∞ÅÕï¥Åâ’ÕçÑÅÖºÅŸ•ŸºÄ†»¿»ÿ¥¿‰¥ƒÃ§((¥Ä®©5Ω—•Ÿº®®ËÅÑÅµÖ”•…•ÑÅëÖÃÄ»ƒË¿¿∞ÅÕΩâ…îÅïπç°ïπ—îÅï¥ÅQï±ÖπùÖπÑÄ£5πë•Ñ§∞ÅÕÖ•‘(ÄÅçΩ¥ÅôΩ—ºÅëîÅ’µÑÅ…’ÑÅÖ±ÖùÖëÑÅÖµï…•çÖπÑ∞ÅçΩ¥Å¡±ÖçÑÄâI=Å1=MàÅî(ÄÅÕ•πÖ±•ÈáüçºÅï¥Å•πù≥©Ã∏Å<Å¡…Ωâ±ïµÑÅªçºÉ§ÅÕï»Åùïª•…•çÑÉäPÉ§Ä©¡Ö…ïçï»(ÄÅëΩç’µïπ—Ö»®ÅºÅôÖ—º∏ÅΩ—ºÅïÕçΩ±°•ëÑÅ¡Ω»Å—ï…µºÅï¥Å•πù≥©ÃÅ≈’îÅºÅµΩëï±ºÅ•πŸïπ—Ω‘(ÄÅªçºÅ•±’Õ—…Ñ∞Åô•πùîÅ…ïù•Õ—…º∏Åïç•œçºÅëºÅëΩπºÅëºÅ¡…Ω©ï—ºËÅâÖπçºÅç’…ÖëºÅï¥(ÄÅ¡…•µï•…ºÅ±’ùÖ»∞Åâ’ÕçÑÅÖºÅŸ•ŸºÅ…ïµΩŸ•ëÑ∏(¥Ä®©ΩµºÅô’πç•ΩπÑ®®ËÅÖÃÅ•µÖùïπÃÅô•çÖ¥ÅπÑÅâ•â±•Ω—ïçÑÅëºÅëµ•∏∞ÅçΩ¥ÅπΩµî(ÄÅçΩµóùÖπëºÅï¥ÅÅ›•…îµâÖπçº¥Òïë•—Ω…•Ñ¯µÄÄ°ï‡∏Ë(ÄÅÅ›•…îµâÖπçºµç±•µÑµç°’ŸÑµç•ëÖëîπ›ïâ¡Ä§∏É$ÅçΩπŸïªüçºÅëîÅπΩµîÅëîÅÖ…≈’•ŸºÅï¥ÅŸïË(ÄÅëîÅçΩ±’πÑÅπΩŸÑÅ¡Ω…≈’îÅºÅ’¡±ΩÖêÅëºÅëµ•∏Åù…ÖŸÑÅºÅπΩµîÅïπŸ•ÖëºÉäPÅïπ”çºÅìÑÅ¡Ö…Ñ(ÄÅç’…Ö»Å—’ëºÅ¡ï±ºÅπÖŸïùÖëΩ»∞Å≈’îÉ§ÅºÉÈπ•çºÅçÖµ•π°ºÅ¡Ö…ÑÅ≈’ï¥ÅªçºÅ—ï¥Å—ï…µ•πÖ∞∏(¥Ä®©ÕçΩ±°ÑÅîÅ…ΩìµÈ•º®®ËÅÅ¡•ç≠1•â…Ö…ÂΩŸï…ÄÅ¡ïùÑÅÑÅµÖ•ÃÅÖπ—•ùÑÅ≈’îÅªçºÅïÕ—ï©Ñ(ÄÅïπ—…îÅÖÃÉÈ±—•µÖÃÄ–¿Å’ÕÖëÖÃÄ°Å…ïçïπ—ΩŸï…A°Ω—Ω%ëÕÄ∞ÅÑÅµïÕµÑÅÖπ—•……ï¡ï—ßüçº(ÄÅ≈’îÅ´ÑÅï·•Õ—•Ñ§∏ÅMï¥ÅçΩ±’πÑÅëîÄãÈ±—•µÑÅŸïËÅ’ÕÖëÑàËÅÑÅï·ç±’œçºÅ´ÑÅ¡…Ωë’Ë(ÄÅ…ΩìµÈ•º∏(¥Ä®©=πëîÅÑÅ•µÖùï¥É§ÅÕï…Ÿ•ëÑ®®ËÅºÅ•êÅïÕçΩ±°•ëºÅŸÖ§ÅπºÅ)M=8ÅëºÅïπë¡Ω•π–∞Åº(ÄÅ…’ππï»ÅëºÅç—•ΩπÃÅâÖ•·ÑÅ¡Ω»ÅÄΩÖ¡§Ωµïë•Ñµ•µÖùïÃºÒ•ê˘ÄÅîÅºÅ¡•¡ï±•πîÅçΩµµ•—ÑÅº(ÄÅÖ…≈’•ŸºÅïÕ”Ö—•çºÅçΩµºÅÕïµ¡…îÅôïË∏ÅÕÕ•¥ÅÑÅç’…ÖëΩ…•ÑÉ§Å¡ï±ºÅπÖŸïùÖëΩ»ÅµÖÃÅÑ(ÄÅïπ—…ïùÑÉ§Å¡ï±ºÅ8∞ÅîÅÑÅçÖ¡ÑÅπ’πçÑÅŸ•…ÑÅ’µÑÅUI0ÅÄΩÖ¡§Ωµïë•Ñµ•µÖùïÃΩÄÉäPÅ≈’î(ÄÅÕï…•ÑÅâÖπçºÅÕï…Ÿ•πëºÅ•µÖùï¥ÅÑÅçÖëÑÅ±ï•—Ω»∞ÅîÅ…ïÖâ…•…•ÑÅÑÅç±ÖÕÕîÅëîÅâ’úÅëº(ÄÄ‘»»ÅπºÅâÖç≠ô•±∞∏(¥Ä®©ïù…ÖëÑÅï¥ÅçÖÕçÖ—Ñ®®ËÅâÖπçºÅŸÖÈ•º∞ÅΩ‘ÅëΩ›π±ΩÖêÅôÖ±°Öπëº∞ÅçÖ§ÅπºÅôÖ±±âÖç¨(ÄÅô•·ºÅ¡Ω»Åïë•—Ω…•ÑÄ°Å}ôÖ±±âÖç¨ºÒâïÖ–¯π©¡ùÄ∞Ä‘ÅÖ…≈’•ŸΩÃÅëîÄƒƒº¿‰§ÅîÅëï¡Ω•ÃÅπº(ÄÅçÖ…êÅ—•¡ΩùÀÖô•çº∏Å<ÅÅçÖ—ç°ÄÅπºÅªµŸï∞ÄƒÉ§Åëï±•âï…ÖëºËÅÑÅµÖ”•…•ÑÅ´ÑÅïÕ”Ñ(ÄÅ¡’â±•çÖëÑÅ≈’ÖπëºÅïÕÕîÅÕç…•¡–Å…ΩëÑ∞Åïπ”çºÅµΩ……ï»ÅÖ±§ÅÑÅëï•·Ö…•ÑÅÕï¥ÅçÖ¡Ñ∏(¥Ä®©Q;<ÉäPÅºÅâÖπçºÅïÕ”ÑÅŸÖÈ•ºÅ°Ω©î∏®®Å9ïπ°’µÑÅ•µÖùï¥ÅçΩ¥ÅïÕÕîÅ¡…ïô•·ºÅôΩ§(ÄÅçÖëÖÕ—…ÖëÑÅÖ•πëÑ∞Åïπ”çºÅ—ΩëÑÅµÖ”•…•ÑÅŸÖ§ÅÕÖ•»ÅçΩ¥ÅÑÅµïÕµÑÅôΩ—ºÅô•·ÑÅëÑ(ÄÅïë•—Ω…•ÑÅÖ”§Å≈’îÅÖ±ù◊•¥ÅÕ’âÑÅ•µÖùïπÃÅ¡ï±ºÅëµ•∏∏É$ÅºÅçΩµ¡Ω…—Öµïπ—ºÅ¡ïë•ëº∞(ÄÅµÖÃÉ§Å…ï¡ï—•—•ŸºËÅÕ’â•»Å’µÖÃÄ‘ÅÑÄƒ¿Å¡Ω»Åïë•—Ω…•ÑÅ…ïÕΩ±Ÿî∏((ååÅÖ…êÅëºÅ%πÕ—Öù…Ö¥Å¡ÖÕÕÑÅÑÅÕÖ•»ÅÖ’—Ω∑Ö—•çºÅÑÅçÖëÑÅ¡’â±•çáüçºÄ†»¿»ÿ¥¿‰¥ƒÃ§((¥Ä®©•Ÿ•œçºÅÖçΩ…ëÖëÑÅçΩ¥ÅºÅëΩπºÅëºÅ¡…Ω©ï—º®®ËÅï±îÅôΩ…πïçîÅÑÅµÖ”•…•Ñµ¡…•µÑ(ÄÅŸ•Õ’Ö∞Ä°•µÖùïπÃÅπÑÅâ•â±•Ω—ïçÑÅëºÅëµ•∏§∞ÅÑÅ∑Ö≈’•πÑÅÖ¡±•çÑÅºÅ¡ÖëÀçº∏Å<ÅçÖ…ê(ÄÅÕÖ§ÅπºÅïÕ—•±ºÅœÕâ…•ºÅ≈’îÅ´ÑÅï·•Õ—•Ñ∞ÅªçºÅπºÅïÕ—•±ºÅ—ï±ï©Ω…πÖ∞ÅçΩ¥ÅÕï±º(ÄÅUI9QÉäPÅÕîÅ—ΩëºÅ¡ΩÕ–É§Å’…ùïπ—î∞Äâ’…ùïπ—îàÅëï•·ÑÅëîÅÕ•ùπ•ô•çÖ»ÅÖ±ùº∞ÅîÅº(ÄÅÕ•—îÅÕîÅÖ¡…ïÕïπ—ÑÅçΩµºÅçΩâï…—’…ÑÅ©Ω…πÖ≥µÕ—•çÑÅ…ïÖ∞∏(¥Ä®©Ωµº®®ËÅ¡ÖÕÕºÅπΩŸºÅπºÅ›Ω…≠ô±Ω‹∞Åïπ—…îÅΩ—•µ•ÈÖ»ÅÑÅçÖ¡ÑÅîÅçΩµµ•”Ñµ±Ñ∞Å…ΩëÑ(ÄÅÅÕç…•¡—ÃΩ…ïπëï»µ•πÕ—Öù…Ö¥µçÖ…êπµ©ÕÄÅçΩ¥ÅÅ]%I}=UQ}%Hı¡’â±•åΩ•µÖùïÃΩ•πÕ—Öù…ÖµÄ∏(ÄÅ<Åùï…ÖëΩ»ÅùÖπ°Ω‘ÅÕ’¡Ω…—îÅÑÅïÕÕîÅëïÕ—•πºÏÅºÅ¡ÖëÀçºÅçΩπ—•π’ÑÅÅΩ’–Ω•πÕ—Öù…ÖµÄ(ÄÅ¡Ö…ÑÅ’ÕºÅµÖπ’Ö∞∏Å5ïÕµºÅ—…áùÖëºÅëºÅâΩ”çºÅëîÅÄΩâ±ΩúºëÕ±’ùÄÄ°ΩÃÅëΩ•ÃÅ•µ¡Ω…—Ö¥(ÄÅÅÕ…åΩ±•àΩ›•…îµ•πÕ—Öù…Ö¥µçÖ…êπ—ÕÄ§∞Åïπ”çºÅªçºÅï·•Õ—ï¥ÅëΩ•ÃÅçÖ…ëÃÅë•ôï…ïπ—ïÃ∏(¥Ä®©Ö…êÅîÅçÖ¡ÑÅ€çºÅπºÅ5M5<ÅçΩµµ•–®®∞ÅëîÅ¡…Ω√ÕÕ•—ºËÅçÖëÑÅçΩµµ•–ÅπºÅÅµÖ•πÄÉ§(ÄÅ’¥Åëï¡±Ω‰∞ÅîÅçÖëÑÅëï¡±Ω‰Å—…ΩçÑÅºÅ≈’îÅÑÅ¡…Ωë◊üçºÅïÕ”ÑÅÕï…Ÿ•πëº∏ÅU¥ÅçΩµµ•–ÅÑ(ÄÅµÖ•ÃÅ¡Ω»Å¡’â±•çáüçºÅëΩâ…Ö…•ÑÅïÕÕÑÅ—…ΩçÑ∏(¥Ä®©<Åïπë¡Ω•π–Å¡ÖÕÕΩ‘ÅÑÅëïŸΩ±Ÿï»ÅÅï·çï…¡—Ä®®∞Å≈’îÅÖ±•µïπ—ÑÅÑÅ±ïùïπëÑ∏ÅMï¥Åï±î(ÄÅÑÅ±ïùïπëÑÅÕÖ•…•ÑÅœÃÅçΩ¥ÅµÖπç°ï—îÅîÅ±•π¨∏(¥Ä®©=πëîÅïπçΩπ—…Ö»ÅºÅçÖ…ê®®ËÅÅ°——¡ÃËºΩŸï…Ωπ•çÖ°’àπçΩ¥Ω•µÖùïÃΩ•πÕ—Öù…Ö¥Ω›•…îµ—ÿ¥ÒÕ±’ú¯π©¡ùÄ(ÄÅîÅÑÅ±ïùïπëÑÅπºÅÄπ—·—ÄÅëîÅµïÕµºÅπΩµî∏ÅMï¥Å¡…ïç•ÕÖ»ÅÖâ…•»ÅÑÅµÖ”•…•ÑÅπï¥Å…ΩëÖ»(ÄÅπÖëÑÉäPÅºÅ≈’îÅ•µ¡Ω…—ÑÅ¡Ö…ÑÅ≈’ï¥ÅªçºÅ—ï¥Å—ï…µ•πÖ∞∏(¥Ä®©AΩ»Å≈’îÅªçºÅù’Ö…ëÖ»ÅºÅçÖ…êÅπÑÅâ•â±•Ω—ïçÑ®®ËÅ¯Ã‹‘Å-Å¡Ω»ÅµÖ”•…•Ñ∞Ä»–Å¡Ω»(ÄÅë•Ñ∞ÅìÑÅ¯‰Å5Ωë•ÑÅçΩπ—…ÑÅºÅ±•µ•—îÅëîÄ‘ƒ»Å5ÅëºÅ9ïΩ∏ÉäPÅïÕ—Ω’…Ö…•ÑÅï¥ÅµïπΩÃÅëî(ÄÅëΩ•ÃÅµïÕïÃ∏ÅÅâ•â±•Ω—ïçÑÅô•çÑÅ¡Ö…ÑÅÖÃÅ•µÖùïπÃÅëîÅΩ…•ùï¥∞Å≈’îÅœçºÅ¡Ω’çÖÃÅî(ÄÅ…ïÖ¡…ΩŸï•—ÖëÖÃÏÅºÅçÖ…êÉ§ÅÖÕÕï–ÅïÕ”Ö—•çºÅÕï…Ÿ•ëºÅ¡ï±ºÅ8∏(¥ÅÅπÖ¡§µ…ÃΩçÖπŸÖÕÄÅ;<ÅïÕ”ÑÅπºÅÅ¡Öç≠Öùîπ©ÕΩπÄ∞ÅÖºÅçΩπ—ÀÖ…•ºÅëºÅ≈’îÅë•ËÅº(ÄÅçΩµïπ”Ö…•ºÅëºÅÕç…•¡–∏Å<Å¡ÖÕÕºÅ•πÕ—Ö±ÑÅçΩ¥ÅÅπ¡¥Å•πÕ—Ö±∞Ä¥µπºµÕÖŸïÄ∞ÅµïÕµº(ÄÅ¡ÖëÀçºÅëºÅA±ÖÂ›…•ù°–∏(¥ÅQïÕ—îÅπΩŸºÅ—…ÖŸÑÅºÅÖçΩ¡±Öµïπ—ºÅïπ—…îÅΩπëîÅºÅçÖ…êÉ§Åùï…ÖëºÅîÅΩπëîÉ§(ÄÅçΩµµ•—ÖëºÉäPÅÕîÅë•Ÿï…ù•…ï¥∞ÅºÅçÖ…êÉ§Åùï…ÖëºÅîÅëïÕçÖ…—ÖëºÅÕï¥ÅπÖëÑÅôÖ±°Ö»∏((ååÅ]•…îÅQXÉäHÅ%πÕ—Öù…Ö¥ÅΩô•ç•Ö∞Ä†»¿»ÿ¥¿‰¥ƒÃ§((¥Å	ÖÕîÅçΩπÕΩ±•ëÖëÑËÅÑÅÅµÖ•πÄÅÖŸÖªùΩ‘ÅπΩŸÖµïπ—îÅë’…Öπ—îÅÑÅ•µ¡±ïµïπ—áüçºÏÅÑ(ÄÅ•π—ïù…áüçºÅô•πÖ∞ÅôΩ§ÅÖ¡±•çÖëÑÅÕΩâ…îÅÄ·Öå’êƒ≈Ä∞Å¡…ïÕï…ŸÖπëºÅºÅ—…ÖâÖ±°º(ÄÅ¡ΩÕ—ï…•Ω»ÅëîÅÖô•±•ÖëΩÃ∞ÅçÖ¡ÖÃ∞ÅâÖπçºÅç’…ÖëºÅîÅç…Ω∏Åïë•—Ω…•Ö∞∏(¥ÅAï…ô•∞ÅçÖª—π•çºÅçΩ……•ù•ëºÅï¥Å—ΩëºÅºÅ…’π—•µîÅ¡Ö…ÑÄ®©Å›•…ï}}—ŸÄ®®Ä°ëΩ•Ã(ÄÅÕ’â±•π°ÖëΩÃ§∞Å•πç±’•πëºÅÅM=%1}1%9-MÄÅîÅºÅçÖ…êÅçΩµ¡Ö…—•±£ÖŸï∞∏(¥Å9ΩŸºÅçΩπïç—Ω»ÅÕï…Ÿï»µΩπ±‰Åï¥ÅÅÕ…åΩ±•àΩ•πÕ—Öù…Ö¥µ¡’â±•Õ°ï»πÕï…Ÿï»π—ÕÄÅ¡Ö…ÑÅÑ(ÄÅ5ï—ÑÅ…Ö¡†ÅA$ËÅŸÖ±•ëÑÅÑÅçΩπ—ÑÅëîÅëïÕ—•πº∞Åç…•ÑÅºÅçΩπ—Ö•πï»∞ÅÖù’Ö…ëÑÅº(ÄÅ¡…ΩçïÕÕÖµïπ—ºÅîÅ¡’â±•çÑÅÑÅ∑µë•Ñ∏ÅÅç…ïëïπç•Ö∞Åπ’πçÑÅç°ïùÑÅÖºÅπÖŸïùÖëΩ»∏(¥ÅA…Ω—óüçºÅçΩπ—…ÑÅï……ºÅΩ¡ï…Öç•ΩπÖ∞ËÅÖπ—ïÃÅëîÅ¡’â±•çÖ»∞ÅºÅçΩπïç—Ω»ÅçΩπô•…µÑÅ≈’î(ÄÅÑÅç…ïëïπç•Ö∞Å¡ï…—ïπçîÅÑÅÅ›•…ï}}—ŸÄÏÅ—Öµã•¥Å¡…Ωç’…ÑÅÑÅUI0ÅçÖª—π•çÑÅï¥ÅÖ”§Ä‘¿¿(ÄÅ¡ΩÕ—ÃÅ…ïçïπ—ïÃÅîÅªçºÅç…•ÑÅë’¡±•çÖ—Ñ∏(¥Åπë¡Ω•π–ÅÄΩÖ¡§Ωç…Ω∏Ω¡’â±•Õ†µ•πÕ—Öù…ÖµÄÅ¡…Ω—ïù•ëºÅ¡ï±ºÅµïÕµºÅÅI=9}MIQÄÅëº(ÄÅ¡•¡ï±•πî∏Å<Å›Ω…≠ô±Ω‹ÅœÃÅºÅç°ÖµÑÅëï¡Ω•ÃÅëîÅºÅçÖ…êÅŸï…—•çÖ∞ÅïÕ—Ö»Åùï…Öëº∞(ÄÅ¡’â±•çÖëºÅîÅÑÅçÖ¡ÑÅ…ïù•Õ—…ÖëÑÅπºÅÖ…—•ùºÏÅÑÅUI0ÅÖçï•—ÑÉ§Å±•µ•—ÖëÑÅÖºÅë•…ï”Õ…•º(ÄÅΩô•ç•Ö∞ÅÄΩ•µÖùïÃΩ•πÕ—Öù…Ö¥Ω›•…îµ—ÿ¥©Ä∏ÅÖ±°ÑÅëÑÅ5ï—ÑÉ§ÅâïÕ–µïôôΩ…–ÅîÅªçº(ÄÅëï……’âÑÅÑÅµÖ”•…•Ñ∏(¥ÅÄΩÖëµ•∏ΩÖ…—•ùΩÕÄÅùÖπ°Ω‘Åë•ÖùªÕÕ—•çºÅëÑÅçΩπï„çºÅîÅâΩ”çºÅëîÅ¡’â±•çáüçºÅµÖπ’Ö∞(ÄÅ¡Ω»ÅµÖ”•…•Ñ∏Å<ÅâΩ”çºÅµÖπ’Ö∞Åô’πç•ΩπÑÅ¡Ö…ÑÅ°ΩµΩ±ΩùáüçºÅµïÕµºÅçΩ¥ÅºÅÖ’—Ω∑Ö—•çº(ÄÅëïÕ±•ùÖëº∏(¥ÅYÖ…ßÖŸï•ÃÅëΩç’µïπ—ÖëÖÃÅï¥ÅÄπïπÿπï·Öµ¡±ïÄ∏ÅÕ—ÖëºÅÕïù’…ºÅ•π•ç•Ö∞Ë(ÄÅÅ5Q}%9MQI5}UQ=AU	1%M ıôÖ±ÕïÄ∏ÅAÖ…ÑÅÖ—•ŸÖ»ÅôÖ±—Ö¥ÅºÅ%ÅëÑÅçΩπ—Ñ(ÄÅ¡…Ωô•ÕÕ•ΩπÖ∞ÅîÅºÅ—Ω≠ï∏ÅΩô•ç•Ö∞ÅëÑÅ5ï—ÑÏÅπïπ°’¥ÅÕïù…ïëºÅôΩ§Åç…•ÖëºÅΩ‘(ÄÅ•πŸïπ—ÖëºÅπºÅèÕë•ùº∏(¥ÅYï…•ô•çáüçºÅ±ΩçÖ∞ËÄƒÿºƒÿÅ—ïÕ—ïÃ∞Å—Â¡ïç°ïç¨ÅîÅâ’•±êÅ±Ω’ëô±Ö…îÅçΩµ¡±ï—ΩÃ∏((ååÅ•¥ÅëÖÃÅ•µÖùïπÃÅ…ï¡ï—•ëÖÃÅπÑÅ]•…îÅQXÄ†»¿»ÿ¥¿‰¥ƒ‘§((¥Ä®©5ïë•ëÑÅÖπ—ïÃÅëîÅµï·ï»®®ËÄƒ‰ÅëÖÃÄÃ‰ÅçÖ¡ÖÃÅï¥ÅÅ¡’â±•åΩ•µÖùïÃΩâ±ΩúµçΩŸï…ÕÄ(ÄÅï…Ö¥ÅèÕ¡•ÖÃÅâÂ—îÅÑÅâÂ—îÅ’µÖÃÅëÖÃÅΩ’—…ÖÃÅΩ‘ÅëîÅÅ}ôÖ±±âÖç¨ºÒïë•—Ω…•Ñ¯π©¡ùÄÉäP(ÄÅç•πçºÅ•µÖùïπÃÅ•±’Õ—…ÖπëºÄƒ‰ÅµÖ”•…•ÖÃ∏Å!ï…ÖªùÑÅë•…ï—ÑÅëºÅÖŸ•ÕºÅëÑÅÕóüçº(ÄÄâÖ¡ÑÅ¡ÖÕÕÑÅÑÅÕÖ•»ÅëîÅâÖπçºÅç’…ÖëºàËÅºÅâÖπçºÅç’…ÖëºÅëÑÅâ•â±•Ω—ïçÑÅëºÅëµ•∏(ÄÅçΩπ—•π’ÑÅŸÖÈ•º∞ÅîÅºÅªµŸï∞Ä»ÅëÑÅçÖÕçÖ—ÑÅçΩ¡•ÖŸÑÅÑÅôΩ—ºÅô•·ÑÅëÑÅïë•—Ω…•Ñ∏ÅΩµº(ÄÅºÅçÖ…êÅëºÅ%πÕ—Öù…Ö¥Å’ÕÑÅÑÅçÖ¡ÑÅçΩµºÅô’πëº∞ÅÑÅ…ï¡ï—ßüçºÅ—Öµã•¥ÅïÕ—ÖŸÑÅπÖÃ(ÄÅ¡óùÖÃÅëîÅë•Ÿ’±ùáüçº∏(¥Ä®©<Å≈’îÅÕ’âÕ—•—’•‘®®ËÅÅÕ…åΩ±•àΩ›•…îµçΩŸï»µÖ…–π—ÕÄÅëïÕïπ°ÑÅ’µÑÅçΩµ¡ΩÕßüçº(ÄÅÖâÕ—…Ö—ÑÄƒ»¿√\ÿÃ¿ÅÑÅ¡Ö…—•»ÅëîÅ’¥Å°ÖÕ†Å9X¥≈ÑÅëºÅÕ±’ú∏Å•πçºÅ—…áùÖëΩÃ(ÄÄ°ÅÕ•πÖ±Ä∞ÅÅΩ…â•—ÖÄ∞ÅÅïÕ¡ïç—…ΩÄ∞ÅÅµÖ±°ÖÄ∞ÅÅïÕ—…Ö—ΩÕÄ§∞Å¡Ö±ï—ÑÅëÑÅïë•—Ω…•ÑÅî(ÄÅ—ΩëÑÅŸÖ…•áüçºÉäPÅ¡ΩÕßüçºÅëΩÃÅ°Ö±ΩÃ∞ÅÖµ¡±•—’ëî∞Å≈’Öπ—•ëÖëî∞Éâπù’±ºÉäPÅÕΩ…—ïÖëÑ(ÄÅ¡Ω»Å’¥Åµ’±âï……‰Ã»ÅçΩ¥ÅÑÅÕïµïπ—îÅëºÅÕ±’ú∏Å’ÖÃÅµÖ”•…•ÖÃÅªçºÅ…ïçïâï¥ÅÑÅµïÕµÑ(ÄÅçÖ¡Ñ∞ÅîÅ…ïùï…Ö»ÅÑÅµïÕµÑÅµÖ”•…•ÑÅëïŸΩ±ŸîÅÑÅµïÕµÑÅ•µÖùï¥Ä°ëï—ï…µ•π•ÕµºÉ§(ÄÅ…ï≈’•Õ•—ºËÅÕï¥Åï±î∞ÅçÖëÑÅ¡ÖÕÕÖùï¥ÅëºÅâÖç≠ô•±∞Å—…ΩçÖ…•ÑÅçÖ¡ÑÅ´ÑÅ¡’â±•çÖëÑ§∏(¥Ä®©AΩ»Å≈’îÅÖ…—îÅîÅªçºÅôΩ—º®®ËÅÑÅëïç•œçºÅëîÄƒÃº¿‰ÅçΩπ—•π’ÑÅŸÖ±ïπëºÉäPÅôΩ—ºÅëî(ÄÅâÖπçºÅïÕçΩ±°•ëÑÅ¡Ω»Å—ï…µºÅ•πŸïπ—ÖëºÅô•πùîÅëΩç’µïπ—Ö»ÅºÅôÖ—º∏Å…—îÅùïΩ∑•—…•çÑ(ÄÉ§ÅÖÕÕ’µ•ëÖµïπ—îÅ•±’Õ—…Ö—•ŸÑ∏ÅïïêÅëîÅôΩ—ΩÃÅëîÅŸï…ëÖëîÅçΩπ—•π’ÑÅÕïπëºÅºÅâÖπçº(ÄÅç’…Öëº∞Å≈’îÅÕïù’îÅçΩµºÅªµŸï∞ÄƒÅîÅªçºÅôΩ§Å—ΩçÖëº∏(¥Ä®©Mï¥ÅµÖπç°ï—îÅπÑÅçÖ¡Ñ∞ÅëîÅ¡…Ω√ÕÕ•—º®®ËÅºÅçÖ…êÅëºÅ%πÕ—Öù…Ö¥Å…ïçΩ…—ÑÅÑÅçÖ¡Ñ(ÄÅ¡ï±ºÅçïπ—…ºÄ†‘¿–Å¡‡ÅëΩÃÄƒ»¿¿§ÅîÅïÕç…ïŸîÅÑÅµÖπç°ï—îÅ¡Ω»Åç•µÑ∏Å5Öπç°ï—îÅπÑ(ÄÅçÖ¡ÑÅÖ¡Ö…ïçï…•ÑÅë’ÖÃÅŸïÈïÃ∏ÅÅµÖ…çÑÄâ]%IÅQXàÅô•çÑÅπºÅçÖπ—ºÅ•πôï…•Ω»(ÄÅïÕ≈’ï…ëº∞Å©’Õ—Öµïπ—îÅπÑÅôÖ•·ÑÅ≈’îÅºÅ…ïçΩ…—îÄ–Ë‘ÅëïÕçÖ…—ÑÉäPÅ•ëïπ—•ô•çÑÅÑ(ÄÅ•µÖùï¥ÅçΩµºÅΩúÈ•µÖùîÅÕï¥Åë’¡±•çÖ»ÅºÄâ]%IÅQXàÅëºÅçÖ…ê∏(¥Ä®©ÖÕçÖ—ÑÅπΩŸÑ®®Åï¥ÅÅùïπï…Ö—îµÖ…—•ç±îπÂµ±ÄËÅâÖπçºÅç’…ÖëºÉäHÅÖ…—îÅùï…ÖëÑ(ÄÄ°ÅÕç…•¡—ÃΩ…ïπëï»µçΩŸï»µÖ…–πµ©ÕÄ§ÉäHÅôΩ—ºÅô•·ÑÅëÑÅïë•—Ω…•Ñ∞ÅîÅïÕ—ÑÅœÃÅÕîÅº(ÄÅçÖπŸÖÃÅªçºÅÕ’â•»∞Åëïπ—…ºÅëºÅ¡ÀÕ¡…•ºÅÕç…•¡–∏ÅÅÕç…•¡—ÃΩôï—ç†µçΩŸï»µ¡°Ω—ºπµ©ÕÄ(ÄÅëï•·Ω‘ÅëîÅçΩ¡•Ö»ÅºÅÅ}ôÖ±±âÖç≠Ä∏(¥Ä®©A±ÖÂ›…•ù°–ÅÕÖ•‘ÅëºÅ¡•¡ï±•πîÅëºÅ]•…î®®ËÅÅÕç…•¡—ÃΩ…ïπëï»µçΩŸï»πµ©ÕÄÄ°çÖ…ê(ÄÅ—•¡ΩùÀÖô•çº∞ÅªµŸï∞Ä–§ÅôΩ§Å…ïµΩŸ•ëº∞ÅîÅçΩ¥Åï±îÅΩÃÅëΩ•ÃÅ¡ÖÕÕΩÃÅ≈’îÅâÖ•·ÖŸÖ¥Å’¥(ÄÅ°…Ωµ•’¥ÅÑÅçÖëÑÅ…ΩëÖëÑÅ¡Ö…ÑÅëïÕïπ°Ö»ÅÕïµ¡…îÅºÅµïÕµºÅ±ÖÂΩ’–∏Å<ÅÅπÖ¡§µ…ÃΩçÖπŸÖÕÄ(ÄÅÖùΩ…ÑÉ§Å•πÕ—Ö±ÖëºÅ’µÑÅŸïËÅîÅÕï…ŸîÅÑÅÖ…—îÅîÅºÅçÖ…êÅëºÅ%πÕ—Öù…Ö¥∏Å<(ÄÅÅ…ïπëï»µ—…ïπë•πúµçΩŸï…Ãπµ©ÕÄÅëÑÅπÖ±Â—•çÃÅçΩπ—•π’ÑÅçΩ¥ÅA±ÖÂ›…•ù°–ÉäPÅΩ’—…º(ÄÅ¡•¡ï±•πî∞ÅªçºÅôΩ§Å—ΩçÖëº∏(¥Ä®©	Öç≠ô•±∞ÅÖ¡±•çÖëº®®ËÅÅÕç…•¡—ÃΩ…ïô…ïÕ†µ…ï¡ïÖ—ïêµçΩŸï…Ãπµ©ÕÄÅÖç°Ω‘ÅÖÃÄƒ‰(ÄÅ…ï¡ï—•ëÖÃÅ¡Ω»Å°ÖÕ†∞Åùï…Ω‘ÅÖ…—îÅ¡Ö…ÑÅçÖëÑÅ’µÑÅîÅ…ïëïÕïπ°Ω‘ÅΩÃÄƒ‰ÅçÖ…ëÃÅëº(ÄÅ%πÕ—Öù…Ö¥Ä†ƒ‡Åï·•Õ—ïπ—ïÃÄ¨ÄƒÅ≈’îÅôÖ±—ÖŸÑ§∏ÅÃÅ±ïùïπëÖÃÅÄπ—·—ÄÅï·•Õ—ïπ—ïÃ(ÄÅôΩ…Ö¥Å¡…ïÕï…ŸÖëÖÃËÅï±ÖÃÅ—…ÖÈï¥ÅºÅ…ïÕ’µºÅ≈’îÅºÅïπë¡Ω•π–ÅëïŸΩ±Ÿï‘ÅπÑ(ÄÅ¡’â±•çáüçº∞Å≈’îÅºÅµÖπ•ôïÕ—ºÅπï¥ÅÕïµ¡…îÅ—ï¥∏Å<ÅÕç…•¡–É§Åë…‰µ…’∏Å¡Ω»Å¡ÖëÀçºÅî(ÄÅ¡…ïç•ÕÑÅëîÅÄ¥µµÖπ•ôïÕ—ÄÅçΩ¥ÅÑÅ±•Õ—ÑÅëîÅµÖ”•…•ÖÃÅ¡’â±•çÖëÖÃÉäPÅï±îÅªçºÅÖë•Ÿ•π°Ñ(ÄÅïë•—Ω…•ÑÏÅÑÅçΩπÕ’±—ÑÅME0ÅïÕ”ÑÅπºÅçÖâóùÖ±°º∏(¥Ä®©AïÕº®®ËÅÖÃÅçÖ¡ÖÃÅ…ï¡ï—•ëÖÃÅ¡ïÕÖŸÖ¥Ä‡◊äL–ƒ‹Å-Ä°ôΩ—ΩÃ§ÏÅÑÅÖ…—îÅÕÖ§ÅçΩ¥(ÄÅ¯ÿ¿Å-∏Å<Å¡ÖÕÕºÅëîÅΩ—•µ•ÈáüçºÅçΩ¥Å%µÖùï5Öù•ç¨ÅÖùΩ…ÑÅœÃÅ…ΩëÑÅï¥ÅôΩ—ºÅëºÅâÖπçº(ÄÅç’…ÖëºÉäPÅºÄ–Ë»Ë¿ÅâΩ……Ö…•ÑÅÖÃÅ±•π°ÖÃÅô•πÖÃÅëÑÅçΩµ¡ΩÕßüçº∞ÅîÅÑÅÖ…—îÅ´ÑÅÕÖ§Åπº(ÄÅ—ÖµÖπ°ºÅîÅπºÅ¡ïÕºÅçï…—ΩÃ∏(¥Ä®©QïÕ—îÅ≈’îÅ—…ÖŸÑÅÑÅ…ïù…ïÕœçº®®ËÅÅπïπ°’µÑÅçÖ¡ÑÅ¡’â±•çÖëÑÅ…ï¡ï—îÅΩ’—…ÑÅπï¥ÅÑ(ÄÅôΩ—ºÅô•·ÑÅëÑÅïë•—Ω…•ÖÄÅçΩµ¡Ö…ÑÅºÅ°ÖÕ†ÅëîÅ—ΩëΩÃÅΩÃÅÖ…≈’•ŸΩÃÅçΩµµ•—ÖëΩÃ∏ÅMîÅÑ(ÄÅ…ï¡ï—ßüçºÅŸΩ±—Ö»Å¡Ω»Å≈’Ö±≈’ï»ÅçÖµ•π°º∞ÅÅπ¡¥Å—ïÕ—ÄÅÖç’ÕÑÉäPÅÖπ—ïÃÅï…ÑÅ’¥(ÄÅëïôï•—ºÅÕ•±ïπç•ΩÕº∞ÅçΩ¥ÅâÖπçºÅîÅ…ï¡ΩÕ•”Õ…•ºÅçΩπÕ•Õ—ïπ—ïÃÅîÅπÖëÑÅôÖ±°Öπëº∏(¥ÅYï…•ô•çáüçºÅ±ΩçÖ∞ËÄƒ‰ºƒ‰Å—ïÕ—ïÃ∞Å—Â¡ïç°ïç¨Å±•µ¡º∞Åâ’•±êÅ±Ω’ëô±Ö…îÅçΩµ¡±ï—º∏(ÄÅÃÅçÖ¡ÖÃÅîÅΩÃÅçÖ…ëÃÅôΩ…Ö¥ÅçΩπôï…•ëΩÃÅçΩµºÅ•µÖùï¥∞ÅªçºÅœÃÅçΩµºÅÖ…≈’•Ÿº∏(¥Ä®©Ωπ—•π’ÑÅŸÖ±ïπëº®®ËÅÕ’â•»Ä‘ÅÑÄƒ¿Å•µÖùïπÃÅ¡Ω»Åïë•—Ω…•ÑÅπºÅëµ•∏ÅçΩ¥Åº(ÄÅ¡…ïô•·ºÅÅ›•…îµâÖπçº¥Òïë•—Ω…•Ñ¯µÄÅôÖËÅÑÅµÖ”•…•ÑÅŸΩ±—Ö»ÅÑÅÕÖ•»ÅçΩ¥ÅôΩ—Ωù…Öô•Ñ∏(ÄÅÅÖ…—îÉ§ÅºÅ¡•Õº∞ÅªçºÅºÅ—ï—º∏((ååÅ	ÖπçºÅëîÅçÖ¡ÖÃÅÖâÖÕ—ïç•ëºÅ¡ï±ºÅAï·ï±ÃÄ†»¿»ÿ¥¿‰¥ƒ‘§((¥Ä®©Aïë•ëº®®ËÅŸΩ±—Ö»ÅÑÅ—ï»ÅôΩ—Ωù…Öô•ÑÅëîÅπΩ”µç•Ñ∞ÅªçºÅÖ…—îÅùï…ÖëÑ∏ÅÕçΩ±°•ëºÅº(ÄÅëïÕïπ°ºÄ°§ËÅÖâÖÕ—ïçï»ÅºÅâÖπçºÅç’…ÖëºÅëÑÅâ•â±•Ω—ïçÑÅëºÅëµ•∏∞Å≈’îÅºÅ¡•¡ï±•πî(ÄÄ®©´ÑÅ¡…ïôï…î®®ÅçΩµºÅªµŸï∞ÄƒÉäPÅπÖëÑÅπºÅçÖµ•π°ºÅëÑÅ¡’â±•çáüçºÅµ’ëÑ∞ÅîÅÑÅÖ…—î(ÄÅùï…ÖëÑÅëºÅÕ±’úÅçΩπ—•π’ÑÅçΩµºÅ¡•ÕºÅ¡Ö…ÑÅ≈’ÖπëºÅºÅâÖπçºÅªçºÅ—•Ÿï»Å•µÖùï¥∏(¥Ä®©AΩ»Å≈’îÅªçºÅÑÅâ’ÕçÑÅÖºÅŸ•ŸºÅ¡Ω»ÅµÖ”•…•ÑÄ°ëïÕïπ°ºÅ§®®ËÅï…ÑÅï·Ö—Öµïπ—îÅºÅ≈’î(ÄÅÕÖ•‘Åï¥ÄƒÃº¿‰∞Å≈’ÖπëºÅÑÅïπç°ïπ—îÅï¥ÅQï±ÖπùÖπÑÅùÖπ°Ω‘ÅôΩ—ºÅëîÅ…’ÑÅÖµï…•çÖπÑ(ÄÅçΩ¥Å¡±ÖçÑÄâI=Å1=Mà∏ÅÅë•ôï…ïªùÑÅÖ≈’§É§Å≈’îÅΩÃÅ—ï…µΩÃÅœçºÄ®©ç’…ÖëΩÃÉÄ(ÄÅ∑çº∞Å’µÑÅŸïË∞ÅîÅëï±•âï…ÖëÖµïπ—îÅùïª•…•çΩÃ®®Ä°Å›•πêÅ—’…â•πïÃÅô•ï±ëÄ∞(ÄÅÅëÖ—ÑÅçïπ—ï»ÅÕï…Ÿï»Å…ΩΩµÄ§ËÅ’µÑÅôΩ—ºÅëîÅ¡Ö…≈’îÅóÕ±•çºÅπÑÅïë•—Ω…•ÑÅëîÅç±•µÑÉ§(ÄÅÖÕÕ’µ•ëÖµïπ—îÅ•±’Õ—…Ö—•ŸÑ∞ÅªçºÅô•πùîÅ…ïù•Õ—…Ö»ÅºÅôÖ—ºÅëÑÅµÖ”•…•Ñ∏(¥Ä®©•Ÿ•œçºÅëîÅ—…ÖâÖ±°º∞Å•ù’Ö∞ÉÄÅëºÅ…ïÕ—ºÅëºÅ¡•¡ï±•πî®®ËÅ≈’ï¥Å—ï¥ÅÑÅç°ÖŸîÅîÅÑ(ÄÅ…ïëîÉ§ÅºÅ…’ππï»ÅëºÅç—•ΩπÃÄ°ÅÕç…•¡—ÃΩô•±∞µçΩŸï»µâÖπ¨πµ©ÕÄ§ÉäPÅâ’ÕçÑ∞Åô•±—…ÑÅî(ÄÅâÖ•·ÑÏÅºÅ]Ω…≠ï»ÅœÃÅŸÖ±•ëÑÅîÅù…ÖŸÑ∞Å¡ï±ºÅïπë¡Ω•π–ÅÄΩÖ¡§Ωç…Ω∏ΩçΩŸï»µâÖπ≠Ä(ÄÄ°PÅ•πŸïπ”Ö…•º∞ÅA=MPÅçÖëÖÕ—…º§∞Å¡…Ω—ïù•ëºÅ¡ï±ºÅµïÕµºÅÅI=9}MIQÄ∏Å(ÄÅÅAa1M}A%}-eÄÅªçºÅŸ•…ÑÅÕïç…ï–ÅëºÅ±Ω’ëô±Ö…î∞ÅîÅÑÅÅQ	M}UI1ÄÅªçºÅŸ•…Ñ(ÄÅÕïç…ï–ÅëºÅç—•ΩπÃ∏(¥Ä®©Õ—îÅ›Ω…≠ô±Ω‹Å;<ÅçΩµµ•—ÑÅîÅ;<Åë•Õ¡Ö…ÑÅëï¡±Ω‰®®ÉäPÉ§ÅÑÅë•ôï…ïªùÑÅ¡Ö…ÑÅº(ÄÅç…Ω∏Åïë•—Ω…•Ö∞∞Å≈’îÅçΩµµ•—ÑÅçÖ¡ÑÅπºÅÅµÖ•πÄ∏ÅÅ¡ï…µ•ÕÕ•ΩπÃËÅçΩπ—ïπ—ÃËÅ…ïÖëÄ∞Åî(ÄÅ’¥Å—ïÕ—îÅ—…ÖŸÑÅÑÅÖ’œ©πç•ÑÅëîÅÅù•–Å¡’Õ°ÄËÅÕîÅùÖπ°Ö»Å’¥∞ÅçÖëÑÅ…ΩëÖëÑÅÕïµÖπÖ∞(ÄÅ¡ÖÕÕÑÅÑÅ…ï¡’â±•çÖ»ÅºÅÕ•—î∏(¥Ä®©ïë’¡îÅÕï¥ÅçΩ±’πÑÅπΩŸÑ®®ËÅºÅπΩµîÅëºÅÖ…≈’•ŸºÅçÖ……ïùÑÅºÅ•êÅëÑÅôΩ—º(ÄÄ°Å›•…îµâÖπçº¥Òïë•—Ω…•Ñ¯µ¡ï·ï±Ã¥Ò•ê¯π©¡ùÄ§∞Åïπ”çºÅºÅëïë’¡îÅ¡Ω»Åô•±ïπÖµîÅ≈’îÅÑ(ÄÅâ•â±•Ω—ïçÑÅ´ÑÅ—ï¥Å•µ¡ïëîÅçÖëÖÕ—…Ö»ÅÑÅµïÕµÑÅôΩ—ºÅë’ÖÃÅŸïÈïÃ∏ÅU¥Å•êÅœÃÅïπ—…Ñ(ÄÅπ’µÑÅïë•—Ω…•ÑÉäPÅÑÅµïÕµÑÅôΩ—ºÅï¥Åë’ÖÃÅ…ïÖâ…•…•ÑÅÑÅ…ï¡ï—ßüçº∏(¥Ä®©Qï—ºÅëîÄ»–Å¡Ω»Åïë•—Ω…•Ñ®®∞Åç°ïçÖëºÅπºÅÕï…Ÿ•ëΩ»ÅîÅªçºÅœÃÅπºÅÕç…•¡–ËÅÑ(ÄÅâ•â±•Ω—ïçÑÉ§ÅAΩÕ—ù…ïÃÄ°9ïΩ∏∞Ä‘ƒ»Å5§ÅîÅçÖëÑÅôΩ—ºÅ¡ïÕÑÄ»¿√äL–¿¿Å-Åï¥ÅâÖÕîÿ–∏(ÄÅ<ÅÖ±ŸºÅ¡ÖëÀçºÉ§Ä‡Å¡Ω»Åïë•—Ω…•Ñ∞Å≈’îÅ´ÑÅù•…ÑÅâï¥ÅπºÅ…ΩìµÈ•ºÅëî(ÄÅÅ¡•ç≠1•â…Ö…ÂΩŸï…ÄÄ°ï±îÅïŸ•—ÑÅÖÃÉÈ±—•µÖÃÄ–¿Å’ÕÖëÖÃ§∏(¥Ä®©À•ë•—ºÅëºÅôΩ”Õù…Öôº®®ËÅµΩ…ÑÅπºÅÅÖ±—Qï·—ÄÅëÑÅ•µÖùï¥∞Å¡Ω…≈’îÅÑÅâ•â±•Ω—ïçÑ(ÄÅªçºÅ—ï¥ÅçΩ±’πÑÅ¡Ö…ÑÅï±îÉäPÅîÅºÅÅÖ±—Qï·—ÄÉ§Å©’Õ—Öµïπ—îÅºÅçÖµ¡ºÅ≈’îÅºÅëµ•∏(ÄÅµΩÕ—…Ñ∞Åïπ”çºÅ≈’ï¥Åç’…ÑÅ¡ï±ºÅπÖŸïùÖëΩ»Å≥®ÅºÅçÀ•ë•—º∏ÅÅâ’•±ë	Öπ≠±—Qï·—ÄÅî(ÄÅÅ¡Ö…Õï	Öπ≠…ïë•—ÄÅœçºÅ’¥Å¡Ö»ÅçΩ¥Å—ïÕ—îÅëîÅ•ëÑÅîÅŸΩ±—Ñ∏Å<ÅçÀ•ë•—ºÅÖ—…ÖŸïÕÕÑ(ÄÅ≈’Ö—…ºÅï±ΩÃÅÖ”§ÅÑÅçΩ±’πÑÅÅ¡°Ω—Ω…ïë•—ÄÅëÑÅµÖ”•…•ÑËÅ…ïÕ¡ΩÕ—ÑÅëºÅç…Ω∏ÉäH(ÄÅ›Ω…≠ô±Ω‹ÉäHÅÅ=YI}1%	IIe}I%QÄÉäHÅÕáµëÑÅëºÅÅôï—ç†µçΩŸï»µ¡°Ω—ºπµ©ÕÄ∏ÅU¥(ÄÅ—ïÕ—îÅ—…ÖŸÑÅΩÃÅ≈’Ö—…º∞Å¡Ω…≈’îÅÕîÅ’¥ÅÕ’µ•»ÅÑÅôΩ—ºÅçΩπ—•π’ÑÅÕïπëºÅ¡’â±•çÖëÑÅî(ÄÅœÃÅºÅçÀ•ë•—ºÅÕΩµî∞ÅÕï¥ÅπÖëÑÅôÖ±°Ö»∏(¥Ä®©A99Q∞Åëïç•œçºÅÕ’Ñ®®ËÅπïπ°’µÑÅ√Öù•πÑÅëºÅÕ•—îÅï·•âîÅÅ¡°Ω—Ω…ïë•—ÄÅ°Ω©îÉäP(ÄÅÑÅçΩ±’πÑÉ§Åù…ÖŸÖëÑÅîÅπ•πù◊•¥Å≥®∏Å<ÅëÖëºÅ¡ÖÕÕΩ‘ÅÑÅÕï»ÅçÖ¡—’…ÖëºÅÖùΩ…ÑÅ¡Ω…≈’î(ÄÅªçºÅìÑÅ¡Ö…ÑÅ…ïç’¡ï…Ö»Åëï¡Ω•ÃÏÅΩπëîÅµΩÕ—…Ö»Ä°…ΩëÖ√§ÅëÑÅçÖ¡ÑÅπÑÅµÖ”•…•Ñ∞(ÄÅ±ïùïπëÑÅëºÅ%πÕ—Öù…Ö¥∞ÅΩÃÅëΩ•Ã§ÅçΩπ—•π’ÑÅï¥ÅÖâï…—º∏(¥Ä®©IΩëÖ»®®ËÅÅ›Ω…≠ô±Ω›}ë•Õ¡Ö—ç°ÄÅï¥ÄââÖÕ—ïçîÅºÅâÖπçºÅëîÅçÖ¡ÖÃÄ°]•…îÅQX§à∞ÅçΩ¥(ÄÅÅë…Â}…’πÄÅ¡Ö…ÑÅçΩπôï…•»ÅÖπ—ïÃÅëîÅù…ÖŸÖ»∏ÅUÕÑÅΩÃÅÕïç…ï—ÃÅÅAa1M}A%}-eÄÅî(ÄÅÅI=9}MIQÄ∞Å≈’îÅ´ÑÅï·•Õ—ï¥ÅπºÅ…ï¡ΩÕ•”Õ…•º∏(¥ÅYï…•ô•çáüçºÅ±ΩçÖ∞ËÄ»»º»»Å—ïÕ—ïÃ∞Å—Â¡ïç°ïç¨ÅîÅâ’•±êÅ±Ω’ëô±Ö…î∏Ä®©;çºÅôΩ§(ÄÅ¡ΩÕœµŸï∞Å…ΩëÖ»ÅºÅÕç…•¡–ÅëîÅŸï…ëÖëîÅëÖ≈’§®®ËÅºÅ¡…Ω·‰ÅëïÕ—îÅÖµâ•ïπ—îÅëïŸΩ±Ÿî(ÄÄ–¿ÃÅπºÅ=99PÅ¡Ö…ÑÅÅÖ¡§π¡ï·ï±ÃπçΩµÄÅîÅÅ•µÖùïÃπ¡ï·ï±ÃπçΩµÄ∞ÅîÅÑ(ÄÅÅAa1M}A%}-eÄÅªçºÅï·•Õ—îÅπÑÅÕïÕœçº∏ÅÅ¡…•µï•…ÑÅ…ΩëÖëÑÅëîÅŸï…ëÖëîÉ§Åπº(ÄÅç—•ΩπÃ∞ÅîÉ§Åï±ÑÅ≈’îÅŸÖ§Åë•Èï»ÅÕîÅΩÃÅ—ï…µΩÃÅ…ïπëï¥ÅôΩ—ºÅâΩÑ∏((ååÅIïç’ÕÑÅïë•—Ω…•Ö∞Åëï•·ÖŸÑÅÑÅ…ΩëÖëÑÅŸï…µï±°ÑÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Ä®©ç°ÖëºÅÖºÅ•πŸïÕ—•ùÖ»ÄâºÅµÖ•∏ÅªçºÅ¡’â±•çÑÅëïÕëîÅΩπ—ï¥à®®ËÅºÅç…Ω∏Å;<Å¡Ö…Ω‘∏(ÄÅÕ”ÑÅë•Õ¡Ö…ÖπëºÅëîÅ°Ω…ÑÅï¥Å°Ω…Ñ∞Åç•πçºÅÕïù’πëΩÃÅëï¡Ω•ÃÅëÑÅ°Ω…ÑÅç°ï•ÑÉäPÅº(ÄÅ—Ω≠ï∏ÅëºÅ]Ω…≠ï»ÅïÕ”ÑÅ€Ö±•ëºÅîÅºÅ…Ω∏ÅQ…•ùùï»ÅëºÅ±Ω’ëô±Ö…îÅô’πç•ΩπÑ∏ÅΩ…Ö¥(ÄÅ≈’Ö—…ºÅ…ΩëÖëÖÃÅÕïù’•ëÖÃÅÕï¥Å¡’â±•çÖ»∞Å¡Ω»Å≈’Ö—…ºÅµΩ—•ŸΩÃÅë•ôï…ïπ—ïÃË(ÄÄ»ƒË¿¿ÅŸï…ëîÅÕï¥Å¡’â±•çáüçºÏÄ»»Ë¿¿Ä°ïçΩπΩµ•Ñ§Ä–¿¿ÅëºÅ¡…ΩŸïëΩ»ÅëîÅ%ÏÄ»ÃË¿¿(ÄÄ°ùïΩ¡Ω≥µ—•çÑ§Å…ïç’ÕÑÅëºÅµΩëï±ºÏÄ¿¿Ë¿¿Ä°%§ÅëÖ—ÑÅëºÅôÖ—ºÅôΩ…ÑÅëÑÅ©Öπï±ÑÅëî(ÄÄ‹…†∏Å’ÖÃÅœçºÅºÅ¡•ÕºÅïë•—Ω…•Ö∞Åô’πç•ΩπÖπëº∏(¥Ä®©ïôï•—ºÅ…ïÖ∞∞ÅïÕ—îÅÕ•¥®®ËÅÑÅ…ïç’ÕÑÅëºÅµΩëï±ºÉ§ÅÑÉÈπ•çÑÅµïπÕÖùï¥ÅëÑÅ±•Õ—ÑÅëî(ÄÅÅ•Õë•—Ω…•Ö±M≠•¡ÄÅ≈’îÅºÅ¡ÀÕ¡…•ºÅµΩëï±ºÅïÕç…ïŸî∞ÅîÅï…ÑÅçÖÕÖëÑÅ¡Ω»Å¡…ïô•·º(ÄÅï·Ö—º∏Å9ÖÃÅë’ÖÃÅ…ΩëÖëÖÃÅŸï…µï±°ÖÃÅï±îÅïÕ—ÖŸÑÅë•ÈïπëºÅï·Ö—Öµïπ—îÅºÅ≈’îÅº(ÄÅ¡…Ωµ¡–ÅµÖπëÑÅë•Èï»Å≈’ÖπëºÅªçºÅ£ÑÅôÖ—º∞ÅµÖÃÅëîÅôΩ…µÖÃÅ≈’îÅºÅ¡…ïô•·ºÅªçº(ÄÅÖ±çÖªùΩ‘Ë(ÄÄ¥ÅÄâÕï¥ÅŸï…•õÖŸï∞ÅπºÅµΩµïπ—ºÄ°…ÖëÖ»ËÄƒÅ¡Ö’—Ñ§âÄÉäPÅï……ºÅëîÅë•ù•—áüçºÅëï±î∏(ÄÄ¥ÅÄ–¿¿Ä∏∏∏Å—ΩΩ±}’Õï}ôÖ•±ïëÄ∞ÅçΩ¥ÅÅôÖ•±ïë}ùïπï…Ö—•ΩπÄÅçΩπ—ïπëºÅÑÅô…ÖÕîÅçï…—Ñ(ÄÄÄÅïµâ…’±°ÖëÑÅπ’µÑÅç°ÖµÖëÑÅëîÅôï……Öµïπ—ÑÅ•π€Ö±•ëÑ∏(ÄÅIïç’ÕÑÅïë•—Ω…•Ö∞Å±ïüµ—•µÑÅŸ•…ÖπëºÄ‘¿»ÅîÅ…ΩëÖëÑÅŸï…µï±°ÑÉ§ÅºÅ≈’îÅ¡Ω±’§Åº(ÄÅ°•Õ”Õ…•çºÅîÅïÕçΩπëîÅôÖ±°ÑÅëîÅŸï…ëÖëîÅπºÅµï•º∏(¥Ä®©Ω……•ù•ëº®®ËÅÑÅçΩµ¡Ö…áüçºÅëÑÅ…ïç’ÕÑÅëºÅµΩëï±ºÅô•çΩ‘Å—Ω±ï…Öπ—îÉäPÅÖçïπ—ºÅî(ÄÅçÖ•·ÑÅπΩ…µÖ±•ÈÖëΩÃ∞Åµ•Ω±ºÅëÑÅ¡Ö±ÖŸ…ÑÅô…Ω’·ºÄ°ÅŸï…•ôq‹©Ÿï±Ä§ÅîÅâ’ÕçÑÅï¥(ÄÅ≈’Ö±≈’ï»Å¡ΩÕßüçº∞Å≈’îÉ§ÅºÅ≈’îÅÖ±çÖªùÑÅÑÅô…ÖÕîÅëïπ—…ºÅëºÅçΩ…¡ºÅëîÅï……ºÅëº(ÄÅ¡…ΩŸïëΩ»∏ÅÃÅΩ’—…ÖÃÅµïπÕÖùïπÃÅœçºÅïÕç…•—ÖÃÅ¡ï±ºÅÕï…Ÿ•ëΩ»∞ÅçΩ¥Å—ï·—º(ÄÅëï—ï…µ•ªµÕ—•çº∞ÅîÅçΩπ—•π’Ö¥ÅçÖÕÖπëºÅ¡Ω»Å¡…ïô•·ºÅï·Ö—º∏ÅU¥ÅÅ—ΩΩ±}’Õï}ôÖ•±ïëÄ(ÄÅM4ÅÑÅô…ÖÕîÅëïπ—…ºÅçΩπ—•π’ÑÅŸï…µï±°º∞Å≈’îÉ§ÅºÅçΩ……ï—ºËÅá¥É§Å•πô…ÖïÕ—…’—’…Ñ∞(ÄÅªçºÅïë•—Ω…•Ö∞∏(¥ÅÅ•Õë•—Ω…•Ö±M≠•¡ÄÅÕÖ•‘ÅëîÅÅÖ…—•ç±îµç…Ω∏π—ÕÄÅ¡Ö…ÑÅÅÕ…åΩ±•àΩïë•—Ω…•Ö∞µÕ≠•¿π—ÕÄ∞(ÄÅ∑Õë’±ºÅ¡’…º∞Å¡Ö…ÑÅ¡Ωëï»ÅÕï»Å—ïÕ—ÖëºÅçΩ¥ÅÖÃÅÕ—…•πùÃÅ…ïÖ•ÃÅëÖÃÅë’ÖÃÅ…ΩëÖëÖÃÉäP(ÄÅÅÖ…—•ç±îµç…ΩπÄÅ•µ¡Ω…—ÑÅâÖπçºÅîÅªçºÅÕΩâîÅπ’¥Å—ïÕ—îÅëîÅ9Ωëî∏Å<Å—ïÕ—îÅÖπ—•ùº(ÄÅçΩπôï…•ÑÅºÅôΩ…µÖ—ºÅëÑÅ±•Õ—ÑÅëîÅ¡…ïô•·ΩÃÏÅ¡ÖÕÕΩ‘ÅÑÅçΩπôï…•»ÅçΩµ¡Ω…—Öµïπ—º∏(¥Ä®©;<ÅôΩ§Åµï·•ëºÅπºÅ¡•ÕºÅïë•—Ω…•Ö∞∏®®ÅIïç’ÕÖ»Å¡’â±•çÖ»ÅºÅ≈’îÅªçºÅÕî(ÄÅçΩπô•…µΩ‘Åï¥Åë’ÖÃÅôΩπ—ïÃÅçΩπ—•π’ÑÅ•ù’Ö∞∏Å<Å≈’îÅµ’ëΩ‘É§ÅœÃÅçΩµºÅïÕÕÑÅ…ïç’ÕÑ(ÄÅÖ¡Ö…ïçîÅπºÅ°•Õ”Õ…•çºÅëºÅç—•ΩπÃ∏((ååÅ5ïëßüçºÅ≈’îÅçΩπ—…Ö…•ÑÅºÅÖŸ•ÕºÅëºÅëï¡±Ω‰ÅÑÅçÖëÑÅ¡’Õ†Ä†»¿»ÿ¥¿‰¥ƒÿ§((¥Ä®©Ω•ÃÅ¡’Õ°ïÃÅπºÅâ…Öπç†ÅÅç±Ö’ëîΩ›•…îµ—ÿµ•πÕ—Öù…Ö¥µ•µÖùïÃµ›°—Õÿ›ÄÅ;<Åùï…Ö…Ö¥(ÄÅëï¡±Ω‰∏®®Å<Å]Ω…≠ï»ÅëîÅ¡…Ωë◊üçºÅÅŸï…Ωπ•çÖ°’àµÖ¡¡ÄÅ—ï¥(ÄÅÅµΩë•ô•ïë}Ω∏ÄÙÄ»¿»ÿ¥¿‰¥ƒ’P»¿Ë¿ÃË»·iÄ∞Å≈’îÉ§ÅºÅëï¡±Ω‰ÅëºÅçΩµµ•–ÅÄÃ¡çââà≈Ä(ÄÄ°çÖ¡ÑÅÖ’—Ω∑Ö—•çÑÅëÖÃÄ»¿Ë¿»ÅπºÅÅµÖ•πÄ§∏Å=ÃÅ¡’Õ°ïÃÅôΩ…Ö¥Ä»ÃË‘¿ÅîÄ¿¿Ë¿ÃÅîÅªçº(ÄÅ—ΩçÖ…Ö¥ÅºÅ]Ω…≠ï»∏(¥Å=‘ÅÕï©ÑËÅ°Ω©îÅÑÅ¡…Ωë◊üçºÅÕïù’îÅºÅÅµÖ•πÄ∞ÅîÅªçºÄâ≈’Ö±≈’ï»Åâ…Öπç†à∏Å;çºÅìÑÅ¡Ö…Ñ(ÄÅÕÖâï»ÅëÖ≈’§ÅÕîÅÑÅçΩπô•ù’…áüçºÅëºÅ±Ω’ëô±Ö…îÅµ’ëΩ‘ÅëïÕëîÅºÅÕ’Õ—ºÅëΩç’µïπ—Öëº(ÄÅπÑÅÕóüçºÄâ=πëîÅïÕ—ÖµΩÃàÉäPÅºÅ≈’îÅÕîÅÕÖâîÉ§ÅÑÅµïëßüçºÅÖç•µÑ∏(¥Ä®©ΩπÕï≈◊©πç•ÑÅ¡ÀÖ—•çÑ®®ËÅπÖëÑÅëºÅ—…ÖâÖ±°ºÅëºÅâ…Öπç†ÅïÕ”ÑÅπºÅÖ»ÅÖ”§ÅµïÕç±Ö»∏(ÄÅÃÄƒ‡ÅçÖ¡ÖÃÅ…ï¡ï—•ëÖÃÅçΩπ—•π’Ö¥ÅÕïπëºÅÕï…Ÿ•ëÖÃ∞ÅºÅïπë¡Ω•π–ÅëºÅâÖπçºÅªçº(ÄÅï·•Õ—îÅï¥Å¡…Ωë◊üçº∞ÅîÅºÅ›Ω…≠ô±Ω‹ÅëîÅÖâÖÕ—ïç•µïπ—ºÅπï¥ÅÖ¡Ö…ïçîÅπºÅç—•ΩπÃ(ÄÄ°ºÅ•—!’àÅœÃÅ±•Õ—ÑÅÅ›Ω…≠ô±Ω›}ë•Õ¡Ö—ç°ÄÅëîÅ›Ω…≠ô±Ω‹Å≈’îÅïÕ”ÑÅπºÅâ…Öπç†Å¡ÖëÀçº§∏(¥Ä®©Iïù…ÑÅ≈’îÅçΩπ—•π’ÑÅŸÖ±ïπëºÅ¡Ω»Å¡…ïçÖ◊üçº®®ËÅÅù•–Åôï—ç†ÅΩ…•ù•∏ÅµÖ•∏Äòò(ÄÅù•–Åµï…ùîÅΩ…•ù•∏ΩµÖ•πÄÅ•µïë•Ö—Öµïπ—îÅÖπ—ïÃÅëîÅ≈’Ö±≈’ï»Å¡’Õ†∏ÅUµÑÅµïëßüçºÅªçº(ÄÅëï……’âÑÅºÅ…•ÕçºÅëîÅ’µÑÅçΩπô•ù’…áüçºÅŸΩ±—Ö»ÅÑÅµ’ëÖ»∏((ååÅ•Õ—…•â’ßüçºÅëΩÃÅ—ï…µΩÃÅπºÅâÖπçºÅëîÅçÖ¡ÖÃÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Ä®©5ïë•ëºÅπºÅ¡…•µï•…ºÅë…‰Å…’∏®®∞Å≈’îÉ§Å¡Ö…ÑÅºÅ≈’îÅï±îÅÕï…ŸîËÅºÅÖâÖÕ—ïç•µïπ—º(ÄÅçÖëÖÕ—…Ö…•ÑÄ–¿ÅôΩ—ΩÃ∞Ä‡Å¡Ω»Åïë•—Ω…•Ñ∞ÅçΩ¥ÅôΩ”Õù…ÖôºÅï¥Å—ΩëÖÃÉäPÅµÖÃÄ®©ÖÃÄ‡Åëî(ÄÅçÖëÑÅïë•—Ω…•ÑÅŸ•πëºÅëîÅ’¥ÉÈπ•çºÅ—ï…µº®®∏Å±•µÑÅ•π—ï•…ºÅëîÅÅ›•πêÅ—’…â•πïÃ(ÄÅô•ï±ëÄ∞ÅùïΩ¡Ω≥µ—•çÑÅ•π—ï•…ÑÅëîÅÅ•π—ï…πÖ—•ΩπÖ∞Åô±ÖùÃÅ…Ω›Ä∏(¥Ä®©AΩ»Å≈’îÅ¡ÖÕÕÖ…•ÑÅëïÕ¡ï…çïâ•ëº®®ËÅœçºÅôΩ—ΩÃÅë•ôï…ïπ—ïÃ∞Åïπ”çºÅπï¥ÅºÅëïë’¡î(ÄÅ¡Ω»Å•êÅπï¥ÅºÅ—ïÕ—îÅëîÅ°ÖÕ†ÅëÖÃÅçÖ¡ÖÃÅÖç’ÕÖ…•Ö¥ÅπÖëÑ∏É$ÅÑÅµïÕµÑÄ©çïπÑ®ÅΩ•—º(ÄÅŸïÈïÃ∞Å≈’îÅπÑÅ°ΩµîÅ≥®ÅçΩµºÅ…ï¡ï—ßüçºÉäPÅï·Ö—Öµïπ—îÅºÅ≈’îÅºÅâÖπçºÅï·•Õ—îÅ¡Ö…Ñ(ÄÅ…ïÕΩ±Ÿï»∏(¥Ä®©Ö’ÕÑ®®ËÅºÅ±áùºÅ¡ï…çΩ……•ÑÅΩÃÅ—ï…µΩÃÅï¥ÅΩ…ëï¥ÅîÅœÃÅ¡ÖÕÕÖŸÑÅÖºÅ¡ÀÕ·•µºÅ≈’Öπëº(ÄÅºÅÖπ—ï…•Ω»ÅªçºÅ…ïπë•ÑÅµÖ•Ã∏Å<Å¡…•µï•…ºÅ—ï…µºÅïπç°•ÑÅÑÅçΩ—ÑÅÕΩÈ•π°º∏(¥Ä®©Ω……•ù•ëº®®ËÅâ’ÕçÑÅ—ΩëΩÃÅΩÃÅ—ï…µΩÃÅÖπ—ïÃÅëîÅçΩπÕ’µ•»ÅîÅ•π—ï…çÖ±Ñ(ÄÄ°Å•π—ï…±ïÖŸï	ÂQï…µÄ∞Åï¥ÅÅÕ…åΩ±•àΩçΩŸï»µâÖπ¨π—ÕÄ§∏ÅUµÑÅïë•—Ω…•ÑÅçΩ¥ÅÕï•Ã(ÄÅ—ï…µΩÃÅîÅÖ±ŸºÅëîÅΩ•—ºÅ…ïçïâîÅ¡ï±ºÅµïπΩÃÅ’µÑÅôΩ—ºÅëîÅçÖëÑÅçïπÑÅÖπ—ïÃÅëî(ÄÅ…ï¡ï—•»Å≈’Ö±≈’ï»Å—ï…µº∏ÅΩµºÅÖùΩ…ÑÅ—ΩëΩÃÅΩÃÅ—ï…µΩÃÅœçºÅâ’ÕçÖëΩÃÅÖπ—ïÃÅëî(ÄÅ≈’Ö±≈’ï»ÅçΩπÕ’µº∞ÅëΩ•ÃÅ¡Ωëï¥ÅëïŸΩ±Ÿï»ÅÑÅµïÕµÑÅôΩ—ºÉäPÅºÅ±áùºÅëîÅçΩπÕ’µº(ÄÅç°ïçÑÅÅ’Õïë%ëÕÄÅëîÅπΩŸºÅ¡Ω»Å•ÕÕº∏(¥ÅQÖµã•¥ÅŸï…•ô•çÖëºÅπïÕ—ÑÅ…ΩëÖëÑËÅºÅµï…ùîÅëºÅAHÄåƒ¿¿Åë•Õ¡Ö…Ω‘ÅÑÅ…ΩëÖëÑÅëî(ÄÅŸÖ±•ëáüçºÅëºÅ¡•¡ï±•πîÅïë•—Ω…•Ö∞ÅîÅ¡’â±•çΩ‘ÅÑÅµÖ”•…•ÑÅëÑÅÖ±•õÕ…π•ÑÅçΩ¥ÅÑ(ÄÅçÖÕçÖ—ÑÅπΩŸÑ∏Å…—îÅëîÅçÖ¡ÑÅï¥ÄƒÅÃ∞ÅçÖ…êÅëºÅ%πÕ—Öù…Ö¥Åï¥ÄƒÅÃ∞ÅΩ—•µ•ÈáüçºÅçΩ¥(ÄÅ%µÖùï5Öù•ç¨Å¡’±ÖëÑÄ°çΩ……ï—ºÉäPÅœÃÅ…ΩëÑÅï¥ÅôΩ—ºÅëºÅâÖπçºÅç’…Öëº§∏Å<Å]Ω…≠ï»Åëî(ÄÅ¡…Ωë◊üçºÅôΩ§ÅÖ—’Ö±•ÈÖëºÉÅÃÄ¿¿Ëƒ‹Ë–Õh∞Å±ΩùºÅÖ√ÕÃÅºÅµï…ùîÅëÖÃÄ¿¿ËƒÿË‘≈h∏((ååÅÖ¡ÖÃÅëîÅÖ…—îÅ—…ΩçÖëÖÃÅ¡Ω»ÅôΩ—Ωù…Öô•ÑÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Ä®©ïç•œçºÅëºÅëΩπº®®ËÅÑÅÖ…—îÅùï…ÖëÑÅªçºÅëïŸîÅô•çÖ»ÅπºÅÖ»∏Å±ÑÅôΩ§Åôï•—ÑÅçΩµº(ÄÅ¡•ÕºÅ¡Ö…ÑÅ≈’ÖπëºÅºÅâÖπçºÅïÕ—ÖŸÑÅŸÖÈ•ºÏÅçΩ¥ÅºÅâÖπçºÅÖâÖÕ—ïç•ëºÄ†ƒÿÅôΩ—ΩÃÅ¡Ω»(ÄÅïë•—Ω…•Ñ§∞ÅÖÃÄ»ÿÅµÖ”•…•ÖÃÅ¡’â±•çÖëÖÃÅçΩ¥ÅÅçΩŸï…A°Ω—Ω%ëÄÅπ’±ºÅ¡ÖÕÕÖ¥ÅÑ(ÄÅ…ïçïâï»ÅôΩ—º∏(¥ÅÅçΩŸï…A°Ω—Ω%êÅ%LÅ9U11ÄÉ§ÅºÅ≈’îÅ•ëïπ—•ô•çÑÅçÖ¡ÑÅÕï¥ÅôΩ—Ωù…Öô•ÑÉäPÅ¡ïùÑÅÖ…—î(ÄÅùï…ÖëÑ∞ÅçÖ…êÅ—•¡ΩùÀÖô•çºÅÖπ—•ùºÅîÅôΩ—ºÅô•·ÑÅëÑÅïë•—Ω…•ÑÅëîÅ’µÑÅŸïË∞ÅÕï¥(ÄÅ¡…ïç•ÕÖ»ÅçΩµ¡Ö…Ö»Å•µÖùï¥∏(¥Ä®©E’ï¥ÅïÕçΩ±°îÉ§ÅºÅÕï…Ÿ•ëΩ»®®Ä°ÄΩÖ¡§Ωç…Ω∏ΩÖ…–µçΩŸï…ÕÄ§ËÅÑÅë•Õ—…•â’ßüçº(ÄÅ¡…ïç•ÕÑÅëºÅâÖπçºÅ•π—ï•…ºÉÄÅŸ•Õ—ÑÅ¡Ö…ÑÅªçºÅëÖ»ÅÑÅµïÕµÑÅôΩ—ºÅÑÅë’ÖÃÅµÖ”•…•ÖÃ∞(ÄÅîÅ≈’ï¥Å—ï¥ÅïÕÕÑÅŸ•œçºÉ§ÅºÅÕï…Ÿ•ëΩ»∞ÅªçºÅºÅ…’ππï»∏Å±îÅëïŸΩ±Ÿî∞Å¡Ω»ÅµÖ”•…•Ñ∞(ÄÅÑÅôΩ—ºÅÖ—…•â◊µëÑÅîÅºÅçÀ•ë•—º∞ÅîÅÕ•πÖ±•ÈÑÅÅ…ï¡ï—•ëÖÕÄÅ≈’ÖπëºÅºÅâÖπçºÅëîÅ’µÑ(ÄÅïë•—Ω…•ÑÅªçºÅìÑÅ¡Ö…ÑÅ—ΩëÖÃ∏(¥Ä®©E’ï¥ÅâÖ•·ÑÅîÅçΩµµ•—ÑÉ§ÅºÅ…’ππï»®®Ä°ÅÕç…•¡—ÃΩÕ›Ö¿µÖ…–µçΩŸï…Ãπµ©ÕÄ§∞Å¡ï±º(ÄÅµïÕµºÅµΩ—•ŸºÅëîÅÕïµ¡…îËÅ]Ω…≠ï…ÃÅªçºÅïÕç…ïŸï¥Åï¥Åë•Õçº∏(¥Ä®©=…ëï¥Å≈’îÅ•µ¡Ω…—Ñ®®ËÅÖ…≈’•ŸΩÃÉäHÅçΩµµ•–ÉäHÅïÕ¡ï…ÑÅëºÅëï¡±Ω‰ÉäHÅ…ïù•Õ—…ºÅëÑ(ÄÅ¡…Ωçïì©πç•Ñ∏Å…ÖŸÖ»ÅÅçΩŸï…A°Ω—Ω%ëÄÅÖπ—ïÃÅëîÅÑÅçÖ¡ÑÅπΩŸÑÅïÕ—Ö»Å¡’â±•çÖëÑ(ÄÅÖ¡Ωπ—Ö…•ÑÅÑÅ¡…Ωçïì©πç•ÑÅ¡Ö…ÑÅ’µÑÅ•µÖùï¥Å≈’îÅÖ•πëÑÉ§ÅÖ…—î∞ÅîÅπÖëÑÅôÖ±°Ö…•Ñ∞(ÄÅ¡Ω…≈’îÅÖÃÅë’ÖÃÅçΩ•ÕÖÃÅï·•Õ—ï¥∏ÅU¥Å—ïÕ—îÅ—…ÖŸÑÅïÕÕÑÅΩ…ëï¥∏(¥Ä®©Õ—îÅ›Ω…≠ô±Ω‹Å=55%Q®®∞ÅÖºÅçΩπ—ÀÖ…•ºÅëºÅÅô•±∞µçΩŸï»µâÖπ¨πÂµ±Ä∞Åïπ”çº(ÄÅë•Õ¡Ö…ÑÅëï¡±Ω‰∏ÅU¥ÅçΩµµ•–ÅœÃÅ¡Ö…ÑÅÖÃÄ»ÿÅçÖ¡ÖÃÅîÅΩÃÄ»ÿÅçÖ…ëÃÅëºÅ%πÕ—Öù…Ö¥ÉäP(ÄÅçÖ…êÅ©’π—ºÅ¡Ω…≈’îÅï±îÅ’ÕÑÅÑÅçÖ¡ÑÅçΩµºÅô’πëº∞ÅîÅ—…ΩçÖ»Å’µÑÅÕï¥ÅÑÅΩ’—…Ñ(ÄÅëï•·Ö…•ÑÅÑÅ¡óùÑÅëîÅë•Ÿ’±ùáüçºÅçΩ¥ÅÑÅÖ…—îÅÖπ—•ùÑ∏(¥ÅÅë…Â}…’πÄÉ§ÅºÅ¡ÖëÀçºÅÅ—…’ïÄËÅ—…ΩçÖ»Ä»ÿÅçÖ¡ÖÃÅπºÅÖ»ÅªçºÅ¡ΩëîÅÕï»ÅºÅç±•≈’î(ÄÅõÖç•∞∏(ååÅÕçΩ¡ºÅïë•—Ω…•Ö∞Å¡ÖÕÕÑÅÑÅÕï»Å	…ÖÕ•∞ÅîÅ°•πÑÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Ä®©Aïë•ëºÅëºÅëΩπº®®ËÅ—•…Ö»ÅπΩ”µç•ÑÅëΩÃÅU∞Åëï•·Ö»ÅœÃÅ°•πÑÅîÅ	…ÖÕ•∞∞ÅçΩ¥ÅôΩçº(ÄÅπºÅ	…ÖÕ•∞∞Å•πç±’•πëºÅΩÃÅÖÕÕ’π—ΩÃÅµÖ•ÃÅçΩµïπ—ÖëΩÃÅëºÅë•Ñ∏(¥Ä®©<Å…ïçΩ…—îÅŸÖ±îÅï¥Å≈’Ö—…ºÅï±ΩÃ∞ÅîÅ¡…ïç•ÕÑÅëΩÃÅ≈’Ö—…º®®ÉäPÅµï·ï»Åï¥Å’¥ÅœÃ(ÄÅëï•·ÑÅΩÃÅΩ’—…ΩÃÅ—…ÖâÖ±°ÖπëºÅçΩπ—…ÑË(ÄÄƒ∏ÅÅ1Q}M=AÄÅπºÅ…ÖëÖ»Å¡…•πç•¡Ö∞Ï(ÄÄ»∏ÅÅIMM}MÄÅ…ïÖ¡Ωπ—ÖëΩÃÄ°ΩÃÅÖπ—•ùΩÃÅï…Ö¥ÅÅ°∞ıï∏µULôù∞ıUMÄÅµÖ•ÃÅQïç°…’πç†∞(ÄÄÄÄÅïëï…Ö∞ÅIïÕï…ŸîÅîÅ		ÉäPÅ’¥Å…ÖëÖ»ÅµΩπ—ÖëºÅ¡Ö…ÑÅïπ·ï…ùÖ»ÅΩÃÅU∞Å≈’îÅï…ÑÅëî(ÄÄÄÄÅΩπëîÅÑÅ¡Ö’—ÑÅŸ•π°Ñ§Ï(ÄÄÃ∏ÅÅ•πë•—Ω…•Ö±MçΩ¡ïÄ∞ÅÖ¡±•çÖëºÅÑÅQ=<ÅÕ•πÖ∞∞ÅπΩÃÅëΩ•ÃÅçÖµ•π°ΩÃÅëî(ÄÄÄÄÅëïÕçΩâï…—ÑÏ(ÄÄ–∏ÅÑÅ…ïù…ÑÅπºÅ¡…Ωµ¡–∞Å≈’îÉ§ÅºÅï±ºÅëïç•Õ•ŸºÅ≈’ÖπëºÅºÅ…ÖëÖ»ÅŸï¥ÅŸÖÈ•º∏(¥Ä®©’ÖÃÅ¡Ω…—ÖÃÅπºÅô•±—…º∞ÅîÅÑÅΩ…ëï¥Å•µ¡Ω…—Ñ®®ËÅŸóµç’±ºÅâ…ÖÕ•±ï•…ºÅΩ‘Åç°•ª©Ã(ÄÅïπ—…ÑÅ¡ï±ºÅëΩ∑µπ•º∞ÅÕï¥Å¡…ïç•ÕÖ»Åë•Èï»Äâ	…ÖÕ•∞àÅπÑÅµÖπç°ï—îÉäPÅÕïªçº(ÄÄâΩŸï…πºÅÖπ’πç•ÑÅ±ï•≥çºÅëîÅâÖ—ï…•ÖÃà∞ÅëÑÅü©πç•ÑÅ	…ÖÕ•∞∞ÅÕï…•ÑÅëïÕçÖ…—Öëº(ÄÅ©’Õ—Öµïπ—îÅ¡Ω»ÅÕï»ÅπΩ”µç•ÑÅâ…ÖÕ•±ï•…ÑÅëïµÖ•ÃÅ¡Ö…ÑÅÕîÅÖπ’πç•Ö»ÅçΩµºÅ—Ö∞∏Åî(ÄÅ≈’Ö±≈’ï»ÅΩ’—…ºÅŸóµç’±º∞ÅÑÅµÖπç°ï—îÅ¡…ïç•ÕÑÅ—…ÖÈï»ÅºÅ€µπç’±º∏(¥Ä®®â5Ö•ÃÅçΩµïπ—ÖëΩÃÅëºÅë•Ñà®®ËÅÅ	IM%1}5}1QÄÉ§ÅºÅôïïêÅëîÅ¡…•πç•¡Ö•Ã(ÄÅπΩ”µç•ÖÃÅëºÅ	…ÖÕ•∞∞ÅÕï¥Å—ï…µºÅëîÅâ’ÕçÑ∞ÅîÅïπ—…ÑÅπÖÃÅç•πçºÅïë•—Ω…•ÖÃ∏ÅE’ï¥(ÄÅÕï¡Ö…ÑÅºÅ≈’îÅ•π—ï…ïÕÕÑÅÑÅçÖëÑÅ’µÑÉ§ÅºÅÅM%91}-e]=IMÄ∞ÅÖùΩ…ÑÅçΩ¥Å—ï…µΩÃÅï¥(ÄÅ¡Ω…—’ù◊©ÃÄ°¡•‡∞ÅÕï±•å∞Åèâµâ•º∞Åïπç°ïπ—î∞ÅëïÕµÖ—Öµïπ—º∞Å	I%L∞Å5ï…çΩÕ’∞§∏(¥ÅKÕ—’±ΩÃÅ√Èâ±•çΩÃÅÕï¥ÅUËÅÅ	Q}1	1LπùïΩ¡Ω±•—•çÖÄÅŸ•…Ω‘ÄâïΩ¡Ω≥µ—•çÑÉ
+‹(ÄÅ	…ÖÕ•∞ÅîÅ°•πÑà∞ÅºÅÅ	Q}	I%ÄÅŸ•…Ω‘Äâ…ï±áüçºÅ	…ÖÕ•≥äM°•πÑà∞ÅîÅÑÅµï—Ñ(ÄÅëïÕç…•¡—•Ω∏ÅëîÅÄΩâ±ΩùÄÅÖçΩµ¡Öπ°Ω‘∏(¥Ä®©ôï•—ºÅçΩ±Ö—ï…Ö∞ÅïÕ¡ï…Öëº∞ÅîÅªçºÅïÕçΩπë•ëº®®ËÅçΩ¥ÅºÅ…ÖëÖ»ÅµÖ•ÃÅïÕ—…ï•—º∞ÅÑ(ÄÅç°ÖπçîÅëîÅ…ΩëÖëÑÅÕï¥Å¡’â±•çáüçºÅÖ’µïπ—Ñ∏Å<Å¡•ÕºÅïë•—Ω…•Ö∞ÅçΩπ—•π’ÑÅ•ù’Ö∞ÉäP(ÄÅë’ÖÃÅôΩπ—ïÃÅ•πëï¡ïπëïπ—ïÃÉäP∞ÅîÅÖùΩ…ÑÅ£ÑÅ’¥ÅµΩ—•ŸºÅÑÅµÖ•ÃÅ¡Ö…ÑÅ…ïç’ÕÖ»∏ÅYÖ±î(ÄÅµïë•»ÅπÑÅ¡ÀÕ·•µÑÅÕïµÖπÑÅ≈’Öπ—ÖÃÅ…ΩëÖëÖÃÅ¡’â±•çÖ¥ÏÅÕîÅçÖ•»ÅëïµÖ•Ã∞ÅºÅçÖµ•π°º(ÄÉ§ÅÖµ¡±•Ö»ÅΩÃÅ—ï…µΩÃÅ¡Ω»Åïë•—Ω…•Ñ∞ÅªçºÅÖô…Ω’·Ö»ÅºÅïÕçΩ¡º∏(¥ÅYï…•ô•çáüçºËÄ»‘º»‘Å—ïÕ—ïÃÄ†ƒÅπΩŸº∞Å—…ÖŸÖπëºÅΩÃÅ≈’Ö—…ºÅï±ΩÃ§∞Å—Â¡ïç°ïç¨Åî(ÄÅâ’•±êÅ±Ω’ëô±Ö…î∏Ä®©Åïô•èÖç•ÑÅ…ïÖ∞ÅœÃÅÕîÅµïëîÅ¡’â±•çÖπëº®®ÉäPÅëÖ≈’§ÅªçºÅìÑ(ÄÅ¡Ö…ÑÅç°ÖµÖ»ÅºÅ1PÅπï¥ÅΩÃÅôïïëÃ∏((ååÅÖ¡ÑÅµÖπ’Ö∞ÅªçºÅïπ—…ÑÅµÖ•ÃÅπÑÅ—…ΩçÑÅÖ’—Ω∑Ö—•çÑÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Ä®©<Å≈’îÅÖçΩπ—ïçï‘®®ËÅÑÅ—…ΩçÑÅëÖÃÅçÖ¡ÖÃÅëîÅÖ…—îÅ’ÕΩ‘ÅÅçΩŸï…A°Ω—Ω%êÅ%LÅ9U11Ä(ÄÅçΩµºÅÕ•πÖ∞ÅëîÄâÕï¥ÅôΩ—Ωù…Öô•Ñà∏ÅÕÕîÅçÖµ¡ºÅ—Öµã•¥Åô•çÑÅπ’±ºÅ≈’ÖπëºÅÖ±ù◊•¥(ÄÅïÕçΩ±°ï‘ÅÑÅçÖ¡ÑÉÄÅ∑çºÅ¡ï±ºÅëµ•∏ÉäPÅîÅïÕÕÖÃÅÖ¡Ωπ—Ö¥Å¡Ö…Ñ(ÄÅÄΩÖ¡§Ωµïë•Ñµ•µÖùïÃΩÄ∞ÅªçºÅ¡Ö…ÑÅÖ…≈’•ŸºÅïÕ”Ö—•çº∏(¥Ä®©QÀ©ÃÅµÖ”•…•ÖÃÅïπ—…Ö…Ö¥Å¡Ω»ÅïπùÖπº®®Ä°A•Ö◊¥ΩUπïÕçº∞ÅUΩ¡Ö•ª••ÃÅâ•ôÖç•Ö•Ã∞(ÄÅ%—Ö©á¥Ωç°’ŸÑ§∏Å<ÅÅÕï–µçΩŸï»µ•µÖùïÄÅ…ïç’ÕΩ‘ÅºÅ…ïù•Õ—…ºÅçΩ¥ÄâçÖ¡ÑÉ§ÅµÖπ’Ö∞àÉäP(ÄÅÑÅ¡…Ω—óüçºÅï·•Õ—•ÑÅîÅô’πç•ΩπΩ‘ÉäP∞ÅµÖÃÅœÃÅëï¡Ω•ÃÅëîÅºÅÖ…≈’•ŸºÅ´ÑÅ—ï»ÅÕ•ëº(ÄÅâÖ•·ÖëºÅîÅçΩµµ•—Öëº∏ÅMΩâ…Ö…Ö¥Å—À©ÃÅçÖ¡ÖÃÉÕ…õçÃÅ≈’îÅπïπ°’µÑÅµÖ”•…•ÑÅ’ÕÑÅî(ÄÅ—À©ÃÅçÖ…ëÃÅëºÅ%πÕ—Öù…Ö¥ÅçΩ¥Åô’πëºÅë•ôï…ïπ—îÅëÑÅçÖ¡ÑÅ≈’îÅÑÅµÖ”•…•ÑÅµΩÕ—…Ñ∏(¥Ä®©9ÖëÑÅ≈’ïâ…Ω‘ÅîÅπÖëÑÅÖ¡Ö…ïç•ÑÅ¡Ö…ÑÅºÅ±ï•—Ω»®®∞Å≈’îÉ§Å©’Õ—Öµïπ—îÅºÅ≈’î(ÄÅ—Ω…πÑÅïÕÕîÅ—•¡ºÅëîÅÕ’©ï•…ÑÅë•õµç•∞ÅëîÅπΩ—Ö»ËÅâÖπçºÅîÅ…ï¡ΩÕ•”Õ…•ºÅçΩπ—•π’Ö¥(ÄÅçΩπÕ•Õ—ïπ—ïÃ∞ÅîÅºÅÕ•—îÅÕï…ŸîÅÑÅçÖ¡ÑÅµÖπ’Ö∞ÅçΩ……ï—Ñ∏(¥Ä®©ΩπÕï…—ÖëºÅπΩÃÅëΩ•ÃÅ±ÖëΩÃ®®ËÅÑÅçΩπÕ’±—ÑÅëîÅÄΩÖ¡§Ωç…Ω∏ΩÖ…–µçΩŸï…ÕÄÅ¡ÖÕÕÑÅÑ(ÄÅï·ç±’•»ÅçÖ¡ÑÅ≈’îÅÖ¡Ωπ—îÅ¡Ö…ÑÅÄΩÖ¡§Ωµïë•Ñµ•µÖùïÃΩÄ∞ÅîÅΩÃÅÕï•ÃÅÖ…≈’•ŸΩÃ(ÄÉÕ…õçΩÃÅôΩ…Ö¥Å…ïµΩŸ•ëΩÃ∏Å5Ö”•…•ÑÅÕï¥ÅçÖ¡ÑÅπïπ°’µÑÅçΩπ—•π’ÑÅïπ—…Öπëº∏(¥Å<ÅçÖµ•π°ºÅÄΩÖ¡§Ωµïë•Ñµ•µÖùïÃΩÄÅÖ¡Ö…ïçîÅï¥ÅëΩ•ÃÅ±’ùÖ…ïÃÉäPÅÖ≈’§ÅîÅï¥(ÄÅÅµïë•Ö1•â…Ö…Â%µÖùï%ëÄ∞ÅëîÅÅÖ…—•ç±îµç…Ω∏π—ÕÄ∏ÅU¥Å—ïÕ—îÅ—…ÖŸÑÅΩÃÅëΩ•ÃËÅÕîÅ’¥(ÄÅµ’ëÖ»ÅÕï¥ÅºÅΩ’—…º∞ÅçÖ¡ÑÅµÖπ’Ö∞ÅŸΩ±—ÑÅÑÅÕï»ÅÕΩâ…ïÕç…•—Ñ∏(¥ÅΩπ—Öùï¥Åëï¡Ω•ÃÅëÑÅ—…ΩçÑËÄ–ƒÅµÖ”•…•ÖÃÅ¡’â±•çÖëÖÃ∞ÄÃ‡ÅçΩ¥ÅôΩ—Ωù…Öô•ÑÅëº(ÄÅâÖπçº∞ÄÃ‡ÅôΩ—ΩÃÅë•Õ—•π—ÖÃÄ°πïπ°’µÑÅ…ï¡ï—•ëÑ§∞ÄÃÅçΩ¥ÅçÖ¡ÑÅµÖπ’Ö∞Å¡…ïÕï…ŸÖëÑ∏((ååÅÀ•ë•—ºÅëºÅôΩ”Õù…ÖôºÅπºÅ…ΩëÖ√§ÅëÑÅçÖ¡ÑÅîÅπÑÅ±ïùïπëÑÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Ä®©Ω……óüçºÅëîÅ…ïù•Õ—…º®®ËÅï‘Å°ÖŸ•ÑÅë•—º∞ÅπÖÃÅÕóü’ïÃÅÖπ—ï…•Ω…ïÃ∞Å≈’îÄâπïπ°’µÑ(ÄÅ√Öù•πÑÅï·•âîÅÅ¡°Ω—Ω…ïë•—Äà∏Å……ÖëºÉäPÅÄΩâ±ΩúºëÕ±’ùÄÅ´ÑÅ…ïπëï…•ÈÖŸÑÅºÅçÀ•ë•—º(ÄÅπºÅ…ΩëÖ√§ÅëÑÅçÖ¡ÑÅëïÕëîÅÖπ—ïÃ∞ÅçΩ¥Å±•π¨Å¡Ö…ÑÅÑÅΩ…•ùï¥∏Å<Å≈’îÅôÖ±—ÖŸÑÅï…ÑÅº(ÄÅëÖëº∞ÅîÅëï¡Ω•ÃÅëÑÅ—…ΩçÑÅëîÅçÖ¡ÖÃÄÃ‰ÅëÖÃÄ–»ÅµÖ”•…•ÖÃÅ¡ÖÕÕÖ…Ö¥ÅÑÅ—ï»∏(¥Ä®©ïôï•—ºÅ≈’îÅ•ÕÕºÅ…ïŸï±Ω‘®®ËÅÅ¡Ö…Õï	Öπ≠…ïë•—ÄÅëïŸΩ±Ÿ•ÑÅÄâ9ΩµîΩAï·ï±ÃâÄ∞ÅîÅÑ(ÄÅ√Öù•πÑÅµΩπ—ÑÅÅΩ—ºËÅÌçÀ•ë•—ΩÙÄºÅÌôΩπ—ïıÄ∏Å<Å…ΩëÖ√§ÅÕáµÑ(ÄÄ®®âΩ—ºËÅ!ï±ïπÑÅ)Öπ≠ΩŸß5Ω€ÑÅ-Ω€á5Ω€ÑΩAï·ï±ÃÄºÅAï·ï±Ãà®®∏ÅùΩ…Ñ(ÄÅÅ¡Ö…Õï	Öπ≠…ïë•—ÄÅëïŸΩ±ŸîÅœÃÅºÅπΩµîÏÅ≈’ï¥ÅïÕç…ïŸîÅÑÅôΩπ—îÉ§Å≈’ï¥Åï·•âî∏(¥Ä®®»–Å±•π°ÖÃÅ´ÑÅù…ÖŸÖëÖÃÅôΩ…Ö¥ÅçΩ……•ù•ëÖÃÅπºÅâÖπçº®®ÅçΩ¥(ÄÅÅUAQÄâ…—•ç±îàÅMPÄâçΩŸï…A°Ω—Ω…ïë•–àÄÙÅ±ïô–†∏∏∏∞Å±ïπù—††∏∏∏§Ä¥Ä‹§Å]!I(ÄÄâçΩŸï…A°Ω—Ω…ïë•–àÅ1%-ÄúîΩAï·ï±ÃùÄ∏ÅÃÄƒ‘ÅÖπ—ï…•Ω…ïÃ∞ÅëÑÉ•¡ΩçÑÅëÑÅâ’ÕçÑÅÖº(ÄÅŸ•Ÿº∞Å´ÑÅŸ•π°Ö¥ÅœÃÅçΩ¥ÅºÅπΩµîÅîÅªçºÅôΩ…Ö¥Å—ΩçÖëÖÃ∏(¥Ä®©1ïùïπëÑÅëºÅ%πÕ—Öù…Ö¥Å¡ÖÕÕÑÅÑÅç…ïë•—Ö»®®ËÅÅâ’•±ë]•…ïÖ¡—•ΩπÄÅùÖπ°Ω‘(ÄÅÅ¡°Ω—Ω…ïë•—ÄÅΩ¡ç•ΩπÖ∞ÅîÅïÕç…ïŸîÅÅΩ—ºËÄÒπΩµî¯ÄºÅAï·ï±ÕÄÅïπ—…îÅºÅ±•π¨ÅîÅº(ÄÅÅ›•…ï}}—ŸÄ∏Å9ºÅôïïêÅªçºÅ£ÑÅçΩµºÅ±•π≠Ö»∞Åïπ”çºÅŸÖ§ÅïÕç…•—º∏ÅMï¥ÅçÀ•ë•—º∞ÅÑ(ÄÅ±•π°ÑÅªçºÅÖ¡Ö…ïçîÉäPÅç…ïë•—Ö»Å≈’ï¥ÅªçºÅÕîÅÕÖâîÅ≈’ï¥É§ÅÕï…•ÑÅ¡•Ω»Å≈’îÅªçº(ÄÅç…ïë•—Ö»∏(¥Å<ÅçÀ•ë•—ºÅŸ•Ö©ÑÅ¡Ω»Å—ΩëΩÃÅΩÃÅçÖµ•π°ΩÃÅ≈’îÅùï…Ö¥Å±ïùïπëÑËÅºÅâΩ”çºÅëî(ÄÅçΩµ¡Ö…—•±°Ö»Åï¥ÅÄΩâ±ΩúºëÕ±’ùÄ∞ÅºÅÅ…ïπëï»µ•πÕ—Öù…Ö¥µçÖ…êπµ©ÕÄÅëºÅç…Ω∏Ä°Ÿ•Ñ(ÄÅÅ]%I}A!=Q=}I%QÄ∞Å…ï¡ÖÕÕÖëºÅ¡ï±ºÅ›Ω…≠ô±Ω‹§ÅîÅºÅÅÕ›Ö¿µÖ…–µçΩŸï…Ãπµ©ÕÄ∏(¥Ä®©1•π¨ÅµΩ…—ºÅ…ïµΩŸ•ëº®®ËÅôΩ—ºÅëºÅâÖπçºÅªçºÅ—ï¥ÅUI0ÅëîÅΩ…•ùï¥Åù…ÖŸÖëÑ∞ÅîÅº(ÄÅ…ΩëÖ√§ÅŸ•…ÖŸÑÅ’¥ÅÄÒÑÅ°…ïòÙàåà˘ÄÅ≈’îÅªçºÅ±ïŸÑÅÑÅ±’ùÖ»Åπïπ°’¥ÅîÅÖ•πëÑÅÖâ…î(ÄÅÖâÑ∏ÅMï¥ÅUI0∞ÅºÅçÀ•ë•—ºÅÖùΩ…ÑÉ§Å—ï·—ºÏÅçΩ¥ÅUI0∞ÅçΩπ—•π’ÑÅ±•π¨∏(¥ÅYï…•ô•çáüçºËÄ»‡º»‡Å—ïÕ—ïÃÄ†ƒÅπΩŸº∞ÅµÖ•ÃÅºÅëîÅ•ëÑÅîÅŸΩ±—ÑÅëºÅçÀ•ë•—º(ÄÅÖ©’Õ—Öëº§∞Å—Â¡ïç°ïç¨ÅîÅâ’•±êÅ±Ω’ëô±Ö…î∏((ååÅùïπ—îÅëÑÅ·¡…ïÕÃÅπ—’±°ºÅ’ÕÑÅªÈµï…ºÅëïë•çÖëºÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Åïç•œçºÅ…ïù•Õ—…ÖëÑÅÑÅ¡ïë•ëºÅëºÅ…ïÕ¡ΩπœÖŸï∞ËÄ®©ºÅªÈµï…ºÅëîÅ]°Ö—Õ¡¿ÅÖ—’Ö∞ÅëÑ(ÄÅ·¡…ïÕÃÅπ—’±°ºÅªçºÅÕïÀÑÅµ•ù…Öëº∞ÅÖ±—ï…ÖëºÅπï¥Å—ïÀÑÅµïπÕÖùïπÃÅÖ¡ÖùÖëÖÃ∏®®Å<(ÄÅÖùïπ—îÅëîÅ%ÅŸÖ§ÅΩ¡ï…Ö»Åï¥ÅªÈµï…ºÅπΩŸºÅîÅëïë•çÖëº∏(¥Å5Ω—•ŸºËÅµ•ù…Ö»Å’¥ÅªÈµï…ºÅ¡Ö…ÑÅÑÅ±Ω’êÅA$ÅëïÕÖ—•ŸÑÅÑÅçΩπ—ÑÅëÖ≈’ï±îÅªÈµï…ºÅπº(ÄÅÖ¡±•çÖ—•ŸºÅîÅªçºÅ±ïŸÑÅºÅ°•Õ”Õ…•çºÅ©’π—º∏Å<ÅªÈµï…ºÅÖ—’Ö∞É§ÅºÅçÖπÖ∞Å≈’îÅôÖ—’…Ñ(ÄÅ°Ω©îÏÅºÅ…•ÕçºÅªçºÅÕîÅ©’Õ—•ô•çÑ∏(¥ÅÖπ°ΩÃÅÖ≥•¥ÅëÑÅÕïù’…ÖªùÑËÅºÅÖùïπ—îÅ¡ΩëîÅÕï»Å—ïÕ—ÖëºÅÕï¥Å≈’îÅπïπ°’¥Åç±•ïπ—î(ÄÅ…ïÖ∞ÅŸï©ÑÅΩÃÅï……ΩÃÏÅëïÕ•Õ—•»ÅëºÅ¡…Ω©ï—ºÅªçºÅï·•ùîÅµ•ù…áüçºÅëîÅŸΩ±—ÑÏÅîÅÑ(ÄÅŸ•…ÖëÑÅëîÅç°ÖŸîÅ¡ΩëîÅÕï»Åù…Öë’Ö∞∞Åë•Ÿ’±ùÖπëºÅºÅªÈµï…ºÅπΩŸºÅÖΩÃÅ¡Ω’çΩÃ∏(¥ÅÅ…ïÕ—…ßüçºÅôΩ§Åù…ÖŸÖëÑÅï¥ÅÅ9QLπµëÄÅ¡Ö…ÑÅŸÖ±ï»Å—Öµã•¥Å¡Ö…ÑÅ≈’Ö±≈’ï»ÅΩ’—…º(ÄÅÖùïπ—îÅΩ‘Å¡ïÕÕΩÑÅ≈’îÅ¡ïù’îÅºÅ¡…Ω©ï—ºÅëï¡Ω•Ã∏(¥ÅÕ—ÖëºÅëºÅÖùïπ—îÅπïÕ—ÑÅëÖ—ÑËÅπïπ°’µÑÅ±•π°ÑÅ•µ¡±ïµïπ—ÖëÑ∏Å;çºÅ£ÑÅ•π—ïù…áüçº(ÄÅçΩ¥ÅÑÅ±Ω’êÅA$ÅπºÅ…ï¡ΩÕ•”Õ…•º∞Åπï¥Å›ïâ°ΩΩ¨∞Åπï¥Å¡ï…Õ•Õ”©πç•ÑÅëîÅçΩπŸï…ÕÖÃÉäP(ÄÅºÉÈπ•çºÅ’ÕºÅëîÅÅù…Ö¡†πôÖçïâΩΩ¨πçΩµÄÉ§ÅºÅ¡’â±•çÖëΩ»ÅëºÅ%πÕ—Öù…Ö¥∞ÅÕï¥Å…ï±áüçº∏(ÄÅÃÅëïµΩπÕ—…áü’ïÃÅï¥ÅÄΩ¡…ïŸ•ï‹Ωï·¡…ïÕÃµΩ¡ï…Ö—•ΩπÃµâÄÅî(ÄÅÄΩç±•ïπ—ïÃΩï·¡…ïÕÃµïπ—’±°ºΩΩ¡ï…ÖçΩïÃµëïµΩÄÅœçºÅëºÅ¡Ö•πï∞ÅΩ¡ï…Öç•ΩπÖ∞∞ÅªçºÅëº(ÄÅÖùïπ—î∏(¥ÅYï…•ô•çáüçºÅëºÅπïüÕç•ºÅπÑÅ5ï—ÑÅîÅÖ¡…ΩŸáüçºÅëîÅµΩëï±ΩÃÅëîÅµïπÕÖùï¥ÅÖ•πëÑÅªçº(ÄÅôΩ…Ö¥Å•π•ç•ÖëÖÃ∏ÅΩµºÅºÅ¡…ÖÈºÅëï±ÖÃÅªçºÅëï¡ïπëîÅëºÅëïÕïπŸΩ±Ÿ•µïπ—º∞ÅœçºÅº(ÄÅçÖµ•π°ºÅçÀµ—•çºÅ¡Ö…ÑÅ≈’Ö±≈’ï»ÅëÖ—ÑÅëîÅïπ—…ïùÑ∏((ååÅŸÖ±•áüçºËÅ¡±Ö—ÖôΩ…µÑÅ¡…Ωπ—ÑÄ°Uµâ±ï»ÅQÖ±¨§ÅŸÃ∏ÅçΩπÕ—…’•»Ä†»¿»ÿ¥¿‰¥ƒÿ§((¥Å1ïŸÖπ—ÖëÑÅÑÅ°•√Õ—ïÕîÅëîÅ’ÕÖ»ÅºÄ®©Uµâ±ï»ÅQÖ±¨®®ÉäPÅçÖ•·ÑÅëîÅïπ—…ÖëÑÅëîÅ]°Ö—Õ¡¿(ÄÅçΩ¥Å%ÅÕΩâ…îÅÑÅA$ÅΩô•ç•Ö∞ÅëÑÅ5ï—ÑÉäPÅï¥ÅŸïËÅëîÅçΩπÕ—…’•»ÅºÅÖùïπ—îÅëÑÅ·¡…ïÕÃ(ÄÅπ—’±°ºÅëºÅÈï…º∏(¥Ä®©IïÕÕÖ±ŸÑÅëîÅ∑•—ΩëºË®®ÅÑÅ√Öù•πÑÅëºÅ¡…Ωë’—ºÅïÕ—ÖŸÑÅâ±Ω≈’ïÖëÑÅ¡ï±ºÅ¡…Ω·‰Åëº(ÄÅÖµâ•ïπ—îÅëîÅëïÕïπŸΩ±Ÿ•µïπ—º∏ÅÅÖŸÖ±•áüçºÅÖâÖ•·ºÅŸï•ºÅëîÅâ’ÕçÑ∞Å•πç±’•πëº(ÄÅµÖ—ï…•Ö∞ÅëîÅµÖ…≠ï—•πúÅëÑÅ¡ÀÕ¡…•ÑÅUµâ±ï»ÅîÅëîÅ—ï…çï•…ΩÃ∏Å=ÃÅªÈµï…ΩÃÅ¡…ïç•ÕÖ¥(ÄÅÕï»ÅçΩπôï…•ëΩÃÅπÑÅôΩπ—îÅÖπ—ïÃÅëîÅ≈’Ö±≈’ï»ÅçΩπ—…Ö—º∏(¥Ä®©<Å≈’îÅÑÅ¡±Ö—ÖôΩ…µÑÅ…ïÕΩ±ŸîÅ¡…Ωπ—ºË®®Åâ’…Ωç…Öç•ÑÅëÑÅ5ï—ÑÄ°Ÿï…•ô•çáüçº∞(ÄÅµΩëï±ΩÃÅëîÅµïπÕÖùï¥∞Å—Ω≠ï∏§∞Å•π—ï…ôÖçîÅëîÅÖ—ïπë•µïπ—ºÅçΩ¥Å€Ö…•ΩÃÅÖ—ïπëïπ—ïÃ(ÄÅπ’¥ÅªÈµï…ºÅœÃ∞ÅîÅÖùïπ—îÅçΩ¥ÅâÖÕîÅëîÅçΩπ°ïç•µïπ—ºÉäPÅÕ’ô•ç•ïπ—îÅ¡Ö…ÑÅ¡…óùº∞(ÄÉÖ…ïÑÅÖ—ïπë•ëÑÅîÅ°ΩÀÖ…•º∏(¥Ä®©=πëîÅ¡…ΩŸÖŸï±µïπ—îÅªçºÅç°ïùÑÅÕΩÈ•π°ÑË®®ÅïÕ—ÖëºÅΩ¡ï…Öç•ΩπÖ∞∏ÅIïÕ¡Ωπëï»(ÄÄâ—ï¥ÅçáùÖµâÑÅ±•Ÿ…îÅ°Ω©î¸àÅï·•ùîÅçΩπÕ’±—Ö»ÅÕ•Õ—ïµÑÅ¡ÀÕ¡…•º∏Å#ÑÅ›ïâ°ΩΩ¨ÅîÅA$(ÄÅÖâï…—Ñ∞ÅµÖÃÅôΩ§ÅïπçΩπ—…ÖëÑÅÑÅ•πôΩ…µáüçºÅëîÅ≈’îÄ®©A%ÃÅï·—ï…πÖÃÅ¡Ö…ÑÅΩÃ(ÄÅùïπ—ïÃÅëîÅ%Å¡ÖÕÕÖ¥Å¡Ω»Å°ΩµΩ±ΩùáüçºÅ¡À•Ÿ•ÑÅëºÅ—•µîÅUµâ±ï»®®ÉäPÅ¡Ωπ—ºÅÑ(ÄÅçΩπô•…µÖ»∞Å¡Ω…≈’îÅÕï¡Ö…ÑÄâ…ïÕΩ±ŸîÅ—’ëºàÅëîÄâ…ïÕΩ±ŸîÅºÅÖ—ïπë•µïπ—ºà∏(¥Ä®©’Õ—ΩÃÉäPÅ=II%%<Åï¥Äƒÿº¿‰ÅçΩ¥ÅÑÅ√Öù•πÑÅΩô•ç•Ö∞Åï¥Å∑çΩÃ∏®®ÅÅïÕ—•µÖ—•ŸÑ(ÄÅÖπ—ï…•Ω»∞Å—•…ÖëÑÅëîÅâ’ÕçÑ∞ÅïÕ—ÖŸÑÅï……ÖëÑÅîÅâÖ•·ÑËÅë•È•ÑÄâHêÄƒ¿¿ÅÑÅHêÄÃ¿¿Ω∑©Ãà(ÄÅîÄâïπ—…ÖëÑÅëîÅHêÄÿ‰Ω∑©Ãà∏Å<Å¡…óùºÅ…ïÖ∞É§Ä®©¡Ω»ÅÖ—ïπëïπ—î∞ÅçΩ¥Å∑µπ•µº(ÄÅΩâ…•ùÖ”Õ…•ºÅëîÅçΩπ—…Ö—áüçº®®Ë(ÄÄ¥ÅÕÕïπç•Ö∞ÉäPÅHêÄ‰‰∞‰¿ΩÖ—ïπëïπ—î∞Å∑µπ•µºÄ»ÉäHÄ®©HêÄƒ‰‰∞‡¿Ω∑©Ã®®(ÄÄ¥Å%µ¡’±ÕºÉäPÅHêÄƒ–‰∞‰¿ΩÖ—ïπëïπ—î∞Å∑µπ•µºÄÃÉäHÄ®©HêÄ––‰∞‹¿Ω∑©Ã®®(ÄÄ¥ÅÕçÖ±ÑÉäPÅHêÄ»ƒ‰∞‰¿ΩÖ—ïπëïπ—î∞Å∑µπ•µºÄÃÉäHÄ®©HêÄÿ‘‰∞‹¿Ω∑©Ã®®((ÄÅÅ√Öù•πÑÅ—ï¥ÅÕï±ï—Ω»ÅQ…•µïÕ—…Ö∞Ωπ’Ö∞Éä"H»¿îÅÕï¥Å•πë•çÖ»Å≈’Ö∞ÅŸÖ±Ω»ÅïÕ”Ñ(ÄÅï·•â•ëº∏ÅÃÅçΩπŸï…ÕÖÃÅçΩâ…ÖëÖÃÅ¡ï±ÑÅ5ï—ÑÅªçºÅÖ¡Ö…ïçï¥ÅπÑÅ√Öù•πÑÅîÅœçºÉÄ(ÄÅ¡Ö…—î∏Å;çºÅ£ÑÅ±•µ•—îÅëîÅçΩπÕ’µºÅëîÅ%Åëïç±Ö…Öëº∞Åπï¥ÅµïªüçºÅÑÅ—ïÕ—îÅùÀÖ—•Ã∏(¥Ä®©ç°ÖëºÅëïç•Õ•ŸºË®®Ä®©A$ÅîÅ]ïâ°ΩΩ≠ÃÅœÃÅï·•Õ—ï¥ÅÑÅ¡Ö…—•»ÅëºÅ%µ¡’±Õº®®(ÄÄ°HêÄ––‰∞‹¿Ω∑©Ã§ÅîÄ®®â%π—ïù…áü’ïÃÅÖŸÖªùÖëÖÃÅ¡Ö…ÑÅùïπ—ïÃÅ%àÅœÃÅπºÅÕçÖ±Ñ®®(ÄÄ°HêÄÿ‘‰∞‹¿Ω∑©Ã§∏ÅÖÈï»ÅºÅÖùïπ—îÅçΩπÕ’±—Ö»Åô…Ω—ÑÅîÅÖùïπëÑÉäPÅºÅçÖÕºÅëîÅ’Õº(ÄÅ≈’îÅ•µ¡Ω…—ÑÅ¡Ö…ÑÅÑÅ·¡…ïÕÃÅπ—’±°ºÉäPÅç’Õ—ÑÅëîÅHêÄ‘∏–¿¿ÅÑÅHêÄ‹∏‰¿¿Å¡Ω»ÅÖπº∞(ÄÅ¡ï…µÖπïπ—ïµïπ—î∏Äâ5’±—•’π•ëÖëîÅîÅµ’±—•µÖ…çÑà∞Å≈’îÅ¡ï…µ•—•…•ÑÅÖ—ïπëï»Å€Ö…•ΩÃ(ÄÅç±•ïπ—ïÃÅπ’µÑÅçΩπ—ÑÅœÃ∞Å—Öµã•¥É§Åï·ç±’Õ•ŸºÅëºÅÕçÖ±Ñ∏(¥Ä®©Ωπô•…µÖëºÅ¡ï±ÑÅ√Öù•πÑË®®ÅºÅùïπ—îÅ%Å…ïÕ¡ΩπëîÅÕΩÈ•π°º∞ÅçΩ¥ÅºÅ°’µÖπº(ÄÅÖÕÕ’µ•πëºÅ≈’ÖπëºÅ≈’•Õï»ÏÅÑÅçΩπô•ù’…áüçºÉ§ÅΩµ¡Ω…—Öµïπ—ºÄ¨ÅIΩ—ï•…ºÄ¨(ÄÅΩπ°ïç•µïπ—ºÄ°Õ•—î∞ÅëΩç’µïπ—ΩÃÅîÅD§∞Å≈’îÉ§Åï·Ö—Öµïπ—îÅÑÅ—ï±ÑÄâIïù…ÖÃÅëº(ÄÅÖùïπ—îàÅëïÕïπ°ÖëÑÅπÑÅëïµΩπÕ—…áüçº∏(¥Ä®©Åëïç•œçºÅªçºÉ§Å”•çπ•çÑ∞É§ÅëîÅµΩëï±ºÅëîÅπïüÕç•º∏®®ÅYïπëï»Å’¥ÅÕï…ŸßùºÉÄ(ÄÅ·¡…ïÕÃÅπ—’±°ºÅôÖŸΩ…ïçîÅÑÅ¡±Ö—ÖôΩ…µÑËÅïπ—…ïùÑÅï¥Åë•ÖÃ∞ÅÕï¥ÅÕï…Ÿ•ëΩ»Å¡Ö…Ñ(ÄÅµÖπ—ï»∞ÅîÅ¡ï…µ•—îÅçΩâ…Ö»Å•µ¡±Öπ—áüçºÅµÖ•ÃÅµïπÕÖ±•ëÖëîÅëîÅùïÕ”çº∞ÅçΩ¥ÅÑ(ÄÅÖÕÕ•πÖ—’…ÑÅπºÅπΩµîÅëºÅç±•ïπ—îÉäPÅµÖ•ÃÅÕÖ’ìÖŸï∞Å≈’îÅΩÃÅHêÄƒ∏‘¿¿ÉÈπ•çΩÃ∞Å≈’î(ÄÅô•çÖ¥ÅÖâÖ•·ºÅëºÅç’Õ—ºÅëîÅëïÕïπŸΩ±Ÿ•µïπ—ºÅÕΩàÅµïë•ëÑ∏ÅΩπÕ—…’•»ÅœÃÅÕî(ÄÅ©’Õ—•ô•çÑÅÕîÅºÅÖ±ŸºÅôΩ»ÅºÅYï…Ωπ•çÑÅ=¡ï…Ö—•ΩπÃÅçΩµºÅ¡…Ωë’—ºÅµ’±—•ïµ¡…ïÕÑ∞(ÄÅîÅπïÕÕîÅçÖÕºÅHêÄƒ∏‘¿¿ÅªçºÅô•πÖπç•ÑÅºÅ¡…Ωë’—º∏(¥Ä®©πçÖµ•π°Öµïπ—ºË®®ÅçΩµóùÖ»Å¡ï±ÑÅ¡±Ö—ÖôΩ…µÑ∞ÅçΩ¥ÅªÈµï…ºÅëïë•çÖëº∞ÅîÅ’ÕÖ»ÅÖÃ(ÄÅçΩπŸï…ÕÖÃÅ…ïÖ•ÃÅ¡Ö…ÑÅëïÕçΩâ…•»ÅÖÃÅ…ïù…ÖÃÅëºÅπïüÕç•ºÉäPÅ°Ω©îÅï±ÖÃÅÕï…•Ö¥(ÄÅÖë•Ÿ•π°ÖëÖÃ∏ÅMîÅºÅùÖ…ùÖ±ºÅŸ•…Ö»ÅÑÅ•π—ïù…áüçºÅçΩ¥Åô…Ω—ÑÅîÅÖùïπëÑ∞ÅçΩπÕ—…’•»(ÄÅëï¡Ω•Ã∞ÅçΩ¥ÅÑÅïÕ¡ïç•ô•çáüçºÅŸ•πëÑÅëºÅ’Õº∏(¥Å<Å›ïâ°ΩΩ¨ÅëÑÅ±Ω’êÅA$Å´ÑÅ•µ¡±ïµïπ—ÖëºÄ°Åç±Ö’ëîΩÖùïπ—îµ›°Ö—ÕÖ¡¡Ä§ÅÕïù’î(ÄÅ€Ö±•ëºÅçΩµºÅâÖÕîÅçÖÕºÅºÅçÖµ•π°ºÅëîÅçΩπÕ—…’•»ÅŸΩ±—îÉÄÅµïÕÑ∏Å;çºÉ§ÅµΩ—•ŸºÅ¡Ö…Ñ(ÄÅçΩπÕ—…’•»ËÅœçºÅ¡Ω’çÖÃÅ°Ω…ÖÃÅëîÅ—…ÖâÖ±°º∞ÅªçºÅ’¥Å•πŸïÕ—•µïπ—ºÅÑÅ¡…Ω—ïùï»∏((ååÅïç•œçºËÅçΩπÕ—…’•»ÅºÅÖùïπ—îÅ¡ÀÕ¡…•ºÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥ÅŸÖ±•ÖëÑÅÑÅ¡±Ö—ÖôΩ…µÑÅîÄ®©ëïç•ë•ëºÅçΩπÕ—…’•»®®∏Å<Å≈’îÅ¡ïÕΩ‘ËÅÑÅ•π—ïù…áüçº(ÄÅçΩ¥Åô…Ω—ÑÅîÅÖùïπëÑ∞Å≈’îÉ§ÅºÅçÖÕºÅëîÅ’ÕºÅ…ïÖ∞ÅëÑÅ·¡…ïÕÃÅπ—’±°º∞Åô•çÑÅ¡…ïÕÑ(ÄÅÖΩÃÅ¡±ÖπΩÃÅëîÅHêÄ––‰∞‹¿ÅÑÅHêÄÿ‘‰∞‹¿Å¡Ω»Å∑©Ã∞ÅëîÅôΩ…µÑÅ¡ï…µÖπïπ—î∏(¥ÅA…ÖÈºÅëÖëºÅ¡ï±ºÅ…ïÕ¡ΩπœÖŸï∞ËÄ®®ƒ‰º¿‰º»¿»ÿ®®∏(¥ÅÅŸï…•ô•çáüçºÅëºÅπïüÕç•ºÅπÑÅ5ï—ÑÅçΩπ—•π’ÑÅªçºÅ•π•ç•ÖëÑÅîÅªçºÅëï¡ïπëîÅëº(ÄÅëïÕïπŸΩ±Ÿ•µïπ—º∏Åπ≈’Öπ—ºÅï±ÑÅªçºÅÕÖ•»∞ÅºÅÖùïπ—îÅô’πç•ΩπÑÅï¥ÅªÈµï…ºÅëîÅ—ïÕ—î(ÄÅëÑÅ5ï—ÑÅçΩ¥ÅëïÕ—•πÖ”Ö…•ΩÃÅçÖëÖÕ—…ÖëΩÃÉäPÅÕ’ô•ç•ïπ—îÅ¡Ö…ÑÅëïµΩπÕ—…Ö»ÅëîÅ¡Ωπ—Ñ(ÄÅÑÅ¡Ωπ—Ñ∞Å•πÕ’ô•ç•ïπ—îÅ¡Ö…ÑÅÖ—ïπëï»Åç±•ïπ—îÅ…ïÖ∞∏(¥ÅΩπ—•π’ÑÅôÖ±—ÖπëºÅºÅ•πÕ’µºÅ≈’îÅπïπ°’¥ÅèÕë•ùºÅÕ’âÕ—•—’§ËÅ—Öâï±ÑÅëîÅ¡…óùΩÃ∞(ÄÉÖ…ïÑÅÖ—ïπë•ëÑ∞Å¡…ÖÈºÅ¡ÖëÀçº∞Å¡Ω≥µ—•çÑÅëîÅ¡…Ω……ΩùáüçºÅîÅÑÅÖ≥ùÖëÑÅëÑÅ%∏((ååÅA…óùºÅëÑÅ·¡…ïÕÃÅπ—’±°ºÅëï¡ïπëîÅëºÅµÖ—ï…•Ö∞Ä†»¿»ÿ¥¿‰¥ƒÿ§((¥Å<Å…ïÕ¡ΩπœÖŸï∞ÅëºÅÕï—Ω»Å…ïÕ¡Ωπëï‘Å¡Ω»ÉÖ’ë•ºÅîÅëïÕôïËÅÑÅ¡…ïµ•ÕÕÑÅëºÅ¡…Ω©ï—ºË(ÄÄ®®âªçºÅï·•Õ—îÅπÖëÑÅô•·º∞ÅºÅ¡…óùºÉ§Å…ïôï…ïπ—îÅÖºÅµÖ—ï…•Ö∞ÅëîÅëïÕçÖ…—îà®®∏(ÄÅïµΩ±ßüçºÅîÅùïÕÕºÅç’Õ—Ö¥Åë•ôï…ïπ—îÅπºÅµïÕµºÅ¡…Ωë’—º∞ÅπÑÅµïÕµÑÅç•ëÖëî∏(¥ÅΩπÕï≈◊©πç•ÑÅëîÅïπùïπ°Ö…•ÑËÅÅ›°Ö—ÕÖ¡¿µ…’±ïÃπ—ÕÄÅëï•·Ω‘ÅëîÅÕï»Å—Öâï±ÑÅ¡Ω»(ÄÅ¡…Ωë’—ºÅîÅŸ•…Ω‘ÅµÖ—…•ËÄ®©¡…Ωë’—ºÉ\ÅµÖ—ï…•Ö∞É\Åç•ëÖëî®®∏ÅÅºÅÖùïπ—îÅùÖπ°Ω‘(ÄÅ’µÑÅ…ïù…ÑÅëîÅΩ’…ºËÅ≈’ï¥Å¡ïëîÅ¡…óùºÅÕï¥Åë•Èï»ÅºÅµÖ—ï…•Ö∞Å…ïçïâîÅ’µÑ(ÄÅ¡ï…ù’π—Ñ∞ÅªçºÅ’¥ÅŸÖ±Ω»∏(¥Ä®©QÀ©ÃÅ¡…Ωë’—ΩÃ®®ËÅçáùÖµâÑÅµïπΩ»Ä†ÃÅë•ÖÃ§∞Å—ÖµâΩ»Ä†ÃÅë•ÖÃ§ÅîÅçáùÖµâÑÅù…Öπëî(ÄÄ†‹Åë•ÖÃ§∏ÅQÖµâΩ»ÅœÃÅï·•Õ—îÅï¥Å%—Ö©á¥ÏÅπÖÃÅΩ’—…ÖÃÅç•ëÖëïÃÅœçºÅœÃÅµïπΩ»Åî(ÄÅù…Öπëî∏ÅA…ÖÈΩÃÅŸÖ±ï¥Åï¥Å—ΩëÖÃÅÖÃÅç•ëÖëïÃ∏(¥Ä®©A…óùΩÃÅçΩπô•…µÖëΩÃ®®ÉäPÅëïµΩ±ßüçºÅï¥Å%—Ö©á¥ËÅµïπΩ»ÅHêÄ»»¿∞Å—ÖµâΩ»ÅHêÄƒ‡¿∞(ÄÅù…ÖπëîÅHêÄ–‘¿∏ÅïÕÕºÅï¥Å%—Ö©á¥ËÅµïπΩ»ÅHêÄ»‡¿∏(¥Ä®©;çºÅçΩπô•…µÖëΩÃÅîÅ¡Ω»Å•ÕÕºÅÖ’Õïπ—ïÃ®®ËÅ—ÖµâΩ»ÅîÅù…ÖπëîÅçΩ¥ÅùïÕÕºÄ†âï‘Åªçº(ÄÅÕï§Å—îÅ¡ÖÕÕÖ»ÅºÅŸÖ±Ω»∞ÅªçºÅÕΩ‘ÅŸïπëïëΩ»à§∞Å≈’Ö±≈’ï»Å¡…óùºÅôΩ…ÑÅëîÅ%—Ö©á¥∞(ÄÅ≈’Ö±≈’ï»ÅΩ’—…ºÅµÖ—ï…•Ö∞∞ÅîÅÑÅëßÖ…•ÑÅï·—…Ñ∏(¥ÅUµÑÅçΩπŸï…ÕÑÅëîÄƒ–º¿‰ÅçΩ—Ω‘ÅÑÅµïπΩ»Å¡Ω»Ä®©HêÄ»–¿®®∞ÅŸÖ±Ω»Å≈’îÅªçºÅâÖ—îÅçΩ¥(ÄÅëïµΩ±ßüçºÅπï¥ÅçΩ¥ÅùïÕÕº∏Å;çºÅïπ—…Ω‘ÅπÑÅµÖ—…•ËÉäPÉ§ÅÑÅ¡…ΩŸÑÅëîÅ≈’îÅïÕ—•µÖ»(ÄÅ¡Ω»ÅÕïµï±°ÖªùÑÅï……Ö…•Ñ∏Å#ÑÅ—ïÕ—îÅùÖ…Öπ—•πëºÅ≈’îÅÑÅù’Ö…ëÑÅâÖ……ÑÅïÕÕîÅŸÖ±Ω»∏(¥Ä®©•ëÖëïÃÅÖ—ïπë•ëÖÃ®®ËÅ%—Ö©á¥∞Å	Ö±πóÖ…•ºÅÖµâΩ…ßË∞ÅÖµâΩ…ßË∞Å%—Ö¡ïµÑ∞ÅAΩ…—º(ÄÅ	ï±º∞Å%±°Ω—Ñ∞Å9ÖŸïùÖπ—ïÃÅîÅAïπ°Ñ∏Ä®©!ΩÀÖ…•º®®ËÅçΩµï…ç•Ö∞∏(¥Ä®©<ÅÕ•Õ—ïµÑÅëîÅùïÕ”çºÅ≈’îÅÑÅïµ¡…ïÕÑÅ¡ÖùÑÅ°Ω©îÉ§ÅºÅ5%LÅ1Ωçáü’ïÃ®®∞ÅçΩ¥ÅÖ¡¿(ÄÅ¡ÀÕ¡…•ºÄ°ÖâÖÃÅ1Ωçáüçº∞Å±•ïπ—î∞Å!Ωµî∞ÅA…Ωë’—º∞Å5ïπ‘§ÅîÅëÖÕ°âΩÖ…êÅëî(ÄÅïπ—…ïùÖÃÅîÅ…ï—•…ÖëÖÃÅëºÅë•Ñ∏É$ÅçΩ¥Åï±îÅ≈’îÅÑÅ•π—ïù…áüçºÅëîÅë•Õ¡Ωπ•â•±•ëÖëî(ÄÅëïŸï…•ÑÅçΩπŸï…ÕÖ»∞Åï¥ÅŸïËÅëîÅçΩπÕ—…’•…µΩÃÅçΩπ—…Ω±îÅëîÅô…Ω—ÑÅëºÅÈï…º∏((ååÅ5%LÅ1Ωçáü’ïÃËÅA$ÅªçºÅçΩπô•…µÖëÑÄ†»¿»ÿ¥¿‰¥ƒÿ§((¥Å%πŸïÕ—•ùÖëÑÅÑÅï·•Õ”©πç•ÑÅëîÅA$Å√Èâ±•çÑÅπºÄ®©5%LÅ1Ωçáü’ïÃ®®(ÄÄ°µÖ•Õ±ΩçÖçΩïÃπçΩ¥§∞ÅºÅÕ•Õ—ïµÑÅ≈’îÅÑÅ·¡…ïÕÃÅπ—’±°ºÅ¡ÖùÑÅ°Ω©î∏(¥Ä®©;çºÅïπçΩπ—…ï§ÅëΩç’µïπ—áüçºÅëîÅA$∞Å›ïâ°ΩΩ¨ÅΩ‘ÉÖ…ïÑÅëîÅëïÕïπŸΩ±ŸïëΩ»∏®®(ÄÅQÀ©ÃÅâ’ÕçÖÃÅë•Õ—•π—ÖÃÅîÅπïπ°’µÑÅµïªüçº∏Å<ÅÕ•—îÅ¡ÀÕ¡…•ºÅïÕ”ÑÅâ±Ω≈’ïÖëºÅ¡ï±º(ÄÅ¡…Ω·‰ÅëºÅÖµâ•ïπ—îÅëîÅëïÕïπŸΩ±Ÿ•µïπ—º∞Åïπ”çºÅÑÅç°ïçÖùï¥ÅªçºÅôΩ§Åï·Ö’Õ—•ŸÑÉäP(ÄÅ•ÕÕºÉ§ÅÖ’œ©πç•ÑÅëîÅïŸ•ì©πç•Ñ∞ÅªçºÅïŸ•ì©πç•ÑÅëîÅÖ’œ©πç•Ñ∏(¥Å<Å≈’îÅºÅµÖ—ï…•Ö∞Å√Èâ±•çºÅçΩπô•…µÑËÅùïÕ”çºÅëîÅçΩπ—…Ö—ΩÃ∞Å¡…ÖÈΩÃ∞Å±ΩüµÕ—•çÑÅî(ÄÅùïΩ±ΩçÖ±•ÈáüçºÅëîÅÖ—•ŸΩÃÏÅΩ…ëï¥ÅëîÅÕï…ŸßùºÅπºÅçï±’±Ö»ÅëºÅïπ—…ïùÖëΩ»ÏÅ¡Ö•πï∞(ÄÅ±ΩüµÕ—•çºÏÅçΩπ—…Ω±îÅëîÅ¡ÖùÖµïπ—ΩÃÅîÅ¡…ÖÈΩÃÅëîÅ…ï—•…ÖëÑ∏Åπë…Ω•ê∞Å•=LÅîÅ›ïà∏(ÄÅµ¡…ïÕÑÅπÖÕç•ëÑÅëîÅ±ΩçÖëΩ»∞ÅÕ•Õ—ïµÑÅï¥ÅëïÕïπŸΩ±Ÿ•µïπ—ºÅëïÕëîÄ»¿ƒ–∏(¥Ä®©πçÖµ•π°Öµïπ—º®®ËÅ¡ï…ù’π—Ö»Åë•…ï—ºÅÖºÅÕ’¡Ω…—îÅëï±ïÃ∏ÅMîÅ°Ω’Ÿï»ÅA$∞ÅÑ(ÄÅ•π—ïù…áüçºÅëîÅë•Õ¡Ωπ•â•±•ëÖëîÅô•çÑÅâÖ…Ö—ÑÅîÅºÅÖùïπ—îÅ¡ÖÕÕÑÅÑÅ…ïÕ¡Ωπëï»(ÄÄâ—ïπ°ºÅçáùÖµâÑÅ±•Ÿ…îÅ°Ω©îàÅçΩ¥ÅëÖëºÅ…ïÖ∞∏ÅMîÅªçºÅ°Ω’Ÿï»∞ÅºÅÖùïπ—îÅçΩπ—•π’Ñ(ÄÅïπçÖµ•π°ÖπëºÅë•Õ¡Ωπ•â•±•ëÖëîÅÑÅ’¥Å°’µÖπºÉäPÅ≈’îÉ§ÅºÅçΩµ¡Ω…—Öµïπ—ºÅçΩ……ï—ºÅî(ÄÅ´ÑÅ•µ¡±ïµïπ—Öëº∞ÅœÃÅµïπΩÃÅ•µ¡…ïÕÕ•ΩπÖπ—î∏(¥ÅIÖÕ¡Öùï¥ÅëîÅ—ï±ÑÅëºÅÕ•Õ—ïµÑÅªçºÉ§ÅΩ√üçºËÉ§ÅôÀÖù•∞ÅîÅπΩ…µÖ±µïπ—îÅôï…îÅΩÃ(ÄÅ—ï…µΩÃÅëîÅ’ÕºÅëºÅôΩ…πïçïëΩ»∏((ååÅ•ÖùªÕÕ—•çºÅëÑÅÖùïπ—îÅŸ•…ÑÅ’¥ÅçΩµÖπëº∞ÅîÅÑÅ°•√Õ—ïÕîÅëÑÅçΩ—ÑÅªçºÅÕîÅÕ’Õ—ïπ—ÑÄ†»¿»ÿ¥¿‰¥ƒ‹§((¥ÅÅÖùïπ—îÅï¥Å¡…Ωë◊üçºÅçÖ§ÅπºÅçÖµ•π°ºÅΩôô±•πî∏Å<ÅAHÄåƒƒÃÅ´ÑÅµΩÕ—…ÖŸÑÅºÅµΩ—•Ÿº(ÄÅπÑÅ—ï±ÑÅëºÅç°Ö–∞ÅµÖÃÅ±ï»ÅºÅµΩ—•ŸºÅç’Õ—ÖŸÑÅçÖ…ºËÅÖâ…•»ÅÑÅëïµΩπÕ—…áüçºÉäPÅ≈’îÉ§(ÄÅÑÅ√Öù•πÑÅ≈’îÅºÅç±•ïπ—îÅÖâ…îÉäPÅîÅùÖÕ—Ö»Å’µÑÅçΩπŸï…ÕÑÅ•π—ï•…ÑÅëºÅµΩëï±º∞ÅÕïπëº(ÄÅ≈’îÅÑÅçΩ—ÑÉ§Å©’Õ—Öµïπ—îÅºÅ…ïç’…ÕºÅÕΩàÅÕ’Õ¡ï•—Ñ∏(¥Å…•ÖëºÅÅPÄΩÖ¡§Ω›°Ö—ÕÖ¡¿Ωë•ÖùπΩÕ—•çΩÄ∞Å¡…Ω—ïù•ëºÅ¡Ω»ÅÅI=9}MIQÄ∏ÅÖËÅ’µÑ(ÄÅÕΩπëÑÅëîÄ®©’¥Å—Ω≠ï∏®®ÅπÑÅ…ΩƒÅîÅëïŸΩ±ŸîÅ)M=8ÅçΩ¥Å≈’Ö—…ºÅ…ïÕ¡ΩÕ—ÖÃÅÕï¡Ö…ÖëÖÃË(ÄÅÕîÅºÅ]Ω…≠ï»Åïπ·ï…ùÑÅÑÅÅI=E}A%}-eÄ∞Å≈’Ö∞ÅµΩëï±ºÅÑÅÖùïπ—îÅ¡ïëî∞ÅºÅÕ—Ö—’ÃÅ!QQ@(ÄÅ≈’îÅÑÅ…ΩƒÅëïŸΩ±Ÿï‘ÅîÅºÅµΩ—•ŸºÅï¥Å¡Ω…—’ù◊©Ã∏ÅÅç°ÖŸîÅªçºÅÕÖ§ÅπÑÅ…ïÕ¡ΩÕ—Ñ∏(ÄÅU¥ÅÅç’…±ÄÅ…ïÕ¡ΩπëîÅÑÅ¡ïπì©πç•Ñ∞ÅëîÅ≈’Ö±≈’ï»Å—ï…µ•πÖ∞∞ÅÕï¥ÅÖâ…•»ÅπÖŸïùÖëΩ»∏(¥Ä®©ÅÕ’Õ¡ï•—ÑÅ¡…•πç•¡Ö∞ÅªçºÅÕîÅÕ’Õ—ïπ—ÑÅçΩ¥ÅÑÅïŸ•ì©πç•ÑÅëºÅ¡ÀÕ¡…•º(ÄÅ…ï¡ΩÕ•”Õ…•º∏®®ÅÅ°•√Õ—ïÕîÅï…ÑÄâçΩ—ÑÅëßÖ…•ÑÅëÑÅ…ΩƒÅïÕ—Ω’…ÖëÑÅ¡ï±ºÅ¡•¡ï±•πî(ÄÅ°ΩÀÖ…•ºÅëîÅµÖ”•…•ÖÃà∏Å5ÖÃÅπÑÅ…ΩƒÄ®©ºÅ—ï—ºÅëßÖ…•ºÉ§Å¡Ω»ÅµΩëï±º®®∞ÅîÅΩÃÅëΩ•Ã(ÄÅçÖµ•π°ΩÃÅ’ÕÖ¥ÅµΩëï±ΩÃÅë•ôï…ïπ—ïÃËÅÑÅÖùïπ—îÅ¡ïëîÅÅ≈›ï∏Ω≈›ï∏Ã∏ÿ¥»›âÄ∞Åº(ÄÅ¡•¡ï±•πîÅ¡ïëîÅÅΩ¡ïπÖ§Ωù¡–µΩÕÃ¥»¡âÄ∏Å<Å¡ÀÕ¡…•ºÅÅÖ…—•ç±ïÃµÕï…Ÿï»π—ÕÄÅ´Ñ(ÄÅëï¡ïπë•ÑÅë•ÕÕºÅÖπ—ïÃÅëïÕ—ÑÅÕïÕœçºÉäPÅï±îÅ—…Ö—ÑÅºÄ–»‰ÅëºÄ»¡àÅçÖ•πëºÅ¡Ö…ÑÅº(ÄÄƒ»¡à∞ÅçΩ¥ÅºÅçΩµïπ”Ö…•ºÄâΩÃÅµΩëï±ΩÃÅAPµ=MLÅ”©¥ÅçΩ—ÖÃÅù…Ö—’•—ÖÃÅÕï¡Ö…ÖëÖÃà∏(ÄÅMîÅÑÅçΩ—ÑÅôΩÕÕîÅçΩµ¡Ö…—•±°ÖëÑ∞ÅïÕÕîÅôÖ±±âÖç¨Åπ’πçÑÅ—ï…•ÑÅô’πç•ΩπÖëº∏(¥Å5Ö•ÃËÅºÅ¡•¡ï±•πîÅëîÅµÖ”•…•ÖÃÄ®©ªçºÅ…ΩëÑÅπºÅ]Ω…≠ï»®®∏ÅE’ï¥Åç°ÖµÑÅÑÅ…ΩƒÅ≥ÑÉ§(ÄÅºÅ…’ππï»ÅëºÅ•—!’àÅç—•ΩπÃÄ°Åùïπï…Ö—îµÖ…—•ç±îπÂµ±Ä§ÏÅºÅ]Ω…≠ï»ÅëîÅç…Ω∏ÅœÃ(ÄÅë•Õ¡Ö…ÑÅºÅ›Ω…≠ô±Ω‹∏ÅOçºÅ¡…ΩçïÕÕΩÃ∞Åç°ÖŸïÃÅëîÅÖµâ•ïπ—îÅîÅµΩëï±ΩÃÅë•Õ—•π—ΩÃ∏(¥ÅΩ……•ù•ëºÅºÅçΩµïπ”Ö…•ºÅîÅÑÅµïπÕÖùï¥ÅëîÄ–»‰Åï¥ÅÅ›°Ö—ÕÖ¡¿µÖùïπ–π—ÕÄ∞Å≈’î(ÄÅÖô•…µÖŸÖ¥ÅºÅ—ï—ºÅçΩµ¡Ö…—•±°Öëº∏ÅUµÑÅï·¡±•çáüçºÅï……ÖëÑÅëïπ—…ºÅëºÅèÕë•ùºÉ§Å¡•Ω»(ÄÅ≈’îÅπïπ°’µÑËÅï±ÑÅµÖπëÑÅÑÅ¡ÀÕ·•µÑÅ¡ïÕÕΩÑÅ¡…Ωç’…Ö»ÅπºÅ±’ùÖ»Åï……Öëº∏(¥Å9ΩŸºÅ—ïÕ—îÅëîÅ…ïù…ïÕœçºÅ—…ÖŸÑÅÑÅ¡…ïµ•ÕÕÑËÅÕîÅÖ±ù’¥Åë•ÑÅÑÅÖùïπ—îÅîÅºÅ¡•¡ï±•πî(ÄÅÖ¡Ωπ—Ö…ï¥Å¡Ö…ÑÅºÅµïÕµºÅµΩëï±º∞ÅºÅ—ïÕ—îÅ≈’ïâ…ÑÅîÅÖŸ•ÕÑÅ≈’îÅºÅ…Öç•Ωèµπ•ºÅëÖÃ(ÄÅçΩ—ÖÃÅÕï¡Ö…ÖëÖÃÅëï•·Ω‘ÅëîÅŸÖ±ï»∏(¥Ä®©<Å≈’îÅÖ•πëÑÅªçºÅôΩ§ÅçΩπô•…µÖëº∞ÅîÅ¡Ω»Å≈◊®∏®®Å;çºÅçΩπÕïù’§Åµïë•»Å¡…Ωë◊üçº(ÄÅëïÕ—ÑÅÕïÕœçºËÅºÅ¡…Ω·‰ÅëºÅÖµâ•ïπ—îÅ…ïç’ÕÑÅÅŸï…Ωπ•çÖ°’àπçΩµÄÅçΩ¥Ä–¿ÃÅπºÅ=99P∏(ÄÅÅçΩπô•…µáüçºÉ§Å’µÑÅç°ÖµÖëÑÅÖºÅïπë¡Ω•π–ÅπΩŸºÅëï¡Ω•ÃÅëºÅëï¡±Ω‰∏ÅÃÅ—À©Ã(ÄÅ°•√Õ—ïÕïÃÅ≈’îÅ…ïÕ—Ö¥∞Åï¥ÅΩ…ëï¥ÅëîÅÕ’Õ¡ï•—ÑËÅÅç°ÖŸïY•Õ•Ÿï∞ËÅôÖ±ÕïÄÄ°Õïù…ïëº(ÄÅçΩπô•ù’…ÖëºÅπºÅ¡Ö•πï∞ÅªçºÉ§ÅºÅµïÕµºÅ≈’îÅÕïù…ïëºÅç°ïùÖπëºÅï¥ÅÅ¡…ΩçïÕÃπïπŸÄ(ÄÅëïπ—…ºÅëºÅ…’π—•µîÅëºÅ]Ω…≠ï»ÉäPÅîÅïÕÕîÅçÖµ•π°ºÅπ’πçÑÅôΩ§Å¡…ΩŸÖëºÅï¥Å¡…Ωë◊üçº∞(ÄÅ¡Ω…≈’îÅºÉÈπ•çºÅΩ’—…ºÅçΩπÕ’µ•ëΩ»ÅëÑÅ…ΩƒÅ…ΩëÑÅπºÅç—•ΩπÃ§ÏÅÄ–¿—ÄÄ°ºÅµΩëï±º(ÄÅÅ≈›ï∏Ω≈›ï∏Ã∏ÿ¥»›âÄÅ¡ΩëîÅªçºÅï·•Õ—•»ÅµÖ•ÃÅçΩ¥ÅïÕÕîÅπΩµî§ÏÅîÅÄ–»ÂÄÅëîÅŸï…ëÖëî∏(¥Ä®©IïÕÕÖ±ŸÑÉÄÅçΩπç±’œçºÅ¡ÀÖ—•çÑÅ≈’îÅïÕ—ÖŸÑÅÖπΩ—ÖëÑ∏®®ÄâMîÅôΩ»Ä–»‰∞ÅÑÅçΩ……óüçº(ÄÉ§Åç°ÖŸîÅÕï¡Ö…ÖëÑÅΩ‘Å¡±ÖπºÅµÖ•Ω»∞ÅªçºÅèÕë•ùºàÉäPÅªçºÅπïçïÕÕÖ…•Öµïπ—î∏Å<(ÄÅ¡•¡ï±•πîÅëîÅµÖ”•…•ÖÃÅ…ïÕΩ±ŸîÅºÄ–»‰Åëï±îÅï¥ÅèÕë•ùº∞ÅçÖ•πëºÅ¡Ö…ÑÅ’¥ÅÕïù’πëº(ÄÅµΩëï±ºÅçΩ¥ÅçΩ—ÑÅ¡ÀÕ¡…•Ñ∏ÅÅÖùïπ—îÅªçºÅ—ï¥ÅôÖ±±âÖç¨Åπïπ°’¥∏ÅMîÅºÅë•ÖùªÕÕ—•çº(ÄÅëï»Ä–»‰∞ÅïÕÕîÉ§ÅºÅçÖµ•π°ºÅµÖ•ÃÅâÖ…Ö—º∏Å;çºÅôΩ§Å•µ¡±ïµïπ—ÖëºÅπïÕ—ÑÅÕïÕœçºÅëî(ÄÅ¡…Ω√ÕÕ•—ºËÅÖπ—ïÃÅëîÅïÕçΩ±°ï»ÅºÅ…ï∑•ë•º∞É§Å¡…ïç•ÕºÅÕÖâï»ÅÑÅëΩïªùÑ∏(¥Ä‘‹Å—ïÕ—ïÃÅ¡ÖÕÕÖπëºÄ°ï…Ö¥Ä‘Ã§∞Å—Â¡ïç°ïç¨Å±•µ¡º∞Å±•π–Å±•µ¡ºÅπΩÃÅÖ…≈’•ŸΩÃ(ÄÅÖ±—ï…ÖëΩÃ∏ÅMï¥Å—ΩçÖ»ÅπÖÃÅëïµΩπÕ—…áü’ïÃÅï·•Õ—ïπ—ïÃ∏((ååÅ=ÃÅç•πçºÅâ±Ω≈’ï•ΩÃÅ≈’îÅœçºÅëºÅç±•ïπ—î∞Åπ’¥ÅëΩç’µïπ—ºÅœÃÄ†»¿»ÿ¥¿‰¥ƒ‹§((¥Å…•ÖëºÅÅA99%Lµ1%9QπµëÄËÅºÅ≈’îÅœÃÅºÅëΩπºÅëÑÅ·¡…ïÕÃÅπ—’±°ºÅ¡Ωëî(ÄÅ…ïÕ¡Ωπëï»∞ÅïÕç…•—ºÅ¡Ö…ÑÅÕï»Å±•ëºÅ©’π—ºÅçΩ¥Åï±î∞ÅçΩ¥ÅºÅïôï•—ºÅëîÅçÖëÑÅ±Öç’πÑ(ÄÅÕΩâ…îÅºÅ≈’îÅÑÅÖùïπ—îÅôÖËÉäPÅîÅÑÅùÖ…Öπ—•Ñ∞Åï¥Å—ΩëΩÃÅΩÃÅçÖÕΩÃ∞ÅëîÅ≈’îÅï±Ñ(ÄÅïπçÖµ•π°ÑÅï¥ÅŸïËÅëîÅ•πŸïπ—Ö»∏(¥Ä®©ÅµÖ—…•ËÅëîÅ¡…óùΩÃÅµïë•ëÑ∞ÅîÅºÅªÈµï…ºÉ§Åë’…ºË®®Ä‡Åç•ëÖëïÃÉ\Å¡…Ωë’—ΩÃ(ÄÅë•Õ¡ΩªµŸï•ÃÉ\Ä»ÅµÖ—ï…•Ö•ÃÅìÑÄ®®Ã–ÅçΩµâ•πáü’ïÃÏÄ–ÅïÕ”çºÅ¡…ïïπç°•ëÖÃÏÄÃ¿ÅïÕ”çº(ÄÅŸÖÈ•ÖÃ®®∏Å’ÖÃÅï¥Å%—Ö©á¥Ä°—ÖµâΩ»ÅçΩ¥ÅùïÕÕº∞ÅçáùÖµâÑÅù…ÖπëîÅçΩ¥ÅùïÕÕº§ÅîÄ»‡(ÄÅôΩ…ÑÅëîÅ%—Ö©á¥∏ÅÅ•ÕÕºÅÕ’¡ΩπëºÅ≈’îÅœÃÅï·•Õ—Ö¥ÅëΩ•ÃÅµÖ—ï…•Ö•ÃÉäPÅçÖëÑÅµÖ—ï…•Ö∞(ÄÅπΩŸºÅµ’±—•¡±•çÑÅÑÅµÖ—…•ËÄ°çΩ¥Å—À©Ã∞Åï±ÑÅŸÖ§ÅÑÄ‘ƒ§∏(¥Å¥ÅŸïËÅëîÅ¡ïë•»Å—…•π—ÑÅªÈµï…ΩÃ∞ÅºÅëΩç’µïπ—ºÅôÖËÅ—À©ÃÅ¡ï…ù’π—ÖÃ∏ÅÅ≈’îÅµÖ•Ã(ÄÅŸÖ±îÉ§Ä®®âôΩ…ÑÅëîÅ%—Ö©á¥∞ÅºÅ¡…óùºÅµ’ëÑÅçΩµº¸à®®ËÅÕîÅôΩ»ÅºÅŸÖ±Ω»ÅëîÅ%—Ö©á¥(ÄÅµÖ•ÃÅ’¥ÅëïÕ±ΩçÖµïπ—ºÅ¡Ω»Åç•ëÖëî∞ÅœçºÅÕï—îÅªÈµï…ΩÃÅîÅÑÅ—Öâï±ÑÅÕîÅ¡…Ω¡ÖùÑ(ÄÅÕΩÈ•π°ÑÏÅÕîÅçÖëÑÅç•ëÖëîÅ—•Ÿï»Å—Öâï±ÑÅ¡ÀÕ¡…•Ñ∞ÅœçºÅŸ•π—îÅîÅΩ•—º∞ÅîÅ—ΩëºÅ¡…óùº(ÄÅπΩŸºÅπºÅô’—’…ºÅŸ•…ÑÅµÖ•ÃÅÕï—î∏ÅÅ…ïÕ¡ΩÕ—ÑÅµ’ëÑÅÑÅôΩ…µÑÅëÑÅïÕ—…’—’…ÑÅëîÅëÖëΩÃ∞(ÄÅïπ”çºÅ—ï¥ÅëîÅŸ•»ÅÖπ—ïÃÅëºÅ¡…ïïπç°•µïπ—º∏(¥Ä®©MΩâ…îÅºÅ—ÖµâΩ»ÅÑÅHêÄƒ‡¿ÅÕÖ•»ÅµÖ•ÃÅâÖ…Ö—ºÅ≈’îÅÑÅçáùÖµâÑÅµïπΩ»ÅÑÅHêÄ»»¿Ë®®(ÄÅ¡…ΩŸÖŸï±µïπ—îÅªçºÅ£ÑÅï……ºÅπïπ°’¥∏ÅMîÅºÅ—ÖµâΩ»ÅôΩ»ÅµïπΩ»Åï¥ÅŸΩ±’µî∞Åç’Õ—Ö»(ÄÅµïπΩÃÉ§ÅºÅïÕ¡ï…ÖëºÉäPÅÑÅïÕ—…Öπ°ïÈÑÅŸ•π°ÑÅëîÅÕ’¡Ω…µΩÃÅ≈’îÄâ—ÖµâΩ»àÅôΩÕÕîÅº(ÄÅï≈’•¡Öµïπ—ºÅµÖ•Ω»∞ÅÕ’¡ΩÕßüçºÅπΩÕÕÑÅîÅªçºÅ•πôΩ…µáüçºÅëÑÅïµ¡…ïÕÑ∏ÅÅ¡ï…ù’π—Ñ(ÄÅ≈’îÅ…ïÕΩ±ŸîÉ§ÅÑÅçÖ¡Öç•ëÖëîÅï¥Å∑
+ÃÅëΩÃÅ—À©Ã∞ÅîÅï±ÑÅ…ïπëîÅë’ÖÃÅŸïÈïÃËÅçΩπô•…µÑÅÑ(ÄÅΩ…ëï¥ÅëîÅ¡…óùºÅîÅìÑÉÄÅÖùïπ—îÅºÅ≈’îÅï±ÑÅµÖ•ÃÅ¡…ïç•ÕÑÅ¡Ö…ÑÅŸïπëï»∞Å¡Ω…≈’îÅ°Ω©î∞(ÄÅ¡ï…ù’π—ÖëÑÄâ≈’Ö∞Åï‘ÅïÕçΩ±°º¸à∞Åï±ÑÅªçºÅÕÖâîÅºÅ—ÖµÖπ°ºÅëîÅπÖëÑ∏(¥Ä®©5ï—ÑÅîÅïπëï…óùº∞ÅπÑÅΩ…ëï¥Åçï…—ÑË®®Åëïç•ë•»Å≈’Ö∞ÅâÖ•……ºÅçΩπÕ—ÑÅπºÅÖ…”çºÅ9A((ÄÄ°ÑÅ9LµîÅë•ËÅY•±ÑÅ=¡ïÀÖ…•Ñ∞ÅºÅΩΩù±îÅ5ï‘Å9ïüÕç•ºÅë•ËÅOçºÅ)øçº§∞Ä®©çΩ……•ù•»Åº(ÄÅ≈’îÅïÕ—•Ÿï»Åï……Öëº∞ÅîÅœÃÅïπ”çºÅÕ’âµï—ï»®®∏ÅM’âµï—ï»ÅçΩ¥ÅΩÃÅëΩ•ÃÅë•Ÿï…ùïπ—ïÃÉ§(ÄÅùÖÕ—Ö»Å’µÑÅ…ΩëÖëÑÅëîÅÖªÖ±•ÕîÅ¡Ö…ÑÅ…ïçïâï»ÄâªçºàÉäPÅîÅºÅ…ï≥Õù•ºÅëÑÅ5ï—ÑÅªçº(ÄÅÖçï±ï…ÑÅçΩ¥ÅïÕôΩÀùºÅπΩÕÕº∏ÅΩ¥ÅÑÅŸï…•ô•çáüçºÅ¡Ö…ÖëÑ∞ÅºÅÕΩô—›Ö…îÅ¡ΩëîÅïÕ—Ö»(ÄÅ¡…Ωπ—ºÅï¥Äƒ‰º¿‰ÅîÅµïÕµºÅÖÕÕ•¥ÅÑÅÖùïπ—îÅªçºÅÖ—ïπëï»Åπ•πù◊•¥ËÅœÃÅºÅªÈµï…ºÅëî(ÄÅ—ïÕ—îÅëÑÅ5ï—Ñ∞ÅçΩ¥ÅëïÕ—•πÖ”Ö…•ΩÃÅçÖëÖÕ—…ÖëΩÃÉÄÅ∑çº∏(¥ÅIïù•Õ—…ÖëºÅ—Öµã•¥ÅºÅ≈’îÅªçºÅïÕ—ÖŸÑÅπÑÅ±•Õ—ÑÅµÖÃÅëï¡ïπëîÅëºÅç±•ïπ—îËÄ®©ºÅç°•¿(ÄÅπΩŸº®®∏Å;çºÉ§ÅπïçïÕœÖ…•ºÅ¡Ö…ÑÅÑÅëïµΩπÕ—…áüçºÅëîÄƒ‰º¿‰∞É§Å¡Ö…ÑÅÖ—ïπëï»Åç±•ïπ—î(ÄÅ…ïÖ∞∞ÅîÅ±ïŸÑÅë•ÖÃÅïπ—…îÅçΩµ¡…Ö»∞ÅÖ—•ŸÖ»ÅîÅçÖëÖÕ—…Ö»∏(¥Ä®©5%LÅ1Ωçáü’ïÃË®®ÅµïπÕÖùï¥Å¡…Ωπ—ÑÅ¡Ö…ÑÅºÅÕ’¡Ω…—î∞Å¡Ö…ÑÅºÅç±•ïπ—îÅçΩ¡•Ö»Åî(ÄÅïπŸ•Ö»ÉäPÅï±îÉ§Å≈’ï¥Å—ï¥ÅçΩπ—…Ö—º∏Å’ÖÃÅçΩ•ÕÖÃÅÑÅΩâÕï…ŸÖ»ÅπÑÅ…ïÕ¡ΩÕ—ÑËÅÕîÅÑÅA$(ÄÉ§ÅœÃÅëîÅ±ï•—’…ÑÅΩ‘Å—Öµã•¥ÅëîÅïÕç…•—Ñ∞ÅîÅÕîÅ£ÑÅç’Õ—ºÅÖë•ç•ΩπÖ∞∏((ååÅ……ºÄƒƒ¿»ÅπºÅçï±’±Ö»ËÅºÅ≈’îÉ§∞ÅºÅ≈’îÅªçºÉ§∞ÅîÅºÅ≈’îÅìÑÅ¡Ö…ÑÅâ±•πëÖ»Ä†»¿»ÿ¥¿‰¥ƒ‹§((¥Ä®©M•π—ΩµÑ®®ËÅÅ……Ω»Äƒƒ¿»ÉäPÅ]Ω…≠ï»Åï·çïïëïêÅ…ïÕΩ’…çîÅ±•µ•—ÕÄÅÖºÅÖâ…•»ÅºÅÕ•—î(ÄÅ¡ï±ºÅçï±’±Ö»ÉÅÃÄ»ƒËÃ‰ÅëîÅ	…Öœµ±•ÑÄ†¿¿ËÃ‰ÅUQ§∞Åïπ≈’Öπ—ºÅºÅµïÕµºÅÕ•—î(ÄÅπÖŸïùÖŸÑÅπΩ…µÖ±µïπ—îÅπºÅçΩµ¡’—ÖëΩ»∏(¥Ä®©;çºÅôΩ§Å¡’Õ†ÅëîÅâ…Öπç†∏®®Å<Å]Ω…≠ï»ÅÅŸï…Ωπ•çÖ°’àµÖ¡¡ÄÅïÕ—ÖŸÑÅ¡’â±•çÖëº(ÄÅëïÕëîÄƒÿº¿‰Ä»ÃË¿ÃË‘‹ÅUQÏÅºÅ¡’Õ†ÅëºÅâ…Öπç†ÅÕÖ•‘ÉÅÃÅ¯¿¿ËÃ¿Åî∞ÉÅÃÄ¿¿Ë–‹∞Åº(ÄÅ]Ω…≠ï»ÅÕïù’•ÑÅµÖ…çÖëºÅπÑÅµïÕµÑÅŸï…œçº∏Å<ÅÅµÖ•πÄÅ—Öµã•¥ÅªçºÅ—•π°ÑÅÖπëÖëº∞(ÄÅïπ”çºÅÑÅÖ…µÖë•±°ÑÅëÑÅçÖ¡ÑÄ†ƒÃº¿‰§ÅªçºÅïÕ—ÖŸÑÅï¥Å©Ωùº∏Å<Åï……ºÅçÖ•‘ÅÕΩâ…îÅ’¥(ÄÅâ’•±êÅëîÄ≈†ÃÿÅÖπ—ïÃ∏(¥Ä®®ƒƒ¿»ÅªçºÉ§ÅçÀ•ë•—º∞ÅçΩ—ÑÅπï¥ÅôÖ—’…Ñ∏®®ÅΩ—ÑÅëßÖ…•ÑÅëîÅ…ï≈’•ÕßüçºÅïÕ—Ω’…ÖëÑ(ÄÉ§ÅºÅèÕë•ùºÄ®®ƒ¿»‹®®∏Äƒƒ¿»É§Å’µÑÅ…ï≈’•ÕßüçºÅïÕ¡ïèµô•çÑÅ¡ÖÕÕÖπëºÅëºÅ—ï—ºÅëî(ÄÄ®©ATÅΩ‘Åµï∑Õ…•Ñ®®ÅπºÅëÖ—ÑÅçïπ—ï»∏Å5ÖÃÅºÅ—ï—ºÅëîÅATÉ§ÅëºÅ¡±ÖπºËÄ®®ƒ¿ÅµÃÅ¡Ω»(ÄÅ…ï≈’•ÕßüçºÅπºÅ]Ω…≠ï…ÃÅù…Ö—’•—º∞ÄÃ¿ÅÃÅπºÅ¡Öùº®®ÉäPÅïπ”çºÄã§ÅºÅ¡±Öπº¸àÉ§(ÄÅ¡ï…ù’π—ÑÅ±ïüµ—•µÑ∞ÅîÉ§ÅÑÅ¡…•µï•…ÑÅçΩ•ÕÑÅÑÅçΩπôï…•»∏(¥Ä®©AΩ»Å≈’îÅπ’¥ÅÖ¡Ö…ï±°ºÅÕ•¥ÅîÅπºÅΩ’—…ºÅªçº®®∞Åï¥ÅΩ…ëï¥ËÄ°Ñ§ÅºÅçï±’±Ö»Åïπ—…Ñ(ÄÅπÑÅ…ïëîÅ¡Ω»Å’¥Å¡Ωπ—ºÅëîÅ¡…ïÕïªùÑÅë•ôï…ïπ—îÅëºÅëÑÅ•π—ï…πï–ÅëîÅçÖÕÑ∞ÅçΩ¥(ÄÅ•ÕΩ±Ö—îÅ¡ÀÕ¡…•º∞Åô…•ºÏÄ°à§ÅπºÅçΩµ¡’—ÖëΩ»ÅÑÅπÖŸïùáüçºÉ§Åç±•ïπ–µÕ•ëîÅ¡ï±º(ÄÅQÖπM—Öç¨ÅIΩ’—ï»∞ÅÕï¥Å¡ÖÕÕÖ»Å¡ï±ºÅ]Ω…≠ï»ÏÄ°å§Åµï∑Õ…•ÑÅëºÅ•ÕΩ±Ö—îÅÖç’µ’±Ñ(ÄÅçΩπôΩ…µîÅï±îÅÕï…ŸîÅ…Ω—ÖÃ∏Å9ÖëÑÅë•ÕÕºÅ—ï¥ÅÑÅŸï»ÅçΩ¥ÅºÅÖ¡Ö…ï±°º∏(¥Ä®©UµÑÅ°•√Õ—ïÕîÅµ•π°ÑÅôΩ§ÅëïÕçÖ…—ÖëÑÅ¡Ω»Åµïëßüçº∞ÅîÅŸÖ±îÅ…ïù•Õ—…Ö»Å¡Ö…ÑÅªçº(ÄÅŸΩ±—Ö»∏®®Å‘ÅÕ’Õ¡ï•—ï§Å≈’îÅÄΩŸï…Ωπ•çÑµç’……•ç’±ºµçï…—ΩÄÅ¡Ö…ÕïÖÕÕîÅ¯–Å5Åëî(ÄÅÅ—°…ïîπ©ÕÄ∞ÅÅëΩç·Ä∞ÅÅ¡ëòµ±•âÄÅîÅÅ¡ëô©Ãµë•Õ—ÄÅπºÅMMH∏Ä®©Õ”ÑÅï……Öëº®®ËÅïÕÕÖÃ(ÄÅâ•â±•Ω—ïçÖÃÅªçºÅïÕ”çºÅπºÅù…ÖôºÅïÕ”Ö—•çºÅëîÅπïπ°’µÑÅ…Ω—ÑÉäPÅÅ—°…ïïÄÅ´ÑÉ§(ÄÅÅÖ›Ö•–Å•µ¡Ω…–†â—°…ïîà•ÄÅëïπ—…ºÅëºÅçΩµ¡Ωπïπ—î∞ÅîÅºÅâ’πë±ï»ÅÕï¡Ö…Ω‘ÅºÅ…ïÕ—º∏(ÄÅ5ïë•ëºËÅºÅâΩΩ–ÅëºÅ]Ω…≠ï»ÅçÖ……ïùÑÄ¿∞ƒ»Å5Åï¥ÄÃÅ∑Õë’±ΩÃ∞ÅîÅçÖëÑÅ…Ω—ÑÅ¡Ö…Õï•Ñ(ÄÄƒ∞€äL»∞¿Å5Å≈’ÖπëºÅºÅ•ÕΩ±Ö—îÅÑÅÕï…ŸîÅ¡ï±ÑÅ¡…•µï•…ÑÅŸïË∏(¥Ä®©<Å≈’îÅÑÅµïëßüçºÅµΩÕ—…Ω‘ÅëîÅŸï…ëÖëî®®ËÅºÅ¡ïÕºÉ§Å•ù’Ö∞Åï¥Å—ΩëÖÃÅÖÃÅ…Ω—ÖÃÅî(ÄÅŸï¥ÅëîÅÅ}ÕÕ»ΩÕÕ»πµ©ÕÄ∞Å≈’îÅÖ……ÖÕ—ÑÅÅ—ÖπÕ—Öç¨Ω…ïÖç–µ…Ω’—ï…ÄÄ†ÿ–ƒÅ-§∞(ÄÅÅπïΩπëÖ—ÖâÖÕîΩÕï…Ÿï…±ïÕÕÄÄ†ƒ‹‡Å-§∞ÅÅë…•ÈÈ±îµΩ…µÄÄ†ƒ‹–Å-§ÅîÅÅµï…çÖëΩ¡ÖùΩÄ(ÄÄ†ƒ‹¿Å-§Å¡Ö…ÑÅ≈’Ö±≈’ï»Å√Öù•πÑÉäPÅ•πç±’Õ•ŸîÅÑÅëïµΩπÕ—…áüçºÅëÑÅ·¡…ïÕÃ∞Å≈’î(ÄÅªçºÅ—ΩçÑÅï¥Å¡ÖùÖµïπ—ºÅπï¥Åï¥ÅâÖπçº∏É$ÅçΩµºÅºÅQÖπM—Öç¨ÅM—Ö…–Åïµ¡ÖçΩ—ÑÅÖÃ(ÄÅÕï…Ÿï»Åô’πç—•ΩπÃ∞ÅªçºÉ§Åëïôï•—ºÅëîÅ’µÑÅ…Ω—Ñ∏(¥Ä®©ΩπÕï≈◊©πç•Ñ®®ËÅπ’¥Å•ÕΩ±Ö—îÅô…•º∞ÅÑÅ…ïπëï…•ÈáüçºÅ¡ÖùÑÅºÅ¡Ö…ÕîÅëïÕÕîÅâ’πë±î(ÄÅëïπ—…ºÅëÑÅ…ï≈’•ÕßüçºÅëºÅç±•ïπ—î∏ÅΩ¥Å—ï—ºÅëîÄƒ¿ÅµÃÅ•ÕÕºÅïÕ—Ω’…ÑÏÅçΩ¥ÄÃ¿ÅÃ∞(ÄÅªçº∏É$ÅºÅ≈’îÅôÖËÅºÅ¡±ÖπºÅÕï»ÅÑÅÕ’Õ¡ï•—ÑÅ¡…•πç•¡Ö∞∏(¥Ä®©<Å≈’îÅôΩ§Åâ±•πëÖëº®®ËÅçÖç°îÅëîÅâΩ…ëÑÅ¡Ö…ÑÅÄΩ¡…ïŸ•ï‹Ωï·¡…ïÕÃµΩ¡ï…Ö—•ΩπÃµâÄ∞(ÄÅï¥ÅÅÕ…åΩ±•àΩïëùîµçÖç°îπ—ÕÄ∏ÅÃÅ—ï±ÖÃÅëîÅëïµΩπÕ—…áüçºÅªçºÅ”©¥Å±ΩÖëï»∞Åªçº(ÄÅçΩπÕ’±—Ö¥ÅâÖπçºÅîÅªçºÅëï¡ïπëï¥ÅëîÅ≈’ï¥ÅΩ±°ÑÉäPÅºÅçΩπ—óÈëºÅŸï¥Åëî(ÄÅÅ›°Ö—ÕÖ¡¿µ…’±ïÃπ—ÕÄ∞Å≈’îÉ§ÅèÕë•ùº∏ÅÅ¡…•µï•…ÑÅŸ•Õ•—ÑÅï¥ÅçÖëÑÅëÖ—ÑÅçïπ—ï»(ÄÅ¡ÖùÑÅÑÅ…ïπëï…•ÈáüçºÏÅÖÃÅÕïù’•π—ïÃÅÕÖï¥ÅëºÅçÖç°î∞ÅÕï¥ÅIïÖç–ÅîÅÕï¥Å¡•çº∏Å<(ÄÅç±•ïπ—îÅÖâ…•πëºÅÑÅëïµΩπÕ—…áüçºÅπºÅçï±’±Ö»Åëï±îÅï¥Äƒ‰º¿‰ÅçÖ§ÅπºÅçÖµ•π°º(ÄÅâÖ…Ö—º∏(¥Ä®©<Å≈’îÅºÅçÖç°îÅπ’πçÑÅôÖË®®∞Å¡Ω…≈’îÅºÅ…•ÕçºÅëîÅçÖç°îÅçΩµ¡Ö…—•±°ÖëºÅëîÅ!Q50É§(ÄÅïπ—…ïùÖ»ÅÑÅ√Öù•πÑÅëîÅ’µÑÅ¡ïÕÕΩÑÅ¡Ö…ÑÅΩ’—…ÑËÅ±•Õ—ÑÅëîÅ…Ω—ÖÃÅôïç°ÖëÑÅî(ÄÅï·¡≥µç•—ÑÏÅ…ï≈’•ÕßüçºÅçΩ¥ÅÅçΩΩ≠•ïÄÅΩ‘ÅÅ’—°Ω…•ÈÖ—•ΩπÄÅªçºÉ§ÅÕï…Ÿ•ëÑÅëº(ÄÅçÖç°îÏÅ…ïÕ¡ΩÕ—ÑÅçΩ¥ÅÅMï–µΩΩ≠•ïÄÅªçºÉ§Åù’Ö…ëÖëÑÏÅœÃÅ!Q50ÅçΩ¥ÅÕ—Ö—’ÃÄ»¿¿(ÄÅïπ—…ÑÉäPÅù’Ö…ëÖ»Å’¥Åï……ºÅ—…ÖπÕôΩ…µÖ…•ÑÅ’µÑÅôÖ±°ÑÅµΩµïπ”âπïÑÅï¥Åç•πçºÅµ•π’—ΩÃ(ÄÅëîÅôÖ±°ÑÅ¡Ö…ÑÅ—ΩëºÅµ’πëºÅπÖ≈’ï±îÅëÖ—ÑÅçïπ—ï»∏ÅQQ0ÅëîÄ‘Åµ•π’—ΩÃÅ¡Ω…≈’îÅº(ÄÅëï¡±Ω‰ÅªçºÅ±•µ¡ÑÅïÕ—îÅçÖç°î∏(¥Ä®©%Õ—ºÅªçºÅçΩ……•ùîÅÑÅçÖ’ÕÑ∏®®ÅMîÅºÅ—ï—ºÅôΩ»ÅºÅëºÅ¡±ÖπºÅù…Ö—’•—º∞ÅºÅ…ïÕ—ºÅëº(ÄÅÕ•—îÅçΩπ—•π’ÑÅï·¡ΩÕ—º∏ÅÅŸï…•ô•çáüçºÉ§Å’¥Åç±•≈’îÅπºÅ¡Ö•πï∞ÅëÑÅ±Ω’ëô±Ö…îÅï¥(ÄÄ©]Ω…≠ï…ÃÄòÅAÖùïÃÄ¯ÅA±ÖπÃ®∞ÅîÅΩÃÅ]Ω…≠ï…ÃÅ1ΩùÃÅëºÅ]Ω…≠ï»ÅÅŸï…Ωπ•çÖ°’àµÖ¡¡Ä(ÄÅë•Èï¥ÅÕîÅÑÅï·çóüçºÅôΩ§ÅëîÅATÅΩ‘ÅëîÅµï∑Õ…•ÑÉäPÅºÅIÖ‰Å%ÅëºÅçÖÕºÉ§(ÄÅÅÑÕå–¡ê‹ÿ·ê‰›çÖàÕÄ∞Ä¿¿ËÃ‰ÅUQÅëîÄƒ‹º¿‰∏(¥Ä®©1•µ•—îÅëïÕ—ÑÅÕïÕœçº®®ËÅ¡…Ωë◊üçºÉ§Å•πÖ±çÖªüÖŸï∞ÅëÖ≈’§∏Å<Å¡…Ω·‰ÅëîÅ…ïëîÅëº(ÄÅÖµâ•ïπ—îÅ…ïç’ÕÑÅÅŸï…Ωπ•çÖ°’àπçΩµÄÅ¡Ω»Å¡Ω≥µ—•çÑ∞Å—Öπ—ºÅπºÅÅç’…±ÄÅ≈’Öπ—ºÅπº(ÄÅ]ïâï—ç†∏Å9ÖëÑÅôΩ§Åµïë•ëºÅï¥Å¡…Ωë◊üçºÏÅ—’ëºÅÖç•µÑÅŸï•ºÅëºÅâ’•±êÅ±ΩçÖ∞ÅîÅëÑ(ÄÅA$ÅëÑÅ±Ω’ëô±Ö…î∏(¥Äÿ»Å—ïÕ—ïÃÅ¡ÖÕÕÖπëºÄ°ï…Ö¥Ä‘‹§∞Å—Â¡ïç°ïç¨∞Å±•π–ÅîÅâ’•±êÅ±Ω’ëô±Ö…îΩ9•—…º(ÄÅ±•µ¡ΩÃ∏Å9ïπ°’µÑÅ…Ω—Ñ∞ÅçΩµ¡Ωπïπ—îÅΩ‘Å—Öâï±ÑÅôΩ§Å…ïµΩŸ•ëÑ∏((ååÅ’ë•—Ω…•ÑÅëîÅç…ïëïπç•Ö•ÃËÅºÅ≈’îÅŸïπçî∞ÅîÅºÅ—Ω≠ï∏ÅëîÄ»—†Å≈’îÅµΩ…ëï…•ÑÅπºÅë•ÑÄƒ‰Ä†»¿»ÿ¥¿‰¥ƒ‹§((¥ÅAï…ù’π—ÑÅëºÅ…ïÕ¡ΩπœÖŸï∞ËÄâªçºÉ§ÅÖ±ù’µÑÅç°ÖŸîÅ≈’îÅŸïπçï‘¸Åùï…Ö±µïπ—îÅëï•·º(ÄÄÃ¿Åë•ÖÃà∏Ä®©AÖ…ÑÅºÄƒƒ¿»∞Åªçº®®ÉäPÄƒƒ¿»É§Å—ï—ºÅëîÅATÅëºÅ]Ω…≠ï»∞Åë•Õ¡Ö…ÑÅÖπ—ïÃ(ÄÅëîÅ≈’Ö±≈’ï»Åç°ÖµÖëÑÅëîÅA$ÅîÅ•πëï¡ïπëîÅëîÅç°ÖŸî∏Å°ÖŸîÅŸïπç•ëÑÅëÖ…•ÑÄ–¿ƒÅëÑ(ÄÅA$Åï¥Å≈’ïÕ”çºÅîÅ’µÑÅ√Öù•πÑÅπΩ…µÖ∞∞ÅªçºÅ—ï±ÑÅëîÅï……ºÅëÑÅ±Ω’ëô±Ö…î∏(¥Ä®©5ÖÃÅÑÅ¡ï…ù’π—ÑÅÖç°Ω‘ÅΩ’—…ÑÅçΩ•ÕÑ∞ÅîÅïÕÕÑÉ§Åœ•…•Ñ∏®®Å<Å—Ω≠ï∏Å≈’îÅÑÅ—ï±Ñ(ÄÄ©Ωπô•ù’…áüçºÅëÑÅA$®ÅëÑÅ5ï—ÑÅïπ—…ïùÑÉ§Ä®©—ïµ¡ΩÀÖ…•ºËÅŸÖ±îÄ»–Å°Ω…ÖÃ®®∏(ÄÅï…ÖëºÅπÑÅ€•Õ¡ï…ÑÅëÑÅëïµΩπÕ—…áüçºÅëîÄƒ‰º¿‰∞ÅïÕ—Ö…•ÑÅµΩ…—ºÅπÑÅ°Ω…Ñ∏Å<ÅÕ•π—ΩµÑ(ÄÉ§ÅºÅ¡•Ω»Å¡ΩÕœµŸï∞ËÅÑÅÖùïπ—îÅ…ïçïâîÅÑÅµïπÕÖùï¥∞ÅºÅ›ïâ°ΩΩ¨Å¡…ΩçïÕÕÑ∞ÅîÅÑ(ÄÅ…ïÕ¡ΩÕ—ÑÅªçºÅÕÖ§∏ÅOÃÅ—Ω≠ï∏ÅëîÄ®©UÕ◊Ö…•ºÅëºÅM•Õ—ïµÑ®®Å¡ΩëîÅÕï»Å¡ï…µÖπïπ—î∏(¥Å1ïŸÖπ—ÖëÖÃÅÖÃÄÃ‹ÅŸÖ…ßÖŸï•ÃÅëîÅÖµâ•ïπ—îÅëºÅ¡…Ω©ï—ºÅîÅÕï¡Ö…ÖëÖÃÅ¡Ω»ÅŸÖ±•ëÖëî∏(ÄÅYïπçï¥ËÅÅ]!QMAA}MM}Q=-9ÄÄ†»—†∞ÅΩ‘Å¡ï…µÖπïπ—îÅÕîÅôΩ»ÅUÕ◊Ö…•ºÅëº(ÄÅM•Õ—ïµÑ§∞ÅÅ5Q}%9MQI5}MM}Q=-9ÄÄ°¯ÿ¿Åë•ÖÃ§ÅîÅºÅÅ%Q!U	}Q=-9ÄÅëº(ÄÅ]Ω…≠ï»ÅÅ›•…îµ—ÿµç…ΩπÄÄ°APÅô•πîµù…Ö•πïêÅÕïµ¡…îÅ—ï¥Å¡…ÖÈºÏÅºÅ¡ÖëÀçºÅëº(ÄÅôΩ…µ’≥Ö…•ºÉ§ÄÃ¿Åë•ÖÃ∞ÅîÅºÅ]Ω…≠ï»ÅôΩ§Åç…•ÖëºÅï¥ÄƒÃº¿‰§∏Å;çºÅŸïπçï¥Ë(ÄÅÅI=E}A%}-eÄÄ°œÃÅÕîÅ…ïŸΩùÖëÑ§∞Å5ï…çÖëºÅAÖùº∞Å9ïΩ∏∞ÅAï·ï±Ã∞ÅIïÕïπê∞ÅîÅΩÃ(ÄÅÕïù…ïëΩÃÅùï…ÖëΩÃÅ¡Ω»ÅªÕÃ∏(¥Å<ÅÅ%Q!U	}Q=-9ÄÅëºÅç…Ω∏Åµï…ïçîÅÖ—ïªüçºÅ¡Ω…≈’îÄ®©ôÖ±°ÑÅçÖ±Öëº®®ËÅ≈’Öπëº(ÄÅŸïπçï»∞ÅºÅ…Ω∏ÅQ…•ùùï»ÅçΩπ—•π’ÑÅë•Õ¡Ö…Öπëº∞ÅºÅ•—!’àÅ…ïç’ÕÑ∞ÅîÅÖÃÅµÖ”•…•ÖÃ(ÄÅ¡Ö…Ö¥ÅëîÅÕÖ•»ÅÕï¥Åπïπ°’µÑÅ—ï±ÑÅÖŸ•ÕÖπëº∏(¥Ä®©Y•…Ω‘ÅŸï…•ô•èÖŸï∞Åï¥ÅŸïËÅëîÅŸ•…Ö»Å…ïçÖëº®®ËÅºÅïπë¡Ω•π–ÅëîÅë•ÖùªÕÕ—•çº(ÄÅÖùΩ…ÑÅÕΩπëÑÅÖÃÅë’ÖÃÅ¡Ωπ—ÖÃ∏Å<Åâ±ΩçºÅÅù…Ω≈ÄÅçΩπ—•π’ÑÅçΩµºÅïÕ—ÖŸÑÏÅºÅâ±Ωçº(ÄÅÅ›°Ö—ÕÖ¡¡ÄÅ≥®ÅºÅ¡ÀÕ¡…•ºÅªÈµï…ºÅπÑÅ…Ö¡†ÅA$ÉäPÅªçºÅïπŸ•ÑÅµïπÕÖùï¥∞ÅªçºÅ—ΩçÑ(ÄÅï¥ÅçΩπŸï…ÕÑÅëîÅπ•πù◊•¥ÉäPÅîÅ’¥Ä–¿ƒÅ…ïÕ¡ΩπëîÄâ¡…ΩŸÖŸï±µïπ—îÅï·¡•…Ω‘ÏÅºÅ—Ω≠ï∏(ÄÅëÑÅ—ï±ÑÅΩπô•ù’…áüçºÅëÑÅA$ÅŸÖ±îÄ»—†à∏Å9ïπ°’¥Å—Ω≠ï∏ÅÕÖ§ÅπÑÅ…ïÕ¡ΩÕ—Ñ∞ÅîÅ£Ñ(ÄÅ—ïÕ—îÅùÖ…Öπ—•πëºÅ•ÕÕº∏(¥ÅQÖâï±ÑÅëîÅŸÖ±•ëÖëîÅëÖÃÅç…ïëïπç•Ö•ÃÅ…ïù•Õ—…ÖëÑÅï¥ÅÅ9Qµ]!QMA@πµëÄ∞(ÄÅÕóüçºÄÿ∞ÅçΩ¥Åâ±ΩçºÅUQ%=8ÅÕΩâ…îÅºÅ—Ω≠ï∏ÅëîÄ»—†∏(¥Äÿ‹Å—ïÕ—ïÃÅ¡ÖÕÕÖπëºÄ°ï…Ö¥Äÿ–§∞Å—Â¡ïç°ïç¨∞Å±•π–ÅîÅâ’•±êÅ±•µ¡ΩÃ∏((ååÅÖç°îÅëîÅâΩ…ëÑÅùÖπ°ÑÅÑÅŸï…œçºÅëºÅâ’•±êÅπÑÅç°ÖŸîÄ†»¿»ÿ¥¿‰¥ƒ‹§((¥ÅÖ±°ÑÅïπçΩπ—…ÖëÑÅÖπ—ïÃÅëîÅ•»ÅÖºÅÖ»∞ÅîÅï±ÑÅÖ¡Ö…ïçï…•ÑÅπÑÅ¡•Ω»Å°Ω…ÑËÅºÅ!Q50(ÄÅù’Ö…ëÖëºÅπºÅçÖç°îÅ…ïôï…ïπç•ÑÅÖ…≈’•ŸΩÃÅëîÅ)LÅçΩ¥Å°ÖÕ†ÅπºÅπΩµî∞ÅîÅºÅëï¡±Ω‰(ÄÅÕïù’•π—îÅÖ¡ÖùÑÅïÕÕïÃÅÖ…≈’•ŸΩÃ∏Å<ÅŸ•Õ•—Öπ—îÅ…ïçïâï…•ÑÅ!Q50ÅŸï±°ºÅ¡ïë•πëº(ÄÅÕç…•¡–Å≈’îÅªçºÅï·•Õ—îÅµÖ•ÃÉäPÄ®©√Öù•πÑÅâ…ÖπçÑÅ¡Ω»ÅÖ”§Åç•πçºÅµ•π’—ΩÃÅëï¡Ω•Ã(ÄÅëîÅçÖëÑÅ¡’â±•çáüçº®®∏ÅÅÖ≈’§Å¡’â±•çÑµÕîÅÑÅçÖëÑÅ¡’Õ†∞ÅµÖ•ÃÅºÅç…Ω∏Åïë•—Ω…•Ö∞(ÄÅëîÅ°Ω…ÑÅï¥Å°Ω…ÑËÅÕï…•ÑÅ…ïçΩ……ïπ—î∞ÅªçºÅ…Ö…º∏(¥ÅΩ……óüçºËÅÑÅç°ÖŸîÅëºÅçÖç°îÅ¡ÖÕÕΩ‘ÅÑÅçÖ……ïùÖ»Å’¥ÅçÖ…•µâºÅëºÅâ’•±ê∞Å•π©ï—Öëº(ÄÅ¡ï±ºÅY•—îÅŸ•ÑÅÅëïô•πïÄÄ°Å}}YI=9%}	U%1}%}}Ä∞Å’ÕÖπëºÅÅ}YIM%=9}%ÄÅΩ‘(ÄÅÅ%Q!U	}M!ÄÅ≈’ÖπëºÅï·•Õ—ï¥∞ÅîÅºÅ°ΩÀÖ…•ºÅëºÅâ’•±êÅçΩµºÅ…ïÕï…ŸÑ§∏Åï¡±Ω‰ÅπΩŸº(ÄÅªçºÅïπçΩπ—…ÑÅπÖëÑÅπºÅçÖç°îÅîÅ…ïπëï…•ÈÑÏÅºÅ≈’îÅô•çΩ‘Å¡Ö…ÑÅ—ÀÖÃÅï·¡•…Ñ(ÄÅÕΩÈ•π°º∏ÅΩπôï…•ëºÅπºÅâ’πë±îÅùï…ÖëºËÅÑÅô’ªüçºÅÕÖ§ÅçΩ¥ÅºÅŸÖ±Ω»Å±•—ï…Ö∞∏(¥ÅÅŸ•—îπçΩπô•úπ—ÕÄÅôΩ§Å—ΩçÖëºÅœÃÅ¡ï±ºÅ¡Ωπ—ºÅëîÅï·—ïπœçºÅ≈’îÅ´ÑÅï…ÑÅ’ÕÖëº(ÄÄ°ÅŸ•—îËÅÏÄ∏∏∏ÅıÄ§∞ÅÕï¥Åµï·ï»ÅπΩÃÅ¡±’ù•πÃÅëºÅ¡…ïÕï–ÅëÑÅ1ΩŸÖâ±î∏(¥Äÿ‹Å—ïÕ—ïÃ∞Å—Â¡ïç°ïç¨∞Å±•π–ÅîÅâ’•±êÅ±•µ¡ΩÃ∏(
