@@ -145,6 +145,13 @@ const LIGHT_THEME_ROUTES = [
   "/express-entulho",
 ];
 
+// Mesma regra, com endereço EXATO: a Home da AI Workforce (01/10/2026) tem
+// sistema visual próprio — linhas finas, sinal verde só em estado — e o
+// vinheto escuro com cantoneiras HUD virava névoa cinza sobre a seção clara
+// do YO LAB. Não dá para pôr "/" na lista acima: por prefixo, ela desligaria
+// o overlay do site inteiro.
+const OVERLAY_OFF_EXACT_ROUTES = ["/"];
+
 // Varredura vertical global desativada a pedido do usuário. Para reativar,
 // altere para true; o elemento e os keyframes holo-beam continuam preservados.
 const GLOBAL_SCAN_BEAM_ENABLED = false;
@@ -152,7 +159,9 @@ const GLOBAL_SCAN_BEAM_ENABLED = false;
 export function HoloOrbits() {
   const [on, setOn] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isLightRoute = LIGHT_THEME_ROUTES.some((r) => pathname.startsWith(r));
+  const isLightRoute =
+    LIGHT_THEME_ROUTES.some((r) => pathname.startsWith(r)) ||
+    OVERLAY_OFF_EXACT_ROUTES.includes(pathname);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
