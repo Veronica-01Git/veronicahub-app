@@ -44,6 +44,7 @@ export function isEditorialSkip(error: string): boolean {
     "A data do fato está fora da janela editorial de 72h",
     "Já existe matéria publicada nessa janela",
     "Manchete parecida demais com uma publicação recente",
+    "Assunto repetido de uma publicação recente",
     "Só ",
     "Corpo com ",
     "As fontes precisam vir de pelo menos",

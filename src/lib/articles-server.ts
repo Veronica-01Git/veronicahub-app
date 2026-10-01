@@ -10,6 +10,7 @@ import { resolveEditorialChannel, scheduledEditorialChannel } from "./editorial-
 import { RECUSA_PAUTA_SC, foraDaPautaSc, tituloDeIndice } from "./pauta-sc";
 import {
   TEXTO_MINIMO_POR_FONTE,
+  assuntoRepetido,
   escolherPautas,
   extrairTexto,
   lerFeed,
@@ -1187,6 +1188,28 @@ async function recentHeadlines(db: ReturnType<typeof getDb>): Promise<string[]> 
   return rows.map((r) => r.headline);
 }
 
+// Matérias publicadas nas últimas 72h, com o começo do texto — entrada de
+// assuntoRepetido (wire-apuracao.ts), que compara os nomes próprios.
+async function recentTopics(
+  db: ReturnType<typeof getDb>,
+): Promise<Array<{ titulo: string; texto: string }>> {
+  const rows = await db
+    .select({ headline: articles.headline, excerpt: articles.excerpt, body: articles.body })
+    .from(articles)
+    .where(
+      and(
+        eq(articles.status, "published"),
+        gte(articles.publishedAt, new Date(Date.now() - 72 * 60 * 60 * 1000)),
+      ),
+    )
+    .orderBy(desc(articles.publishedAt))
+    .limit(RECENT_HISTORY_LIMIT);
+  return rows.map((r) => ({
+    titulo: r.headline,
+    texto: `${r.headline}. ${r.excerpt}. ${r.body.slice(0, 600)}`,
+  }));
+}
+
 // Já sem acento (comparado depois do NFD-strip em normalizeHeadlineTokens,
 // então a forma acentuada nunca apareceria no token pra comparar).
 const STOPWORDS_PT = new Set([
@@ -1382,6 +1405,15 @@ async function draftAndValidate(
       ok: false,
       error: `Manchete parecida demais com uma publicação recente: "${similar}".`,
     };
+  }
+
+  // A manchete pode ser outra e o fato, o mesmo (ver assuntoRepetido).
+  const repetido = assuntoRepetido(
+    `${draft.content.headline}. ${draft.content.excerpt}. ${draft.content.body}`,
+    await recentTopics(db),
+  );
+  if (repetido) {
+    return { ok: false, error: `Assunto repetido de uma publicação recente: "${repetido}".` };
   }
 
   return { ok: true, content: draft.content };

@@ -1,3 +1,40 @@
+## Trava de assunto repetido + capa manual da matéria da Geração Z (2026-10-01)
+
+**Assunto repetido.** Em 01/10 saíram duas matérias de clima sobre o mesmo
+fato, a compra da Meteoric pela Lynas:
+- "Austrália compra projeto de terras raras em Minas Gerais por US$ 672
+  milhões" (11:01);
+- "Brasil atrai bilhão de dólares com projeto de terras raras em Poços de
+  Caldas" (15:29).
+
+A trava de manchete não pegou porque os títulos têm poucas palavras em
+comum. O que as duas dividem são os nomes: Lynas, Meteoric, Resources,
+Caldeira e Poços de Caldas.
+
+- Nova trava `assuntoRepetido` (`wire-apuracao.ts`): compara os nomes
+  próprios da matéria nova com os das matérias publicadas nas últimas 72h.
+  Só contam os nomes raros, que aparecem em no máximo duas matérias da
+  janela. Com 4 ou mais nomes raros em comum, a rodada vira pulo editorial
+  ("Assunto repetido de uma publicação recente").
+- Calibração nas 60 matérias publicadas até 01/10: só o par da Lynas é
+  barrado. Com 3 nomes como piso, entravam pares que só dividiam "Política
+  Monetária" ou "Inteligência Artificial".
+- A matéria das 15:29 foi para rascunho, com autorização do dono. Não foi
+  apagada.
+
+**Capa da matéria "Inteligência artificial força Geração Z a repensar
+carreira".**
+- Imagem enviada pelo dono, recebida a 2000×1493. Foi reduzida para JPEG
+  1600×1194 com 243 KB e salva em
+  `public/images/wire-capas/inteligencia-artificial-forca-geracao-z-a-repensar-carreira.jpg`.
+- É uma pasta própria, fora de `blog-covers/`, que os workflows de capa
+  sobrescrevem.
+- No banco, a matéria recebe `coverManual = true`, que o `set-cover-image`
+  recusa sobrescrever. A troca em lote (`swap-art-covers`) só roda à mão.
+- A imagem é sintética, gerada por IA, e sai creditada como "Ilustração
+  gerada por IA". É a mesma regra das ilustrações da Nano Banana: imagem
+  sintética nunca vai ao ar sem essa marca.
+
 ## Wire volta a publicar: apuração no servidor (2026-10-01)
 
 **Problema.** O Wire rodava toda hora, mas publicou só ~1 matéria por dia
