@@ -673,11 +673,12 @@ test("o escopo editorial é Brasil e China, nos quatro elos", () => {
   assert.match(server, /ceid=BR%3Apt/, "os feeds precisam ser brasileiros");
   assert.match(server, /ESCOPO OBRIGATÓRIO: só publique fato do Brasil ou da China/);
 
-  // O gate é aplicado nos DOIS caminhos de descoberta — GDELT e RSS.
+  // O gate é aplicado nos TRÊS caminhos de descoberta — GDELT, RSS do
+  // Google Notícias e, desde 01/10/2026, a apuração no servidor.
   assert.equal(
     (server.match(/if \(!inEditorialScope\(/g) ?? []).length,
-    2,
-    "o filtro de escopo tem que valer no GDELT e no RSS",
+    3,
+    "o filtro de escopo tem que valer no GDELT, no RSS e na apuração no servidor",
   );
 
   // Veículo brasileiro entra pelo domínio, sem precisar dizer "Brasil" na

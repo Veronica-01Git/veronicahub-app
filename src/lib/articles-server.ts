@@ -8,6 +8,15 @@ import { BEAT_LABELS, CYCLE_HOURS, isBeat, type Beat } from "./beats";
 import { WIRE_NAME } from "./ecosystem";
 import { resolveEditorialChannel, scheduledEditorialChannel } from "./editorial-network";
 import { RECUSA_PAUTA_SC, foraDaPautaSc, tituloDeIndice } from "./pauta-sc";
+import {
+  TEXTO_MINIMO_POR_FONTE,
+  escolherPautas,
+  extrairTexto,
+  lerFeed,
+  nomeDoVeiculo,
+  textoCombinaComTitulo,
+  type Candidata,
+} from "./wire-apuracao";
 
 // Rascunhos gerados por IA rodam no Groq desde que Anthropic (sem crédito)
 // e Gemini (cota bloqueada mesmo com faturamento configurado — cartão
@@ -307,7 +316,12 @@ async function discoverStorySignals(beat: Beat): Promise<StorySignal[]> {
 // demais pra ser notícia de verdade. MIN_BODY_CHARS fica abaixo do alvo de
 // 900-1400 do prompt (dá margem pra variação natural do modelo) mas acima
 // do que um corpo genuinamente incompleto teria.
-const MIN_SOURCE_URLS = 2;
+//
+// 01/10/2026: o piso de fontes caiu de 2 para 1, por autorização do dono
+// ("pode quebrar a regra de duas fontes independentes para facilitar"). A
+// apuração no servidor (wire-apuracao.ts) continua preferindo o fato que
+// dois portais publicaram; a fonte única é o que sobra quando não há par.
+const MIN_SOURCE_URLS = 1;
 const MIN_BODY_CHARS = 700;
 
 // Quantas publicações recentes (todas as editorias) entram nas checagens de
@@ -776,10 +790,27 @@ Regras: eventDate é a data/hora UTC em que o fato aconteceu ou foi oficialmente
 // publica direto — ver comentário lá).
 async function draftArticleContent(
   beat: Beat,
+  opcoes: { recentes?: string[]; permitirBusca?: boolean } = {},
 ): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return { ok: false, error: "GROQ_API_KEY não configurada." };
+  }
+
+  // Primeiro o caminho barato: o servidor lê os portais e o modelo só
+  // escreve (ver wire-apuracao.ts). null = nenhuma pauta com texto legível.
+  const apurada = await apurarNoServidor(apiKey, beat, opcoes.recentes ?? []);
+  if (apurada && apurada.kind === "rascunho") {
+    return apurada.result.ok ? apurada.result : { ok: false, error: apurada.result.error };
+  }
+  // O cron não cai na busca na web: ela custa dez vezes mais e é o que
+  // esgotava a cota. A rodada fica sem publicação e a próxima tenta de novo.
+  // Só o rascunho manual do Admin (generateArticleDraftAI) ainda usa a busca.
+  if (!opcoes.permitirBusca) {
+    return {
+      ok: false,
+      error: `sem fato verificável no momento (apuração: ${apurada?.diagnostico ?? "sem pauta"})`,
+    };
   }
 
   // Só uma retentativa, e só quando a resposta veio com formato quebrado
@@ -791,6 +822,233 @@ async function draftArticleContent(
 
   const second = await attemptDraft(apiKey, beat, signals);
   return second;
+}
+
+// ---------------------------------------------------------------------------
+// APURAÇÃO NO SERVIDOR (01/10/2026) — ver o cabeçalho de wire-apuracao.ts.
+//
+// Feeds com a URL real de cada matéria. O Google Notícias (RSS_FEEDS, acima)
+// segue servindo a busca na web do rascunho manual, mas o link dele não se
+// abre sem JavaScript — aqui só entram portais que entregam o endereço da
+// matéria. Todos conferidos em 01/10/2026: respondem 200 e a página traz o
+// texto em <p>. DIARINHO, BC Notícias e Click Camboriú ficam de fora porque
+// não publicam RSS aberto (404/403); continuam no radar do Google Notícias.
+const G1_FEED = (secao: string) => `https://g1.globo.com/rss/g1/${secao}`;
+const FEEDS_DIRETOS: Record<Beat, string[]> = {
+  ia: [
+    G1_FEED("tecnologia/"),
+    "https://canaltech.com.br/rss/",
+    "https://olhardigital.com.br/feed/",
+    "https://www.cnnbrasil.com.br/feed/",
+    "https://exame.com/feed/",
+    AGENCIA_BRASIL,
+  ],
+  clima: [
+    G1_FEED("natureza/"),
+    G1_FEED("economia/"),
+    AGENCIA_BRASIL,
+    "https://www.cnnbrasil.com.br/feed/",
+    "https://www.infomoney.com.br/feed/",
+  ],
+  economia: [
+    G1_FEED("economia/"),
+    "https://www.infomoney.com.br/feed/",
+    "https://www.cnnbrasil.com.br/feed/",
+    "https://www.poder360.com.br/feed/",
+    "https://exame.com/feed/",
+    "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/economia/",
+    AGENCIA_BRASIL,
+  ],
+  geopolitica: [],
+  mercado: [],
+  sc: [
+    "https://ndmais.com.br/feed/",
+    "https://www.nsctotal.com.br/rss",
+    G1_FEED("sc/"),
+    "https://scc10.com.br/feed/",
+    "https://www.jornalrazao.com/feed/",
+    "https://www.olharsc.com.br/feed/",
+    "https://pagina3.com.br/feed/",
+    "https://omunicipio.com.br/feed/",
+  ],
+  veronica: [],
+};
+
+// Itajaí, Balneário Camboriú e o litoral norte vão na frente da fila de SC.
+const PRIORIDADE_SC =
+  /itaja[íi]|balne[áa]rio|cambori[úu]|navegantes|itapema|porto belo|bombinhas|penha|pi[çc]arras|br-?101/i;
+// Os portais catarinenses também publicam notícia nacional e internacional
+// (eleição, execução nos EUA, moda). Para a editoria SC, a pauta precisa
+// citar o estado ou uma cidade dele.
+const TERRITORIO_SC =
+  /santa catarina|catarinense|\bsc\b|florian[óo]polis|joinville|blumenau|brusque|chapec[óo]|crici[úu]ma|lages|jaragu[áa]|s[ãa]o jos[ée]|palho[çc]a|tubar[ãa]o|rio do sul|gaspar|indaial|guabiruba|conc[óo]rdia|ca[çc]ador|videira|mafra|laguna|imbituba|biguagu|tijucas|garopaba|alto vale|vale do itaja[íi]|grande florian[óo]polis|serra catarinense|oeste catarinense/i;
+
+const UA_DO_WIRE = "VeronicaWire/1.0 (+https://veronicahub.com/blog)";
+const JANELA_DA_APURACAO_HORAS = 48;
+const PAUTAS_POR_RODADA = 4;
+const APURACAO_MAX_TOKENS = 2_000;
+
+async function baixar(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url, {
+      headers: { "User-Agent": UA_DO_WIRE, Accept: "text/html,application/xhtml+xml,*/*" },
+      signal: AbortSignal.timeout(8_000),
+      redirect: "follow",
+    });
+    return response.ok ? await response.text() : null;
+  } catch {
+    return null;
+  }
+}
+
+function candidataNaPauta(beat: Beat, c: Candidata, recentes: string[]): boolean {
+  if (!SIGNAL_KEYWORDS[beat].test(c.titulo)) return false;
+  if (beat === "sc") {
+    if (foraDaPautaSc(c.titulo, c.resumo) || tituloDeIndice(c.titulo)) return false;
+    if (!TERRITORIO_SC.test(`${c.titulo} ${c.resumo}`) && !PRIORIDADE_SC.test(c.titulo)) {
+      return false;
+    }
+  } else if (!inEditorialScope(c.titulo, c.dominio)) {
+    return false;
+  }
+  return findSimilarHeadline(c.titulo, recentes) === null;
+}
+
+type FonteApurada = { candidata: Candidata; texto: string };
+
+type Apuracao =
+  | { kind: "rascunho"; result: DraftAttemptResult }
+  | { kind: "sem-pauta"; diagnostico: string };
+
+async function apurarNoServidor(apiKey: string, beat: Beat, recentes: string[]): Promise<Apuracao> {
+  const feeds = FEEDS_DIRETOS[beat];
+  if (feeds.length === 0) return { kind: "sem-pauta", diagnostico: "editoria sem feed direto" };
+
+  const lidos = await Promise.all(feeds.map(async (feed) => lerFeed((await baixar(feed)) ?? "")));
+  const candidatas = lidos.flat().filter((c) => candidataNaPauta(beat, c, recentes));
+  const pautas = escolherPautas(candidatas, {
+    agora: Date.now(),
+    janelaHoras: JANELA_DA_APURACAO_HORAS,
+    prioridade: beat === "sc" ? PRIORIDADE_SC : undefined,
+    limite: PAUTAS_POR_RODADA,
+  });
+
+  for (const pauta of pautas) {
+    const fontes: FonteApurada[] = [];
+    for (const candidata of pauta.fontes) {
+      const html = await baixar(candidata.url);
+      if (!html) continue;
+      const texto = extrairTexto(html);
+      if (texto.length < TEXTO_MINIMO_POR_FONTE) continue;
+      if (!textoCombinaComTitulo(candidata.titulo, texto)) continue;
+      fontes.push({ candidata, texto });
+    }
+    if (fontes.length === 0) continue;
+    // Uma chamada ao modelo por rodada, no máximo: se ele recusar, a rodada
+    // termina e a próxima hora tenta outra pauta.
+    return { kind: "rascunho", result: await escreverComFontes(apiKey, beat, fontes) };
+  }
+
+  return {
+    kind: "sem-pauta",
+    diagnostico: `${candidatas.length} candidata${candidatas.length === 1 ? "" : "s"}, ${pautas.length} pauta${pautas.length === 1 ? "" : "s"} sem texto legível`,
+  };
+}
+
+async function escreverComFontes(
+  apiKey: string,
+  beat: Beat,
+  fontes: FonteApurada[],
+): Promise<DraftAttemptResult> {
+  const targetChannel = scheduledEditorialChannel(beat);
+  const escopo =
+    beat === "sc"
+      ? "ESCOPO: Santa Catarina, com foco em Itajaí, Balneário Camboriú e o litoral norte. PROIBIDO escrever sobre polícia, crime, prisão, acidente, morte ou tragédia."
+      : "ESCOPO OBRIGATÓRIO: só publique fato do Brasil ou da China, com prioridade para o Brasil. Fato de outro país só entra quando o efeito brasileiro ou chinês for o assunto.";
+  const systemPrompt = `Você é redator do ${WIRE_NAME}, editoria "${BEAT_LABELS[beat]}" (${BEAT_BRIEF[beat]}), canal editorial "${targetChannel.label}" (${targetChannel.description}).
+Você NÃO tem busca na web: a apuração já foi feita pelo servidor, que baixou agora o texto ${fontes.length > 1 ? "das fontes" : "da fonte"} abaixo. Escreva UMA matéria usando EXCLUSIVAMENTE esse texto. Não acrescente fato, número, nome, data ou citação que não esteja nele.
+Reescreva com suas palavras — não copie frases inteiras — e atribua as informações ao veículo no corpo (ex.: "segundo o ${nomeDoVeiculo(fontes[0].candidata.dominio)}").
+${escopo}
+Responda apenas com JSON válido neste formato:
+{"headline":"manchete direta em português","excerpt":"resumo em 1-2 frases","body":"3 a 5 parágrafos separados por \\n\\n, 900-1300 caracteres no total; abra com o fato completo e inclua dado numérico quando existir; sem opinião ou conclusão genérica","fotoTermos":["english photo term 1","english photo term 2"]}
+fotoTermos: 2-3 objetos, lugares ou ambientes fotografáveis, em inglês, sem marcas nem pessoas públicas.
+Se o texto não trouxer um fato noticioso dentro da editoria${fontes.length > 1 ? ", ou se as fontes tratarem de fatos diferentes" : ""}, responda {"error":"sem fato verificável no momento"}.`;
+  const material = fontes
+    .map(
+      ({ candidata, texto }, i) =>
+        `FONTE ${i + 1} — ${nomeDoVeiculo(candidata.dominio)} (${candidata.url})\nManchete: ${candidata.titulo}\n${texto}`,
+    )
+    .join("\n\n");
+
+  let response: Groq.Chat.ChatCompletion;
+  try {
+    const groq = new Groq({ apiKey });
+    response = await groq.chat.completions.create({
+      model: DRAFT_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: material },
+      ],
+      max_completion_tokens: APURACAO_MAX_TOKENS,
+      reasoning_effort: "low",
+    });
+  } catch (error) {
+    const mensagem = error instanceof Error ? error.message : String(error);
+    const status = (error as { status?: unknown } | null)?.status;
+    if (status === 429 || /\b429\b|rate limit/i.test(mensagem)) {
+      // Mesmo texto do caminho antigo: isEditorialSkip casa o "429" do começo.
+      return {
+        ok: false,
+        error: `${mensagem.startsWith("429") ? mensagem : `429 ${mensagem}`} (${DRAFT_RESERVED_MODEL} reservado ao WhatsApp)`,
+        retry: false,
+      };
+    }
+    return { ok: false, error: mensagem.slice(0, 400), retry: false };
+  }
+
+  const text = (response.choices[0]?.message?.content ?? "").trim();
+  const inicio = [...text.matchAll(/\{\s*"(?:headline|error)"/g)].at(-1)?.index ?? -1;
+  const fim = text.lastIndexOf("}");
+  let parsed: Record<string, unknown> | null = null;
+  if (inicio !== -1 && fim > inicio) {
+    try {
+      parsed = JSON.parse(text.slice(inicio, fim + 1)) as Record<string, unknown>;
+    } catch {
+      parsed = null;
+    }
+  }
+  if (!parsed) {
+    console.error(`escreverComFontes(${beat}): sem JSON válido. Trecho: ${text.slice(0, 300)}`);
+    return { ok: false, error: "IA não retornou um rascunho válido. Tente de novo.", retry: false };
+  }
+  if (typeof parsed.error === "string") {
+    return {
+      ok: false,
+      error: `${parsed.error} (apuração: ${fontes.map((f) => f.candidata.dominio).join(" + ")})`,
+      retry: false,
+    };
+  }
+
+  const { headline, excerpt, body, fotoTermos } = parsed;
+  if (typeof headline !== "string" || typeof excerpt !== "string" || typeof body !== "string") {
+    return { ok: false, error: "IA retornou um formato inesperado. Tente de novo.", retry: false };
+  }
+
+  return {
+    ok: true,
+    content: {
+      headline: headline.trim(),
+      excerpt: excerpt.trim(),
+      body: body.trim(),
+      desk: targetChannel.label,
+      // As URLs que o servidor abriu, não as que o modelo diz ter aberto.
+      sourceUrls: fontes.map((f) => f.candidata.url),
+      fotoTermos:
+        Array.isArray(fotoTermos) && fotoTermos.every((t) => typeof t === "string")
+          ? (fotoTermos as string[]).filter(Boolean).slice(0, 3)
+          : [],
+    },
+  };
 }
 
 // Gera SEMPRE como rascunho (status "draft") — nunca publica sozinho. Um
@@ -805,7 +1063,7 @@ export const generateArticleDraftAI = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Acesso restrito." };
     }
 
-    const draft = await draftArticleContent(data.beat);
+    const draft = await draftArticleContent(data.beat, { permitirBusca: true });
     if (!draft.ok) {
       return { ok: false as const, error: draft.error };
     }
@@ -1104,7 +1362,10 @@ async function draftAndValidate(
   db: ReturnType<typeof getDb>,
   beat: Beat,
 ): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
-  const draft = await draftArticleContent(beat);
+  // Lidas antes do rascunho: a apuração no servidor já descarta a pauta que
+  // repetiria uma manchete recente, sem gastar a chamada ao modelo.
+  const recentes = await recentHeadlines(db);
+  const draft = await draftArticleContent(beat, { recentes });
   if (!draft.ok) return draft;
 
   // O radar já filtra, mas o modelo pode achar outra pauta pela busca.
@@ -1115,7 +1376,7 @@ async function draftAndValidate(
   const quality = validateDraftForPublish(draft.content);
   if (!quality.ok) return quality;
 
-  const similar = findSimilarHeadline(draft.content.headline, await recentHeadlines(db));
+  const similar = findSimilarHeadline(draft.content.headline, recentes);
   if (similar) {
     return {
       ok: false,

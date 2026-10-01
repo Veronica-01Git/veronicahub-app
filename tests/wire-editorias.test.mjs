@@ -119,11 +119,12 @@ test("desk escrito à mão vence o palpite por palavra-chave", () => {
 
 test("o Wire não usa o gpt-oss-120b: ele fica livre para a reserva do WhatsApp", async () => {
   const server = readFileSync(new URL("../src/lib/articles-server.ts", import.meta.url), "utf8");
-  // Uma chamada só à Groq no rascunho, e com o modelo principal.
+  // Toda chamada à Groq no rascunho usa o modelo principal: a da busca na
+  // web (rascunho manual) e, desde 01/10/2026, a da apuração no servidor.
   const chamadas = [...server.matchAll(/chat\.completions\.create\(\{\s*model: (\w+)/g)].map(
     (m) => m[1],
   );
-  assert.deepEqual(chamadas, ["DRAFT_MODEL"]);
+  assert.deepEqual(chamadas, ["DRAFT_MODEL", "DRAFT_MODEL"]);
   assert.match(server, /const DRAFT_MODEL = "openai\/gpt-oss-20b";/);
 
   // Cota esgotada continua sendo rodada sem publicação, não falha.
