@@ -105,8 +105,9 @@ quebrado, agentes reais bloqueados), lifecycle, registro, API e migração.
 branch — **0 novos**; arquivos novos limpos (o CI não roda lint, ver
 `ci.yml`).
 
-**Branch:** `feat/veronica-agent-platform-foundation`. **Commit/PR:** ver o PR
-aberto a partir deste branch (sem merge).
+**Branch:** `feat/veronica-agent-platform-foundation`. **Commit:** `51250b6`.
+**PR:** https://github.com/Veronica-01Git/veronicahub-app/pull/164 (aberto,
+sem merge).
 
 **Riscos:**
 
