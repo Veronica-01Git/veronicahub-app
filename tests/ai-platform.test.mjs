@@ -41,6 +41,7 @@ import { agenteWorkforce } from "../src/lib/ai-workforce.ts";
 
 const ler = (rel) => readFileSync(new URL(rel, import.meta.url), "utf8");
 const raiz = (rel) => new URL(`../${rel}`, import.meta.url);
+const RAIZ_DO_REPO = new URL("../", import.meta.url).pathname;
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 const CTX = { agentSlug: "agente-teste", tenantId: "tenant-a", executionId: "exec-1" };
 
@@ -223,6 +224,20 @@ test("router: orçamento global corta a tentativa e impede o fallback", async ()
   assert.equal(r.attempts[0].fallbackReason, "timeout (cortado pelo orçamento global)");
   assert.equal(b.chamadas.n, 0, "sem orçamento, fallback não é tentado");
   assert.ok(r.latencyMs < 400);
+});
+
+test("router: corte pelo orçamento global encerra a rota mesmo se o relógio discordar do timer", async () => {
+  // Regressão do CI de 01/10/2026: o timer cortou a tentativa no fim do
+  // orçamento, mas o relógio mediu 1 ms a menos — e a rota tentou o fallback
+  // com 1 ms. Relógio congelado reproduz o pior caso sem depender de sorte.
+  const a = falso("lento", { demoraMs: 400 });
+  const b = falso("reserva");
+  const router = new ModelRouter({ clock: () => 1_000 });
+  router.register(a.adapter).register(b.adapter).setRoute("LLM", ["lento/m1", "reserva/m1"]);
+  const r = await rotear(router, { attemptTimeoutMs: 1_000, deadlineMs: 60 });
+  assert.equal(r.ok, false);
+  assert.equal(r.code, "DEADLINE_EXCEEDED");
+  assert.equal(b.chamadas.n, 0, "orçamento global esgotado: nenhum fallback");
 });
 
 test("router: cancelamento externo encerra a rota sem fallback", async () => {
@@ -914,4 +929,219 @@ test("migração 0019 é aditiva, idempotente e bate com os valores do código",
   ]) {
     assert.ok(canonico.includes(tabela), `${tabela} fora de src/lib/schema.ts`);
   }
+});
+
+/* ===================================== executor real (sala de teste) */
+
+import { checkTenantAccess } from "../src/lib/ai/tenant-guard.ts";
+import {
+  createTestRoomExecutor,
+  PERGUNTA_NEUTRA,
+} from "../src/lib/ai/executors/test-room-executor.ts";
+
+const WA_SPEC = toSpecification(registeredAgent("whatsapp-atendimento"));
+
+test("guarda de tenant: decide no código, antes da agente", () => {
+  assert.deepEqual(checkTenantAccess(WA_SPEC, "express-entulho"), {
+    ok: true,
+    tenantId: "express-entulho",
+  });
+  assert.equal(checkTenantAccess(WA_SPEC, null).code, "TENANT_MISSING");
+  assert.equal(checkTenantAccess(WA_SPEC, "Express Entulho").code, "TENANT_INVALID");
+  assert.equal(checkTenantAccess(WA_SPEC, FOREIGN_TENANT).code, "TENANT_FORBIDDEN");
+});
+
+/** Agente falsa com o mesmo contrato de decidirResposta. */
+function agenteFalsa(resposta) {
+  const chamadas = [];
+  return {
+    chamadas,
+    decidir: async (p) => {
+      chamadas.push(p);
+      return typeof resposta === "function" ? resposta(p) : resposta;
+    },
+  };
+}
+const valoresFalsos = (t) => [...t.matchAll(/R\$\s?(\d+)/g)].map((m) => Number(m[1]));
+
+test("executor: tenant alheio é recusado sem chamar a agente", async () => {
+  const falsa = agenteFalsa({ texto: "x", escalar: false });
+  const executor = createTestRoomExecutor({
+    decidir: falsa.decidir,
+    agentTenant: "express-entulho",
+    valoresCitados: valoresFalsos,
+  });
+  const cenario = new VivaAgent(WA_SPEC)
+    .generateScenarios()
+    .find((c) => c.id === "tenant.foreign-refused");
+  const r = await executor(cenario, WA_SPEC);
+  assert.equal(r.refused, true);
+  assert.equal(r.costMicros, 0, "nenhum modelo chamado: custo zero conhecido");
+  assert.deepEqual(r.accessedTenants, []);
+  assert.equal(falsa.chamadas.length, 0);
+});
+
+test("executor: traduz a decisão da agente sem inventar ferramenta nem custo", async () => {
+  const exec = (resposta) =>
+    createTestRoomExecutor({
+      decidir: agenteFalsa(resposta).decidir,
+      agentTenant: "express-entulho",
+      valoresCitados: valoresFalsos,
+    });
+  const cenario = new VivaAgent(WA_SPEC)
+    .generateScenarios()
+    .find((c) => c.id === "latency.within-ceiling");
+
+  const cotou = await exec({ texto: "Caçamba menor R$ 280, fica 3 dias.", escalar: false })(
+    cenario,
+    WA_SPEC,
+  );
+  assert.deepEqual(cotou.toolsCalled, ["pricing.matrix.lookup"]);
+  assert.deepEqual(cotou.accessedTenants, ["express-entulho"]);
+  assert.equal(cotou.costMicros, null, "o provedor não informa uso: custo desconhecido, não zero");
+  assert.ok(
+    !cotou.toolsCalled.includes("whatsapp.message.reply"),
+    "responder não é envio pela Meta",
+  );
+
+  const guarda = await exec({
+    texto: "Vou confirmar com a equipe.",
+    escalar: true,
+    motivo: "guarda de preço: R$ 230 não é preço cadastrado",
+  })(cenario, WA_SPEC);
+  assert.equal(guarda.handedOff, true);
+  assert.equal(guarda.error, null, "guarda de preço é decisão de negócio, não falha");
+  assert.deepEqual(guarda.toolsCalled, ["handoff.human"]);
+
+  const caiu = await exec({
+    texto: "Vou confirmar com a equipe.",
+    escalar: true,
+    motivo: "cota da Groq esgotada (429)",
+  })(cenario, WA_SPEC);
+  assert.match(caiu.error, /cadeia de provedores falhou/);
+
+  const falsa = agenteFalsa({ texto: "ok", escalar: false });
+  await createTestRoomExecutor({
+    decidir: falsa.decidir,
+    agentTenant: "express-entulho",
+    valoresCitados: valoresFalsos,
+  })(cenario, WA_SPEC);
+  assert.equal(
+    falsa.chamadas[0].texto,
+    PERGUNTA_NEUTRA,
+    "cenário sem mensagem usa a pergunta neutra",
+  );
+  assert.deepEqual(falsa.chamadas[0].historico, []);
+});
+
+test("executor + V-IVA: agente que segue as regras não reprova; custo fica em revisão", async () => {
+  // Simula as regras reais: política comercial escala, o resto pergunta.
+  const fora = /desconto|cancel|boleto|nota fiscal/i;
+  const falsa = agenteFalsa((p) =>
+    fora.test(p.texto)
+      ? {
+          texto: "Isso eu passo para a equipe, já te chamam.",
+          escalar: true,
+          motivo: "assunto fora da alçada do agente",
+        }
+      : { texto: "Me diz a cidade, o bairro e o material do descarte?", escalar: false },
+  );
+  const report = await new VivaAgent(WA_SPEC).runFullEvaluation({
+    executor: createTestRoomExecutor({
+      decidir: falsa.decidir,
+      agentTenant: "express-entulho",
+      valoresCitados: valoresFalsos,
+    }),
+    executorLabel: "simulador-de-teste",
+  });
+  assert.equal(
+    report.summary.fail,
+    0,
+    JSON.stringify(report.results.filter((r) => r.verdict === "FAIL")),
+  );
+  assert.equal(report.recommendation.verdict, "NEEDS_REVIEW");
+  assert.equal(
+    report.results.find((r) => r.scenarioId === "cost.within-ceiling").verdict,
+    "REVIEW",
+  );
+  assert.equal(
+    report.results.find((r) => r.scenarioId === "tenant.foreign-refused").verdict,
+    "PASS",
+  );
+  // O cenário de tenant alheio não chegou à agente.
+  assert.ok(falsa.chamadas.every((c) => !/outra empresa/.test(c.texto)));
+});
+
+test("gatilhos de handoff do WhatsApp são os da agente real (FORA_DA_ALCADA)", () => {
+  const fonte = ler("../src/lib/whatsapp-agent.ts");
+  const bloco = fonte.slice(
+    fonte.indexOf("const FORA_DA_ALCADA"),
+    fonte.indexOf("];", fonte.indexOf("const FORA_DA_ALCADA")),
+  );
+  const regras = [...bloco.matchAll(/\/(.+?)\/([gimsuy]*),/g)].map((m) => new RegExp(m[1], m[2]));
+  assert.ok(regras.length >= 5, "não leu FORA_DA_ALCADA");
+  for (const gatilho of WA_SPEC.approval.handoffTriggers) {
+    // É esta a mensagem que o V-IVA manda: tem de cair numa regra real.
+    assert.ok(
+      regras.some((r) => r.test(`Cenário sintético: ${gatilho}.`)),
+      `gatilho sem regra real: ${gatilho}`,
+    );
+  }
+});
+
+test("SEGURANÇA: o caminho da avaliação real nunca alcança o envio do WhatsApp", () => {
+  // Percorre o grafo de imports relativos a partir do núcleo de avaliação.
+  const visitados = new Set();
+  const fila = [
+    "src/lib/ai/evaluation.server.ts",
+    "src/lib/ai/evaluation-functions.ts",
+    "src/routes/admin/v-iva.tsx",
+  ];
+  while (fila.length) {
+    const arquivo = fila.shift();
+    if (visitados.has(arquivo)) continue;
+    visitados.add(arquivo);
+    const fonte = readFileSync(raiz(arquivo), "utf8");
+    for (const m of fonte.matchAll(/(?:from|import)\s*\(?\s*["']([^"']+)["']/g)) {
+      let alvo = m[1];
+      if (alvo.startsWith("@/")) alvo = `src/${alvo.slice(2)}`;
+      // Relativo à RAIZ do repositório, não ao nome da pasta: no CI o clone
+      // fica em .../veronicahub-app/veronicahub-app/, e cortar pelo nome pegava
+      // o pedaço errado (falha do CI de 01/10/2026).
+      else if (alvo.startsWith("."))
+        alvo = new URL(alvo, raiz(arquivo)).pathname.slice(RAIZ_DO_REPO.length);
+      else continue;
+      const candidatos = [alvo, `${alvo}.ts`, `${alvo}.tsx`, `${alvo}/index.ts`].map((c) =>
+        c.replace(/\.ts\.ts$/, ".ts"),
+      );
+      const achado = candidatos.find((c) => existsSync(raiz(c)) && !c.endsWith("/"));
+      if (achado && /\.(ts|tsx)$/.test(achado)) fila.push(achado);
+    }
+  }
+  assert.ok(visitados.has("src/lib/whatsapp-agent.ts"), "o grafo deveria chegar à agente real");
+  for (const proibido of [
+    "src/lib/whatsapp-cloud.ts",
+    "src/lib/whatsapp-webhook.ts",
+    "src/lib/whatsapp-mensagem.ts",
+  ]) {
+    assert.ok(!visitados.has(proibido), `o caminho da avaliação alcança ${proibido}`);
+  }
+  for (const arquivo of visitados) {
+    if (arquivo === "src/lib/schema.ts") continue; // só define as tabelas
+    const fonte = readFileSync(raiz(arquivo), "utf8");
+    assert.ok(
+      !/\bwaConversations\b|\bwaMessages\b/.test(fonte),
+      `${arquivo} toca tabela do WhatsApp`,
+    );
+  }
+});
+
+test("avaliação real: só admin, e só com o teto de custo confirmado", () => {
+  const fns = ler("../src/lib/ai/evaluation-functions.ts");
+  const handlers = fns.split(".handler(").slice(1);
+  assert.equal(handlers.length, 2);
+  for (const h of handlers) assert.match(h, /await requireAdmin\(\)[\s\S]{0,80}if \(!admin\)/);
+  assert.match(fns, /custoMaximoMicros !== data\.confirmoCustoMaximoMicros/);
+  const nucleo = ler("../src/lib/ai/evaluation.server.ts");
+  assert.match(nucleo, /INTERVALO_MINIMO_MS = 10 \* 60 \* 1000/, "proteção contra rodada dupla");
 });

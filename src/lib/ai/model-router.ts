@@ -477,6 +477,14 @@ export class ModelRouter {
               : "timeout da tentativa"
             : "erro do provedor",
       });
+
+      // Se o corte veio do orçamento global (o limite desta tentativa era o que
+      // sobrava do prazo), o prazo acabou — ponto. Não se pergunta de novo ao
+      // relógio: timer e relógio podem discordar em 1 ms, e foi exatamente
+      // isso que fez a rota tentar um fallback com 1 ms no CI de 01/10/2026.
+      if (resultado.kind === "timeout" && limite < options.attemptTimeoutMs) {
+        return falhar("DEADLINE_EXCEEDED", `Orçamento global de ${options.deadlineMs} ms esgotado`);
+      }
     }
 
     const tentadas = attempts.filter((a) => !a.outcome.startsWith("skipped"));

@@ -270,10 +270,14 @@ const WHATSAPP_ATENDIMENTO: RegisteredAgent = {
     "Definido em 01/10/2026 por delegação do dono (pedido: conservador). Custo: pior caso de uma chamada ao Claude Opus 5 ≈ US$ 0,076 (5.000 tokens de entrada a US$ 5/M + 2.048 de saída a US$ 25/M); teto de US$ 0,10 cobre uma chamada e bloqueia a segunda. Latência: 20 s contra o limite de 30 s do waitUntil da Cloudflare.",
   approval: {
     requiresApproval: false,
+    // Os gatilhos reais de whatsapp-agent.ts (FORA_DA_ALCADA): política
+    // comercial escala sem passar pelo modelo. Material não informado NÃO é
+    // handoff — a regra do dono é perguntar o material. Valor fora da matriz
+    // é barrado pela guarda na SAÍDA, coberto pela regra "preco-so-da-matriz".
     handoffTriggers: [
       "cliente pede desconto",
-      "material não informado",
-      "valor fora da matriz de preço",
+      "cliente pede cancelamento",
+      "cliente pede boleto ou nota fiscal",
     ],
   },
   businessRules: [
