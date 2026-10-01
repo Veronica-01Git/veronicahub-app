@@ -1,3 +1,37 @@
+## Matéria do LZ Team no Wire + crédito correto na legenda do Instagram (2026-10-01)
+
+**Matéria.** "“Não foi sorte. Foi processo”: o método do Coach Lucas Tomaz que
+move o LZ Training Club", na editoria Veronica, desk Produto, pedida pelo
+dono.
+- **Fatos:** todos vêm de `src/features/lz-team/content.ts`, conteúdo já
+  conferido da página /clientes/lz-team. Os números de trajetória são
+  atribuídos ao próprio coach.
+- **Transparência:** o último parágrafo e a legenda do Instagram dizem que o
+  LZ Training Club é cliente da Veronica Hub.
+
+**Imagens:**
+- **Capa:** a foto mais profissional do Lucas, no palco com a medalha, vinda
+  da biblioteca de mídia (`lz-team--hero-coach.png`). Ela foi recomposta em
+  16:10 (1600×1000, 102 KB), com fundo desfocado da própria foto e sem
+  recorte do atleta. A marca de IA do canto (✦), que já vinha na foto, foi
+  mantida.
+- **Corpo:** a mesma foto inteira, sem recorte (90 KB).
+- **Card do Instagram:** gerado pelo script do Wire.
+
+**Fora da matéria, de propósito:**
+- **Fotos de antes e depois de alunos:** são corpos de terceiros, sem
+  consentimento registrado para aparecer numa matéria.
+- **Certificados:** mostram sinais de terem sido redesenhados por IA (texto
+  miúdo ilegível, "10 HHORAS"). A formação é citada como informação do
+  coach, sem reproduzir os documentos.
+- **Foto `about-coach`:** não dá para confirmar quem dos dois é o Lucas, e o
+  rótulo do slot não bate com a imagem.
+
+**Bug corrigido.** `buildWireCaption` acrescentava "/ Pexels" a qualquer
+crédito. A ilustração sintética ("Ilustração gerada por IA (Nano Banana
+Pro)") saía no feed do Instagram creditada ao Pexels. Agora, o crédito que
+já diz a origem sai como está, e há um teste novo para isso.
+
 ## Trava de assunto repetido + capa manual da matéria da Geração Z (2026-10-01)
 
 **Assunto repetido.** Em 01/10 saíram duas matérias de clima sobre o mesmo

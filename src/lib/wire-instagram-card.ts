@@ -107,6 +107,9 @@ export function wrapHeadline(
 // Legenda pronta pro feed: manchete, resumo, endereço canônico da matéria no
 // site e a assinatura do perfil. O link fica no texto porque o feed do
 // Instagram não aceita link clicável na legenda — quem lê copia daqui.
+const CREDITO_COM_ORIGEM =
+  /\/|ilustra[çc][ãa]o|gerada por ia|arquivo|reprodu[çc][ãa]o|divulga[çc][ãa]o/i;
+
 export function buildWireCaption(input: {
   headline: string;
   excerpt?: string;
@@ -120,12 +123,18 @@ export function buildWireCaption(input: {
   // O crédito do fotógrafo acompanha a foto onde quer que ela vá. No feed não
   // há como linkar, então vai escrito; o nome chega sem a fonte (ver
   // parseBankCredit), e é aqui que "Pexels" é acrescentado.
+  //
+  // 01/10/2026: só nome de fotógrafo leva o "/ Pexels". Crédito que já diz a
+  // origem — "Ilustração gerada por IA (Nano Banana Pro)", "Arquivo pessoal /
+  // LZ Training Club", "Reprodução / veronicahub.com" — sai como está: antes,
+  // a ilustração sintética ia para o feed creditada ao Pexels.
   const credit = input.photoCredit?.trim();
+  const jaTemOrigem = credit ? CREDITO_COM_ORIGEM.test(credit) : false;
   return [
     input.headline,
     excerpt,
     `Leia a matéria completa: ${input.canonicalUrl}`,
-    credit ? `Foto: ${credit} / Pexels` : undefined,
+    credit ? (jaTemOrigem ? `Foto: ${credit}` : `Foto: ${credit} / Pexels`) : undefined,
     WIRE_INSTAGRAM_HANDLE,
   ]
     .filter(Boolean)
