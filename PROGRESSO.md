@@ -1,3 +1,129 @@
+## Fundação da Veronica AI Workforce Platform e do V-IVA (2026-10-01)
+
+**Objetivo.** Primeira fundação real da plataforma de agentes: registro,
+modelo de dados, roteador de modelos, observabilidade, lifecycle auditável e
+o V-IVA (Veronica Internal Validation & Adversarial Agent), que avalia um
+agente e recomenda — nunca promove sozinho.
+
+**Auditoria — o que já existia e foi reutilizado, não recriado:**
+
+- `src/lib/schema.ts` é a fonte canônica do Drizzle; o padrão modular já
+  existia (`src/members/schema.ts`, re-exportado no fim). Seguido igual.
+- Estados: o repo mistura `pgEnum` e `text`; a migração mais recente (0018)
+  usa `text` + CHECK. Seguido — é a escolha reversível.
+- JSON em `text`, não `jsonb` (convenção documentada em
+  `AffiliateProduct.galleryUrls`). Seguido.
+- Dinheiro em centavos inteiros no Hub; para custo de modelo (fração de
+  centavo) a fundação usa **micro-unidades inteiras** (1 USD = 1.000.000).
+  Custo desconhecido é `null`, nunca zero.
+- Tenant: não existe tabela; existe `WaConversation.tenant` (slug). A
+  fundação segue o slug (`TenantId`) e define `HOUSE_TENANT = "veronica-hub"`.
+- Provedores: `src/lib/whatsapp-provedores.ts` já tinha `Provedor` e a cadeia
+  Anthropic → Groq → Groq reserva → Gemini, sem timeout nem teto de custo.
+  **Intocada**; entra no novo router por adaptador
+  (`src/lib/ai/adapters/legacy-provedor.ts`, import só de tipo).
+- Skills: `src/veronica/skills` (VERONICA_SKILLS) é o catálogo; o registro
+  referencia por `veronica:<id>`. Ferramentas não tinham catálogo — criado,
+  só com o que tem implementação real (o teste confere o arquivo).
+- Agentes: `ai-workforce.ts` (vitrine) e `agentes.ts` (comercial) já
+  existiam. O registro novo é o recorte de engenharia e **deriva nome e
+  descrição da vitrine** em vez de repetir.
+- API: não há `src/routes/api`; endpoint de URL fixa é interceptado em
+  `src/server.ts` (padrão do `/api/wire/feed.json`). Seguido.
+- Observabilidade: não existia nada. Criada a abstração.
+- Migrações: o `_journal.json` do drizzle-kit parou na 0011; 0012–0018 são
+  SQL à mão aplicado manualmente. `drizzle-kit generate` hoje recriaria
+  tabelas existentes — por isso a 0019 também é à mão.
+
+**Implementado:**
+
+- `src/lib/ai/platform-types.ts` — vocabulário único (lifecycle LAB →
+  ENTERPRISE, autonomia LEVEL_0–5 com definição de cada nível, veredito,
+  execução, gatilho, categoria de cenário, efeito de ferramenta, moeda).
+  O mesmo array tipa o TS e gera as CHECKs.
+- `src/lib/ai/schema.ts` — `ModelProvider`, `Agent`, `AgentSkill`,
+  `AgentTool`, `AgentExecution`, `AgentEvaluation`,
+  `AgentLifecycleTransition`. Sem ON DELETE CASCADE (trilha de auditoria),
+  sem credencial, sem prompt, sem conteúdo de conversa. Re-exportado por
+  `src/lib/schema.ts`.
+- `src/lib/ai/model-router.ts` — `ProviderAdapter` (provider, model, type),
+  rota PRIMARY + até 2 FALLBACKS validada na configuração (loop impossível),
+  timeout por tentativa limitado pelo orçamento global, teto de custo
+  conferido **antes** da chamada, estouro conhecido depois impede nova
+  tentativa, AbortSignal encerra sem fallback, resultado estruturado com
+  provedor, modelo, latência, erro e motivo de cada fallback. Sem SDK, sem
+  singleton (nada está ligado a produção ainda).
+- `src/lib/ai/observability.ts` — `ObservabilitySink` + `InMemoryObservabilitySink`
+  (buffer limitado; explicitamente NÃO é observabilidade de produção),
+  filtros por agente/tenant/execução e `summaryByAgent`. Todo evento é
+  sanitizado: chave de segredo/conteúdo descartada, credencial, e-mail e
+  telefone mascarados, texto longo cortado.
+- `src/lib/ai/agent-registry.ts` — `TOOL_REGISTRY`, `AgentSpecification`,
+  três agentes registrados: `wire-redacao` (PRODUCTION, L4),
+  `whatsapp-atendimento` (INTERNAL, L3 — coerente com o selo "em
+  desenvolvimento") e `v-iva` (LAB, L1). **Tetos de custo e latência dos
+  agentes que já operam ficaram `null`**: é decisão do dono, não do código.
+- `src/lib/ai/lifecycle.ts` — promoção um degrau por vez (LAB → ENTERPRISE
+  recusado), PILOT+ exige pessoa, VALIDATED+ exige relatório elegível do
+  V-IVA da mesma versão, V-IVA e o próprio agente não aprovam, rollback
+  rápido com motivo, registro append-only.
+- `src/lib/ai/agents/v-iva.ts` — `VivaAgent`: `generateScenarios()`
+  determinístico nas sete categorias, `evaluateScenario()` com PASS/FAIL/
+  REVIEW + motivo, métricas e evidência mínima, `runFullEvaluation()` com
+  relatório e recomendação. Sem chamada de modelo. Sem executor, cenário de
+  execução é REVIEW — nunca PASS. PROMPT_INJECTION é definição de ataque;
+  o relatório diz contra qual executor rodou.
+- `src/lib/ai/registry-api.ts` + `src/server.ts` — `GET /api/agents/registry`
+  e `GET /api/agents/registry/<slug>`, somente leitura, DTO de lista fechada
+  (sem tenants, tetos, gatilhos, regras ou base de estado), 405 para escrita.
+  Lê o registro em código: não depende da migração.
+
+**Primeiro resultado real do V-IVA** (só especificação, sem executor):
+`wire-redacao` e `whatsapp-atendimento` saem **BLOCKED** — nenhum dos dois
+tem teto de custo nem de latência declarado. É o comportamento desejado: o
+V-IVA aponta a lacuna em vez de o registro inventar um número.
+
+**Database.** `drizzle/0019_agent_platform.sql`: só CREATE … IF NOT EXISTS,
+nenhum DROP/ALTER/DELETE. Validada num Postgres 16 local descartável:
+aplicada duas vezes (idempotente); CHECK recusa status inválido e custo
+negativo; FK recusa execução de agente inexistente; slug duplicado recusado.
+Comparada com o SQL que o `drizzle-kit export` deriva de `schema.ts`:
+colunas, defaults, CHECKs (20), FKs (7), nomes de constraint e índices
+**idênticos**. **NÃO aplicada no Neon** — aplicar é decisão de Matheus.
+
+**Testes.** `tests/ai-platform.test.mjs`, 37 testes, adaptadores falsos
+(nenhuma API real): router (sucesso, timeout→fallback, erro→fallback, todos
+falham, limite de fallback, teto de custo preflight, estouro posterior,
+custo desconhecido, orçamento global, cancelamento, sem credencial, ponte
+legada), observabilidade (filtros, resumo, sanitização, buffer), V-IVA
+(determinismo, latência, custo, ferramenta não autorizada, isolamento de
+tenant, handoff, injeção, regra de negócio, relatório completo, executor
+quebrado, agentes reais bloqueados), lifecycle, registro, API e migração.
+
+**Validação.** `typecheck` limpo; **255/255** testes; `build` ok.
+`npm run lint` no repositório inteiro: 895 problemas no `main`, 895 neste
+branch — **0 novos**; arquivos novos limpos (o CI não roda lint, ver
+`ci.yml`).
+
+**Branch:** `feat/veronica-agent-platform-foundation`. **Commit/PR:** ver o PR
+aberto a partir deste branch (sem merge).
+
+**Riscos:**
+
+- Journal do drizzle-kit parado na 0011: enquanto não for reconciliado,
+  `drizzle-kit generate/migrate` não é seguro neste repo.
+- `InMemoryObservabilitySink` some a cada isolate do Worker; não usar como
+  log de produção.
+- A ponte legada não informa custo (o `Provedor` devolve só texto): sob teto,
+  a política padrão "allow" executa com custo desconhecido.
+- `integer` em micros limita um único valor a ~US$ 2.147 — folgado por tarefa,
+  insuficiente para somatórios (que não são gravados em coluna).
+
+**Próximo passo recomendado:** Matheus definir teto de custo e latência para
+`wire-redacao` e `whatsapp-atendimento`; aplicar a 0019 no Neon; ligar o
+executor real da sala de teste da Express ao V-IVA (cenários de execução
+contra a agente de verdade) e um sink que grave em `AgentExecution`.
+
 ## Home reconstruída como AI Workforce Platform (2026-10-01)
 
 A rota `/` deixou de apresentar a Veronica como ecossistema de entradas e

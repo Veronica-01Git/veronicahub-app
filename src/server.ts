@@ -27,6 +27,7 @@ import {
   handleWireMateria,
 } from "./lib/wire-feed-server";
 import { handleAffiliateRedirect } from "./lib/affiliate-server";
+import { handleAgentRegistry, isRegistryPath } from "./lib/ai/registry-api";
 import { handlePublishInstagramCron } from "./lib/instagram-cron";
 import {
   handleArtCoversCron,
@@ -160,6 +161,18 @@ const app = {
         return await handleImageTransform(request);
       } catch (error) {
         console.error("Erro na transformação de imagem:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    // Agent Registry da Veronica AI Workforce Platform: somente leitura, com
+    // DTO público de lista fechada (ver src/lib/ai/registry-api.ts). Sem
+    // banco: lê o registro em código, então não depende da migração 0019.
+    if (isRegistryPath(url.pathname)) {
+      try {
+        return handleAgentRegistry(request);
+      } catch (error) {
+        console.error("Erro no Agent Registry:", error);
         return new Response("error", { status: 500 });
       }
     }

@@ -539,3 +539,15 @@ export const agenteBriefings = pgTable(
 
 // Additive community tables share the existing migration schema.
 export { memberPosts, memberComments, memberCommentCooldown } from "../members/schema";
+
+// Veronica AI Workforce Platform — registro de agentes, execuções, avaliações
+// do V-IVA e trilha de lifecycle. Mesmo padrão aditivo da linha acima.
+export {
+  modelProviders,
+  agents,
+  agentSkills,
+  agentTools,
+  agentExecutions,
+  agentEvaluations,
+  agentLifecycleTransitions,
+} from "./ai/schema";
