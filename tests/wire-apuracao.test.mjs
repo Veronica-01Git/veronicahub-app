@@ -142,3 +142,48 @@ test("o cron não cai na busca na web; só o rascunho manual usa", () => {
   const chamada = escrever.slice(0, escrever.indexOf("} catch"));
   assert.doesNotMatch(chamada, /browser_search|tools:/);
 });
+
+test("assunto repetido: mesmo fato com manchete diferente é barrado; assuntos diferentes passam", async () => {
+  const { assuntoRepetido } = await import("../src/lib/wire-apuracao.ts");
+  // Textos reais de 01/10/2026 (resumidos): o mesmo negócio, Lynas + Meteoric.
+  const lynas = {
+    titulo: "Austrália compra projeto de terras raras em Minas Gerais por US$ 672 milhões",
+    texto:
+      "Austrália compra projeto de terras raras em Minas Gerais por US$ 672 milhões. A australiana Lynas vai comprar a Meteoric Resources, dona do projeto Caldeira, em Poços de Caldas.",
+  };
+  const outras = [
+    {
+      titulo: "Defesa Civil do Rio Grande do Sul emite alerta",
+      texto: "A Defesa Civil do Rio Grande do Sul emitiu alerta para Porto Alegre e São Paulo.",
+    },
+    // Nomes comuns aparecem em várias matérias da janela — é a frequência
+    // que os desqualifica, como no acervo real.
+    {
+      titulo: "Ventos fortes no Rio Grande do Sul",
+      texto:
+        "Ventos deixam casas sem luz no Rio Grande do Sul; a Defesa Civil atende Porto Alegre.",
+    },
+    {
+      titulo: "Frente fria chega a São Paulo",
+      texto:
+        "A frente fria passa por Porto Alegre e chega a São Paulo, diz a Defesa Civil do Rio Grande do Sul.",
+    },
+    {
+      titulo: "BC mantém juros",
+      texto:
+        "O Banco Central manteve a Selic, segundo o Copom, em decisão sobre Política Monetária.",
+    },
+  ];
+  const nova =
+    "Brasil atrai bilhão de dólares com projeto de terras raras em Poços de Caldas. Segundo a InfoMoney, a Lynas comprou a Meteoric Resources, dona do projeto Caldeira, em Minas Gerais.";
+  assert.equal(assuntoRepetido(nova, [lynas, ...outras]), lynas.titulo);
+
+  const diferente =
+    "Chuva forte atinge Porto Alegre. A Defesa Civil do Rio Grande do Sul pede atenção em São Paulo também.";
+  assert.equal(assuntoRepetido(diferente, [lynas, ...outras]), null);
+});
+
+test("assunto repetido é pulo editorial", async () => {
+  const { isEditorialSkip } = await import("../src/lib/editorial-skip.ts");
+  assert.ok(isEditorialSkip('Assunto repetido de uma publicação recente: "X".'));
+});

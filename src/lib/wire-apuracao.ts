@@ -292,3 +292,70 @@ const VEICULOS: Record<string, string> = {
 export function nomeDoVeiculo(dominio: string): string {
   return VEICULOS[dominio] ?? dominio;
 }
+
+// ---------------------------------------------------------------------------
+// ASSUNTO REPETIDO (01/10/2026).
+//
+// A trava de manchete (findSimilarHeadline, articles-server.ts) compara
+// palavras do título. Ela deixou passar, em 01/10, duas matérias de clima
+// sobre o mesmo fato — a compra da Meteoric pela Lynas — com manchetes sem
+// quase nada em comum: "Austrália compra projeto de terras raras em Minas
+// Gerais por US$ 672 milhões" (11:01) e "Brasil atrai bilhão de dólares com
+// projeto de terras raras em Poços de Caldas" (15:29).
+//
+// O que as duas têm em comum são os NOMES: Lynas, Meteoric, Resources,
+// Caldeira, Poços de Caldas. Nome comum a muitas matérias (Minas Gerais, São
+// Paulo, Defesa Civil) não diz nada, então só conta o nome raro: o que, entre
+// as matérias das últimas 72h mais a nova, aparece em no máximo duas.
+//
+// Calibrado nas 60 matérias publicadas até 01/10: com 4 nomes raros em comum,
+// só o par da Lynas é barrado; com 3, entravam pares diferentes que só
+// dividiam "Política Monetária" ou "Inteligência Artificial".
+
+const NOMES_GENERICOS = new Set(
+  (
+    "brasil brasileiro brasileira brasileiros china chines chinesa governo federal estado estados " +
+    "unidos ministerio ministro ministra presidente lula pais banco central santa catarina segundo " +
+    "agencia nacional prefeitura secretaria camara senado congresso supremo tribunal justica policia " +
+    "veronica hub wire hoje ontem tambem alem com para nesta neste esta este ainda mas conforme " +
+    "inteligencia artificial politica monetaria comite centro instituto"
+  ).split(" "),
+);
+
+/** Nomes próprios: palavra com maiúscula que não abre frase. */
+export function nomesProprios(texto: string): Set<string> {
+  const nomes = new Set<string>();
+  for (const [, palavra] of ` ${texto}`.matchAll(
+    /(?<=[^.!?:\n]\s)([A-ZÁÉÍÓÚÂÊÔÃÕÇ][\wÀ-ÿ-]{2,})/g,
+  )) {
+    const chave = palavra.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    if (!NOMES_GENERICOS.has(chave)) nomes.add(chave);
+  }
+  return nomes;
+}
+
+export const NOMES_RAROS_EM_COMUM = 4;
+
+/**
+ * A nova matéria trata do mesmo assunto de uma recente? Devolve o título da
+ * recente, ou null. `recentes` são as matérias publicadas nas últimas 72h.
+ */
+export function assuntoRepetido(
+  nova: string,
+  recentes: ReadonlyArray<{ readonly titulo: string; readonly texto: string }>,
+): string | null {
+  const daNova = nomesProprios(nova);
+  const dasRecentes = recentes.map((r) => ({ titulo: r.titulo, nomes: nomesProprios(r.texto) }));
+  const frequencia = new Map<string, number>();
+  for (const nomes of [daNova, ...dasRecentes.map((r) => r.nomes)]) {
+    for (const nome of nomes) frequencia.set(nome, (frequencia.get(nome) ?? 0) + 1);
+  }
+  for (const recente of dasRecentes) {
+    let raros = 0;
+    for (const nome of daNova) {
+      if (recente.nomes.has(nome) && (frequencia.get(nome) ?? 0) <= 2) raros++;
+    }
+    if (raros >= NOMES_RAROS_EM_COMUM) return recente.titulo;
+  }
+  return null;
+}
