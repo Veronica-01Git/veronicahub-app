@@ -1,3 +1,32 @@
+## Migração 0019 aplicada no Neon de produção (2026-10-01)
+
+Aplicada com autorização explícita de Matheus, depois do merge do PR #164.
+
+- **Onde:** projeto Neon `veronicahub` (`aged-scene-12810096`), branch
+  `production` (`br-still-night-acv9gqgl`), banco `neondb` — o mesmo que
+  serve o site. Conferido antes: o banco tinha as tabelas do Hub (`Article`,
+  `User`, `WaConversation`…) e nenhuma das 7 novas.
+- **Ponto de restauração anotado antes:** 04:56:11 UTC, LSN `0/1E90ED08`.
+  O Neon guarda 6 horas de histórico; voltar a esse ponto só com ordem de
+  Matheus.
+- **Como:** os 18 comandos de `drizzle/0019_agent_platform.sql` (todos
+  `CREATE … IF NOT EXISTS`, nenhum DROP/ALTER/INSERT/UPDATE) numa única
+  transação, pelo conector do Neon. Sem erro.
+- **Conferência depois:** 26 → 33 tabelas em `public`; 13 CHECKs, 7 FKs e 18
+  índices nas tabelas novas, como na validação local; `Agent` vazia; dados
+  existentes intactos (123 matérias, 4 conversas e 20 mensagens do WhatsApp,
+  mesma contagem de antes). Home, `/blog`, `/agentes`, `/express-entulho`,
+  `/api/wire/feed.json` e `/api/agents/registry` responderam 200 depois.
+- **WhatsApp da Express Entulho:** nenhuma tabela, arquivo, número ou
+  mensagem foi tocado. `WaConversation` e `WaMessage` não fazem parte da 0019.
+- **Pendente:** o `drizzle/meta/_journal.json` continua parado na 0011 — a
+  0019 entra na mesma situação das 0012–0018 (aplicada à mão, fora do
+  journal). `drizzle-kit migrate` segue não sendo seguro aqui.
+- **Próximo passo:** nada grava nessas tabelas ainda. Falta Matheus definir
+  os tetos de custo e latência de `wire-redacao` e `whatsapp-atendimento`;
+  depois, ligar o executor da sala de teste ao V-IVA e um sink que grave em
+  `AgentExecution`.
+
 ## Fundação da Veronica AI Workforce Platform e do V-IVA (2026-10-01)
 
 **Objetivo.** Primeira fundação real da plataforma de agentes: registro,
