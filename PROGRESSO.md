@@ -1,3 +1,40 @@
+## Matéria da Express Entulho no Wire (2026-10-01)
+
+Matéria pedida pelo dono: "Express Entulho desenvolve agente de IA próprio
+para atender pedidos de caçamba em Itajaí". Editoria Veronica, desk Produto.
+
+**Fatos e fontes:**
+- Página /express-entulho e Instagram @expressentulho: 4.020 seguidores e 53
+  posts em 01/10/2026.
+- Perfil da empresa no Google, enviado pelo dono: endereço, horário e
+  descrição.
+- Estado real do agente, tirado de `agent-registry.ts`: INTERNAL, roda na
+  sala de teste, e o número dedicado ainda não atende clientes. A matéria
+  diz "em fase de testes".
+- Regras do agente descritas na matéria, tiradas de `whatsapp-agent.ts`:
+  "o modelo propõe, o código decide"; valor em reais fora da tabela derruba
+  a resposta; desconto, cancelamento, boleto e nota fiscal vão para uma
+  pessoa.
+- A restrição do AGENTS.md vira informação ao leitor: o número atual
+  (47) 99157-6500 continua com a equipe, e o agente vai operar em número
+  novo e dedicado.
+
+**Fora da matéria, de propósito:**
+- O dono pediu "primeira empresa de Itajaí no ramo a desenvolver o próprio
+  agente de IA". Não há como verificar, e superlativo sem prova é proibido
+  pelas regras do projeto (mesma família de "primeira IA brasileira"). A
+  matéria descreve o fato sem o "primeira".
+- As avaliações do Google não entraram: são nomes de pessoas físicas, e
+  escolher só as positivas seria seleção.
+
+**Imagens:** são as duas peças de divulgação da empresa já usadas em
+/express-entulho, as melhores disponíveis. O Instagram não entrega os posts
+sem login.
+- Capa 16:10 (1600×1000, 195 KB) com a peça do caminhão sobre fundo
+  desfocado.
+- Peça "obra limpa" no corpo, com crédito "Divulgação / Express Entulho".
+- Card do Instagram com aviso de cliente.
+
 ## Matéria do LZ Team no Wire + crédito correto na legenda do Instagram (2026-10-01)
 
 **Matéria.** "“Não foi sorte. Foi processo”: o método do Coach Lucas Tomaz que
