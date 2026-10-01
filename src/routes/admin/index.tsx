@@ -8,6 +8,7 @@ import {
   Sparkles,
   BarChart3,
   PackagePlus,
+  ShieldCheck,
 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAdminOverview } from "@/lib/admin-server";
@@ -84,6 +85,12 @@ function AdminPanel() {
               className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
             >
               <BarChart3 className="h-4 w-4" /> Desempenho do Wire
+            </Link>
+            <Link
+              to="/admin/v-iva"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+            >
+              <ShieldCheck className="h-4 w-4" /> V-IVA
             </Link>
             <Link
               to="/admin/imagens"

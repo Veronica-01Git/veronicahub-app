@@ -41,6 +41,7 @@ import { Route as AdminMembrosRouteImport } from './routes/admin/membros'
 import { Route as AdminProdutosShopeeRouteImport } from './routes/admin/produtos-shopee'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as AdminWireRouteImport } from './routes/admin/wire'
+import { Route as AdminVIvaRouteImport } from './routes/admin/v-iva'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
@@ -233,6 +234,11 @@ const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
 const AdminWireRoute = AdminWireRouteImport.update({
   id: '/admin/wire',
   path: '/admin/wire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVIvaRoute = AdminVIvaRouteImport.update({
+  id: '/admin/v-iva',
+  path: '/admin/v-iva',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -448,6 +454,7 @@ export interface FileRoutesByFullPath {
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
+  '/admin/v-iva': typeof AdminVIvaRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
@@ -514,6 +521,7 @@ export interface FileRoutesByTo {
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
+  '/admin/v-iva': typeof AdminVIvaRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
@@ -580,6 +588,7 @@ export interface FileRoutesById {
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
+  '/admin/v-iva': typeof AdminVIvaRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
@@ -648,6 +657,7 @@ export interface FileRouteTypes {
     | '/admin/produtos-shopee'
     | '/admin/veronica-universe'
     | '/admin/wire'
+    | '/admin/v-iva'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
@@ -714,6 +724,7 @@ export interface FileRouteTypes {
     | '/admin/produtos-shopee'
     | '/admin/veronica-universe'
     | '/admin/wire'
+    | '/admin/v-iva'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
@@ -779,6 +790,7 @@ export interface FileRouteTypes {
     | '/admin/produtos-shopee'
     | '/admin/veronica-universe'
     | '/admin/wire'
+    | '/admin/v-iva'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
@@ -846,6 +858,7 @@ export interface RootRouteChildren {
   AdminProdutosShopeeRoute: typeof AdminProdutosShopeeRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   AdminWireRoute: typeof AdminWireRoute
+  AdminVIvaRoute: typeof AdminVIvaRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogExpedienteRoute: typeof BlogExpedienteRoute
   BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
@@ -1092,6 +1105,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/wire'
       fullPath: '/admin/wire'
       preLoaderRoute: typeof AdminWireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/v-iva': {
+      id: '/admin/v-iva'
+      path: '/admin/v-iva'
+      fullPath: '/admin/v-iva'
+      preLoaderRoute: typeof AdminVIvaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -1432,6 +1452,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProdutosShopeeRoute: AdminProdutosShopeeRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   AdminWireRoute: AdminWireRoute,
+  AdminVIvaRoute: AdminVIvaRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogExpedienteRoute: BlogExpedienteRoute,
   BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,

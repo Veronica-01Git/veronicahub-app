@@ -1,3 +1,59 @@
+## V-IVA ligado à agente real de WhatsApp, pela sala de teste (2026-10-01)
+
+**Objetivo.** Tirar os agentes de "NEEDS_REVIEW": os cenários de execução do
+V-IVA passam a rodar contra a agente de verdade, não só sobre a especificação.
+
+**Segurança do WhatsApp da Express Entulho (AGENTS.md) — conferida antes:**
+- O executor chama a mesma `decidirResposta` da sala de teste e do webhook,
+  que só devolve texto. Quem envia é `whatsapp-cloud.ts`, que este caminho
+  **não importa**: um teste percorre o grafo de imports inteiro a partir do
+  núcleo de avaliação e reprova se alcançar `whatsapp-cloud.ts`,
+  `whatsapp-webhook.ts` ou `whatsapp-mensagem.ts`, ou se algum arquivo do
+  caminho tocar `WaConversation`/`WaMessage`.
+- Nenhum arquivo do WhatsApp foi alterado. Número da empresa não tocado.
+- Mensagens dos cenários são sintéticas, geradas pelo V-IVA.
+
+**Correção na especificação.** Eu tinha declarado "material não informado"
+como gatilho de handoff; na agente real a regra é PERGUNTAR o material. Os
+gatilhos agora são os de `FORA_DA_ALCADA` (desconto, cancelamento, boleto /
+nota fiscal) — e um teste lê essa lista do código da agente e confere que
+cada gatilho cai numa regra real.
+
+**Implementado:**
+- `src/lib/ai/tenant-guard.ts` — guarda de tenant da plataforma: decide no
+  código, antes da agente; tenant alheio nem chega ao modelo.
+- `src/lib/ai/executors/test-room-executor.ts` — executor puro (injeção de
+  dependência). Escalar → `handoff.human`; citar valor → `pricing.matrix.lookup`;
+  responder NÃO é tratado como envio. Custo `null` (o provedor não informa
+  uso) — o V-IVA marca REVIEW, não PASS. Falha da cadeia de provedores vira
+  erro de execução; guarda de preço e alçada comercial são decisão de negócio.
+- `src/lib/ai/evaluation.server.ts` — liga o executor à agente real e grava
+  nas tabelas da 0019: cria o `Agent` na primeira rodada (com transição
+  inicial de lifecycle, sem mudar estado), uma `AgentExecution` por cenário
+  executado (sem o texto da resposta) e uma `AgentEvaluation` por cenário.
+  Uma rodada por agente a cada 10 minutos.
+- `src/lib/ai/evaluation-functions.ts` — server functions só para admin
+  (`requireAdmin`); a rodada real exige confirmar o teto de custo calculado
+  pelo servidor.
+- `/admin/v-iva` — painel técnico mínimo: avaliação da especificação de cada
+  agente (sem custo) e, para a agente de WhatsApp, o botão da avaliação real
+  com o custo máximo mostrado antes. Link no painel admin.
+
+**Custo de uma rodada real:** 12 cenários chegam à agente (o de tenant alheio
+é barrado pela guarda); teto superior = 12 × US$ 0,10 = US$ 1,20. Os de
+handoff e o da regra de desconto escalam por palavra-chave, sem chamar
+modelo — o gasto real tende a ser bem menor. Só roda quando um admin clica.
+
+**Testes:** 45 em `tests/ai-platform.test.mjs` (guarda de tenant, executor
+com agente falsa, V-IVA completo com executor, gatilhos reais, grafo de
+imports, acesso só de admin). `typecheck` limpo, 263/263, `build` ok, lint
+limpo nos arquivos tocados. `/admin/v-iva` renderiza e mostra "Acesso
+restrito" sem sessão de admin.
+
+**Limite declarado:** o custo por resposta segue desconhecido, porque
+`whatsapp-provedores.ts` devolve só o texto. Medir exige alterar o arquivo
+do WhatsApp — fica para decisão de Matheus.
+
 ## Tetos de custo e latência dos agentes em operação (2026-10-01)
 
 Matheus delegou a definição ("defina você, seja conservador"). Os números
