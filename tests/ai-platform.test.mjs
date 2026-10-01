@@ -41,6 +41,7 @@ import { agenteWorkforce } from "../src/lib/ai-workforce.ts";
 
 const ler = (rel) => readFileSync(new URL(rel, import.meta.url), "utf8");
 const raiz = (rel) => new URL(`../${rel}`, import.meta.url);
+const RAIZ_DO_REPO = new URL("../", import.meta.url).pathname;
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 const CTX = { agentSlug: "agente-teste", tenantId: "tenant-a", executionId: "exec-1" };
 
@@ -223,6 +224,20 @@ test("router: orçamento global corta a tentativa e impede o fallback", async ()
   assert.equal(r.attempts[0].fallbackReason, "timeout (cortado pelo orçamento global)");
   assert.equal(b.chamadas.n, 0, "sem orçamento, fallback não é tentado");
   assert.ok(r.latencyMs < 400);
+});
+
+test("router: corte pelo orçamento global encerra a rota mesmo se o relógio discordar do timer", async () => {
+  // Regressão do CI de 01/10/2026: o timer cortou a tentativa no fim do
+  // orçamento, mas o relógio mediu 1 ms a menos — e a rota tentou o fallback
+  // com 1 ms. Relógio congelado reproduz o pior caso sem depender de sorte.
+  const a = falso("lento", { demoraMs: 400 });
+  const b = falso("reserva");
+  const router = new ModelRouter({ clock: () => 1_000 });
+  router.register(a.adapter).register(b.adapter).setRoute("LLM", ["lento/m1", "reserva/m1"]);
+  const r = await rotear(router, { attemptTimeoutMs: 1_000, deadlineMs: 60 });
+  assert.equal(r.ok, false);
+  assert.equal(r.code, "DEADLINE_EXCEEDED");
+  assert.equal(b.chamadas.n, 0, "orçamento global esgotado: nenhum fallback");
 });
 
 test("router: cancelamento externo encerra a rota sem fallback", async () => {
@@ -1090,8 +1105,11 @@ test("SEGURANÇA: o caminho da avaliação real nunca alcança o envio do WhatsA
     for (const m of fonte.matchAll(/(?:from|import)\s*\(?\s*["']([^"']+)["']/g)) {
       let alvo = m[1];
       if (alvo.startsWith("@/")) alvo = `src/${alvo.slice(2)}`;
+      // Relativo à RAIZ do repositório, não ao nome da pasta: no CI o clone
+      // fica em .../veronicahub-app/veronicahub-app/, e cortar pelo nome pegava
+      // o pedaço errado (falha do CI de 01/10/2026).
       else if (alvo.startsWith("."))
-        alvo = new URL(alvo, raiz(arquivo)).pathname.split("veronicahub-app/")[1];
+        alvo = new URL(alvo, raiz(arquivo)).pathname.slice(RAIZ_DO_REPO.length);
       else continue;
       const candidatos = [alvo, `${alvo}.ts`, `${alvo}.tsx`, `${alvo}/index.ts`].map((c) =>
         c.replace(/\.ts\.ts$/, ".ts"),
