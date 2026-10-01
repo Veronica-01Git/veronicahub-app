@@ -754,6 +754,21 @@ test("o crédito do fotógrafo aparece no rodapé da capa e na legenda", async (
   assert.match(comCredito, /^Foto: Ana Silva \/ Pexels$/m);
   assert.ok(!/Pexels \/ Pexels/.test(comCredito), "a fonte não pode sair duplicada");
 
+  // Crédito que já traz a origem não ganha "/ Pexels": ilustração de IA
+  // creditada ao Pexels seria atribuir imagem sintética a um banco de fotos.
+  for (const credito of [
+    "Ilustração gerada por IA (Nano Banana Pro)",
+    "Arquivo pessoal / LZ Training Club",
+  ]) {
+    const legenda = buildWireCaption({
+      headline: "Manchete",
+      canonicalUrl: "https://veronicahub.com/blog/x",
+      photoCredit: credito,
+    });
+    assert.ok(legenda.includes(`Foto: ${credito}`));
+    assert.ok(!/Pexels/.test(legenda), `não pode creditar ao Pexels: ${credito}`);
+  }
+
   // Sem crédito não se inventa linha: creditar quem não se sabe quem é seria
   // pior que não creditar.
   const semCredito = buildWireCaption({
