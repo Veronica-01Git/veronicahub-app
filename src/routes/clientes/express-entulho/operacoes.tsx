@@ -23,8 +23,9 @@
  * Quem mostra QUEM a Veronica atende é a vitrine em /clientes-veronica, sem
  * abrir o espaço de ninguém.
  *
- * A natureza dos dados não mudou: continuam fictícios, e a TarjaDemo segue no
- * topo de todas as telas dizendo isso.
+ * O workspace agora também oferece atendimento assistido real: o operador cola
+ * a mensagem e recebe um rascunho sem conexão com o WhatsApp. Dados logísticos
+ * ainda não integrados continuam claramente sinalizados.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -138,13 +139,13 @@ function PortaFechada({
 }
 
 const APOIO: Record<string, string> = {
-  "": "Sexta-feira, 14 de setembro · dados fictícios",
-  demonstracao: "Vitrine interativa com dados fictícios — envio sempre bloqueado",
-  atendimento: "Conversas do WhatsApp atendidas pelo agente",
-  aprovacoes: "Decisões que a IA escalou para um humano",
-  "operacoes-hoje": "Entregas e retiradas do dia",
+  "": "Workspace privado · operação assistida e regras confirmadas",
+  demonstracao: "Modo sombra — envio sempre bloqueado",
+  atendimento: "Cole mensagens, gere rascunhos e responda manualmente no WhatsApp",
+  aprovacoes: "Decisões que a IA escala para um humano",
+  "operacoes-hoje": "Entregas e retiradas organizadas no painel",
   cacambas: "Inventário e ciclo de vida",
-  "regras-do-agente": "Preços por material e conversa com o agente",
+  "regras-do-agente": "Preço padrão entre cidades, agenda e alçada",
 };
 
 /** O slug deste cliente no registro de clientes privados. */

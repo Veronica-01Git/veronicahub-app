@@ -1,3 +1,32 @@
+## Express Operations — modo assistido e painel administrativo completo (2026-10-02)
+
+**Objetivo imediato:** entregar valor ao cliente sem migrar, ler, apagar ou enviar
+mensagens pelo número atual da Express. O WhatsApp Business original continua
+intacto; o painel passa a funcionar como copiloto manual.
+
+**Implementado:**
+- Central de atendimento ganhou **Atendimento assistido**: o operador cola a
+  mensagem recebida, a mesma agente/guarda comercial gera um rascunho, e o
+  operador revisa e copia a resposta de volta. Não existe caminho para Meta,
+  WhatsApp Cloud API ou WhatsApp Web nessa tela.
+- Todas as seções administrativas antes marcadas "Em construção" agora têm
+  superfície de consulta com fatos confirmados e pendências explícitas:
+  agenda, planejamento, veículos, motoristas, mapa/rotas, clientes, documentos,
+  financeiro, relatórios e equipe/permissões.
+- Regra comercial atualizada pelo dono: preço padrão entre cidades atendidas;
+  distância da central em Itajaí altera somente prazo/janela, podendo acrescentar
+  até 1 hora ou 1 dia conforme rota/distância. Combinação sem preço continua
+  escalando; nenhum valor novo foi inventado.
+- Agenda: segunda a sábado, sábado até 12h. No fim de semana, segunda-feira
+  permanece aberta para até **40 pedidos**. Sem contagem real integrada, a agente
+  não inventa disponibilidade exata.
+- Frota: total confirmado em **7 veículos**. Modelos, placas e quantidade ativa
+  agora continuam como "aguardando cadastro", sem suposição.
+- AGENTS.md recebeu autorização explícita para o modo assistido manual, sem
+  enfraquecer a regra permanente de não tocar no número atual.
+
+**Sem mudança de banco. Sem migração. Sem segredo novo. Sem envio de WhatsApp.**
+
 ## Matéria da Express Entulho no Wire (2026-10-01)
 
 Matéria pedida pelo dono: "Express Entulho desenvolve agente de IA próprio
@@ -2390,3 +2419,17 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - `vite.config.ts` foi tocado só pelo ponto de extensão que já era usado
   (`vite: { ... }`), sem mexer nos plugins do preset da Lovable.
 - 67 testes, typecheck, lint e build limpos.
+
+## Auditoria e conclusão do PR #173 — 02/10/2026
+
+- Base conferida no GitHub: main `9e366620854ef9f48b12dff716054f3f0cc14a16`; branch `feat/express-assisted-ops` já contém essa main. `git merge origin/main` informou que estava atualizada. Histórico preservado, sem force push/rebase.
+- Corrigidas contradições no prompt que ainda anunciavam preços diferentes por cidade e exemplo antigo de R$ 250. Matriz vigente: produto + material, mesmo preço nas cidades atendidas; tambor continua apenas em Itajaí. Valores antigos de Itapema não são usados para inventar preço de grande/gesso.
+- Guarda passa a conferir produto/material da conversa, inclusive quando o modelo omite ou troca o material. Sem material, combinação sem preço e comparação ambígua ficam sem cotação automática. Regras completas confirmadas (cotação da matriz, segunda no fim de semana, distância e vagas sem agenda) recebem resposta determinística no núcleo; demais conversas continuam na cadeia existente de IA. Desconto escala sem modelo.
+- Atendimento assistido: rascunho editável, motivo de revisão humana, falhas legíveis de geração/cópia, proteção contra reset durante geração, erro de sessão sem virar resposta ao cliente e limite de 1200 caracteres/40 turnos na ponte. Contexto só em memória da tela; texto é processado pelo provedor de IA. Nenhuma gravação nova de conversa ou envio ao WhatsApp.
+- Agenda ganhou semana operacional, limite de 40 e ocupação explicitamente aguardando integração. Veículos: 7 posições de cadastro sem placas/modelos fictícios. Mapa: cidades atendidas e regra logística, sem GPS fictício. Financeiro: somente formas de pagamento; demais seções mostram estruturas/pendências, sem cadastro persistente novo.
+- IMPORTANTE: visão geral, conversas de exemplo, aprovações, operações, despacho e caçambas ainda leem `expressOpsMock`. Tarja identifica expressamente os dados fictícios; não são métricas, clientes, placas nem ocupação real. Exemplos de desconto de 10% foram corrigidos. Esses registros não são sincronizados do WhatsApp e não recebem os rascunhos assistidos.
+- Teste defeituoso que rejeitava o aviso de ausência de WhatsApp Web foi corrigido. Novo teste percorre o grafo completo desde assistido até núcleo e guarda de acesso e prova ausência de `whatsapp-cloud.ts`, `whatsapp-webhook.ts`, `whatsapp-mensagem.ts`. Cenários pedidos cobertos pelo núcleo real, sem chamadas externas.
+- Validação local: dependências do `bun.lock` instaladas com `bun install --frozen-lockfile`; 282/282 testes, typecheck, lint direcionado e build Cloudflare/Nitro aprovados. Sem dependência nova, segredo novo, migração de banco, checkout ou integração financeira.
+- Limite de UX: revisão de código responsivo e estados concluída; rota oficial abriu e exibiu acesso restrito sem sessão. Este navegador não abriu localhost (ERR_BLOCKED_BY_CLIENT), impedindo teste visual interativo das fixtures locais. Nenhuma fixture de auditoria foi incluída no commit. Validação visual autenticada de desktop/mobile e teste com provedor de IA em produção ainda precisam de sessão autorizada da Express; não foram declarados aprovados.
+- Pendências do Júnior: preço das combinações ainda ausentes; modelos/placas/motoristas/capacidade/escala dos 7 veículos; agenda real, reservas e bloqueios; fonte ERP/MAIS Locações e GPS; cadastros de clientes/obras; documentos e usuários/papéis internos. Coexistence e outros canais fora deste escopo.
+- WhatsApp atual não tocado: sem leitura/envio/sincronização/migração, sem apagar conversas, contatos ou mídias. AGENTS.md preservado.

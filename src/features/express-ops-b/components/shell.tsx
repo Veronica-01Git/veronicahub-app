@@ -19,6 +19,17 @@ import { BASE, hrefDe, ITENS_NAV } from "../nav";
 
 /** Fica no topo e não sai de vista ao rolar. Proteção do cliente e nossa. */
 export function TarjaDemo() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const secao = pathname.replace(/\/$/, "").slice(BASE.length).replace(/^\//, "");
+  const exemplos = [
+    "",
+    "demonstracao",
+    "atendimento",
+    "aprovacoes",
+    "operacoes-hoje",
+    "despacho",
+    "cacambas",
+  ].includes(secao);
   return (
     <div
       role="note"
@@ -26,7 +37,10 @@ export function TarjaDemo() {
     >
       <TriangleAlert aria-hidden className="h-3.5 w-3.5 shrink-0 text-[oklch(0.45_0.11_75)]" />
       <p className="text-[12.5px] font-medium leading-snug text-[oklch(0.35_0.08_75)]">
-        Demonstração visual com dados fictícios. Nenhum dado real de cliente é exibido.
+        Modo assistido: envio manual pelo operador.
+        {exemplos
+          ? " Os indicadores, conversas e registros logísticos abaixo são exemplos fictícios, sem integração com a operação real."
+          : " Dados operacionais aguardam cadastro ou integração."}
       </p>
     </div>
   );
@@ -106,7 +120,7 @@ export function Sidebar() {
   return (
     <nav
       aria-label="Seções do Express Operations"
-      className="sticky top-[37px] hidden h-[calc(100vh-37px)] flex-col overflow-y-auto border-r border-[var(--ops-line)] bg-[var(--ops-card)] md:flex"
+      className="sticky top-0 hidden h-[calc(100vh-37px)] flex-col overflow-y-auto border-r border-[var(--ops-line)] bg-[var(--ops-card)] md:flex"
     >
       <div className="px-3 py-4 lg:px-4">
         <div className="hidden lg:block">
@@ -132,7 +146,7 @@ export function Topbar({ titulo, apoio }: { titulo: string; apoio?: string }) {
   const [aberto, setAberto] = useState(false);
 
   return (
-    <header className="sticky top-[37px] z-30 border-b border-[var(--ops-line)] bg-[oklch(1_0_0_/_0.86)] backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-[var(--ops-line)] bg-[oklch(1_0_0_/_0.86)] backdrop-blur-md">
       <div className="flex items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <Sheet open={aberto} onOpenChange={setAberto}>
           <SheetTrigger
@@ -175,7 +189,9 @@ export function Topbar({ titulo, apoio }: { titulo: string; apoio?: string }) {
           ) : null}
         </div>
 
-        <span className="ops-label hidden shrink-0 sm:block">Sexta · 14 set 2026</span>
+        <span className="ops-label hidden shrink-0 sm:block">
+          Express Entulho · operação assistida
+        </span>
       </div>
     </header>
   );
@@ -185,10 +201,10 @@ export function RodapeProcedencia() {
   return (
     <footer className="mt-auto border-t border-[var(--ops-line)] px-4 py-6 sm:px-6 lg:px-8">
       <p className="ops-label text-[10.5px] leading-relaxed tracking-[0.06em]">
-        Express Operations · Protótipo visual — não é sistema em operação
+        Express Operations · Painel operacional em implantação · modo assistido
       </p>
       <p className="mt-1.5 text-[11.5px] leading-relaxed text-[var(--ops-ink-muted)]">
-        Projeto interno YO LAB &amp; CO. nº 000001
+        Projeto YO LAB &amp; CO. nº 000001
         <span aria-hidden className="mx-1.5 opacity-40">
           ·
         </span>

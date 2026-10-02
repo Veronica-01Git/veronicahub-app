@@ -550,17 +550,20 @@ export const expressOpsMock: ExpressOpsData = {
     },
   ],
   progressoDia: { concluidas: 2, emRota: 2, pendentes: 4, atrasadas: 1 },
-  frota: awaiting(
-    "Veículos e motoristas ainda não cadastrados. O inventário de caçambas já foi importado.",
-  ),
+  frota: {
+    veiculosTotal: 7,
+    veiculosEmOperacao: awaiting(
+      "A Express informou 7 veículos no total; modelos e disponibilidade de cada unidade ainda não foram cadastrados.",
+    ),
+  },
   aprovacoes: [
     {
       id: "AP-118",
       tipo: "desconto",
       cliente: "Construtora Marisol",
       pedidoDoCliente: "Pediu 20% de desconto para fechar quatro caçambas no mês.",
-      propostaDaIa: "Conceder 10% no pacote mensal, mantendo prazo padrão de 7 dias.",
-      regraVioloda: "Desconto acima da alçada do agente (limite 10%)",
+      propostaDaIa: "Manter a tabela e encaminhar qualquer exceção comercial para um responsável.",
+      regraVioloda: "Desconto não está na alçada do agente",
       valorEmJogo: 1680,
       aguardandoMin: 42,
     },
@@ -731,7 +734,8 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m2",
           autor: "ia",
-          texto: "Bom dia! No pacote de 4 caçambas/mês eu consigo aplicar 10% sobre a tabela.",
+          texto:
+            "Bom dia! Os valores seguem a tabela padrão. Qualquer desconto precisa da aprovação de um responsável.",
           hora: "10:29",
         },
         {
@@ -743,8 +747,7 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m4",
           autor: "ia",
-          texto:
-            "20% está acima do que posso aprovar sozinha. Encaminhei para um responsável avaliar agora.",
+          texto: "Não posso aprovar descontos. Encaminhei para um responsável avaliar agora.",
           hora: "10:33",
         },
       ],
@@ -757,9 +760,9 @@ export const expressOpsMock: ExpressOpsData = {
         ],
         cacambaInstalada: { id: "CB-014", decorridoDias: 4, contratadoDias: 7 },
         escalonamento: {
-          motivo: "Desconto de 20% — dobro da alçada do agente",
+          motivo: "Desconto de 20% — agente sem alçada para descontos",
           foraDaAlcada: [
-            "Descontos acima de 10%",
+            "Qualquer desconto",
             "Condição comercial recorrente",
             "Prazo de pagamento faturado",
           ],
@@ -826,7 +829,8 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m2",
           autor: "ia",
-          texto: "Atendemos sim! Tambor de 5m³ sai por R$ 450 com 7 dias de permanência.",
+          texto:
+            "Atendemos sim! O valor é o mesmo da tabela padrão; para cotar preciso confirmar qual material será descartado.",
           hora: "09:31",
         },
         { id: "m3", autor: "cliente", texto: "Quero para hoje à tarde", hora: "09:36" },

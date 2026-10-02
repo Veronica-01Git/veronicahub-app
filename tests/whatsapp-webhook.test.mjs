@@ -149,10 +149,9 @@ test("combinação que o responsável não soube informar devolve null, não uma
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), null);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), null);
 
-  // Fora de Itajaí, só Itapema com gesso tem fonte. Demolição em Itapema
-  // nunca foi informada — e não vale supor que seja a de Itajaí.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), null);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "navegantes"), null);
+  // Regra vigente: valor-base se aplica às cidades atendidas.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), 220);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "navegantes"), 280);
 
   // Materiais que a agente reconhece mas cujo preço ninguém passou.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "terra", "itajai"), null);
@@ -163,34 +162,33 @@ test("combinação que o responsável não soube informar devolve null, não uma
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "entulho", "itajai"), null);
 });
 
-test("cada preço cadastrado tem fonte primária, e só esses sete existem", () => {
+test("matriz vigente em 02/10 tem cinco combinações confirmadas", () => {
   // Áudio do vendedor que está saindo — fonte fraca, a reconfirmar com o dono.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itajai"), 220);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "itajai"), 180);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "demolicao", "itajai"), 450);
   // Mesmo áudio, gesso na menor.  (idem: a reconfirmar)
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itajai"), 280);
-  // O DONO, em conversa real com cliente em Itapema, material gesso. Fonte forte.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema"), 250);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itapema"), 470);
+  // Valores antigos por cidade foram substituídos pela matriz padrão em 02/10.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema"), 280);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itapema"), null);
   // A PRÓPRIA EMPRESA, no WhatsApp dela (14/09, 13:26): peça oficial do tambor
   // com a legenda "Tambor de entulho / 180 reias e fica 3 dias". Fonte forte.
   // A cidade é Itajaí porque o tambor só existe lá — regra já registrada, não
   // suposição nova. Ver o teste do tambor mais abaixo, que é o que segura isso.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "entulho", "itajai"), 180);
 
-  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 7, "nenhum preço sem fonte entrou");
+  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 5, "nenhum preço sem fonte entrou");
 });
 
-test("Itapema é mais barata que Itajaí no mesmo material — cidade tem preço próprio", () => {
-  // O dado que derrubou a suposição de tabela única: gesso na menor custa
-  // R$ 280 em Itajaí e R$ 250 em Itapema. Não é tabela igual nem Itajaí mais
-  // deslocamento. Se um dia alguém propuser propagar preço entre cidades,
-  // este teste é a resposta.
-  const itajai = buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itajai");
-  const itapema = buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema");
-  assert.notEqual(itajai, itapema);
-  assert.ok(itapema < itajai, "fora da sede não é automaticamente mais caro");
+test("preço padrão confirmado em 02/10 vale nas cidades onde o produto é atendido", () => {
+  for (const cidade of REGRAS_EXPRESS_ENTULHO.cidades) {
+    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", cidade.id), 220);
+    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", cidade.id), 280);
+    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", cidade.id), null);
+  }
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "itapema"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "curitiba"), null);
 });
 
 test("a agente reconhece os materiais que o dono lista, mesmo sem preço deles", () => {
@@ -232,7 +230,10 @@ test("valores em reais são extraídos nos formatos que o modelo usa", () => {
 test("a guarda aceita só os valores da matriz — inclusive contra o R$ 240 real", () => {
   assert.equal(respostaSegura("Vou confirmar com a equipe e te retorno."), true);
   assert.equal(respostaSegura("Para demolição em Itajaí, a menor sai por R$ 220."), true);
-  assert.equal(respostaSegura("O tambor fica R$ 180.", undefined, "é em Itajaí"), true);
+  assert.equal(
+    respostaSegura("O tambor fica R$ 180.", undefined, "tambor, demolição, Itajaí"),
+    true,
+  );
   assert.equal(respostaSegura("A grande é R$ 450.", undefined, "obra em Itajaí, demolição"), true);
   assert.equal(respostaSegura("Com gesso, a menor vai para R$ 280.", undefined, "Itajaí"), true);
 
@@ -249,9 +250,13 @@ test("com tabela cadastrada, só passam os valores que estão nela", () => {
     ...REGRAS_EXPRESS_ENTULHO,
     precos: [{ produto: "tambor", material: "demolicao", cidade: "itajai", valorReais: 450 }],
     diariaExtraReais: 45,
+    precoPadraoTodasCidades: false,
   };
-  assert.equal(respostaSegura("Sai por R$ 450 com 7 dias.", regras, "Itajaí"), true);
-  assert.equal(respostaSegura("A diária extra é R$ 45.", regras, "Itajaí"), true);
+  assert.equal(
+    respostaSegura("Sai por R$ 450 com 7 dias.", regras, "tambor demolição Itajaí"),
+    true,
+  );
+  assert.equal(respostaSegura("A diária extra é R$ 45.", regras, "tambor demolição Itajaí"), true);
   // O erro que a guarda existe para impedir: desconto inventado sob pressão.
   assert.equal(respostaSegura("Consigo fazer por R$ 380 para você.", regras, "Itajaí"), false);
   assert.equal(respostaSegura("Sai por R$ 449,99.", regras, "Itajaí"), false);
@@ -447,7 +452,10 @@ test("sem credencial nenhuma a agente escala, e diz o que falta", async () => {
   delete process.env.ANTHROPIC_API_KEY;
   delete process.env.GROQ_API_KEY;
   try {
-    const d = await decidirResposta({ texto: "quanto custa?", primeiraMensagem: false });
+    const d = await decidirResposta({
+      texto: "qual o tamanho em metros cúbicos de cada produto?",
+      primeiraMensagem: false,
+    });
     assert.equal(d.escalar, true);
     assert.match(d.motivo, /ANTHROPIC_API_KEY|GROQ_API_KEY/);
     assert.equal(valoresCitados(d.texto).length, 0, "não cita valor");
@@ -458,15 +466,10 @@ test("sem credencial nenhuma a agente escala, e diz o que falta", async () => {
 
 /* ------------------------------------- a guarda confere a combinação inteira */
 
-test("o erro que a guarda antiga deixava passar: preço de Itajaí cotado fora dela", () => {
-  // Este é o caso que motivou reescrever a guarda: um valor que EXISTE na
-  // matriz, cotado para uma cidade onde ele não vale. Desde 18/09 a demolição
-  // fora de Itajaí tem preço, então o teste passou a usar gesso, que continua
-  // só em Itajaí — a forma do erro é a mesma, o dado é que mudou.
-  const conversa = "quanto custa? caçamba menor, gesso, a obra é em Itapema";
-
-  assert.equal(respostaSegura("A menor com gesso sai por R$ 280.", undefined, conversa), false);
-  assert.match(motivoDaGuarda("A menor com gesso sai por R$ 280.", undefined, conversa), /Itapema/);
+test("guarda aplica preço padrão e barra valor antigo de cidade", () => {
+  const conversa = "caçamba menor, gesso, Itapema";
+  assert.equal(respostaSegura("A menor com gesso sai por R$ 280.", undefined, conversa), true);
+  assert.equal(respostaSegura("A menor com gesso sai por R$ 250.", undefined, conversa), false);
 });
 
 test("preço sem cidade definida não sai — Itajaí não é suposição segura", () => {
@@ -493,7 +496,7 @@ test("com a cidade certa, a combinação exata passa e a errada não", () => {
   );
 });
 
-test("resposta que compara dois produtos não é barrada à toa", () => {
+test("comparação de preços de dois produtos exige revisão humana", () => {
   // Citar menor e grande na mesma frase é resposta legítima. Aí a conferência
   // fica no nível da cidade em vez de recusar por ambiguidade.
   const r = respostaSegura(
@@ -501,7 +504,7 @@ test("resposta que compara dois produtos não é barrada à toa", () => {
     undefined,
     "",
   );
-  assert.equal(r, true);
+  assert.equal(r, false);
 });
 
 test("conversa com duas cidades não deixa cotar", () => {
@@ -529,9 +532,7 @@ test("listar as cidades atendidas não emudece a agente sobre preço", () => {
     true,
   );
 
-  // E a proteção continua de pé: um preço que só vale em Itajaí não escapa
-  // para outra cidade só porque a lista de cobertura passou por ali. Gesso
-  // fora de Itajaí segue sem preço nenhum.
+  // Cobertura citada no histórico não impede o preço padrão confirmado.
   const gessoEmItapema = [
     "quais cidades vocês atendem?",
     "Atendemos Itajaí, Balneário Camboriú, Camboriú, Itapema, Porto Belo, Ilhota, Navegantes e Penha.",
@@ -540,9 +541,9 @@ test("listar as cidades atendidas não emudece a agente sobre preço", () => {
 
   assert.equal(
     respostaSegura("A menor com gesso sai por R$ 280.", undefined, gessoEmItapema),
-    false,
+    true,
   );
-  assert.match(motivoDaGuarda("Sai por R$ 280.", undefined, gessoEmItapema), /Itapema/);
+  assert.equal(motivoDaGuarda("A menor sai por R$ 280.", undefined, gessoEmItapema), null);
 });
 
 test("a cidade que vale é a última dita, não a primeira", () => {

@@ -103,7 +103,12 @@ export type ProgressoDia = {
 /* ------------------------------------------------------- Frota e caçambas */
 
 export type CacambaEstado =
-  "disponivel" | "reservada" | "em-transito" | "instalada" | "aguardando-retirada" | "descarregada";
+  | "disponivel"
+  | "reservada"
+  | "em-transito"
+  | "instalada"
+  | "aguardando-retirada"
+  | "descarregada";
 
 export type Cacamba = {
   readonly id: string;
@@ -121,7 +126,9 @@ export type Cacamba = {
  * (`cacambas`), nunca digitada duas vezes — duas fontes divergiriam.
  */
 export type Frota = {
-  readonly veiculosEmOperacao: number;
+  /** Quantidade ativa agora ainda depende da integração com a operação. */
+  readonly veiculosEmOperacao: Maybe<number>;
+  /** Total informado pelo responsável da Express em 02/10/2026. */
   readonly veiculosTotal: number;
 };
 
