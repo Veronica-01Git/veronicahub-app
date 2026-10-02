@@ -155,14 +155,28 @@ export function CardFrota({
         <div>
           <p className="ops-label mb-2">Veículos em operação</p>
           <ComDado valor={frota} compacto>
-            {(f) => (
-              <p className="ops-num text-[24px] font-semibold leading-none text-[var(--ops-ink)]">
-                {f.veiculosEmOperacao}
-                <span className="text-[15px] font-medium text-[var(--ops-ink-muted)]">
-                  /{f.veiculosTotal}
-                </span>
-              </p>
-            )}
+            {(f) =>
+              isAwaiting(f.veiculosEmOperacao) ? (
+                <div>
+                  <p className="ops-num text-[24px] font-semibold leading-none text-[var(--ops-ink)]">
+                    {f.veiculosTotal}
+                    <span className="ml-1 text-[13px] font-medium text-[var(--ops-ink-muted)]">
+                      veículos no total
+                    </span>
+                  </p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-[var(--ops-ink-muted)]">
+                    {f.veiculosEmOperacao.motivo}
+                  </p>
+                </div>
+              ) : (
+                <p className="ops-num text-[24px] font-semibold leading-none text-[var(--ops-ink)]">
+                  {f.veiculosEmOperacao}
+                  <span className="text-[15px] font-medium text-[var(--ops-ink-muted)]">
+                    /{f.veiculosTotal}
+                  </span>
+                </p>
+              )
+            }
           </ComDado>
         </div>
         <div>
