@@ -1,3 +1,32 @@
+## Express Operations — modo assistido e painel administrativo completo (2026-10-02)
+
+**Objetivo imediato:** entregar valor ao cliente sem migrar, ler, apagar ou enviar
+mensagens pelo número atual da Express. O WhatsApp Business original continua
+intacto; o painel passa a funcionar como copiloto manual.
+
+**Implementado:**
+- Central de atendimento ganhou **Atendimento assistido**: o operador cola a
+  mensagem recebida, a mesma agente/guarda comercial gera um rascunho, e o
+  operador revisa e copia a resposta de volta. Não existe caminho para Meta,
+  WhatsApp Cloud API ou WhatsApp Web nessa tela.
+- Todas as seções administrativas antes marcadas "Em construção" agora têm
+  superfície de consulta com fatos confirmados e pendências explícitas:
+  agenda, planejamento, veículos, motoristas, mapa/rotas, clientes, documentos,
+  financeiro, relatórios e equipe/permissões.
+- Regra comercial atualizada pelo dono: preço padrão entre cidades atendidas;
+  distância da central em Itajaí altera somente prazo/janela, podendo acrescentar
+  até 1 hora ou 1 dia conforme rota/distância. Combinação sem preço continua
+  escalando; nenhum valor novo foi inventado.
+- Agenda: segunda a sábado, sábado até 12h. No fim de semana, segunda-feira
+  permanece aberta para até **40 pedidos**. Sem contagem real integrada, a agente
+  não inventa disponibilidade exata.
+- Frota: total confirmado em **7 veículos**. Modelos, placas e quantidade ativa
+  agora continuam como "aguardando cadastro", sem suposição.
+- AGENTS.md recebeu autorização explícita para o modo assistido manual, sem
+  enfraquecer a regra permanente de não tocar no número atual.
+
+**Sem mudança de banco. Sem migração. Sem segredo novo. Sem envio de WhatsApp.**
+
 ## Matéria da Express Entulho no Wire (2026-10-01)
 
 Matéria pedida pelo dono: "Express Entulho desenvolve agente de IA próprio
