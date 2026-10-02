@@ -13,7 +13,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { conversarComAgente } from "@/features/express-ops-b/data/agente";
 import { OpsCard, SectionTitle, EstadoBadge } from "@/features/express-ops-b/components/primitives";
-import { REGRAS_EXPRESS_ENTULHO as R, produtoPorId, type ProdutoId } from "@/lib/whatsapp-rules";
+import {
+  REGRAS_EXPRESS_ENTULHO as R,
+  buscarPreco,
+  produtoPorId,
+  type ProdutoId,
+} from "@/lib/whatsapp-rules";
 
 export const Route = createFileRoute("/clientes/express-entulho/operacoes/regras-do-agente")({
   component: RegrasDoAgente,
@@ -43,7 +48,7 @@ function MatrizPrecos() {
   return (
     <div className="min-w-0 overflow-x-auto">
       <table className="w-full border-collapse text-[13px]">
-        <caption className="sr-only">Preços por produto e material, em Itajaí</caption>
+        <caption className="sr-only">Preços padrão por produto e material nas cidades atendidas</caption>
         <thead>
           <tr>
             <th
@@ -82,12 +87,8 @@ function MatrizPrecos() {
                 {p.diasIncluidos} dias
               </td>
               {materiais.map((m) => {
-                const preco = R.precos.find(
-                  (x) =>
-                    x.produto === (p.id as ProdutoId) &&
-                    x.material === m.id &&
-                    x.cidade === "itajai",
-                );
+                const valor = buscarPreco(R, p.id as ProdutoId, m.id, "itajai");
+                const preco = valor == null ? null : { valorReais: valor };
                 return (
                   <td key={m.id} className="px-3 py-2.5 text-right">
                     {preco ? (
@@ -158,13 +159,45 @@ function RegrasDoAgente() {
         <OpsCard className="min-w-0">
           <SectionTitle
             titulo="Preços por material"
-            apoio="O preço não é tabelado: muda conforme o que o cliente vai descartar"
+            apoio="O material define o preço; a cidade não altera o valor"
           />
           <MatrizPrecos />
           <p className="mt-4 border-t border-[var(--ops-line)] pt-3 text-[12.5px] leading-relaxed text-[var(--ops-ink-muted)]">
-            Onde está "não informado", o agente não inventa e não estima por semelhança — ele
-            encaminha para uma pessoa. Fora de Itajaí nenhum preço foi cadastrado ainda.
+            Onde está "não informado", o agente não inventa nem estima. Os valores confirmados
+            são padrão em todas as cidades onde o produto é atendido; distância da central de
+            Itajaí altera somente prazo ou janela de entrega.
           </p>
+        </OpsCard>
+
+        <OpsCard className="min-w-0">
+          <SectionTitle
+            titulo="Agenda operacional"
+            apoio="Regras confirmadas para receber e organizar pedidos"
+          />
+          <dl className="grid gap-3 text-[13px] sm:grid-cols-2">
+            <div className="rounded-[10px] bg-[var(--ops-surface)] p-3">
+              <dt className="ops-label mb-1">Funcionamento</dt>
+              <dd className="text-[var(--ops-ink)]">{R.agenda.diasOperacao}</dd>
+            </div>
+            <div className="rounded-[10px] bg-[var(--ops-surface)] p-3">
+              <dt className="ops-label mb-1">Sábado</dt>
+              <dd className="text-[var(--ops-ink)]">até {R.agenda.sabadoAte}</dd>
+            </div>
+            <div className="rounded-[10px] bg-[var(--ops-surface)] p-3 sm:col-span-2">
+              <dt className="ops-label mb-1">Fim de semana → segunda-feira</dt>
+              <dd className="text-[var(--ops-ink)]">
+                Agenda aberta para até {R.agenda.limitePedidosSegundaFimDeSemana} pedidos.
+              </dd>
+            </div>
+            <div className="rounded-[10px] bg-[var(--ops-surface)] p-3 sm:col-span-2">
+              <dt className="ops-label mb-1">Distância da central</dt>
+              <dd className="text-[var(--ops-ink)]">
+                Mesmo preço. Conforme a distância/rota, a entrega pode levar até{" "}
+                {R.ajusteLogisticoForaItajai.acrescimoHorasMaximo} hora ou{" "}
+                {R.ajusteLogisticoForaItajai.acrescimoDiasMaximo} dia a mais.
+              </dd>
+            </div>
+          </dl>
         </OpsCard>
 
         <OpsCard className="min-w-0">
