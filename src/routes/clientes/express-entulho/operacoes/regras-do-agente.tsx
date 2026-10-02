@@ -16,7 +16,6 @@ import { OpsCard, SectionTitle, EstadoBadge } from "@/features/express-ops-b/com
 import {
   REGRAS_EXPRESS_ENTULHO as R,
   buscarPreco,
-  produtoPorId,
   type ProdutoId,
 } from "@/lib/whatsapp-rules";
 
@@ -34,8 +33,7 @@ type Fala = {
 const SUGESTOES = [
   "quanto custa uma caçamba?",
   "é demolição, em Itajaí",
-  // Cidade atendida, mas sem preço cadastrado. A agente tem de encaminhar em
-  // vez de repetir o valor de Itajaí — é a recusa que mais vale demonstrar.
+  // Mesmo preço fora da sede; a distância só pode alterar a janela logística.
   "menor, demolição, em Itapema",
   "e se for gesso na grande?",
   "me dá 20% de desconto",
