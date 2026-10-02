@@ -53,11 +53,11 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "agenda",
     rotulo: "Agenda",
     icone: CalendarDays,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Calendário de entregas e retiradas por semana e por mês",
-      "Janelas de atendimento por bairro e por veículo",
-      "Bloqueios de feriado, chuva e manutenção",
+      "Agenda de segunda a sábado; sábado até 12h",
+      "Fim de semana aceita até 40 pedidos para a segunda-feira",
       "Reagendamento com aviso automático ao cliente",
     ],
   },
@@ -67,7 +67,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "planejamento-amanha",
     rotulo: "Planejamento de amanhã",
     icone: CalendarClock,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Fechamento do dia seguinte com conferência de conflitos",
       "Distribuição de carga por motorista e por veículo",
@@ -79,9 +79,9 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "veiculos",
     rotulo: "Veículos",
     icone: Truck,
-    pronta: false,
+    pronta: true,
     conteudo: [
-      "Cadastro de frota com placa, capacidade e ano",
+      "Frota total confirmada: 7 veículos; modelos e placas aguardam cadastro",
       "Disponibilidade diária e status de manutenção",
       "Documentação: licenciamento, seguro e vistoria",
       "Custo por quilômetro e consumo por rota",
@@ -92,7 +92,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "motoristas",
     rotulo: "Motoristas",
     icone: UsersRound,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Cadastro com CNH, categoria e validade",
       "Escala do dia e histórico de operações",
@@ -104,11 +104,11 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "mapa-e-rotas",
     rotulo: "Mapa e rotas",
     icone: MapIcon,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Mapa ao vivo com posição da frota",
       "Roteirização por proximidade e janela de horário",
-      "Área atendida com faixas de preço por distância",
+      "Preço padrão entre cidades; distância altera somente prazo/janela",
       "Histórico de trajeto por operação",
     ],
   },
@@ -116,7 +116,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "clientes",
     rotulo: "Clientes",
     icone: Building2,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Ficha com endereços recorrentes e contatos",
       "Histórico completo de pedidos e conversas",
@@ -128,7 +128,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "documentos",
     rotulo: "Documentos",
     icone: FileText,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "CTR e MTR por operação, com numeração controlada",
       "Contrato de locação e termo de responsabilidade",
@@ -140,7 +140,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "financeiro",
     rotulo: "Financeiro",
     icone: Wallet,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Pedidos originados pelo agente e por canal",
       "Cobrança por Pix, link de pagamento e faturamento",
@@ -164,7 +164,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "relatorios",
     rotulo: "Relatórios",
     icone: BarChart3,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Conversão de conversa em pedido, por origem",
       "Tempo médio de resposta e de resolução",
@@ -176,7 +176,7 @@ export const ITENS_NAV: readonly ItemNav[] = [
     slug: "equipe-e-permissoes",
     rotulo: "Equipe e permissões",
     icone: UsersRound,
-    pronta: false,
+    pronta: true,
     conteudo: [
       "Usuários por papel: atendimento, operação e gestão",
       "Alçada de aprovação por pessoa e por valor",
