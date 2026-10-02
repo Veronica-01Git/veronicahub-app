@@ -73,7 +73,20 @@ export type RegrasNegocio = {
   readonly produtos: readonly Produto[];
   readonly materiais: readonly Material[];
   readonly precos: readonly Preco[];
+  /** Preço comercial não muda por cidade; distância altera somente a janela logística. */
+  readonly precoPadraoTodasCidades: boolean;
   readonly horarioAtendimento: string;
+  readonly agenda: {
+    readonly diasOperacao: string;
+    readonly sabadoAte: string;
+    readonly fimDeSemanaAceitaSegunda: boolean;
+    readonly limitePedidosSegundaFimDeSemana: number;
+  };
+  readonly ajusteLogisticoForaItajai: {
+    readonly acrescimoHorasMaximo: number;
+    readonly acrescimoDiasMaximo: number;
+    readonly criterio: string;
+  };
   readonly diariaExtraReais: number | null;
   readonly prorrogacaoSemAprovacaoDias: number;
   readonly descontoMaximoPct: number;
@@ -146,54 +159,38 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
   ],
 
   /*
-   * Só o que tem fonte primária. Nada aqui é inferido, e a procedência de
-   * cada linha está ao lado dela.
+   * REGRA COMERCIAL ATUALIZADA PELO DONO EM 02/10/2026:
+   * o preço é PADRÃO em todas as cidades atendidas. A distância da central de
+   * Itajaí não muda o valor; ela pode mudar apenas o prazo/janela de entrega.
    *
-   * NÃO CADASTRADO, portanto encaminhado: gesso no tambor e na caçamba grande
-   * (quem falou do assunto não soube dizer), a menor em Itapema com material
-   * que não seja gesso, tudo nas outras seis cidades, e todos os oito
-   * materiais fora demolição e gesso.
-   *
-   * Uma conversa de 14/09 mostrou "caçamba menor, 240 reais" — que não bate
-   * com nada abaixo. Não entrou: é a prova de que inferir por semelhança
-   * erraria.
+   * Mantemos abaixo uma única matriz-base. Combinação sem valor confirmado
+   * continua sem cotação automática — o agente encaminha em vez de inventar.
    */
   precos: [
-    // Áudio do vendedor que está saindo (16/09): "pra demolição, a caçamba
-    // menor pra Itajaí é R$ 220, o tambor é R$ 180 e a grande é R$ 450".
-    // FONTE FRACA — reconfirmar com o dono.
     { produto: "cacamba-menor", material: "demolicao", cidade: ITAJAI, valorReais: 220 },
     { produto: "tambor", material: "demolicao", cidade: ITAJAI, valorReais: 180 },
     { produto: "cacamba-grande", material: "demolicao", cidade: ITAJAI, valorReais: 450 },
-
-    // Mesmo áudio: "gesso... então a caçamba menor R$ 280". FONTE FRACA.
     { produto: "cacamba-menor", material: "gesso", cidade: ITAJAI, valorReais: 280 },
-
-    // FONTE FORTE, e de um tipo novo: mensagem que a PRÓPRIA EMPRESA mandou a
-    // um cliente pelo WhatsApp dela, em 14/09 às 13:26 — a peça de marketing
-    // oficial do tambor com a legenda "Tambor de entulho / 180 reias e fica 3
-    // dias". Não é alguém contando de memória o que a empresa cobra; é a
-    // empresa cobrando.
-    //
-    // A CIDADE NÃO APARECE NO PRINT. Ela entra como Itajaí porque o tambor só
-    // existe em Itajaí — regra que já estava neste arquivo, não suposição
-    // feita agora. Se o tambor passar a rodar em outra cidade, esta linha
-    // precisa ser revista antes.
-    //
-    // Repare que o valor é o MESMO do tambor com demolição (180). Ou o tambor
-    // tem preço único independente do material, ou é coincidência. É pergunta
-    // para o dono, e está em PENDENCIAS-CLIENTE.md.
     { produto: "tambor", material: "entulho", cidade: ITAJAI, valorReais: 180 },
-
-    // O DONO, em conversa real com cliente (19/09), Itapema, gesso:
-    // "CACAMBA MENOR, 250 reais e fica 3 dias" e "Caçamba grande, 470 reais e
-    // fica 7 dias". É o único preço fora de Itajaí com fonte, e é ele que
-    // mostra que cada cidade tem preço próprio.
-    { produto: "cacamba-menor", material: "gesso", cidade: "itapema", valorReais: 250 },
-    { produto: "cacamba-grande", material: "gesso", cidade: "itapema", valorReais: 470 },
   ],
 
-  horarioAtendimento: "horário comercial",
+  precoPadraoTodasCidades: true,
+
+  horarioAtendimento: "segunda a sábado; sábado até 12:00",
+
+  agenda: {
+    diasOperacao: "segunda a sábado",
+    sabadoAte: "12:00",
+    fimDeSemanaAceitaSegunda: true,
+    limitePedidosSegundaFimDeSemana: 40,
+  },
+
+  ajusteLogisticoForaItajai: {
+    acrescimoHorasMaximo: 1,
+    acrescimoDiasMaximo: 1,
+    criterio:
+      "Quanto mais distante da central em Itajaí, a entrega pode levar até 1 hora ou 1 dia a mais. O preço não muda.",
+  },
 
   // "Diária extra também eu não sei te passar."
   diariaExtraReais: null,
@@ -228,7 +225,8 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
 
   observacoes: [
     "Sede: R. Benjamin Franklin Pereira, 365 — Itajaí/SC.",
-    "O preço muda conforme o material descartado. Sem o material, não há preço.",
+    "O preço muda conforme o material descartado, mas é igual em todas as cidades atendidas.",
+    "Distância da central em Itajaí altera apenas prazo/janela de entrega, nunca o preço.",
     "Tambor está disponível APENAS em Itajaí.",
   ],
 };
@@ -249,9 +247,14 @@ export function buscarPreco(
   material: MaterialId,
   cidade: CidadeId,
 ): number | null {
-  const achado = regras.precos.find(
-    (p) => p.produto === produto && p.material === material && p.cidade === cidade,
-  );
+  const produtoDisponivel = regras.produtos.find((p) => p.id === produto)?.cidades.includes(cidade);
+  if (!produtoDisponivel) return null;
+
+  const achado = regras.precoPadraoTodasCidades
+    ? regras.precos.find((p) => p.produto === produto && p.material === material)
+    : regras.precos.find(
+        (p) => p.produto === produto && p.material === material && p.cidade === cidade,
+      );
   return achado ? achado.valorReais : null;
 }
 
@@ -289,9 +292,9 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
   linhas.push(
     "",
     "PREÇO — LEIA COM ATENÇÃO:",
-    "O preço NÃO é tabelado. Ele muda conforme o material que o cliente vai",
-    "descartar. Sem saber o material, NÃO EXISTE preço — sua primeira pergunta",
-    "a quem pede valor é qual o material do descarte.",
+    "O preço muda conforme o material descartado, mas é PADRÃO entre as cidades atendidas.",
+    "Distância da central em Itajaí NÃO altera o valor. Sem saber o material, NÃO EXISTE preço —",
+    "sua primeira pergunta a quem pede valor é qual o material do descarte.",
     "",
     "Os únicos preços que você conhece:",
   );
@@ -301,8 +304,12 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
     for (const p of regras.precos) {
       const produto = produtoPorId(regras, p.produto)?.rotulo ?? p.produto;
       const material = regras.materiais.find((m) => m.id === p.material)?.rotulo ?? p.material;
-      const cidade = regras.cidades.find((c) => c.id === p.cidade)?.rotulo ?? p.cidade;
-      linhas.push(`- ${produto}, ${material}, ${cidade}: R$ ${p.valorReais}`);
+      if (regras.precoPadraoTodasCidades) {
+        linhas.push(`- ${produto}, ${material}: R$ ${p.valorReais} em qualquer cidade onde o produto é atendido.`);
+      } else {
+        const cidade = regras.cidades.find((c) => c.id === p.cidade)?.rotulo ?? p.cidade;
+        linhas.push(`- ${produto}, ${material}, ${cidade}: R$ ${p.valorReais}`);
+      }
     }
   }
   linhas.push(
@@ -313,7 +320,14 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
 
   linhas.push(
     "",
-    `Horário de atendimento: ${regras.horarioAtendimento}.`,
+    `Horário/agenda operacional: ${regras.horarioAtendimento}.`,
+    `- Agenda funciona de ${regras.agenda.diasOperacao}; no sábado, até ${regras.agenda.sabadoAte}.`,
+    regras.agenda.fimDeSemanaAceitaSegunda
+      ? `- No fim de semana, a agenda de segunda-feira permanece aberta para até ${regras.agenda.limitePedidosSegundaFimDeSemana} pedidos.`
+      : "- No fim de semana, não confirme agenda sem a equipe.",
+    "- O preço é o mesmo em todas as cidades atendidas. Distância só pode alterar prazo/janela.",
+    `- Fora de Itajaí, conforme a distância/rota, a entrega pode acrescentar até ${regras.ajusteLogisticoForaItajai.acrescimoHorasMaximo} hora ou ${regras.ajusteLogisticoForaItajai.acrescimoDiasMaximo} dia.`,
+    "- Sem a ocupação real da agenda, não invente disponibilidade: informe a regra e peça confirmação da equipe para a janela exata.",
     regras.diariaExtraReais != null
       ? `Diária extra após o prazo: R$ ${regras.diariaExtraReais}.`
       : "Diária extra após o prazo: você NÃO SABE o valor. Encaminhe.",
