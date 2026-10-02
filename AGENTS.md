@@ -44,4 +44,11 @@ da Express Entulho, tomada por escrito e com o procedimento conferido na
 documentação vigente da Meta antes de qualquer clique. Não é decisão de quem
 desenvolve, e não se resolve em conversa de implantação.
 
+**Modo assistido autorizado (02/10/2026).** É permitido ao operador copiar
+manualmente uma mensagem recebida no WhatsApp Business para o painel privado da
+Express, pedir um rascunho à agente e copiar a resposta de volta. Esse modo não
+lê o WhatsApp, não envia por API, não usa WhatsApp Web, não altera o número e
+não apaga/sincroniza contatos, conversas ou mídias. Qualquer futura Coexistence
+ou conexão oficial continua exigindo validação separada antes de tocar no canal.
+
 Registrado em 16/09/2026. Projeto `VH-AUT-WA-2026-000001`.
