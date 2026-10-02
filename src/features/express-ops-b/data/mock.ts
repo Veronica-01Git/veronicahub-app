@@ -562,8 +562,8 @@ export const expressOpsMock: ExpressOpsData = {
       tipo: "desconto",
       cliente: "Construtora Marisol",
       pedidoDoCliente: "Pediu 20% de desconto para fechar quatro caçambas no mês.",
-      propostaDaIa: "Conceder 10% no pacote mensal, mantendo prazo padrão de 7 dias.",
-      regraVioloda: "Desconto acima da alçada do agente (limite 10%)",
+      propostaDaIa: "Manter a tabela e encaminhar qualquer exceção comercial para um responsável.",
+      regraVioloda: "Desconto não está na alçada do agente",
       valorEmJogo: 1680,
       aguardandoMin: 42,
     },
@@ -734,7 +734,7 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m2",
           autor: "ia",
-          texto: "Bom dia! No pacote de 4 caçambas/mês eu consigo aplicar 10% sobre a tabela.",
+          texto: "Bom dia! Os valores seguem a tabela padrão. Qualquer desconto precisa da aprovação de um responsável.",
           hora: "10:29",
         },
         {
@@ -829,7 +829,7 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m2",
           autor: "ia",
-          texto: "Atendemos sim! Tambor de 5m³ sai por R$ 450 com 7 dias de permanência.",
+          texto: "Atendemos sim! O valor é o mesmo da tabela padrão; para cotar preciso confirmar qual material será descartado.",
           hora: "09:31",
         },
         { id: "m3", autor: "cliente", texto: "Quero para hoje à tarde", hora: "09:36" },
