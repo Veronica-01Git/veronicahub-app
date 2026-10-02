@@ -550,9 +550,12 @@ export const expressOpsMock: ExpressOpsData = {
     },
   ],
   progressoDia: { concluidas: 2, emRota: 2, pendentes: 4, atrasadas: 1 },
-  frota: awaiting(
-    "Veículos e motoristas ainda não cadastrados. O inventário de caçambas já foi importado.",
-  ),
+  frota: {
+    veiculosTotal: 7,
+    veiculosEmOperacao: awaiting(
+      "A Express informou 7 veículos no total; modelos e disponibilidade de cada unidade ainda não foram cadastrados.",
+    ),
+  },
   aprovacoes: [
     {
       id: "AP-118",
