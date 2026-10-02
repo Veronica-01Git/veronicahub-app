@@ -3,47 +3,16 @@
  *
  * ESTE ARQUIVO É A ÚNICA FONTE DE VERDADE COMERCIAL DO AGENTE.
  *
- * O ACHADO QUE ORGANIZA TUDO AQUI: **não existe tabela de preço fixa**. O
- * preço é referente ao material que o cliente vai descartar. Demolição e
- * gesso custam diferente no mesmo produto, na mesma cidade.
+ * Regra vigente confirmada pelo dono em 02/10/2026:
+ * - o material descartado continua definindo o preço;
+ * - o valor é PADRÃO entre as cidades atendidas;
+ * - distância da central em Itajaí altera somente prazo/janela de entrega;
+ * - a agenda opera de segunda a sábado, sábado até 12h;
+ * - no fim de semana, a segunda-feira permanece aberta para até 40 pedidos;
+ * - combinação sem preço confirmado continua sendo encaminhada para humano.
  *
- * Consequência prática: o agente NÃO PODE COTAR SEM SABER O MATERIAL. É a
- * primeira pergunta dele, sempre — como é a primeira do dono no WhatsApp.
- *
- * AS DUAS FONTES, E ELAS NÃO VALEM O MESMO:
- *
- * 1. **O dono, em conversa real com cliente (19/09).** Autoridade máxima. É
- *    dele o preço de Itapema e é dele o jeito de atender que o agente imita.
- * 2. **Um áudio de um vendedor que está saindo da empresa (16/09).** Foi de
- *    onde nasceu a tabela de Itajaí. Vale como indício, não como palavra
- *    final — inclusive porque ele mesmo diz "não sou vendedor, vendedor não
- *    é eu" antes de não saber vários valores. **Tudo que vier só dele deve
- *    ser reconfirmado com o dono.**
- *
- * REGRA DE PROCEDÊNCIA: **nada entra aqui sem fonte**, e cada preço abaixo
- * carrega a sua. Onde as duas fontes divergirem, vale o dono.
- *
- * Em 18/09 entraram dezesseis preços sem fonte nenhuma: gesso no tambor (230)
- * e na grande (550) em Itajaí, e demolição nas outras sete cidades a 220 e
- * 450. Saíram em 19/09. Sobre os dois de gesso, a única pessoa que falou do
- * assunto disse não saber o valor. Sobre as outras cidades, o que foi dito é
- * que **o prazo** é o mesmo — nunca que o preço é. E a conversa do dono
- * desmente a suposição de tabela única: em Itapema ele cota gesso na menor a
- * R$ 250, enquanto em Itajaí a mesma combinação é R$ 280. Cidade diferente,
- * preço diferente, e **mais barato fora da sede** — nem tabela igual, nem
- * acréscimo por deslocamento.
- *
- * Por que isso importa mais do que parece: a guarda de preço, em
- * whatsapp-agent.ts, confere se o valor **está nesta matriz**. Ela não tem
- * como conferir se a matriz está certa. Um número errado aqui é um número que
- * o agente repete com confiança total para cliente real.
- *
- * DÚVIDAS ABERTAS, as três para o dono:
- * - Os valores de Itajaí vieram do vendedor que está saindo. Conferir.
- * - Ao recusar desconto, o dono menciona "reajuste de preço no aterro".
- *   Confirmar se a tabela de Itajaí subiu depois disso.
- * - O tambor custa 180 com demolição e 180 com entulho. Tem preço único,
- *   independente do material? Se tiver, o tambor sai da lógica de matriz.
+ * A guarda em whatsapp-agent.ts confere valores deterministically. Um número
+ * não confirmado não deve entrar na matriz apenas para preencher uma lacuna.
  */
 
 export type ProdutoId = "cacamba-menor" | "tambor" | "cacamba-grande";
