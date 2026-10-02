@@ -2433,3 +2433,13 @@ false` o build não contém nenhuma ocorrência de "Wire TV" nem do selo
 - Limite de UX: revisão de código responsivo e estados concluída; rota oficial abriu e exibiu acesso restrito sem sessão. Este navegador não abriu localhost (ERR_BLOCKED_BY_CLIENT), impedindo teste visual interativo das fixtures locais. Nenhuma fixture de auditoria foi incluída no commit. Validação visual autenticada de desktop/mobile e teste com provedor de IA em produção ainda precisam de sessão autorizada da Express; não foram declarados aprovados.
 - Pendências do Júnior: preço das combinações ainda ausentes; modelos/placas/motoristas/capacidade/escala dos 7 veículos; agenda real, reservas e bloqueios; fonte ERP/MAIS Locações e GPS; cadastros de clientes/obras; documentos e usuários/papéis internos. Coexistence e outros canais fora deste escopo.
 - WhatsApp atual não tocado: sem leitura/envio/sincronização/migração, sem apagar conversas, contatos ou mídias. AGENTS.md preservado.
+
+## Publicação e verificação autenticada do Express — 02/10/2026
+
+- PR #173 mesclado com histórico preservado após CI verde do commit de correção `464b6850670a6d5e5d17cc22ee40968211f181b0`. Merge na main: `d306413ba2fd92c8b643e8314bf0d7049574f3eb`.
+- CI da main (run 37020059753) aprovado e check “Workers Builds: veronicahub-app” concluído com sucesso. Rota de produção respondeu 200 e referenciou o bundle novo de atendimento.
+- Com sessão autorizada, as 19 rotas administrativas abriram em produção. Desktop sem “Em construção” e sem transbordamento horizontal. Agenda mostra limite 40 e integração pendente; frota mostra 7 posições, sem placas inventadas.
+- Atendimento assistido real validado: caçamba menor/demolição/Itapema gerou R$ 220 e pediu confirmação humana da janela. Edição e cópia conferidas no clipboard com o texto exato do operador; “Nova conversa” limpou rascunho/contexto.
+- Cadeia real com o provedor de IA validada em produção em pergunta sobre Porto Belo/obra pequena: pediu bairro e material antes de cotar, sem inventar preço.
+- O registro anterior de pendência de sessão/IA fica superado por esta verificação. Mobile permanece revisado por código: o navegador disponível não oferece mudança de viewport, portanto teste visual em largura móvel não foi executado.
+- Nenhuma mensagem foi enviada ao WhatsApp. Número, conversas, contatos e mídias atuais preservados; sem conexão, leitura, migração ou sincronização. Pendências de cadastro/integração e identificação dos exemplos fictícios continuam válidas.
