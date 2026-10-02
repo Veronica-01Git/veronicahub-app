@@ -26,7 +26,7 @@ export function TarjaDemo() {
     >
       <TriangleAlert aria-hidden className="h-3.5 w-3.5 shrink-0 text-[oklch(0.45_0.11_75)]" />
       <p className="text-[12.5px] font-medium leading-snug text-[oklch(0.35_0.08_75)]">
-        Demonstração visual com dados fictícios. Nenhum dado real de cliente é exibido.
+        Modo assistido ativo: nenhuma mensagem é enviada ao WhatsApp automaticamente. Dados ainda sem integração ficam sinalizados.
       </p>
     </div>
   );
@@ -175,7 +175,7 @@ export function Topbar({ titulo, apoio }: { titulo: string; apoio?: string }) {
           ) : null}
         </div>
 
-        <span className="ops-label hidden shrink-0 sm:block">Sexta · 14 set 2026</span>
+        <span className="ops-label hidden shrink-0 sm:block">Express Entulho · operação assistida</span>
       </div>
     </header>
   );
@@ -185,10 +185,10 @@ export function RodapeProcedencia() {
   return (
     <footer className="mt-auto border-t border-[var(--ops-line)] px-4 py-6 sm:px-6 lg:px-8">
       <p className="ops-label text-[10.5px] leading-relaxed tracking-[0.06em]">
-        Express Operations · Protótipo visual — não é sistema em operação
+        Express Operations · Painel operacional em implantação · modo assistido
       </p>
       <p className="mt-1.5 text-[11.5px] leading-relaxed text-[var(--ops-ink-muted)]">
-        Projeto interno YO LAB &amp; CO. nº 000001
+        Projeto YO LAB &amp; CO. nº 000001
         <span aria-hidden className="mx-1.5 opacity-40">
           ·
         </span>
