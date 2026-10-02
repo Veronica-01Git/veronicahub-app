@@ -246,10 +246,14 @@ export function motivoDaGuarda(
     const cotada = regras.cidades.find((c) => c.id === naResposta[0])?.rotulo ?? naResposta[0];
     return `a conversa é sobre ${pedida} e o modelo cotou ${cotada}`;
   }
-  const daCidade = regras.precos.filter((p) => p.cidade === cidade);
+  const daCidade = regras.precoPadraoTodasCidades
+    ? regras.precos.filter((p) =>
+        regras.produtos.find((produto) => produto.id === p.produto)?.cidades.includes(cidade),
+      )
+    : regras.precos.filter((p) => p.cidade === cidade);
   if (daCidade.length === 0) {
     const rotulo = regras.cidades.find((c) => c.id === cidade)?.rotulo ?? cidade;
-    return `não há preço cadastrado para ${rotulo} e o modelo cotou`;
+    return `não há produto com preço cadastrado disponível para ${rotulo} e o modelo cotou`;
   }
 
   // Estreita só quando não há ambiguidade: uma resposta que compara a menor
@@ -270,7 +274,9 @@ export function motivoDaGuarda(
   if (proibido == null) return null;
 
   const rotulo = regras.cidades.find((c) => c.id === cidade)?.rotulo ?? cidade;
-  return `R$ ${proibido} não é preço cadastrado para essa combinação em ${rotulo}`;
+  return regras.precoPadraoTodasCidades
+    ? `R$ ${proibido} não é preço cadastrado para essa combinação; o preço padrão vale em ${rotulo}`
+    : `R$ ${proibido} não é preço cadastrado para essa combinação em ${rotulo}`;
 }
 
 /** A resposta pode sair? Ver `motivoDaGuarda` para o porquê de cada recusa. */
