@@ -274,7 +274,9 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
       const produto = produtoPorId(regras, p.produto)?.rotulo ?? p.produto;
       const material = regras.materiais.find((m) => m.id === p.material)?.rotulo ?? p.material;
       if (regras.precoPadraoTodasCidades) {
-        linhas.push(`- ${produto}, ${material}: R$ ${p.valorReais} em qualquer cidade onde o produto é atendido.`);
+        linhas.push(
+          `- ${produto}, ${material}: R$ ${p.valorReais} em qualquer cidade onde o produto é atendido.`,
+        );
       } else {
         const cidade = regras.cidades.find((c) => c.id === p.cidade)?.rotulo ?? p.cidade;
         linhas.push(`- ${produto}, ${material}, ${cidade}: R$ ${p.valorReais}`);
@@ -310,7 +312,7 @@ export function regrasParaPrompt(regras: RegrasNegocio): string {
   linhas.push(
     "",
     "COMO A OPERAÇÃO FUNCIONA (pode dizer, é firme):",
-    `- Entrega e troca chegam em até ${regras.prazoEntregaHoras} horas.`,
+    `- Prazo-base de entrega e troca em Itajaí: até ${regras.prazoEntregaHoras} horas. Fora da central, aplique a regra logística acima e confirme a janela com a equipe.`,
     `- Recolha da caçamba cheia: até ${regras.prazoRecolhaHoras} horas.`,
     regras.trocaEhNovaLocacao
       ? "- Troca é uma locação NOVA e é cobrada como tal. Cliente que diz que encheu" +

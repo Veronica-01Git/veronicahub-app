@@ -19,6 +19,8 @@ import {
 } from "./whatsapp-provedores";
 import {
   podeCotar,
+  buscarPreco,
+  produtoPorId,
   regrasParaPrompt,
   REGRAS_EXPRESS_ENTULHO,
   type CidadeId,
@@ -189,30 +191,11 @@ export function materiaisCitados(
 /**
  * Por que a resposta não pode sair — ou `null` quando pode.
  *
- * ESTA FUNÇÃO É O "O CÓDIGO DECIDE" DO ARQUIVO. Até 17/09 ela conferia só o
- * número, e isso deixava passar o erro mais caro que existe neste negócio:
- *
- *   Cliente: "caçamba menor, demolição, em Itapema"
- *   Modelo:  "Sai por R$ 220."
- *
- * R$ 220 está na lista de valores permitidos, então a conferência antiga
- * aprovava. Só que 220 é o preço de ITAJAÍ. Para Itapema não existe preço
- * cadastrado — a empresa nunca nos disse. A agente cotaria um valor que a
- * Express não pratica, e quem descobre isso é o cliente, depois, na fatura.
- *
- * Preço aqui é produto × material × cidade. A conferência agora é da
- * combinação inteira:
- *
- * 1. Valor sem cidade na conversa não sai. Não dá para supor Itajaí só
- *    porque é a sede — a maioria das cidades atendidas não é Itajaí. A cidade
- *    que vale é a da própria resposta e, na falta dela, a da fala mais recente
- *    que mencionou alguma. Ver `cidadesDaFalaMaisRecente`.
- * 2. Com a cidade definida, só passam preços DAQUELA cidade.
- * 3. Quando a resposta identifica um único produto e um único material, a
- *    conferência vira exata: é o preço daquela combinação ou não é nada.
- *
- * O custo de errar para mais é uma escalação — alguns minutos de uma pessoa.
- * O custo de errar para menos é uma cotação falsa em nome da empresa.
+ * O preço vigente é produto × material, igual nas cidades atendidas.
+ * Cidade continua obrigatória para conferir cobertura e disponibilidade do
+ * produto (tambor apenas em Itajaí). Produto e material vêm da fala mais
+ * recente que os identifica; o modelo não pode trocar o contexto para obter
+ * um valor permitido de outra combinação.
  */
 export function motivoDaGuarda(
   texto: string,
@@ -256,15 +239,31 @@ export function motivoDaGuarda(
     return `não há produto com preço cadastrado disponível para ${rotulo} e o modelo cotou`;
   }
 
-  // Estreita só quando não há ambiguidade: uma resposta que compara a menor
-  // com a grande cita dois produtos, e aí a conferência fica no nível da
-  // cidade em vez de recusar uma resposta legítima.
-  const produtos = produtosCitados(texto, regras);
-  const materiais = materiaisCitados(texto, regras);
+  const ultimos = <T>(extrair: (fala: string) => readonly T[]): readonly T[] => {
+    for (const fala of conversa.split("\n").reverse()) {
+      const achados = extrair(fala);
+      if (achados.length) return achados;
+    }
+    return [];
+  };
+  const produtosResposta = produtosCitados(texto, regras);
+  const materiaisResposta = materiaisCitados(texto, regras);
+  const produtosConversa = ultimos((fala) => produtosCitados(fala, regras));
+  const materiaisConversa = ultimos((fala) => materiaisCitados(fala, regras));
+  if (produtosConversa.length === 1 && produtosResposta.some((p) => p !== produtosConversa[0])) {
+    return "o modelo cotou um produto diferente do pedido";
+  }
+  if (materiaisConversa.length === 1 && materiaisResposta.some((m) => m !== materiaisConversa[0])) {
+    return "o modelo cotou um material diferente do informado";
+  }
+  const produtos = produtosConversa.length ? produtosConversa : produtosResposta;
+  const materiais = materiaisConversa.length ? materiaisConversa : materiaisResposta;
+  if (!produtos.length || materiais.length !== 1) {
+    return "o modelo cotou sem produto e material únicos confirmados";
+  }
+  if (produtos.length > 1) return "comparação de preços exige revisão humana";
   const candidatos = daCidade.filter(
-    (p) =>
-      (produtos.length === 1 ? p.produto === produtos[0] : true) &&
-      (materiais.length === 1 ? p.material === materiais[0] : true),
+    (p) => p.produto === produtos[0] && p.material === materiais[0],
   );
 
   const permitidos = candidatos.map((p) => p.valorReais);
@@ -389,7 +388,7 @@ function montarSystemPrompt(regras: RegrasNegocio, agora: Date): string {
     "",
     // O jeito abaixo não é invenção de estilo: é como o dono atende de fato,
     // transcrito da conversa dele com cliente em 19/09 (sábado), Itapema,
-    // gesso — a mesma de onde saíram os dois preços de Itapema. As frases
+    // gesso. A tabela vigente é confirmada separadamente nas regras. As frases
     // entre aspas são dele, na grafia dele. Copiar o que já funciona vale
     // mais do que inventar uma persona.
     "COMO O DONO ATENDE, e é assim que você atende:",
@@ -401,8 +400,7 @@ function montarSystemPrompt(regras: RegrasNegocio, agora: Date): string {
     "  não está recusando entulho — está checando se tem material caro MISTURADO",
     "  no meio, porque é isso que muda o preço. Faça a mesma pergunta antes de",
     "  cotar entulho, e só cote depois que o cliente disser que não tem.",
-    "- Ao cotar, ele dá o valor E o prazo na mesma frase: 'CACAMBA MENOR, 250",
-    "  reais e fica 3 dias na sua obra'.",
+    "- Ao cotar, dê o valor vigente da matriz E os dias incluídos na mesma frase.",
     "- Ele oferece as opções e devolve a escolha ao cliente: 'Qual tamanho de",
     "  caçamba ideal para sua obra?', 'Estou aqui para te ajudar a decidir qual",
     "  caçamba escolher!'.",
@@ -422,12 +420,12 @@ function montarSystemPrompt(regras: RegrasNegocio, agora: Date): string {
     "ação: 'vou passar para a equipe abrir a ordem de serviço, e o motorista te",
     "avisa quando estiver a caminho'. Concreto do mesmo jeito, e verdadeiro.",
     "",
-    "REGRA NÚMERO UM: preço aqui é produto + MATERIAL + CIDADE. Faltando",
-    "qualquer um dos três, você faz uma pergunta em vez de dar um valor.",
+    "REGRA NÚMERO UM: preço é produto + MATERIAL, padrão nas cidades atendidas.",
+    "Confirme também a cidade para cobertura e logística. Sem produto, material",
+    "ou cidade, faça uma pergunta em vez de cotar.",
     "- Sem o material: 'O que você vai descartar? Demolição, gesso, outro?'",
-    "- Sem a cidade: 'Em qual cidade é a obra?' — o preço muda de cidade para",
-    "  cidade, e a maioria das cidades atendidas não é Itajaí. Nunca suponha",
-    "  Itajaí porque é a sede.",
+    "- Sem a cidade: 'Em qual cidade é a obra?' — confirme cobertura e janela.",
+    "  O preço não muda por cidade. Nunca suponha Itajaí porque é a sede.",
     "Pode perguntar as duas coisas de uma vez; é uma frase só.",
     "",
     "OPERAÇÕES QUE A EMPRESA FAZ:",
@@ -477,6 +475,97 @@ export function decidirRespostaOffline(params: {
   };
 }
 
+/** Regras confirmadas que não precisam de modelo nem de agenda externa. */
+export function decidirRegraConfirmada(
+  texto: string,
+  regras = REGRAS_EXPRESS_ENTULHO,
+): Decisao | null {
+  const alvo = normalizar(texto);
+  if (/vaga|vagas|quantos.*pedidos|quantas.*(restam|disponiveis)/.test(alvo)) {
+    return {
+      texto:
+        "A ocupação atual da agenda precisa ser confirmada com a equipe. Não consigo informar vagas restantes sem consultar a agenda real.",
+      escalar: true,
+      motivo: "agenda real não integrada",
+    };
+  }
+  if (/segunda/.test(alvo) && /domingo|fim de semana|sabado/.test(alvo)) {
+    return {
+      texto: `Sim, recebemos pedidos no fim de semana para segunda-feira, com limite operacional de até ${regras.agenda.limitePedidosSegundaFimDeSemana} pedidos. A equipe confirma a disponibilidade e a janela de entrega antes de fechar o agendamento.`,
+      escalar: true,
+      motivo: "confirmar agenda com a equipe",
+    };
+  }
+  if (
+    regras.precoPadraoTodasCidades &&
+    /cobram mais|mais caro|preco.*(cidade|mesmo)|valor.*(cidade|mesmo)/.test(alvo)
+  ) {
+    return {
+      texto:
+        "O preço do mesmo produto e material é igual em todas as cidades atendidas. A distância da central em Itajaí altera somente a logística: conforme a rota, pode exigir até 1 hora ou 1 dia adicional, sem acréscimo de preço.",
+      escalar: false,
+    };
+  }
+  if (/distante|distancia|longe/.test(alvo) && /entrega|prazo|cidade/.test(alvo)) {
+    return {
+      texto:
+        "Conforme a distância da central em Itajaí e a rota, a entrega pode exigir até 1 hora ou 1 dia adicional. O preço não muda; informe a cidade e o endereço para a equipe confirmar a janela.",
+      escalar: true,
+      motivo: "janela logística requer confirmação",
+    };
+  }
+  const produtos = produtosCitados(texto, regras);
+  const materiais = materiaisCitados(texto, regras);
+  const cidades = cidadesCitadas(texto, regras);
+  const cotacao =
+    /quanto|custa|preco|valor|orcamento/.test(alvo) ||
+    (produtos.length && materiais.length && cidades.length);
+  if (!cotacao) return null;
+  if (!materiais.length)
+    return {
+      texto:
+        "Qual material você vai descartar: demolição, gesso ou outro? Informe também o tamanho da caçamba e a cidade da obra.",
+      escalar: false,
+    };
+  if (!produtos.length)
+    return {
+      texto: "Você precisa de caçamba menor, grande ou tambor? Em qual cidade fica a obra?",
+      escalar: false,
+    };
+  if (!cidades.length)
+    return {
+      texto:
+        "Em qual cidade fica a obra? Preciso conferir se o produto é atendido e a janela logística.",
+      escalar: false,
+    };
+  if (produtos.length !== 1 || materiais.length !== 1 || cidades.length !== 1)
+    return {
+      texto: ESCALONAMENTO,
+      escalar: true,
+      motivo: "cotação com produto, material ou cidade ambíguos",
+    };
+  const valor = buscarPreco(regras, produtos[0], materiais[0], cidades[0]);
+  if (valor == null)
+    return {
+      texto: ESCALONAMENTO,
+      escalar: true,
+      motivo: "combinação sem preço confirmado ou produto não atendido",
+    };
+  // Entulho genérico pode conter gesso/MDF; o dono confirma a mistura primeiro.
+  if (materiais[0] === "entulho")
+    return {
+      texto:
+        "Esse entulho tem gesso ou MDF misturado? Preciso confirmar o material antes de cotar.",
+      escalar: false,
+    };
+  const produto = produtoPorId(regras, produtos[0]);
+  return {
+    texto: `${produto?.rotulo} para ${materiais[0] === "demolicao" ? "demolição" : materiais[0]}: R$ ${valor}, com ${produto?.diasIncluidos} dias na obra. O preço é padrão entre cidades atendidas; a equipe confirma a disponibilidade e a janela de entrega.`,
+    escalar: true,
+    motivo: "confirmar disponibilidade e janela com a equipe",
+  };
+}
+
 export async function decidirResposta(params: {
   readonly texto: string;
   readonly historico?: readonly Turno[];
@@ -500,6 +589,16 @@ export async function decidirResposta(params: {
   // Alçada comercial não passa pelo modelo: é decisão de gente.
   if (precisaDeHumano(params.texto)) {
     return { texto: ESCALONAMENTO, escalar: true, motivo: "assunto fora da alçada do agente" };
+  }
+
+  // Histórico continua passando pelo modelo para não confundir assunto anterior
+  // com um pedido novo. Mensagens completas recebem a regra confirmada direto.
+  if (
+    !params.historico?.length ||
+    /vaga|segunda|distante|distancia|longe|cobram mais|mais caro/.test(normalizar(params.texto))
+  ) {
+    const confirmada = decidirRegraConfirmada(params.texto, regras);
+    if (confirmada) return confirmada;
   }
 
   const system = montarSystemPrompt(regras, params.agora ?? new Date());

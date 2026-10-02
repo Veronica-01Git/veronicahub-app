@@ -734,7 +734,8 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m2",
           autor: "ia",
-          texto: "Bom dia! Os valores seguem a tabela padrão. Qualquer desconto precisa da aprovação de um responsável.",
+          texto:
+            "Bom dia! Os valores seguem a tabela padrão. Qualquer desconto precisa da aprovação de um responsável.",
           hora: "10:29",
         },
         {
@@ -746,8 +747,7 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m4",
           autor: "ia",
-          texto:
-            "20% está acima do que posso aprovar sozinha. Encaminhei para um responsável avaliar agora.",
+          texto: "Não posso aprovar descontos. Encaminhei para um responsável avaliar agora.",
           hora: "10:33",
         },
       ],
@@ -760,9 +760,9 @@ export const expressOpsMock: ExpressOpsData = {
         ],
         cacambaInstalada: { id: "CB-014", decorridoDias: 4, contratadoDias: 7 },
         escalonamento: {
-          motivo: "Desconto de 20% — dobro da alçada do agente",
+          motivo: "Desconto de 20% — agente sem alçada para descontos",
           foraDaAlcada: [
-            "Descontos acima de 10%",
+            "Qualquer desconto",
             "Condição comercial recorrente",
             "Prazo de pagamento faturado",
           ],
@@ -829,7 +829,8 @@ export const expressOpsMock: ExpressOpsData = {
         {
           id: "m2",
           autor: "ia",
-          texto: "Atendemos sim! O valor é o mesmo da tabela padrão; para cotar preciso confirmar qual material será descartado.",
+          texto:
+            "Atendemos sim! O valor é o mesmo da tabela padrão; para cotar preciso confirmar qual material será descartado.",
           hora: "09:31",
         },
         { id: "m3", autor: "cliente", texto: "Quero para hoje à tarde", hora: "09:36" },

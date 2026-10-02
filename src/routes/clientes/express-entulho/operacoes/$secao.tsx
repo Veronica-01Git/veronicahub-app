@@ -141,7 +141,8 @@ const SECOES: Record<string, SecaoInfo> = {
     ],
   },
   "equipe-e-permissoes": {
-    resumo: "Acesso do cliente já passa pelo portal privado; papéis internos ainda serão cadastrados.",
+    resumo:
+      "Acesso do cliente já passa pelo portal privado; papéis internos ainda serão cadastrados.",
     confirmados: [
       "O workspace da Express é restrito por credencial do cliente.",
       "Ações sensíveis continuam exigindo humano.",
@@ -165,6 +166,123 @@ function Linha({ texto, ok }: { texto: string; ok: boolean }) {
       <span>{texto}</span>
     </li>
   );
+}
+
+function DetalheDaSecao({ secao }: { secao: string }) {
+  if (secao === "agenda" || secao === "planejamento-amanha") {
+    return (
+      <OpsCard as="section">
+        <SectionTitle
+          titulo="Semana operacional"
+          apoio="Horário confirmado; reservas aguardam integração"
+        />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+          {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"].map((dia) => (
+            <div key={dia} className="rounded-lg border border-[var(--ops-line)] p-3">
+              <p className="text-[13px] font-semibold">{dia}</p>
+              <p className="mt-1 text-[12px] text-[var(--ops-ink-muted)]">
+                {dia === "Sábado" ? "Até 12h" : "Dia de operação"}
+              </p>
+            </div>
+          ))}
+        </div>
+        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div>
+            <dt className="ops-label">Limite informado para segunda</dt>
+            <dd className="mt-1 text-lg font-semibold">
+              Até {R.agenda.limitePedidosSegundaFimDeSemana} pedidos do fim de semana
+            </dd>
+          </div>
+          <div>
+            <dt className="ops-label">Capacidade utilizada / vagas restantes</dt>
+            <dd className="mt-1 text-[13px] text-[var(--ops-ink-muted)]">
+              Aguardando integração com agenda/ERP
+            </dd>
+          </div>
+        </dl>
+      </OpsCard>
+    );
+  }
+  if (secao === "veiculos")
+    return (
+      <OpsCard as="section">
+        <SectionTitle
+          titulo="7 veículos no total"
+          apoio="Posições de cadastro; não representam placas ou modelos já identificados"
+        />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 7 }, (_, i) => (
+            <div key={i} className="rounded-lg border border-[var(--ops-line)] p-4">
+              <p className="text-[14px] font-semibold">Veículo {String(i + 1).padStart(2, "0")}</p>
+              <p className="mt-2 text-[12px] leading-relaxed text-[var(--ops-ink-muted)]">
+                Modelo, placa, motorista e disponibilidade aguardando cadastro.
+              </p>
+            </div>
+          ))}
+        </div>
+      </OpsCard>
+    );
+  if (secao === "mapa-e-rotas")
+    return (
+      <OpsCard as="section">
+        <SectionTitle
+          titulo="Área atendida"
+          apoio="Central em Itajaí; localização ao vivo aguarda GPS"
+        />
+        <div className="flex flex-wrap gap-2">
+          {R.cidades.map((cidade) => (
+            <span
+              key={cidade.id}
+              className="rounded-full bg-[var(--ops-surface)] px-3 py-2 text-[13px]"
+            >
+              {cidade.rotulo}
+            </span>
+          ))}
+        </div>
+        <p className="mt-4 text-[13px] text-[var(--ops-ink-muted)]">
+          {R.ajusteLogisticoForaItajai.criterio}
+        </p>
+      </OpsCard>
+    );
+  if (secao === "financeiro")
+    return (
+      <OpsCard as="section">
+        <SectionTitle
+          titulo="Formas de pagamento confirmadas"
+          apoio="Consulta comercial; processamento e conferência humanos"
+        />
+        <ul className="grid gap-2">
+          {R.formasPagamento.map((forma) => (
+            <Linha key={forma} texto={forma} ok />
+          ))}
+        </ul>
+      </OpsCard>
+    );
+  const campos: Record<string, readonly string[]> = {
+    clientes: ["Nome / contato", "Obra e endereço", "Histórico de pedidos"],
+    motoristas: ["Nome", "Veículo vinculado", "Escala e documentação"],
+    documentos: ["Tipo e número oficial", "Pedido vinculado", "Arquivo e conferência"],
+    relatorios: ["Pedidos reais", "Entregas e retiradas", "Tempo de resposta"],
+    "equipe-e-permissoes": ["Atendimento", "Operação", "Gestão"],
+  };
+  return campos[secao] ? (
+    <OpsCard as="section">
+      <SectionTitle
+        titulo={secao === "equipe-e-permissoes" ? "Papéis planejados" : "Estrutura de dados"}
+        apoio="Nenhum cadastro ou indicador real disponível nesta seção"
+      />
+      <dl className="grid gap-3 sm:grid-cols-3">
+        {campos[secao].map((campo) => (
+          <div key={campo} className="rounded-lg bg-[var(--ops-surface)] p-3">
+            <dt className="text-[13px] font-medium">{campo}</dt>
+            <dd className="mt-1 text-[12px] text-[var(--ops-ink-muted)]">
+              Aguardando cadastro ou integração
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </OpsCard>
+  ) : null;
 }
 
 function SecaoOperacional() {
@@ -200,17 +318,29 @@ function SecaoOperacional() {
           </div>
         </OpsCard>
 
+        <DetalheDaSecao secao={secao} />
+
         <OpsCard as="section">
-          <SectionTitle titulo="Confirmado" apoio="Informações que podem orientar a operação agora" />
+          <SectionTitle
+            titulo="Confirmado"
+            apoio="Informações que podem orientar a operação agora"
+          />
           <ul className="grid gap-2">
-            {info.confirmados.map((texto) => <Linha key={texto} texto={texto} ok />)}
+            {info.confirmados.map((texto) => (
+              <Linha key={texto} texto={texto} ok />
+            ))}
           </ul>
         </OpsCard>
 
         <OpsCard as="section">
-          <SectionTitle titulo="Falta conectar ou cadastrar" apoio="Nenhum valor é preenchido por suposição" />
+          <SectionTitle
+            titulo="Falta conectar ou cadastrar"
+            apoio="Nenhum valor é preenchido por suposição"
+          />
           <ul className="grid gap-2">
-            {info.pendencias.map((texto) => <Linha key={texto} texto={texto} ok={false} />)}
+            {info.pendencias.map((texto) => (
+              <Linha key={texto} texto={texto} ok={false} />
+            ))}
           </ul>
         </OpsCard>
       </div>
@@ -223,7 +353,9 @@ function SecaoOperacional() {
             ) : (
               <Truck aria-hidden className="h-5 w-5 text-[var(--ops-accent)]" />
             )}
-            <h2 className="text-[14px] font-semibold text-[var(--ops-ink)]">Estado da implantação</h2>
+            <h2 className="text-[14px] font-semibold text-[var(--ops-ink)]">
+              Estado da implantação
+            </h2>
           </div>
           <p className="mt-3 text-[12.5px] leading-relaxed text-[var(--ops-ink-muted)]">
             A tela está utilizável para consulta das regras confirmadas. Ações que exigem fonte real

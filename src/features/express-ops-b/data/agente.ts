@@ -64,20 +64,22 @@ async function temAcesso(): Promise<boolean> {
 const SEM_ACESSO = "Sua sessão expirou. Entre de novo pelo painel com o selo da Express.";
 
 export const conversarComAgente = createServerFn({ method: "POST" })
-  .validator(validador(500, 12))
-  .handler(async ({ data }): Promise<RespostaAgente> => {
-    if (!(await temAcesso())) return { texto: SEM_ACESSO, escalar: false };
-    if (!data.mensagem) {
-      return { texto: "Manda alguma coisa que eu respondo.", escalar: false };
-    }
-    const decisao = await decidirResposta({
-      texto: data.mensagem,
-      historico: data.historico,
-      primeiraMensagem: data.historico.length === 0,
-      regras: REGRAS_EXPRESS_ENTULHO,
-    });
-    return { texto: decisao.texto, escalar: decisao.escalar, motivo: decisao.motivo };
-  });
+  .validator(validador(1200, 40))
+  .handler(
+    async ({ data }): Promise<RespostaAgente | { erro: string; texto: ""; escalar: false }> => {
+      if (!(await temAcesso())) return { texto: "", erro: SEM_ACESSO, escalar: false };
+      if (!data.mensagem) {
+        return { texto: "Manda alguma coisa que eu respondo.", escalar: false };
+      }
+      const decisao = await decidirResposta({
+        texto: data.mensagem,
+        historico: data.historico,
+        primeiraMensagem: data.historico.length === 0,
+        regras: REGRAS_EXPRESS_ENTULHO,
+      });
+      return { texto: decisao.texto, escalar: decisao.escalar, motivo: decisao.motivo };
+    },
+  );
 
 /** Sala de teste: a conversa inteira do dono cabe no histórico. */
 export const testarAgente = createServerFn({ method: "POST" })

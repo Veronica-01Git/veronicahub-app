@@ -13,11 +13,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { conversarComAgente } from "@/features/express-ops-b/data/agente";
 import { OpsCard, SectionTitle, EstadoBadge } from "@/features/express-ops-b/components/primitives";
-import {
-  REGRAS_EXPRESS_ENTULHO as R,
-  buscarPreco,
-  type ProdutoId,
-} from "@/lib/whatsapp-rules";
+import { REGRAS_EXPRESS_ENTULHO as R, buscarPreco, type ProdutoId } from "@/lib/whatsapp-rules";
 
 export const Route = createFileRoute("/clientes/express-entulho/operacoes/regras-do-agente")({
   component: RegrasDoAgente,
@@ -46,7 +42,9 @@ function MatrizPrecos() {
   return (
     <div className="min-w-0 overflow-x-auto">
       <table className="w-full border-collapse text-[13px]">
-        <caption className="sr-only">Preços padrão por produto e material nas cidades atendidas</caption>
+        <caption className="sr-only">
+          Preços padrão por produto e material nas cidades atendidas
+        </caption>
         <thead>
           <tr>
             <th
@@ -132,6 +130,10 @@ function RegrasDoAgente() {
         content: f.texto,
       }));
       const r = await conversarComAgente({ data: { mensagem: limpo, historico } });
+      if ("erro" in r) {
+        setFalas([...comCliente, { de: "agente", texto: r.erro }]);
+        return;
+      }
       setFalas([
         ...comCliente,
         { de: "agente", texto: r.texto, escalou: r.escalar, motivo: r.motivo },
@@ -161,9 +163,9 @@ function RegrasDoAgente() {
           />
           <MatrizPrecos />
           <p className="mt-4 border-t border-[var(--ops-line)] pt-3 text-[12.5px] leading-relaxed text-[var(--ops-ink-muted)]">
-            Onde está "não informado", o agente não inventa nem estima. Os valores confirmados
-            são padrão em todas as cidades onde o produto é atendido; distância da central de
-            Itajaí altera somente prazo ou janela de entrega.
+            Onde está "não informado", o agente não inventa nem estima. Os valores confirmados são
+            padrão em todas as cidades onde o produto é atendido; distância da central de Itajaí
+            altera somente prazo ou janela de entrega.
           </p>
         </OpsCard>
 

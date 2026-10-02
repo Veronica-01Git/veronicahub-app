@@ -1,3 +1,5 @@
+> **Atualização vigente — 02/10/2026 (PR #173):** atendimento assistido manual no painel, sem conexão com o WhatsApp atual. Produto + material definem o preço padrão nas cidades atendidas; cidade define cobertura e janela logística. A matriz vigente está em `src/lib/whatsapp-rules.ts` (menor/demolição R$ 220; grande/demolição R$ 450; tambor/demolição ou entulho R$ 180, só Itajaí; menor/gesso R$ 280). Grande/gesso e demais combinações sem confirmação escalam. Referências abaixo a preços diferentes por cidade, R$ 250/R$ 470 em Itapema ou necessidade de cadastrar o número para usar o painel são registros anteriores, substituídos por esta atualização. Agenda: segunda a sábado, sábado até 12h; pedidos no fim de semana para segunda, limite de 40, sem ocupação integrada. Frota total: 7; cadastro individual pendente.
+
 # Agente de WhatsApp — Express Entulho
 
 Como ver o agente funcionando, do jeito mais seguro para o mais real.

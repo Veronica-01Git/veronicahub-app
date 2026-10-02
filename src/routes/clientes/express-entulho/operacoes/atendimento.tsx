@@ -54,15 +54,25 @@ function CentralAtendimento() {
   return (
     <div className="grid gap-4">
       <AtendimentoAssistido />
+      <p className="text-[12px] text-[var(--ops-ink-muted)]">
+        Conversas de exemplo · fictícias. Não são lidas do WhatsApp; rascunhos assistidos não são
+        gravados nesta lista.
+      </p>
       <div className="grid gap-4 md:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_320px]">
         <ListaConversas
           conversas={conversas}
-          atualId={atual.id}
+          atualId={atual?.id ?? ""}
           onSelecionar={setSelecionadaId}
           className="md:row-span-2 xl:row-span-1"
         />
-        <Thread conversa={atual} />
-        <ContextoCliente conversa={atual} />
+        {atual ? (
+          <>
+            <Thread conversa={atual} />
+            <ContextoCliente conversa={atual} />
+          </>
+        ) : (
+          <OpsCard>Nenhuma conversa sincronizada. Use o atendimento assistido acima.</OpsCard>
+        )}
       </div>
     </div>
   );

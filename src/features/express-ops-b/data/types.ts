@@ -103,7 +103,12 @@ export type ProgressoDia = {
 /* ------------------------------------------------------- Frota e caçambas */
 
 export type CacambaEstado =
-  "disponivel" | "reservada" | "em-transito" | "instalada" | "aguardando-retirada" | "descarregada";
+  | "disponivel"
+  | "reservada"
+  | "em-transito"
+  | "instalada"
+  | "aguardando-retirada"
+  | "descarregada";
 
 export type Cacamba = {
   readonly id: string;

@@ -42,8 +42,8 @@ test("Balneário Camboriú não vira Camboriú na leitura operacional", () => {
   assert.equal(leitura.intencao, "orcamento");
   assert.equal(dado(leitura, "cidade"), "Balneário Camboriú");
   assert.equal(dado(leitura, "produto"), "Caçamba menor");
-  assert.equal(leitura.exigeHumano, true);
-  assert.match(leitura.motivoHumano, /preço confirmado/i);
+  assert.equal(leitura.exigeHumano, false);
+  assert.equal(leitura.motivoHumano, null);
 });
 
 test("preço conhecido fica organizado sem virar autorização de envio", () => {
