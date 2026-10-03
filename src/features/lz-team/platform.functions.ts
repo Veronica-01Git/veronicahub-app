@@ -31,6 +31,9 @@ async function membership() {
   if (staff.includes(user.email.toLowerCase())) {
     return { role: "coach" as const, userId: user.id, name: "Equipe LZ" };
   }
+  // Safe rollout: while the staff allowlist is unset, the platform remains
+  // closed without querying tables that may not have been migrated yet.
+  if (!staff.length) return { role: "visitor" as const, userId: user.id, name: "" };
   const [student] = await getDb()
     .select({ fullName: fitnessStudents.fullName })
     .from(fitnessStudents)
