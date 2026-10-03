@@ -2144,3 +2144,151 @@
     transition: none;
   }
 }
+
+/* Operação oficial: presença pública e supervisão privada do agente. */
+.vh-members .vm-agent-presence {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  padding: 28px 32px;
+  margin: 22px 0 34px;
+  border: 1px solid #d9deef;
+  border-radius: 24px;
+  background: linear-gradient(115deg, #fff, #f2f4ff);
+  box-shadow: 0 10px 30px #6672a008;
+}
+.vh-members .vm-agent-symbol {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 17px;
+  background: #e8eaff;
+  color: #5b60b0;
+}
+.vh-members .vm-agent-intro {
+  flex: 1;
+}
+.vh-members .vm-agent-intro h2 {
+  font-size: 22px;
+  letter-spacing: -0.04em;
+  margin: 7px 0 8px;
+  color: #1b2440;
+}
+.vh-members .vm-agent-intro p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #68718c;
+  margin: 0;
+}
+.vh-members .vm-agent-latest {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  margin-top: 12px;
+  color: #535ba2;
+}
+.vh-members .vm-agent-presence-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.vh-members .vm-agent-status {
+  padding: 6px 10px;
+  background: #e6edf7;
+  color: #3a557d;
+  border-radius: 30px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.vh-members .vm-agent-presence-actions a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #48547a;
+}
+.vh-members .vm-agent-control {
+  grid-column: 1/-1;
+  background: #ffffff09;
+  border: 1px solid #ffffff20;
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 24px;
+  color: inherit;
+}
+.vh-members .vm-agent-control h2 {
+  font-size: 25px;
+  margin: 10px 0;
+  letter-spacing: -0.03em;
+}
+.vh-members .vm-agent-control p {
+  font-size: 12px;
+  line-height: 1.8;
+  opacity: 0.8;
+}
+.vh-members .vm-agent-skills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 24px 0;
+}
+.vh-members .vm-agent-skills strong {
+  font-size: 13px;
+}
+.vh-members .vm-agent-counts {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  margin: 18px 0;
+}
+.vh-members .vm-agent-buttons {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}
+.vh-members .vm-agent-control summary {
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 32px;
+}
+.vh-members .vm-agent-control li {
+  font-size: 12px;
+  margin: 9px 0;
+}
+.vh-members .vm-post {
+  scroll-margin-top: 100px;
+}
+@media (max-width: 720px) {
+  .vh-members .vm-agent-presence {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 22px;
+    gap: 14px;
+  }
+  .vh-members .vm-agent-symbol {
+    width: 42px;
+    height: 42px;
+  }
+  .vh-members .vm-agent-intro {
+    min-width: 180px;
+  }
+  .vh-members .vm-agent-intro h2 {
+    font-size: 19px;
+  }
+  .vh-members .vm-agent-presence-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .vh-members .vm-agent-skills {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

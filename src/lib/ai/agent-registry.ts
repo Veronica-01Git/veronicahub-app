@@ -55,6 +55,24 @@ export type ToolDefinition = {
  */
 export const TOOL_REGISTRY: readonly ToolDefinition[] = [
   {
+    key: "members.post.publish",
+    description: "Publica exercício editorial oficial",
+    sideEffect: "write",
+    implementedBy: "src/members/agent-runtime.server.ts",
+  },
+  {
+    key: "members.comment.reply",
+    description: "Responde comentário aprovado como IA oficial",
+    sideEffect: "write",
+    implementedBy: "src/members/agent-runtime.server.ts",
+  },
+  {
+    key: "members.activity.read",
+    description: "Lê atividade real para supervisão",
+    sideEffect: "read",
+    implementedBy: "src/members/agent-runtime.server.ts",
+  },
+  {
     key: "wire.sources.read",
     description: "Lê a rede de fontes editoriais e monta a pauta do ciclo",
     sideEffect: "read",
@@ -336,7 +354,44 @@ const V_IVA: RegisteredAgent = {
   ],
 };
 
+export const MEMBERS_COMMUNITY: RegisteredAgent = {
+  slug: "members-community",
+  workforceId: "members",
+  version: "1.0.0",
+  status: "INTERNAL",
+  statusBasis:
+    "Runtime editorial e respostas oficiais na comunidade, com agendamento, histórico e supervisão em /admin/membros. Moderação humana permanece necessária.",
+  autonomyLevel: "LEVEL_3",
+  tenantScope: "internal",
+  allowedTenants: [HOUSE_TENANT],
+  skills: ["cap:members-editorial", "cap:members-community", "cap:members-insights"],
+  tools: [
+    { key: "members.post.publish", requiresApproval: false },
+    { key: "members.comment.reply", requiresApproval: false },
+    { key: "members.activity.read", requiresApproval: false },
+  ],
+  maxCostPerTaskMicros: 10_000,
+  costCurrency: "USD",
+  maxLatencyMs: 30_000,
+  ceilingsBasis:
+    "Definido em 03/10/2026 sob delegação do dono: US$ 0,01 por tarefa e 30 s. Groq gpt-oss-20b: US$ 0,075/M input e 0,30/M output (console.groq.com/docs/models). Entrada limitada a 12.000 caracteres e saída a 2.400 tokens: reserva conservadora de 4.320 micros (até 48.000 bytes de entrada); máximo 18 chamadas/dia. Custo observado é estimativa por tokens, não cobrança real.",
+  approval: {
+    requiresApproval: false,
+    handoffTriggers: ["conteúdo sensível", "saída inválida", "falha de provedor"],
+  },
+  businessRules: [
+    {
+      id: "official-identity",
+      description:
+        "IA identificada, sem depoimentos ou métricas inventadas; apenas comentários aprovados",
+      enforcedBy: "src/members/agent-policy.ts",
+      forbiddenOutputPatterns: ["lucro garantido", "sou humano"],
+    },
+  ],
+};
+
 export const AGENT_REGISTRY: readonly RegisteredAgent[] = [
+  MEMBERS_COMMUNITY,
   WIRE_REDACAO,
   WHATSAPP_ATENDIMENTO,
   V_IVA,

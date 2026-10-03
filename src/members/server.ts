@@ -5,7 +5,7 @@ import { getDb } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 import { requireAdmin } from "@/lib/admin-server";
 import { users } from "@/lib/schema";
-import { memberPosts, memberComments } from "./schema";
+import { memberPosts, memberComments, memberAgentReplies, memberAgentTasks } from "./schema";
 import { postInput, commentInput } from "./validation";
 async function member() {
   const id = await getSessionUserId();
@@ -21,16 +21,38 @@ async function admin() {
 }
 export const memberFeed = createServerFn({ method: "GET" }).handler(async () => {
   const id = await getSessionUserId();
-  if (!id) return { signedIn: false as const, admin: false, posts: [] };
-  await member();
-  const a = await requireAdmin();
-  const posts = await getDb()
-    .select()
+  if (id) await member();
+  const a = id ? await requireAdmin() : null;
+  const rows = await getDb()
+    .select({ post: memberPosts, officialTask: memberAgentTasks.executionId })
     .from(memberPosts)
-    .where(eq(memberPosts.status, "published"))
+    .leftJoin(
+      memberAgentTasks,
+      and(
+        eq(memberAgentTasks.postId, memberPosts.id),
+        eq(memberAgentTasks.kind, "editorial"),
+        eq(memberAgentTasks.status, "SUCCEEDED"),
+      ),
+    )
+    .where(
+      id
+        ? eq(memberPosts.status, "published")
+        : and(
+            eq(memberPosts.status, "published"),
+            eq(memberAgentTasks.kind, "editorial"),
+            eq(memberAgentTasks.status, "SUCCEEDED"),
+          ),
+    )
     .orderBy(desc(memberPosts.publishedAt))
-    .limit(100);
-  return { signedIn: true as const, admin: !!a, posts: posts.map(({ authorId: _, ...p }) => p) };
+    .limit(id ? 100 : 10);
+  return {
+    signedIn: !!id,
+    admin: !!a,
+    posts: rows.map(({ post: { authorId: _, ...p }, officialTask }) => ({
+      ...p,
+      agentGenerated: !!officialTask,
+    })),
+  };
 });
 export const memberAdminFeed = createServerFn({ method: "GET" }).handler(async () => {
   await admin();
@@ -85,17 +107,45 @@ export const readMemberComments = createServerFn({ method: "GET" })
       .where(and(eq(memberPosts.id, data), eq(memberPosts.status, "published")))
       .limit(1);
     if (!p) throw new Error("Publicação indisponível.");
-    return db
-      .select({
-        id: memberComments.id,
-        name: memberComments.name,
-        body: memberComments.body,
-        createdAt: memberComments.createdAt,
-      })
-      .from(memberComments)
-      .where(and(eq(memberComments.postId, data), eq(memberComments.status, "approved")))
-      .orderBy(desc(memberComments.createdAt))
-      .limit(100);
+    const [comments, replies] = await Promise.all([
+      db
+        .select({
+          id: memberComments.id,
+          name: memberComments.name,
+          body: memberComments.body,
+          createdAt: memberComments.createdAt,
+        })
+        .from(memberComments)
+        .where(and(eq(memberComments.postId, data), eq(memberComments.status, "approved")))
+        .orderBy(desc(memberComments.createdAt))
+        .limit(100),
+      db
+        .select({
+          id: memberAgentReplies.id,
+          body: memberAgentReplies.body,
+          createdAt: memberAgentReplies.createdAt,
+          commentId: memberAgentReplies.commentId,
+        })
+        .from(memberAgentReplies)
+        .innerJoin(memberComments, eq(memberComments.id, memberAgentReplies.commentId))
+        .where(and(eq(memberAgentReplies.postId, data), eq(memberComments.status, "approved")))
+        .orderBy(desc(memberAgentReplies.createdAt))
+        .limit(100),
+    ]);
+    const result: Array<{ id: string; name: string; body: string; createdAt: Date; role: string }> =
+      [];
+    for (const c of comments.reverse()) {
+      result.push({ ...c, role: "Membro" });
+      for (const r of replies.filter((r) => r.commentId === c.id))
+        result.push({
+          id: r.id,
+          name: "Agente Members",
+          body: r.body,
+          createdAt: r.createdAt,
+          role: "IA oficial · Veronica Hub",
+        });
+    }
+    return result;
   });
 export const addMemberComment = createServerFn({ method: "POST" })
   .validator((v: unknown) => commentInput.parse(v))

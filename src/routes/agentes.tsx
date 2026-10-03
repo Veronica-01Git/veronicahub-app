@@ -1,3 +1,6 @@
+import { WORKFORCE } from "../lib/ai-workforce";
+import { routesForAgent } from "../lib/agent-portfolio";
+import { AgentPortfolio } from "../components/agents/AgentPortfolio";
 /**
  * /agentes — Agentes de IA guiados pela Veronica, desenvolvidos pela
  * Yo Lab & co.
@@ -30,6 +33,7 @@ import {
   ShieldCheck,
   Sparkles,
   ArrowRight,
+  ArrowUpRight,
   Check,
   AlertTriangle,
   Clock,
@@ -382,14 +386,14 @@ function Agentes() {
             <br />E que não inventam.
           </>
         }
-        subtitle="Escolha o agente que resolve o seu problema, alimente ele falando — sem formulário — e veja a Veronica testar ele como se fosse seu cliente. Só depois disso você paga."
+        subtitle="Conheça a força de trabalho da Veronica, suas habilidades e os ambientes onde cada IA atua. Abra as rotas, confira as entregas e escolha o agente que resolve seu próximo desafio."
       >
         <div className="mt-10 flex flex-wrap gap-3">
           <a
-            href="#whatsapp"
+            href="#portfolio-agentes"
             className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-neon-green px-5 text-sm font-medium text-background"
           >
-            Testar 6 horas grátis <ArrowRight className="h-4 w-4" />
+            Conhecer a força de trabalho <ArrowRight className="h-4 w-4" />
           </a>
           <a
             href="#analytics"
@@ -411,11 +415,14 @@ function Agentes() {
         )}
       </PageHero>
 
+      <AgentPortfolio />
+
       {/* ------------------------------------------------ [01] vitrine */}
       <Secao id="vitrine" numero="01" titulo="Os agentes">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {AGENTES.map((a) => {
             const estado = estadoDe(a.id);
+            const workforce = WORKFORCE.find((w) => w.comercialId === a.id);
             return (
               <article
                 key={a.id}
@@ -449,6 +456,29 @@ function Agentes() {
                   ))}
                 </div>
 
+                {workforce && (
+                  <div className="mt-5 rounded-xl border border-border/40 bg-muted/20 p-4">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Portfólio na Hub
+                    </span>
+                    {routesForAgent(workforce).map((r) => (
+                      <a
+                        key={r.href}
+                        href={r.href}
+                        className="mt-3 flex items-center justify-between text-sm"
+                      >
+                        {r.label}
+                        <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    ))}
+                    <a
+                      href={`#portfolio-${workforce.id}`}
+                      className="mt-3 block text-xs text-muted-foreground"
+                    >
+                      Ver habilidades e escopo atual
+                    </a>
+                  </div>
+                )}
                 <div className="mt-6 flex items-center justify-between gap-3">
                   {estado?.liberado ? (
                     <span className="inline-flex items-center gap-1.5 font-mono-tech text-xs text-neon-green">

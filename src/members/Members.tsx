@@ -1,3 +1,4 @@
+import { MembersAgentPresence } from "./AgentPresence";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowUpRight,
@@ -91,6 +92,7 @@ const demoPosts: CommunityPost[] = [
     mediaUrl: "",
     status: "published",
     publishedAt: "2026-10-01T18:20:00-03:00",
+    agentGenerated: false,
     demo: true,
     demoComments: [
       {
@@ -117,6 +119,7 @@ const demoPosts: CommunityPost[] = [
     mediaUrl: "",
     status: "published",
     publishedAt: "2026-09-30T10:15:00-03:00",
+    agentGenerated: false,
     demo: true,
     demoComments: [
       {
@@ -136,6 +139,7 @@ const demoPosts: CommunityPost[] = [
     mediaUrl: "",
     status: "published",
     publishedAt: "2026-09-29T16:40:00-03:00",
+    agentGenerated: false,
     demo: true,
     demoComments: [
       {
@@ -342,7 +346,7 @@ function Discussion({
     }
   }
 
-  const visible = demoComments ?? comments.map((c) => ({ ...c, role: "Membro" }));
+  const visible = demoComments ?? comments;
 
   return (
     <section className="vm-discussion">
@@ -485,7 +489,7 @@ function PostCard({
   const category = kinds.find((k) => k.id === post.kind);
 
   return (
-    <article className="vm-post">
+    <article className="vm-post" id={`post-${post.id}`}>
       <div className="vm-post-cover">
         {post.mediaUrl && post.kind === "video" ? (
           <video
@@ -513,9 +517,9 @@ function PostCard({
         <div className="vm-post-top">
           <span className="vm-avatar">v.</span>
           <div>
-            <strong>Veronica Hub</strong>
+            <strong>{post.agentGenerated ? "Agente Members" : "Veronica Hub"}</strong>
             <small>
-              Equipe editorial ·{" "}
+              {post.agentGenerated ? "IA oficial · Veronica Hub" : "Equipe editorial"} ·{" "}
               {post.publishedAt
                 ? new Date(post.publishedAt).toLocaleDateString("pt-BR", {
                     timeZone: "America/Sao_Paulo",
@@ -670,6 +674,11 @@ export default function Members() {
   });
 
   const savedPosts = allPosts.filter((p) => savedIds.includes(p.id));
+  useEffect(() => {
+    if (!loading && window.location.hash.startsWith("#post-")) {
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "center" });
+    }
+  }, [loading, feed?.posts]);
 
   function toggleSave(id: string) {
     setSavedIds((current) => {
@@ -743,6 +752,7 @@ export default function Members() {
             }}
             onJoin={joinCommunity}
           />
+          <MembersAgentPresence />
           <TopicRail
             filter={filter}
             onSelect={(id) => {
@@ -778,11 +788,13 @@ export default function Members() {
                           : kinds.find((k) => k.id === filter)?.label}
                       </h2>
                     </div>
-                    <span className="vm-preview-label">Prévia ilustrativa</span>
+                    <span className="vm-preview-label">
+                      {feed?.posts.length ? "Conteúdo da comunidade" : "Prévia ilustrativa"}
+                    </span>
                   </div>
                   <p className="vm-preview-explanation">
-                    Explore a experiência. Os perfis e comentários desta prévia são exemplos
-                    fictícios.
+                    Exercícios do agente são publicações reais. Os exemplos ilustrativos e seus
+                    comentários estão identificados nos respectivos cartões.
                   </p>
                   {(view === "biblioteca" ? savedPosts : visiblePosts).length ? (
                     (view === "biblioteca" ? savedPosts : visiblePosts).map((post) => (
@@ -948,6 +960,7 @@ export default function Members() {
                       onExplore={() => setView("comunidade")}
                       onJoin={() => setView("labs")}
                     />
+                    <MembersAgentPresence />
                     <TopicRail
                       filter={filter}
                       onSelect={(id) => {

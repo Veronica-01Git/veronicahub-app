@@ -1,3 +1,37 @@
+## Agente Members e portfólio de rotas na vitrine (2026-10-03)
+
+**Responsável:** Codex. Implementação validada para publicação na main.
+
+- Criado `members-community` no registro canônico, com skills de editorial,
+  acolhimento e leitura de atividade. Runtime usando ModelRouter, tenant da
+  própria Hub, limites de custo/latência e histórico em AgentExecution.
+- Um exercício por dia UTC, até duas respostas oficiais por rodada em
+  comentários aprovados; temas sensíveis encaminhados à supervisão. O agente
+  não aprova/rejeita comentários e não cria usuários ou avaliações fictícias.
+- Painel `/admin/membros`: executar, pausar/retomar, contagens reais e histórico.
+  Endpoint público `/api/agents/members/status` informa estado e últimos posts,
+  sem comentários privados, e-mails, credenciais ou contagens de usuários.
+- Claims e limite de 18 reservas/dia atômicos. Publicação e conclusão do log
+  na mesma transação. Pausa impede novas saídas. Custo real desconhecido fica
+  null; reserva conservadora baseada na tabela oficial Groq.
+- Workflow `members-agent.yml` a cada quatro horas, sujeito ao agendamento
+  best-effort do GitHub Actions. Nenhuma promessa de autonomia total.
+- `/agentes`: portfólio de todos os 11 agentes da força de trabalho, com
+  habilidades, ambiente(s), evidências e escopo atual. Redação → Wire,
+  criação → Studio, Analytics → Analytics, Members → comunidade e histórico.
+  Cartões comerciais também apontam seus respectivos portfólios.
+- Publicações oficiais do agente ficam visíveis no Members sem login, com
+  autoria de IA. Posts privados preexistentes e comentários reais mantêm
+  autenticação. Exemplos demonstrativos continuam identificados.
+- Migração aditiva 0020 testada na branch Neon `members-agent-runtime`:
+  primeiro claim retorna uma execução; repetição retorna zero; corrida de
+  duas tarefas com orçamento em 17 libera uma e encerra em 18; pausa libera
+  zero tarefas. Nenhuma alteração no WhatsApp da Express ou no checkout.
+- Validação local: typecheck, build de produção e 295 testes passaram.
+- Migração 0020 aplicada com sucesso à produção após testes isolados.
+  Publicação do código e primeira execução: conferir no histórico do PR e
+  no endpoint de status após o deploy.
+
 ## Members — capas originais, design premium e home de comunidade (2026-10-02)
 
 **Responsável:** Codex, nesta sessão com Matheus. **Estado:** duas entregas
