@@ -14,6 +14,9 @@ const ACCOUNT_POLICIES: Readonly<Record<string, PrivateClientAccountPolicy>> = {
   "express-entulho": {
     allowlistEnv: "EXPRESS_OPERATIONS_ALLOWED_EMAILS",
   },
+  "lz-team": {
+    allowlistEnv: "LZ_TEAM_STAFF_EMAILS",
+  },
 };
 
 export function getPrivateClientAccountPolicy(clientId: string): PrivateClientAccountPolicy | null {

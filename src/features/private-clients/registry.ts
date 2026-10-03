@@ -64,11 +64,11 @@ export const privateClients: readonly PrivateClient[] = [
     id: "lz-team",
     slug: "lz-team",
     displayName: "LZ Team",
-    tagline: "Membro 02 · escopo em definição",
+    tagline: "Membro 02 · operação fitness",
     sealSerial: "VH-MEM-2026-000002",
     accessState: "active",
     requiresPin: false,
-    requiresVerifiedAccount: false,
+    requiresVerifiedAccount: true,
     modules: [
       {
         id: "visao-geral",

@@ -217,15 +217,13 @@ function TopBar() {
         <a href="#topo" style={DISPLAY} className="text-sm font-bold uppercase tracking-[.14em]">
           LZ <span className="text-[var(--lz-accent)]">Training</span> Club
         </a>
-        <a
-          href={lzIdentity.instagramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 text-[10px] uppercase tracking-[.18em] text-muted-foreground transition hover:text-[var(--lz-accent)]"
-        >
-          <Instagram className="h-4 w-4" aria-hidden />
-          <span className="hidden sm:inline">{lzIdentity.instagramHandle}</span>
-        </a>
+        <nav aria-label="Acesso LZ" className="flex items-center gap-3 sm:gap-5">
+          <Link to="/clientes/lz-team/membros" className="text-[10px] font-semibold uppercase tracking-[.12em] text-[var(--lz-accent)]">Alunos</Link>
+          <Link to="/clientes/lz-team/painel" className="text-[10px] font-semibold uppercase tracking-[.12em] text-white/75">Coach</Link>
+          <a href={lzIdentity.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram LZ Training Club" className="text-muted-foreground hover:text-[var(--lz-accent)]">
+            <Instagram className="h-4 w-4" aria-hidden />
+          </a>
+        </nav>
       </div>
     </header>
   );
