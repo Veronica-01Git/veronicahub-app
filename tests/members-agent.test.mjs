@@ -1,3 +1,4 @@
+import { PRODUCTS } from "../src/lib/ecosystem.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -6,6 +7,7 @@ import {
   needsHumanReview,
   editorialTopic,
   MEMBERS_AGENT_SKILLS,
+  MEMBERS_TOPICS,
 } from "../src/members/agent-policy.ts";
 import { WORKFORCE } from "../src/lib/ai-workforce.ts";
 import { routesForAgent } from "../src/lib/agent-portfolio.ts";
@@ -68,4 +70,26 @@ test("Curadoria roda de forma determinística e distribui os temas na semana", (
     7,
   );
   assert.throws(() => editorialTopic("inválido"));
+});
+
+test("Pautas do Members apontam exclusivamente as rotas canônicas publicadas", () => {
+  const canonical = new Set(PRODUCTS.map((p) => p.to));
+  for (const topic of MEMBERS_TOPICS) assert.ok(canonical.has(topic.route), topic.route);
+});
+
+test("Editorial não atribui publicação social ao Wire, que é um feed de leitura", () => {
+  assert.throws(() =>
+    validateEditorial({
+      ...valid,
+      prompt:
+        "Leia uma notícia e crie uma pergunta sobre sua área de atuação. Compartilhe no Wire!",
+    }),
+  );
+  assert.doesNotThrow(() =>
+    validateEditorial({
+      ...valid,
+      prompt:
+        "Leia uma notícia e crie uma pergunta sobre sua área de atuação. Compartilhe nos comentários do Members.",
+    }),
+  );
 });

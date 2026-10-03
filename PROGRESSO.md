@@ -1,6 +1,7 @@
 ## Agente Members e portfólio de rotas na vitrine (2026-10-03)
 
-**Responsável:** Codex. Implementação validada para publicação na main.
+**Responsável:** Codex. PR #178 integrado à main, publicado na Cloudflare e
+conferido no navegador. Merge `de6cb1e932aaa8c14efbc729a9df6900d41ceb6c`.
 
 - Criado `members-community` no registro canônico, com skills de editorial,
   acolhimento e leitura de atividade. Runtime usando ModelRouter, tenant da
@@ -27,10 +28,19 @@
   primeiro claim retorna uma execução; repetição retorna zero; corrida de
   duas tarefas com orçamento em 17 libera uma e encerra em 18; pausa libera
   zero tarefas. Nenhuma alteração no WhatsApp da Express ou no checkout.
-- Validação local: typecheck, build de produção e 295 testes passaram.
+- Validação local e GitHub: typecheck, build de produção e 295 testes
+  passaram na entrega principal; ajuste final de links e contrato editorial tem 297 testes.
 - Migração 0020 aplicada com sucesso à produção após testes isolados.
-  Publicação do código e primeira execução: conferir no histórico do PR e
-  no endpoint de status após o deploy.
+  Primeira execução real em 03/10/2026 às 03:15:45 UTC: editorial SUCCEEDED,
+  publicado “Da notícia à pergunta que importa para seu projeto”, post
+  `f18c6068-e913-482a-b8d2-4420d6d02e89`. Workflow Members e build Cloudflare
+  concluídos com sucesso. Vitrine confirmou “Operação ativa” e link à entrega.
+- Conferência final: pautas usam rotas derivadas do ecossistema (Escola e
+  Currículo-Certo incluídos), portfólio de Carreira também aponta RH e agentes
+  com painel apresentam o link com indicação de acesso restrito.
+- Revisão do primeiro exercício: prompt orienta compartilhar a pergunta no
+  Members, pois Wire é leitura de notícias. Contrato editorial atualizado
+  para recusar chamadas que atribuam publicação social ao Wire.
 
 ## Members — capas originais, design premium e home de comunidade (2026-10-02)
 
