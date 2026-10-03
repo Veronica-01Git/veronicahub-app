@@ -1,3 +1,80 @@
+## Members — capas originais, design premium e home de comunidade (2026-10-02)
+
+**Responsável:** Codex, nesta sessão com Matheus. **Estado:** duas entregas
+integradas à `main`, publicadas na Cloudflare e conferidas no navegador.
+Rota oficial: https://veronicahub.com/membros. Este trabalho alterou a home
+interna do Members; não alterou a Home principal `/` da Veronica Hub.
+
+### Primeira entrega — capas e identidade visual (PR #174)
+
+- Criadas três imagens originais: ambiente de encontro da comunidade,
+  objeto óptico para agentes/prompts e composição de criação para o Studio.
+- Integrados nove arquivos WebP em `public/images/members/`, com versões
+  de 640, 1280 e 1672 pixels para cada imagem. Carregamento responsivo com
+  `srcSet`/`sizes`, dimensões declaradas, prioridade no hero e carregamento
+  adiado nas capas inferiores. As versões finais variam de cerca de 29 a
+  291 KB por arquivo; não são arquivos 4K.
+- Aplicados fundo claro, tipografia refinada, cartões, capas em publicações,
+  Labs, biblioteca e entrada do Members, com ajustes responsivos e preferência
+  por movimento reduzido. Estilos da comunidade isolados do editor admin.
+- Mídias próprias publicadas pelo administrador preservadas: imagem ou vídeo
+  continua sendo exibido no lugar da capa de apoio. Login por código de e-mail,
+  comentários, moderação, cópia de prompts e salvamento existente preservados.
+- Arquivos de implementação: `src/members/Members.tsx` e
+  `src/members/members.css`, além dos nove WebP.
+- PR: https://github.com/Veronica-01Git/veronicahub-app/pull/174.
+  Commit de implementação: `3da9247e443b89db36b5a1c1d5f31b7ebad3d37a`.
+  Merge na main: `f38e1e706267e5336e82543a9a6c426ed1c48fd5`.
+- CI do branch (run 37088591185), CI da main (run 37088678562) e
+  “Workers Builds: veronicahub-app” concluídos com sucesso. Página pública
+  conferida em produção; as quatro capas exibidas carregaram corretamente.
+
+### Segunda entrega — home mais jovem e conversas em destaque (PR #175)
+
+- Entrada institucional substituída por uma experiência de comunidade:
+  hero “Sua próxima ideia começa numa conversa”, cores suaves por tema,
+  atalhos, feed público ilustrativo e cartão de convite para participar.
+- Login passou para uma coluna compacta, acompanhada dos atalhos de Labs.
+  A home autenticada recebeu a mesma direção visual, com menos blocos antes
+  das publicações. O feed real continua protegido pelo acesso existente.
+- Comentários ilustrativos agora aparecem nos cartões, antes de abrir a
+  conversa completa. Os exemplos existentes continuam identificados como
+  fictícios; não foram criadas avaliações, métricas ou pessoas inventadas
+  para se apresentarem como atividade real. Não foi implantada automação
+  de perfis fictícios em outras rotas.
+- Busca, filtros por tema, abertura/fechamento de conversa e biblioteca
+  navegável disponíveis na prévia pública. Salvamento permanece em
+  `localStorage`, neste dispositivo; não representa sincronização no Neon.
+- Convites de participação levam ao formulário de acesso. Foco visível,
+  rolagem respeitando movimento reduzido e estilos responsivos incluídos.
+- Corrigido o estado de falha no carregamento: erro do feed agora apresenta
+  a opção de tentar novamente, em vez de ser tratado como ausência de login.
+- Implementação restrita aos dois arquivos do Members. Sem dependência nova,
+  migração de banco, alteração de checkout ou mudança no WhatsApp da Express.
+- PR: https://github.com/Veronica-01Git/veronicahub-app/pull/175.
+  Commit de implementação: `580edf9f4cf3f3c60fccb7f59c6f82ce346be644`.
+  Merge na main: `c33b04cce23b22a60148ff1520d7f6b93b624e27`.
+- CI do branch (run 37089578384), CI da main (run 37089691445) e
+  “Workers Builds: veronicahub-app” concluídos com sucesso.
+
+**Validação das duas entregas:** `npm run typecheck`, `npm run build`,
+282/282 testes e `git diff --check` aprovados. ESLint direcionado sem erros,
+com um aviso preexistente de Fast Refresh pela exportação de `kinds`.
+Histórico publicado preservado, sem force push, rebase ou squash.
+
+**Conferência interativa da segunda entrega em produção:** filtro de prompts
+mostrou apenas o conteúdo correspondente; salvar adicionou o item à biblioteca;
+remover desfez o salvamento; busca sem correspondência mostrou estado vazio;
+limpar a busca restaurou o feed; abrir e fechar a conversa funcionou.
+Capturas das duas entregas foram registradas.
+
+**Limites da verificação:** a inspeção visual/interativa foi da experiência
+pública em desktop. Não foi executado teste visual com sessão de membro/admin
+nem em viewport de celular. Responsividade foi revisada por código; backend
+de autenticação/moderação não foi alterado. Perfil persistente, biblioteca
+sincronizada, reações, threads, notificações e progresso em formações não
+foram implementados por estas duas entregas.
+
 ## Express Operations — modo assistido e painel administrativo completo (2026-10-02)
 
 **Objetivo imediato:** entregar valor ao cliente sem migrar, ler, apagar ou enviar
