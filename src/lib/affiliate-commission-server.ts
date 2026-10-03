@@ -2,14 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, isNull, sql, sum } from "drizzle-orm";
 import { requireAdmin } from "./admin-server";
 import { parseAffiliateSalesReport } from "./affiliate-commission";
-import { splitCommissionCents } from "./affiliate-products";
+import { affiliateCatalog } from "./affiliate-products";
+import { allocateAffiliateRevenue, HOUSE_REVENUE_CODE } from "./affiliate-revenue";
 import { getDb } from "./db";
 import { getSessionUserId } from "./session";
 import { affiliateSales, affiliates, users } from "./schema";
 
 let commissionStorageReady = false;
 
-async function ensureCommissionStorage() {
+export async function ensureCommissionStorage() {
   if (commissionStorageReady) return;
   const db = getDb();
   await db.execute(sql`
@@ -60,7 +61,7 @@ export const importAffiliateSalesAdmin = createServerFn({ method: "POST" })
     const errors: string[] = [];
 
     for (const row of data.rows) {
-      if (!codes.has(row.affiliateCode)) {
+      if (row.affiliateCode !== HOUSE_REVENUE_CODE && !codes.has(row.affiliateCode)) {
         errors.push(
           `${row.externalOrderId}: Sub_id ${row.affiliateCode} não pertence a um divulgador.`,
         );
@@ -75,7 +76,11 @@ export const importAffiliateSalesAdmin = createServerFn({ method: "POST" })
         errors.push(`${row.externalOrderId}: pagamento já baixado; linha preservada.`);
         continue;
       }
-      const split = splitCommissionCents(row.commissionCents);
+      const split = allocateAffiliateRevenue(
+        row.commissionCents,
+        row.affiliateCode,
+        affiliateCatalog.revenueShare.affiliatePct,
+      );
       await db
         .insert(affiliateSales)
         .values({
@@ -207,11 +212,13 @@ export const setAffiliatePaymentAdmin = createServerFn({ method: "POST" })
     await ensureCommissionStorage();
     const db = getDb();
     const [sale] = await db
-      .select({ status: affiliateSales.status })
+      .select({ status: affiliateSales.status, affiliateCode: affiliateSales.affiliateCode })
       .from(affiliateSales)
       .where(eq(affiliateSales.id, data.id))
       .limit(1);
     if (!sale) return { ok: false as const, error: "Venda não encontrada." };
+    if (sale.affiliateCode === HOUSE_REVENUE_CODE)
+      return { ok: false as const, error: "Venda direta da Hub não possui repasse a divulgador." };
     if (data.paid && sale.status !== "confirmed")
       return { ok: false as const, error: "Somente comissão confirmada pode ser paga." };
     await db

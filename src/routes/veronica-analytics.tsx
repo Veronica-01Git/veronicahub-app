@@ -25,6 +25,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { buildTrackedPath, type AffiliateProduct } from "@/lib/affiliate-products";
 import { getPublicAffiliateCatalog } from "@/lib/affiliate-catalog-server";
 import { getMyAffiliate } from "@/lib/affiliate-account-server";
+import { formatBRL } from "@/lib/account";
+import { HOUSE_REVENUE_CODE } from "@/lib/affiliate-revenue";
+import { getHubAffiliateRevenue } from "@/lib/affiliate-revenue-server";
 import { getMyAffiliateAnalytics } from "@/lib/affiliate-analytics-server";
 import {
   ANALYTICS_PERIODS,
@@ -60,6 +63,7 @@ export const Route = createFileRoute("/veronica-analytics")({
 
 type Tab = "resumo" | "ofertas" | "links" | "resultados";
 type Account = Awaited<ReturnType<typeof getMyAffiliate>>;
+type Revenue = Awaited<ReturnType<typeof getHubAffiliateRevenue>>;
 type Stats = Awaited<ReturnType<typeof getMyAffiliateAnalytics>>;
 const tabs = [
   { key: "resumo", label: "Resumo", icon: LayoutDashboard },
@@ -175,14 +179,22 @@ function OfferCard({
             </span>
           )}
         </div>
+        <p className="mt-3 text-[11px] leading-5 text-[#7d847f]">
+          Link de afiliado · a compra acontece na Shopee.
+        </p>
         <div className="mt-5 flex items-center gap-2 border-t border-black/5 pt-4">
-          <button
-            type="button"
-            onClick={onOpen}
+          <a
+            href={buildTrackedPath(product, {
+              handle: HOUSE_REVENUE_CODE,
+              placement: "analytics_catalogo",
+            })}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            aria-label={`Ver oferta na Shopee: ${product.name}`}
             className={`${button} flex-1 bg-[#14271e] px-3 text-white hover:bg-emerald-900`}
           >
-            Explorar oferta <ArrowRight size={15} />
-          </button>
+            Ver na Shopee <ExternalLink size={15} />
+          </a>
           <button
             type="button"
             onClick={onCompare}
@@ -254,6 +266,7 @@ function creativeKit(product: AffiliateProduct) {
 
 function VeronicaAnalytics() {
   const { products } = Route.useLoaderData();
+  const [revenue, setRevenue] = useState<Revenue | null>(null);
   const [tab, setTab] = useState<Tab>("resumo");
   const [account, setAccount] = useState<Account | null>(null);
   const [accountError, setAccountError] = useState(false);
@@ -309,6 +322,20 @@ function VeronicaAnalytics() {
       active = false;
     };
   }, [reload]);
+  useEffect(() => {
+    let active = true;
+    setRevenue(null);
+    getHubAffiliateRevenue({ data: { days } })
+      .then((next) => {
+        if (active) setRevenue(next);
+      })
+      .catch(() => {
+        if (active) setRevenue({ ok: false, reason: "indisponivel" });
+      });
+    return () => {
+      active = false;
+    };
+  }, [days, reload]);
   useEffect(() => {
     let active = true;
     setStats(null);
@@ -384,7 +411,7 @@ function VeronicaAnalytics() {
   }
   function linkFor(product: AffiliateProduct) {
     return buildTrackedPath(product, {
-      handle: code ?? "",
+      handle: revenue?.ok ? HOUSE_REVENUE_CODE : (code ?? HOUSE_REVENUE_CODE),
       placement: code ? source : "analytics_catalogo",
     });
   }
@@ -553,11 +580,11 @@ function VeronicaAnalytics() {
               <p className="text-lg font-semibold tracking-[-.04em]">
                 Veronica <span className="font-normal text-[#78827a]">Analytics</span>
               </p>
-              <p className="mt-0.5 text-xs text-[#828a84]">Escolha. Divulgue. Aprenda.</p>
+              <p className="mt-0.5 text-xs text-[#828a84]">Descubra. Compre. Divulgue.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {measured?.isAdmin && (
+            {revenue?.ok && (
               <Link
                 to="/admin/produtos-shopee"
                 className={`${button} border border-black/10 bg-white`}
@@ -622,16 +649,16 @@ function VeronicaAnalytics() {
                   <div className="absolute inset-0 bg-gradient-to-r from-[#e8eee9] via-[#e8eee9]/95 to-[#e8eee9]/40" />
                   <div className="relative max-w-xl">
                     <p className="text-[11px] font-semibold uppercase tracking-[.15em] text-emerald-800">
-                      Sua próxima divulgação
+                      Achados para o seu dia a dia
                     </p>
                     <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-.045em] sm:text-5xl">
-                      Boas escolhas.
+                      Escolha o que combina
                       <br />
-                      Próximos passos claros.
+                      com você.
                     </h1>
                     <p className="mt-5 max-w-md text-sm leading-7 text-[#67786c]">
-                      Encontre uma oferta, prepare seu conteúdo e acompanhe o interesse pelos seus
-                      links. Tudo começa com um produto que faz sentido para seu público.
+                      Explore produtos, compare as informações e confira a oferta na Shopee. Quer
+                      divulgar? Prepare seu conteúdo e acompanhe seus links pela Veronica Rede.
                     </p>
                     <button
                       type="button"
@@ -641,10 +668,16 @@ function VeronicaAnalytics() {
                       }}
                       className={`${button} mt-6 bg-[#14271e] text-white hover:bg-emerald-900`}
                     >
-                      Explorar ofertas <ArrowRight size={16} />
+                      Encontrar minha oferta <ArrowRight size={16} />
                     </button>
                   </div>
                 </section>
+                <HubRevenuePanel
+                  state={revenue}
+                  products={products}
+                  onRefresh={() => setReload((value) => value + 1)}
+                  onOpen={open}
+                />
                 <div className="my-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
                   {[
                     {
@@ -727,10 +760,10 @@ function VeronicaAnalytics() {
                       Catálogo Shopee
                     </p>
                     <h1 className="mt-3 text-3xl font-semibold tracking-[-.04em] sm:text-4xl">
-                      Encontre sua próxima oferta.
+                      Sua próxima boa escolha.
                     </h1>
                     <p className="mt-3 text-sm leading-6 text-[#7f8881]">
-                      Compare as informações e escolha o que combina com seu público.
+                      Compare as informações e confira o preço atual na Shopee.
                     </p>
                   </div>
                   <button
@@ -974,6 +1007,12 @@ function VeronicaAnalytics() {
                     </button>
                   </div>
                 )}
+                <HubRevenuePanel
+                  state={revenue}
+                  products={products}
+                  onRefresh={() => setReload((value) => value + 1)}
+                  onOpen={open}
+                />
                 {resultPanels}
                 {measured && (
                   <section className={`${card} mt-5 overflow-hidden`}>
@@ -1111,7 +1150,7 @@ function VeronicaAnalytics() {
       <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
         <DialogContent className="max-h-[85dvh] w-[calc(100%-24px)] max-w-4xl overflow-y-auto rounded-3xl bg-white p-5 sm:p-8">
           <DialogTitle className="pr-8 text-2xl tracking-tight">
-            Compare antes de divulgar.
+            Compare antes de escolher.
           </DialogTitle>
           <DialogDescription>
             Informações cadastradas, sem estimativas de vendas. Confirme as condições atuais na
@@ -1210,7 +1249,8 @@ function VeronicaAnalytics() {
                       : "Comissão não informada no catálogo"}
                   </p>
                   <p className="mt-4 text-xs leading-6 text-[#8b938d]">
-                    Confirme preço, disponibilidade e regras de comissão na Shopee.
+                    Link de afiliado. Uma compra elegível pode gerar comissão para a Hub. Confira
+                    preço, entrega e condições na Shopee.
                   </p>
                   <a
                     href={linkFor(selected)}
@@ -1218,7 +1258,7 @@ function VeronicaAnalytics() {
                     rel="noopener noreferrer sponsored"
                     className={`${button} mt-5 bg-[#14271e] text-white`}
                   >
-                    Conferir na Shopee <ExternalLink size={15} />
+                    Ver oferta na Shopee <ExternalLink size={15} />
                   </a>
                   <button
                     type="button"
@@ -1291,7 +1331,12 @@ function VeronicaAnalytics() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => void copy(kit, "Kit de divulgação copiado.")}
+                    onClick={() =>
+                      void copy(
+                        `${kit}\n\nLINK DA OFERTA\n${window.location.origin}${linkFor(selected)}`,
+                        "Conteúdo e link de afiliado copiados.",
+                      )
+                    }
                     className={`${button} border border-black/10`}
                   >
                     <Copy size={15} /> Copiar conteúdo
@@ -1345,5 +1390,135 @@ function VeronicaAnalytics() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function HubRevenuePanel({
+  state,
+  products,
+  onRefresh,
+  onOpen,
+}: {
+  state: Revenue | null;
+  products: AffiliateProduct[];
+  onRefresh: () => void;
+  onOpen: (product: AffiliateProduct) => void;
+}) {
+  if (!state || (!state.ok && state.reason === "restrito")) return null;
+  if (!state.ok)
+    return (
+      <div role="status" className={`${card} my-6 p-6 text-sm`}>
+        Não foi possível consultar a operação de receita.{" "}
+        <button onClick={onRefresh} className="font-semibold text-emerald-800">
+          Tentar novamente
+        </button>
+      </div>
+    );
+  return (
+    <section className={`${card} my-6 p-5 sm:p-7`} aria-label="Receita privada da Hub">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-800">
+            Operação privada · Admin
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">Receita da Veronica Hub</h2>
+          <p className="mt-2 text-xs leading-6 text-[#7f8881]">
+            Últimos {state.days} dias · pela data do pedido (UTC). Comissão aprovada no relatório,
+            antes de custos e impostos; não representa dinheiro recebido.
+          </p>
+        </div>
+        <button className={`${button} border border-black/10`} onClick={onRefresh}>
+          <RefreshCw size={15} />
+          Atualizar
+        </button>
+      </div>
+      <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          ["Receita Hub confirmada", formatBRL(state.confirmedHouseCents)],
+          ["Hub em validação", formatBRL(state.pendingHouseCents)],
+          ["Parcela dos divulgadores", formatBRL(state.distributorCents)],
+          ["Pedidos confirmados", number(state.confirmedOrders)],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl bg-[#f3f6f2] p-4">
+            <p className="text-xs text-[#78827a]">{label}</p>
+            <p className="mt-3 text-xl font-semibold tracking-tight">{value}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-xs leading-6 text-[#7f8881]">
+        Comissão total confirmada: {formatBRL(state.confirmedCommissionCents)} · Parcela Hub
+        cancelada: {formatBRL(state.cancelledHouseCents)} · Encaminhamentos: {number(state.clicks)}.
+      </p>
+      {state.lastImport ? (
+        <p className="mt-1 text-xs text-[#7f8881]">
+          Última importação:{" "}
+          {new Date(state.lastImport).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}.
+        </p>
+      ) : (
+        <p className="mt-4 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
+          Importe o relatório de comissões da Shopee para medir a receita. Seus links cadastrados já
+          podem encaminhar compradores.
+        </p>
+      )}
+      {state.missingDates > 0 && (
+        <p className="mt-3 text-xs text-amber-800">
+          {state.missingDates} pedido(s) sem data, fora dos totais por período. Complete a data no
+          relatório e reimporte.
+        </p>
+      )}
+      {state.products.length > 0 && (
+        <div className="mt-5 border-t border-black/5 pt-5">
+          <h3 className="text-sm font-semibold">Produtos com receita confirmada</h3>
+          <div className="mt-3 divide-y divide-black/5">
+            {state.products.map((row) => {
+              const product = products.find((p) => p.id === row.productId);
+              return (
+                <div
+                  key={row.productId ?? "sem_produto"}
+                  className="flex items-center justify-between gap-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm">
+                      {product?.name ?? row.productId ?? "Produto não informado"}
+                    </p>
+                    <p className="mt-1 text-xs text-[#7f8881]">
+                      {number(row.orders)} pedido(s) confirmado(s) · parcela da Hub
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="whitespace-nowrap text-sm font-semibold">
+                      {formatBRL(row.houseCents)}
+                    </span>
+                    {product && (
+                      <button
+                        onClick={() => onOpen(product)}
+                        aria-label={`Preparar divulgação de ${product.name}`}
+                        className="rounded-full bg-[#f3f6f2] p-3"
+                      >
+                        <ArrowRight size={15} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <div className="mt-6 flex flex-wrap gap-2">
+        <Link to="/admin/produtos-shopee" className={`${button} bg-[#14271e] text-white`}>
+          <Plus size={15} />
+          Abastecer catálogo
+        </Link>
+        <Link to="/admin/comissoes-shopee" className={`${button} border border-black/10`}>
+          <ArrowDownToLine size={15} />
+          Conciliar vendas
+        </Link>
+      </div>
+      <p className="mt-4 text-xs leading-6 text-[#7f8881]">
+        Venda direta: Sub_id veronica, comissão integral da Hub. Venda pela Rede: divisão da
+        comissão conforme a regra cadastrada. Repasses continuam no painel de conciliação.
+      </p>
+    </section>
   );
 }
