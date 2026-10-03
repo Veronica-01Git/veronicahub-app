@@ -8,8 +8,8 @@ import {
   Clock,
   Copy,
   Home,
+  Send,
   Image,
-  Layers,
   Lightbulb,
   LockKeyhole,
   MessageCircle,
@@ -402,14 +402,83 @@ function Discussion({
   );
 }
 
+function CommunityHero({
+  onExplore,
+  onJoin,
+  signedIn = false,
+}: {
+  onExplore: () => void;
+  onJoin: () => void;
+  signedIn?: boolean;
+}) {
+  const Heading = signedIn ? "h2" : "h1";
+  return (
+    <section className="vm-social-hero">
+      <div className="vm-social-hero-copy">
+        <span className="vm-eyebrow">
+          <Sparkles size={14} /> IDEIAS BOAS CIRCULAM
+        </span>
+        <Heading>
+          Sua próxima ideia
+          <br />
+          <em>começa numa conversa.</em>
+        </Heading>
+        <p>
+          Um prompt que destrava. Um teste que surpreende. Uma troca que muda o seu próximo projeto.
+        </p>
+        <div className="vm-hero-actions">
+          <button className="vm-primary" onClick={onExplore}>
+            Explorar conversas <ArrowUpRight size={17} />
+          </button>
+          <button className="vm-secondary" onClick={onJoin}>
+            {signedIn ? "Experimentar nos Labs" : "Fazer parte"}
+          </button>
+        </div>
+      </div>
+      <div className="vm-social-hero-art">
+        <MemberCover cover="community" priority sizes="(max-width: 760px) 90vw, 520px" />
+        <div className="vm-social-art-label">
+          <span className="vm-avatar">v.</span>
+          <div>
+            <strong>O seu ponto de encontro.</strong>
+            <small>Aprender · criar · compartilhar</small>
+          </div>
+        </div>
+        <span className="vm-social-art-sticker">
+          <MessageCircle size={18} /> Vamos criar juntos?
+        </span>
+      </div>
+    </section>
+  );
+}
+
+function TopicRail({ filter, onSelect }: { filter: string; onSelect: (id: string) => void }) {
+  return (
+    <nav className="vm-social-topics" aria-label="Explorar temas">
+      {kinds.map((kind) => (
+        <button key={kind.id} aria-pressed={filter === kind.id} onClick={() => onSelect(kind.id)}>
+          <span className={`vm-topic-symbol vm-topic-${kind.id}`}>
+            <kind.icon size={23} />
+          </span>
+          <span>{kind.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 function PostCard({
   post,
   saved,
   onToggleSave,
+  publicPreview = false,
+  onJoin,
 }: {
   post: CommunityPost;
   saved: boolean;
   onToggleSave: () => void;
+  publicPreview?: boolean;
+  onJoin?: () => void;
 }) {
   const [open, setOpen] = useState(false),
     [copied, setCopied] = useState("");
@@ -454,7 +523,7 @@ function PostCard({
                 : ""}
             </small>
           </div>
-          {post.demo && <span className="vm-demo-pill">Demo</span>}
+          {post.demo && <span className="vm-demo-pill">Exemplo fictício</span>}
           <span className="vm-tag">{category?.label}</span>
         </div>
         <h2>{post.title}</h2>
@@ -486,7 +555,7 @@ function PostCard({
           <div>
             <button aria-expanded={open} onClick={() => setOpen(!open)}>
               <MessageCircle size={18} />
-              {open ? "Fechar conversa" : "Participar da conversa"}
+              {open ? "Fechar conversa" : publicPreview ? "Ver conversa" : "Participar da conversa"}
             </button>
             <button onClick={onToggleSave} aria-pressed={saved}>
               <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
@@ -495,7 +564,33 @@ function PostCard({
           </div>
           <span>Exclusivo para membros</span>
         </div>
+        {!open && !!post.demoComments?.length && (
+          <section className="vm-conversation-peek" aria-label="Comentários ilustrativos">
+            <div className="vm-peek-heading">
+              <MessageCircle size={15} />
+              <span>Uma conversa possível</span>
+              <small>Comentários fictícios</small>
+            </div>
+            {post.demoComments.slice(0, 2).map((comment) => (
+              <div className="vm-peek-comment" key={comment.id}>
+                <span className="vm-comment-avatar" aria-hidden="true">
+                  {comment.name.slice(0, 1)}
+                </span>
+                <div>
+                  <strong>{comment.name}</strong>
+                  <p>{comment.body}</p>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
         {open && <Discussion postId={post.id} demoComments={post.demoComments} />}
+        {publicPreview && (
+          <button className="vm-join-conversation" onClick={onJoin}>
+            <Send size={16} /> Sua ideia também cabe aqui. Entre para participar{" "}
+            <ChevronRight size={16} />
+          </button>
+        )}
       </div>
     </article>
   );
@@ -584,6 +679,20 @@ export default function Members() {
     });
   }
 
+  function scrollToCommunitySection(id: string, block: ScrollLogicalPosition = "start") {
+    document.getElementById(id)?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block,
+    });
+  }
+
+  function joinCommunity() {
+    scrollToCommunitySection("vm-join", "center");
+    document
+      .querySelector<HTMLInputElement>("#vm-join input[type=email]")
+      ?.focus({ preventScroll: true });
+  }
+
   const nav = [
     { id: "inicio" as const, label: "Início", icon: Home },
     { id: "biblioteca" as const, label: "Minha Biblioteca", icon: Bookmark },
@@ -625,73 +734,105 @@ export default function Members() {
         </div>
       </div>
 
-      {!loading && !feed?.signedIn ? (
-        <main className="vm-welcome">
-          <section className="vm-welcome-cover" aria-label="Veronica Members">
-            <MemberCover cover="community" priority sizes="(max-width: 760px) 100vw, 1200px" />
-            <span className="vm-welcome-label">
-              <LockKeyhole size={15} /> VERONICA MEMBERS
-            </span>
-            <div>
-              <span>Um espaço para ir além.</span>
-              <p>Aprender. Criar. Compartilhar.</p>
-            </div>
-          </section>
-          <div className="vm-gate">
-            <div className="vm-gate-copy">
-              <span className="vm-eyebrow">SUA PRÓXIMA IDEIA COMEÇA AQUI</span>
-              <h1>Boas ideias merecem boa companhia.</h1>
-              <p>
-                Conteúdo, Labs, biblioteca pessoal e comunidade conectados ao restante da Veronica
-                Hub.
-              </p>
-              <div className="vm-gate-points">
-                <span>
-                  <Bookmark /> Salve o que importa.
-                </span>
-                <span>
-                  <Beaker /> Teste antes de todo mundo.
-                </span>
-                <span>
-                  <Layers /> Conecte conteúdo a ferramentas.
-                </span>
-              </div>
-            </div>
-            <MemberLogin onSuccess={refresh} />
-          </div>
-          <section className="vm-welcome-topics" aria-label="Dentro do Members">
-            <div className="vm-collection-heading">
-              <span className="vm-eyebrow">DENTRO DO MEMBERS</span>
-              <h2>Um universo para explorar.</h2>
-            </div>
-            <div className="vm-welcome-topics-grid">
-              {[
-                {
-                  cover: "agents" as const,
-                  label: "Agentes & prompts",
-                  detail: "Ideias que viram ferramentas.",
-                },
-                {
-                  cover: "studio" as const,
-                  label: "Imagem & criação",
-                  detail: "Novas formas de expressar sua visão.",
-                },
-                {
-                  cover: "community" as const,
-                  label: "Labs & comunidade",
-                  detail: "Aprendizados que você leva adiante.",
-                },
-              ].map((topic) => (
-                <article key={topic.label}>
-                  <MemberCover cover={topic.cover} sizes="(max-width: 760px) 90vw, 400px" />
-                  <div>
-                    <h3>{topic.label}</h3>
-                    <p>{topic.detail}</p>
+      {!loading && !error && !feed?.signedIn ? (
+        <main className="vm-welcome vm-social-welcome">
+          <CommunityHero
+            onExplore={() => {
+              setView("comunidade");
+              scrollToCommunitySection("vm-public-feed");
+            }}
+            onJoin={joinCommunity}
+          />
+          <TopicRail
+            filter={filter}
+            onSelect={(id) => {
+              setFilter(id);
+              setView("comunidade");
+            }}
+          />
+          <div className="vm-social-columns">
+            <section
+              id="vm-public-feed"
+              className="vm-public-feed"
+              aria-label="Prévia da comunidade"
+            >
+              {view === "labs" ? (
+                <LabsView />
+              ) : (
+                <>
+                  <div className="vm-social-composer">
+                    <span className="vm-avatar">v.</span>
+                    <button onClick={joinCommunity}>
+                      O que você está criando hoje?
+                      <Send size={18} />
+                    </button>
                   </div>
-                </article>
-              ))}
-            </div>
-          </section>
+                  <div className="vm-feed-heading">
+                    <div>
+                      <span className="vm-eyebrow">
+                        {view === "biblioteca" ? "SALVOS NESTE DISPOSITIVO" : "PONTO DE ENCONTRO"}
+                      </span>
+                      <h2>
+                        {view === "biblioteca"
+                          ? "Sua coleção de ideias"
+                          : kinds.find((k) => k.id === filter)?.label}
+                      </h2>
+                    </div>
+                    <span className="vm-preview-label">Prévia ilustrativa</span>
+                  </div>
+                  <p className="vm-preview-explanation">
+                    Explore a experiência. Os perfis e comentários desta prévia são exemplos
+                    fictícios.
+                  </p>
+                  {(view === "biblioteca" ? savedPosts : visiblePosts).length ? (
+                    (view === "biblioteca" ? savedPosts : visiblePosts).map((post) => (
+                      <PostCard
+                        key={post.id}
+                        post={post}
+                        saved={savedIds.includes(post.id)}
+                        publicPreview
+                        onToggleSave={() => toggleSave(post.id)}
+                        onJoin={joinCommunity}
+                      />
+                    ))
+                  ) : (
+                    <div className="vm-empty">
+                      <Bookmark size={26} />
+                      <h3>
+                        {view === "biblioteca"
+                          ? "Sua coleção começa aqui."
+                          : "Nenhuma ideia por aqui ainda."}
+                      </h3>
+                      <p>
+                        {view === "biblioteca"
+                          ? "Salve uma publicação para encontrá-la neste dispositivo."
+                          : "Experimente outro tema ou termo de busca."}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+            <aside className="vm-social-join" id="vm-join">
+              <MemberLogin onSuccess={refresh} />
+              <section className="vm-social-lab-note">
+                <span className="vm-eyebrow">SAIA DA IDEIA</span>
+                <h3>Seu próximo experimento.</h3>
+                <p>Entre no Studio, teste uma agente ou dê forma ao seu portfolio.</p>
+                <div>
+                  {labs.map((lab) => (
+                    <a href={lab.href} key={lab.title}>
+                      <span className="vm-lab-thumb">
+                        <MemberCover cover={lab.cover} sizes="64px" />
+                      </span>
+                      <strong>{lab.title}</strong>
+                      <ArrowUpRight size={16} />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            </aside>
+          </div>
         </main>
       ) : (
         <div className="vm-layout vm-layout-v2">
@@ -802,87 +943,26 @@ export default function Members() {
               <>
                 {view === "inicio" && (
                   <>
-                    <section className="vm-dashboard-hero">
-                      <MemberCover cover="community" className="vm-dashboard-cover" priority />
-                      <div>
-                        <span className="vm-eyebrow">SEU ESPAÇO. SUAS POSSIBILIDADES.</span>
-                        <h2>Crie o que vem depois.</h2>
-                        <p>Conteúdo, experimentos e conversas conectados à Veronica Hub.</p>
-                        <div className="vm-hero-actions">
-                          <button className="vm-primary" onClick={() => setView("labs")}>
-                            Explorar Labs <ArrowUpRight size={16} />
-                          </button>
-                          <button className="vm-secondary" onClick={() => setView("biblioteca")}>
-                            Abrir biblioteca
-                          </button>
-                        </div>
-                      </div>
-                    </section>
-
-                    <section className="vm-topic-collection" aria-label="Explorar por tema">
-                      <div className="vm-collection-heading">
-                        <span className="vm-eyebrow">ESCOLHA SUA PRÓXIMA DESCOBERTA</span>
-                        <h2>Feito para a sua curiosidade.</h2>
-                      </div>
-                      <div className="vm-topic-grid">
-                        {kinds
-                          .filter((kind) => kind.id !== "todos")
-                          .map((kind) => (
-                            <button
-                              key={kind.id}
-                              onClick={() => {
-                                setFilter(kind.id);
-                                setView("comunidade");
-                              }}
-                            >
-                              <MemberCover
-                                cover={topicCovers[kind.id]}
-                                sizes="(max-width: 760px) 45vw, 240px"
-                              />
-                              <span>
-                                <kind.icon size={17} />
-                                {kind.label}
-                              </span>
-                            </button>
-                          ))}
-                      </div>
-                    </section>
-
-                    <section className="vm-dashboard-grid">
-                      <button onClick={() => setView("comunidade")}>
-                        <Newspaper />
-                        <span>
-                          <small>AGORA</small>
-                          <strong>{allPosts.length} conteúdos disponíveis</strong>
-                        </span>
-                        <ChevronRight />
-                      </button>
-                      <button onClick={() => setView("biblioteca")}>
-                        <Bookmark />
-                        <span>
-                          <small>SUA BIBLIOTECA</small>
-                          <strong>{savedPosts.length} itens salvos</strong>
-                        </span>
-                        <ChevronRight />
-                      </button>
-                      <button onClick={() => setView("labs")}>
-                        <Beaker />
-                        <span>
-                          <small>LABS</small>
-                          <strong>3 experimentos para explorar</strong>
-                        </span>
-                        <ChevronRight />
-                      </button>
-                    </section>
+                    <CommunityHero
+                      signedIn
+                      onExplore={() => setView("comunidade")}
+                      onJoin={() => setView("labs")}
+                    />
+                    <TopicRail
+                      filter={filter}
+                      onSelect={(id) => {
+                        setFilter(id);
+                        setView("comunidade");
+                      }}
+                    />
 
                     <section className="vm-demo-banner">
                       <Sparkles />
                       <div>
-                        <strong>Comunidade em fase de demonstração</strong>
+                        <strong>Conversas para inspirar</strong>
                         <p>
-                          Enquanto os primeiros membros reais ainda chegam, alguns perfis,
-                          comentários e publicações abaixo são fictícios e estão identificados como
-                          Demo.
+                          Os exemplos fictícios estão identificados. Nas publicações da equipe, você
+                          pode contribuir e acompanhar os comentários aprovados pela moderação.
                         </p>
                       </div>
                     </section>
