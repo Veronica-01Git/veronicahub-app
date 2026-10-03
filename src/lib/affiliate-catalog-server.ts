@@ -6,18 +6,21 @@ import { affiliateCatalogProducts, affiliateLinkClicks } from "./schema";
 import {
   affiliateProducts as seedProducts,
   isAffiliateAudience,
-  isAffiliateCategory,
-  sanitizeMediaUrl,
   sanitizeMediaUrlList,
-  validateShopeeAffiliateUrl,
-  type AffiliateAudience,
   type AffiliateProduct,
 } from "./affiliate-products";
+import {
+  finalizeProduct,
+  validateProduct,
+  validateStatus,
+  type ProductInput,
+  type RawProductInput,
+} from "./affiliate-catalog-core";
 import type { FeedCategory } from "./trending-videos";
 
 let catalogReady = false;
 
-async function ensureAffiliateCatalogStorage() {
+export async function ensureAffiliateCatalogStorage() {
   if (catalogReady) return;
   const db = getDb();
   await db.execute(sql`
@@ -67,7 +70,7 @@ async function ensureAffiliateCatalogStorage() {
   catalogReady = true;
 }
 
-function mapProduct(row: typeof affiliateCatalogProducts.$inferSelect): AffiliateProduct {
+export function mapProduct(row: typeof affiliateCatalogProducts.$inferSelect): AffiliateProduct {
   return {
     id: row.id,
     name: row.name,
@@ -97,124 +100,7 @@ function parseGalleryUrls(value: string | null): string[] | undefined {
   }
 }
 
-function normalizeProductId(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 100);
-}
-
-type ProductInput = {
-  id?: string;
-  name: string;
-  category: FeedCategory;
-  affiliateUrl: string;
-  priceLabel: string;
-  commissionLabel: string | null;
-  angle: string;
-  priority: number;
-  coverUrl: string | null;
-  videoUrl: string | null;
-  galleryUrls: string[];
-  audience: AffiliateAudience;
-};
-
-const SHORT_LINK_HOSTS = new Set(["s.shopee.com.br", "shope.ee"]);
-
-// Link curto do painel (s.shopee.com.br/XXXX) → link completo. O painel de
-// afiliados entrega link curto por padrão; expandir aqui poupa a Veronica de
-// abrir um por um no navegador. Segue no máximo 5 saltos e para assim que
-// chega em shopee.com.br — o destino final já traz mmp_pid/utm_content.
-export async function expandShopeeShortLink(value: string): Promise<string> {
-  let current = value.trim();
-  for (let hop = 0; hop < 5; hop += 1) {
-    let url: URL;
-    try {
-      url = new URL(current);
-    } catch {
-      return value;
-    }
-    if (!SHORT_LINK_HOSTS.has(url.hostname.toLowerCase())) return url.toString();
-    const response = await fetch(url.toString(), {
-      method: "GET",
-      redirect: "manual",
-      headers: { "user-agent": "Mozilla/5.0 (VeronicaHub link-expander)" },
-    });
-    const location = response.headers.get("location");
-    if (!location)
-      throw new Error("Link curto não redirecionou — confira se ele abre no navegador.");
-    current = new URL(location, url).toString();
-  }
-  return current;
-}
-
-type RawProductInput = Omit<ProductInput, "affiliateUrl" | "id"> & {
-  id: string;
-  rawUrl: string;
-};
-
-function validateProduct(raw: unknown): RawProductInput {
-  const data = raw as Record<string, unknown>;
-  const name = typeof data?.name === "string" ? data.name.trim() : "";
-  const category = typeof data?.category === "string" ? data.category.trim().toLowerCase() : "";
-  const priceLabel = typeof data?.priceLabel === "string" ? data.priceLabel.trim() : "";
-  const angle = typeof data?.angle === "string" ? data.angle.trim() : "";
-  const commissionLabel =
-    typeof data?.commissionLabel === "string" && data.commissionLabel.trim()
-      ? data.commissionLabel.trim().slice(0, 80)
-      : null;
-  const rawUrl = typeof data?.affiliateUrl === "string" ? data.affiliateUrl.trim() : "";
-  const audienceRaw =
-    typeof data?.audience === "string" ? data.audience.trim().toLowerCase() : "unissex";
-  const audience: AffiliateAudience = isAffiliateAudience(audienceRaw) ? audienceRaw : "unissex";
-
-  if (name.length < 3) throw new Error("Nome do produto obrigatório.");
-  if (!isAffiliateCategory(category)) throw new Error(`Categoria inválida para "${name}".`);
-  if (!priceLabel) throw new Error(`Preço obrigatório para "${name}".`);
-  if (angle.length < 10) throw new Error(`Informe um ângulo de venda para "${name}".`);
-  if (!rawUrl) throw new Error(`Link de afiliado obrigatório para "${name}".`);
-
-  const priorityValue =
-    typeof data?.priority === "number" ? data.priority : Number(data?.priority ?? 0);
-  const priority = Number.isFinite(priorityValue)
-    ? Math.max(-100, Math.min(999, Math.round(priorityValue)))
-    : 0;
-
-  return {
-    id: typeof data?.id === "string" ? normalizeProductId(data.id) : "",
-    name: name.slice(0, 180),
-    category,
-    rawUrl,
-    priceLabel: priceLabel.slice(0, 80),
-    commissionLabel,
-    angle: angle.slice(0, 500),
-    priority,
-    coverUrl: sanitizeMediaUrl(data?.coverUrl),
-    videoUrl: sanitizeMediaUrl(data?.videoUrl),
-    galleryUrls: sanitizeMediaUrlList(data?.galleryUrls),
-    audience,
-  };
-}
-
-// Parte assíncrona da validação: expande link curto e só então confere
-// afiliado/Sub_id. Fica fora do validator porque envolve rede.
-async function finalizeProduct(input: RawProductInput): Promise<ProductInput> {
-  const expanded = await expandShopeeShortLink(input.rawUrl);
-  const checkedUrl = validateShopeeAffiliateUrl(expanded);
-  if (!checkedUrl.ok) throw new Error(`${input.name}: ${checkedUrl.error}`);
-
-  const pathId = new URL(checkedUrl.url).pathname.split("/").filter(Boolean).at(-1) ?? "";
-  const id = input.id || normalizeProductId(`${input.name}-${pathId}`);
-  if (!id) throw new Error(`Não foi possível gerar o identificador de "${input.name}".`);
-
-  const { rawUrl: _rawUrl, ...rest } = input;
-  return { ...rest, id, affiliateUrl: checkedUrl.url };
-}
-
-async function upsertProduct(data: ProductInput, adminId: string) {
+export async function upsertProduct(data: ProductInput, adminId: string) {
   const db = getDb();
   const [existing] = await db
     .select({ id: affiliateCatalogProducts.id })
@@ -288,10 +174,10 @@ export async function findPublicAffiliateProduct(
   }
 }
 
-export const listAffiliateProductsAdmin = createServerFn({ method: "GET" }).handler(async () => {
-  const admin = await requireAdmin();
-  if (!admin) return { ok: false as const, error: "Acesso restrito." };
-
+// Lista completa do admin — inclui arquivados e os cliques dos últimos 30 dias.
+// Função simples (sem sessão) para o painel e o conector MCP compartilharem a
+// mesma leitura; quem chama é que decide a autorização.
+export async function listAffiliateProductsCore() {
   await ensureAffiliateCatalogStorage();
   const db = getDb();
   const rows = await db
@@ -313,16 +199,19 @@ export const listAffiliateProductsAdmin = createServerFn({ method: "GET" }).hand
     // A telemetria é opcional; o catálogo continua administrável sem ela.
   }
 
-  return {
-    ok: true as const,
-    products: rows.map((row) => ({
-      ...mapProduct(row),
-      active: row.active,
-      priority: row.priority,
-      clicks30d: clickMap.get(row.id) ?? 0,
-      updatedAt: row.updatedAt.toISOString(),
-    })),
-  };
+  return rows.map((row) => ({
+    ...mapProduct(row),
+    active: row.active,
+    priority: row.priority,
+    clicks30d: clickMap.get(row.id) ?? 0,
+    updatedAt: row.updatedAt.toISOString(),
+  }));
+}
+
+export const listAffiliateProductsAdmin = createServerFn({ method: "GET" }).handler(async () => {
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false as const, error: "Acesso restrito." };
+  return { ok: true as const, products: await listAffiliateProductsCore() };
 });
 
 export const saveAffiliateProductAdmin = createServerFn({ method: "POST" })
@@ -419,23 +308,77 @@ export const importAffiliateProductsAdmin = createServerFn({ method: "POST" })
     return { ok: errors.length === 0, imported, errors };
   });
 
-function statusValidator(input: unknown) {
-  const data = input as { id?: unknown; active?: unknown };
-  if (typeof data?.id !== "string" || !data.id) throw new Error("Produto obrigatório.");
-  if (typeof data?.active !== "boolean") throw new Error("Status inválido.");
-  return { id: data.id, active: data.active };
+// Devolve false quando o produto não existe — o painel ignora, o conector MCP
+// precisa dizer ao agente que o id estava errado.
+export async function setProductActiveCore(id: string, active: boolean): Promise<boolean> {
+  await ensureAffiliateCatalogStorage();
+  const rows = await getDb()
+    .update(affiliateCatalogProducts)
+    .set({ active, updatedAt: new Date() })
+    .where(eq(affiliateCatalogProducts.id, id))
+    .returning({ id: affiliateCatalogProducts.id });
+  return rows.length > 0;
+}
+
+export async function updateProductMediaCore(
+  id: string,
+  coverUrl: string | null,
+  galleryUrls: string[],
+): Promise<AffiliateProduct | null> {
+  await ensureAffiliateCatalogStorage();
+  const [row] = await getDb()
+    .update(affiliateCatalogProducts)
+    .set({
+      coverUrl,
+      galleryUrls: galleryUrls.length > 0 ? JSON.stringify(galleryUrls) : null,
+      updatedAt: new Date(),
+    })
+    .where(eq(affiliateCatalogProducts.id, id))
+    .returning();
+  return row ? mapProduct(row) : null;
+}
+
+// Cliques por produto num período. Sem productId, soma o catálogo inteiro e
+// devolve o ranking; com productId, devolve o total e a série diária (UTC).
+export async function countAffiliateClicksCore(opts: { productId?: string; days: number }) {
+  const db = getDb();
+  const since = new Date(Date.now() - opts.days * 24 * 60 * 60 * 1000);
+  const scope = opts.productId
+    ? and(
+        gte(affiliateLinkClicks.clickedAt, since),
+        eq(affiliateLinkClicks.productId, opts.productId),
+      )
+    : gte(affiliateLinkClicks.clickedAt, since);
+  const day = sql<string>`to_char(${affiliateLinkClicks.clickedAt}, 'YYYY-MM-DD')`;
+  const [byProduct, daily] = await Promise.all([
+    db
+      .select({ productId: affiliateLinkClicks.productId, clicks: count() })
+      .from(affiliateLinkClicks)
+      .where(scope)
+      .groupBy(affiliateLinkClicks.productId)
+      .orderBy(desc(count()))
+      .limit(100),
+    opts.productId
+      ? db
+          .select({ date: day, clicks: count() })
+          .from(affiliateLinkClicks)
+          .where(scope)
+          .groupBy(day)
+          .orderBy(day)
+      : Promise.resolve([] as { date: string; clicks: number }[]),
+  ]);
+  return {
+    byProduct: byProduct.map((row) => ({ productId: row.productId, clicks: Number(row.clicks) })),
+    daily: daily.map((row) => ({ date: row.date, clicks: Number(row.clicks) })),
+  };
 }
 
 export const setAffiliateProductStatusAdmin = createServerFn({ method: "POST" })
-  .validator(statusValidator)
+  .validator(validateStatus)
   .handler(async ({ data }) => {
     const admin = await requireAdmin();
     if (!admin) return { ok: false as const, error: "Acesso restrito." };
 
-    await ensureAffiliateCatalogStorage();
-    await getDb()
-      .update(affiliateCatalogProducts)
-      .set({ active: data.active, updatedAt: new Date() })
-      .where(eq(affiliateCatalogProducts.id, data.id));
+    await setProductActiveCore(data.id, data.active);
     return { ok: true as const };
   });

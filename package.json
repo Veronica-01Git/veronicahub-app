@@ -17,7 +17,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.116.0",
+    "@cfworker/json-schema": "^4.1.1",
     "@hookform/resolvers": "^5.2.2",
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "@neondatabase/serverless": "^1.1.0",
     "@paralleldrive/cuid2": "^3.3.0",
     "@radix-ui/react-accordion": "^1.2.12",

@@ -562,3 +562,6 @@ export {
   agentEvaluations,
   agentLifecycleTransitions,
 } from "./ai/schema";
+
+// Conector MCP "Veronica" (fase 1) — tokens OAuth, só hash. Migração 0021.
+export { mcpOAuthGrants } from "./mcp/schema";

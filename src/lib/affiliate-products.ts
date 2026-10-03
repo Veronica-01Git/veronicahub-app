@@ -1,4 +1,6 @@
-import raw from "@/data/affiliate-products.json";
+// Caminho relativo + atributo de importação: assim o módulo também carrega no
+// `node --test` (que não conhece o alias "@/"), sem mudar nada no build.
+import raw from "../data/affiliate-products.json" with { type: "json" };
 import type { FeedCategory } from "./trending-videos";
 
 // Catálogo de produtos que a Veronica já é afiliada na Shopee e oferece pros

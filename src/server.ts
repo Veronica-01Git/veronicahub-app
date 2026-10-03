@@ -29,6 +29,7 @@ import {
 } from "./lib/wire-feed-server";
 import { handleAffiliateRedirect } from "./lib/affiliate-server";
 import { handleAgentRegistry, isRegistryPath } from "./lib/ai/registry-api";
+import { isMcpPath } from "./lib/mcp/paths";
 import { handlePublishInstagramCron } from "./lib/instagram-cron";
 import {
   handleArtCoversCron,
@@ -174,6 +175,27 @@ const app = {
         return handleAgentRegistry(request);
       } catch (error) {
         console.error("Erro no Agent Registry:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    // Conector MCP "Veronica" (fase 1): /mcp, /oauth/* e os metadados OAuth
+    // em /.well-known/. URL fixa é contrato com o Claude, como o feed do Wire.
+    // Import tardio: o SDK do MCP só carrega quando alguém chama o conector.
+    // Só a conta admin passa — ver src/lib/mcp/http.ts.
+    if (isMcpPath(url.pathname)) {
+      try {
+        const [{ handleMcpHttp }, { getMcpDeps }] = await Promise.all([
+          import("./lib/mcp/http"),
+          import("./lib/mcp/deps.server"),
+        ]);
+        const deps = getMcpDeps();
+        if (!deps) {
+          return new Response("conector MCP não configurado (MCP_OAUTH_SECRET)", { status: 503 });
+        }
+        return await handleMcpHttp(request, deps);
+      } catch (error) {
+        console.error("Erro no conector MCP:", error);
         return new Response("error", { status: 500 });
       }
     }
