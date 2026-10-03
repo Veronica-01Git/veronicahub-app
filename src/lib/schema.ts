@@ -565,3 +565,6 @@ export {
 
 // Conector MCP "Veronica" (fase 1) — tokens OAuth, só hash. Migração 0021.
 export { mcpOAuthGrants } from "./mcp/schema";
+
+// Operação fitness isolada por cliente.
+export { fitnessStudents, fitnessLessons, fitnessPosts, fitnessAgentCases } from "../features/lz-team/platform.schema";

@@ -125,7 +125,8 @@ export type AgenteWorkforceId =
   | "consignacao"
   | "portfolio"
   | "fashion"
-  | "members";
+  | "members"
+  | "lz-fitness";
 
 export type EixoDeImpacto = "Receita" | "Conversão" | "Custo" | "Eficiência" | "Ativos" | "Margem";
 
@@ -207,6 +208,31 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
         "Mantém uma cadência de conteúdo e ajuda membros a encontrar a próxima ação dentro da Hub.",
     },
     midia: { base: "members", alt: "Comunidade criativa trabalhando em um encontro" },
+  },
+  {
+    id: "lz-fitness",
+    nome: "Agente Fitness LZ",
+    curto: "Fitness LZ",
+    etiqueta: "FITNESS LAB",
+    problema: "Um personal independente precisa cuidar dos alunos e manter conteúdo com a própria identidade todos os dias.",
+    funcao: "Laboratório supervisionado que registra casos reais e regras aprovadas por Lucas para a futura operação editorial e de alunos.",
+    capacidades: ["Registra cenários", "Organiza regras", "Prepara avaliação"],
+    produtoId: "clientes",
+    estado: "conceito",
+    prova: "O painel reservado do LZ reúne a turma, aulas e os cenários ensinados pelo coach. Ainda não gera nem publica conteúdo por IA.",
+    selo: "VH-MEM-2026-000002",
+    painel: {
+      to: "/clientes/lz-team/painel",
+      rotulo: "Laboratório LZ",
+      acesso: "cliente",
+      administra: ["Casos fornecidos pelo coach", "Condutas esperadas", "Turma e aulas"],
+    },
+    pendencias: [
+      "Conectar o modelo e avaliar respostas contra os casos aprovados",
+      "Criar calendário editorial, revisão humana e integração autorizada com o Instagram",
+      "Nenhuma publicação automática ou conselho individual de saúde está ativo",
+    ],
+    midia: { base: "members", alt: "Pessoas reunidas para compartilhar uma rotina de treinamento" },
   },
   {
     id: "atendimento",
@@ -576,7 +602,7 @@ export const OPERACOES: readonly Operacao[] = [
     descricao:
       "A entrega. Cada cliente entra pelo número do selo e encontra o próprio ambiente de operação.",
     produtoId: "clientes",
-    agentes: ["atendimento", "fashion"],
+    agentes: ["atendimento", "fashion", "lz-fitness"],
     paineis: [
       { to: "/clientes/express-entulho/operacoes", rotulo: "Express Operations" },
       { to: "/clientes/lz-team/painel", rotulo: "LZ Team" },
@@ -876,7 +902,7 @@ export const IMPLEMENTACOES: readonly Implementacao[] = [
     tipo: "producao",
     setor: "Treinamento esportivo · relacionamento",
     oQueFoiEntregue:
-      "Página pública do método e ambiente privado com entrada pelo selo. É entrega de experiência e de membros — não há agente de IA declarado neste cliente.",
+      "Página pública do método, painel seguro para cadastrar alunos e aulas, comunidade privada e laboratório de regras do futuro agente fitness. A automação editorial ainda não está ativa.",
     selo: "VH-MEM-2026-000002",
     to: "/clientes/lz-team",
     agentes: [],

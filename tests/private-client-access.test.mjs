@@ -7,12 +7,23 @@ const { evaluatePrivateClientAccountAccess, normalizeAccessEmail, parseAllowedEm
 
 test("cliente sem política adicional preserva o acesso pelo fluxo existente", () => {
   const result = evaluatePrivateClientAccountAccess({
-    clientId: "lz-team",
+    clientId: "veronica-fashion-operator",
     email: null,
     environment: {},
   });
 
   assert.equal(result, "allowed");
+});
+
+test("LZ exige conta verificada e equipe autorizada para operar alunos", () => {
+  assert.equal(evaluatePrivateClientAccountAccess({
+    clientId: "lz-team", email: null,
+    environment: { LZ_TEAM_STAFF_EMAILS: "lucas@exemplo.com" },
+  }), "account-required");
+  assert.equal(evaluatePrivateClientAccountAccess({
+    clientId: "lz-team", email: "outro@exemplo.com",
+    environment: { LZ_TEAM_STAFF_EMAILS: "lucas@exemplo.com" },
+  }), "account-not-authorized");
 });
 
 test("Express exige conta verificada mesmo quando o selo já foi validado", () => {
@@ -117,8 +128,8 @@ test("só /clientes/lz-team é pública; o resto de /clientes segue atrás do po
 
   // A página pública não renderiza workspace nem consulta sessão.
   assert.doesNotMatch(publica, /<PrivateClientWorkspace|from "@\/features\/private-clients/);
-  // O workspace do LZ continua existindo, com o mesmo componente protegido.
-  assert.match(painel, /<PrivateClientWorkspace clientSlug="lz-team" \/>/);
+  // O painel do LZ agora usa o portão por conta verificada e equipe autorizada.
+  assert.match(painel, /<LzPlatform section="painel" \/>/);
   // Todos os outros clientes seguem pela rota dinâmica protegida.
   assert.match(dinamica, /<PrivateClientWorkspace clientSlug=\{clientSlug\} \/>/);
   // Quem entra com o selo do LZ cai no painel, não na página pública.

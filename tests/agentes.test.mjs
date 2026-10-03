@@ -164,6 +164,7 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/clientes/",
   "/clientes/$clientSlug",
   "/clientes/admin",
+  "/clientes/lz-team/membros", // comunidade privada acessada pela página pública do LZ
   "/clientes/veronica-fashion-operator/",
   "/clientes/veronica-fashion-operator/execucao",
   "/clientes/express-entulho/operacoes-demo",
