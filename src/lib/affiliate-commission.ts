@@ -50,12 +50,22 @@ function validateRow(raw: unknown): AffiliateSaleImportRow {
   const externalOrderId = String(row.externalOrderId ?? row.orderId ?? row.pedido ?? "").trim();
   const affiliateCode = String(row.affiliateCode ?? row.subId ?? row.sub_id ?? "")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .split("-")[0];
   const rawProductId = String(row.productId ?? row.produto ?? "").trim();
   const productId = rawProductId ? rawProductId.slice(0, 120) : null;
+  if (
+    row.commissionCents !== undefined &&
+    !(
+      typeof row.commissionCents === "number" ||
+      (typeof row.commissionCents === "string" && /^\d+$/.test(row.commissionCents))
+    )
+  ) {
+    throw new Error(`${externalOrderId}: comissão inválida.`);
+  }
   const commissionCents =
     row.commissionCents !== undefined
-      ? Math.max(0, Math.round(Number(row.commissionCents)))
+      ? Number(row.commissionCents)
       : moneyToCents(row.commission ?? row.comissao);
   const status = normalizeStatus(row.status);
   const rawDate = row.orderAt ?? row.orderDate ?? row.data;
@@ -64,7 +74,12 @@ function validateRow(raw: unknown): AffiliateSaleImportRow {
 
   if (!externalOrderId) throw new Error("Pedido sem identificador.");
   if (!affiliateCode) throw new Error(`${externalOrderId}: Sub_id ausente.`);
-  if (!Number.isFinite(commissionCents)) throw new Error(`${externalOrderId}: comissão inválida.`);
+  if (
+    !Number.isSafeInteger(commissionCents) ||
+    commissionCents < 0 ||
+    commissionCents > 2_147_483_647
+  )
+    throw new Error(`${externalOrderId}: comissão inválida.`);
   return {
     externalOrderId: externalOrderId.slice(0, 120),
     affiliateCode: affiliateCode.slice(0, 40),

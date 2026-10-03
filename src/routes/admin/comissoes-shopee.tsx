@@ -30,7 +30,7 @@ type Sale = SalesSuccess["sales"][number];
 
 const template = [
   "pedido\tsub_id\tproduto\tcomissao\tstatus\tdata",
-  "PEDIDO-001\tdiv-exemplo\t123456789\t12,50\tconfirmado\t2026-09-22",
+  "PEDIDO-001\tveronica\t123456789\t12,50\tconfirmado\t2026-09-22",
 ].join("\n");
 
 const statusLabel: Record<string, string> = {
@@ -133,7 +133,7 @@ function ShopeeCommissionsAdmin() {
               <div>
                 <h1 className="font-display text-3xl">Comissões Shopee</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Concilie pedidos, confira a divisão e registre os pagamentos.
+                  Concilie vendas diretas da Hub e vendas da Rede. Confira a divisão e os repasses.
                 </p>
               </div>
             </div>
@@ -152,13 +152,13 @@ function ShopeeCommissionsAdmin() {
         ) : (
           <div className="space-y-8">
             <section className="grid gap-3 sm:grid-cols-3">
-              <Summary label="Comissão confirmada" value={state.totals.commissionCents} />
+              <Summary label="Comissão confirmada em aberto" value={state.totals.commissionCents} />
               <Summary
                 label="A pagar aos divulgadores"
                 value={state.totals.affiliateCents}
                 accent
               />
-              <Summary label="Receita Veronica Hub" value={state.totals.houseCents} />
+              <Summary label="Parcela Hub em pedidos sem baixa" value={state.totals.houseCents} />
             </section>
 
             <section className="grid gap-6 rounded-2xl border border-border/60 bg-card/40 p-5 lg:grid-cols-[1fr_0.78fr] lg:p-7">
@@ -170,7 +170,8 @@ function ShopeeCommissionsAdmin() {
                 <p className="mb-4 text-sm leading-6 text-muted-foreground">
                   Cole dados separados por tabulação ou ponto e vírgula, com o Sub_id usado no link
                   divulgado. A comissão deve ser o valor total creditado pela Shopee; a divisão é
-                  calculada automaticamente.
+                  calculada automaticamente. Vendas com Sub_id veronica destinam toda a comissão à
+                  Hub. Use a data do pedido para acompanhar os períodos no Analytics.
                 </p>
                 <textarea
                   value={raw}
@@ -206,7 +207,7 @@ function ShopeeCommissionsAdmin() {
                 <h3 className="font-semibold">Colunas aceitas</h3>
                 <ol className="mt-3 space-y-2 text-muted-foreground">
                   <li>1. pedido — identificador único</li>
-                  <li>2. sub_id — código do divulgador</li>
+                  <li>2. sub_id — veronica para venda direta ou código do divulgador</li>
                   <li>3. produto — ID opcional</li>
                   <li>4. comissão — valor em reais</li>
                   <li>5. status — pendente, confirmado ou cancelado</li>
@@ -268,7 +269,11 @@ function ShopeeCommissionsAdmin() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div>{sale.email ?? "Conta não localizada"}</div>
+                            <div>
+                              {sale.affiliateCode === "veronica"
+                                ? "Venda direta · Veronica Hub"
+                                : (sale.email ?? "Conta não localizada")}
+                            </div>
                             <code className="text-[11px] text-muted-foreground">
                               {sale.affiliateCode}
                             </code>
@@ -303,7 +308,7 @@ function ShopeeCommissionsAdmin() {
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            {sale.status === "confirmed" ? (
+                            {sale.status === "confirmed" && sale.affiliateCode !== "veronica" ? (
                               <button
                                 type="button"
                                 disabled={busy}
