@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { buildAffiliateUrl, normalizeHandle } from "./affiliate-products";
 import { findPublicAffiliateProduct } from "./affiliate-catalog-server";
+import { ANALYTICS_SOURCES } from "./affiliate-analytics";
 
 // Redirect rastreado dos produtos de afiliado (/r/afiliado) — mesmo desenho
 // do /r/wire: registra a intenção comercial e manda a pessoa pro destino.
@@ -48,6 +49,7 @@ const ALLOWED_PLACEMENTS = new Set([
   "analytics_feed",
   "rede_catalogo",
   "link_divulgador",
+  ...ANALYTICS_SOURCES.map((source) => source.key),
 ]);
 
 export async function handleAffiliateRedirect(request: Request): Promise<Response> {
