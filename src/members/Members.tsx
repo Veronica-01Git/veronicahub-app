@@ -35,6 +35,44 @@ export const kinds = [
   { id: "video", label: "Vídeos", icon: Play },
 ];
 
+type Cover = "community" | "agents" | "studio";
+const topicCovers: Record<string, Cover> = {
+  novidade: "agents",
+  prompt: "agents",
+  ideia: "community",
+  imagem: "studio",
+  video: "studio",
+};
+
+function MemberCover({
+  cover,
+  className = "",
+  priority = false,
+  sizes = "(max-width: 760px) 100vw, (max-width: 1200px) 70vw, 760px",
+}: {
+  cover: Cover;
+  className?: string;
+  priority?: boolean;
+  sizes?: string;
+}) {
+  return (
+    <img
+      className={`vm-cover ${className}`}
+      src={`/images/members/${cover}-1280.webp`}
+      srcSet={[640, 1280, 1672]
+        .map((width) => `/images/members/${cover}-${width}.webp ${width}w`)
+        .join(", ")}
+      sizes={sizes}
+      width={1672}
+      height={941}
+      alt=""
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
+      decoding="async"
+    />
+  );
+}
+
 type FeedPost = Awaited<ReturnType<typeof memberFeed>>["posts"][number];
 type CommunityPost = Omit<FeedPost, "publishedAt" | "createdAt"> & {
   publishedAt: Date | string | null;
@@ -47,8 +85,7 @@ const demoPosts: CommunityPost[] = [
   {
     id: "demo-lab-agentes",
     title: "Estamos testando uma nova forma de ensinar agentes a trabalhar",
-    body:
-      "No Veronica Labs estamos experimentando um fluxo em que o dono descreve o negócio, a Veronica organiza as regras e o agente passa por uma bateria de cenários antes de atender alguém. A pergunta para a comunidade é simples: qual seria o primeiro processo do seu negócio que você entregaria para uma agente?",
+    body: "No Veronica Labs estamos experimentando um fluxo em que o dono descreve o negócio, a Veronica organiza as regras e o agente passa por uma bateria de cenários antes de atender alguém. A pergunta para a comunidade é simples: qual seria o primeiro processo do seu negócio que você entregaria para uma agente?",
     kind: "novidade",
     prompt: "",
     mediaUrl: "",
@@ -73,8 +110,7 @@ const demoPosts: CommunityPost[] = [
   {
     id: "demo-prompt-produto",
     title: "Prompt da semana: transforme uma ideia solta em oferta testável",
-    body:
-      "Um prompt curto para sair da abstração. Use antes de investir tempo em landing page, identidade ou automação: primeiro obrigue a ideia a explicar para quem existe, qual problema resolve e como pode ser testada em sete dias.",
+    body: "Um prompt curto para sair da abstração. Use antes de investir tempo em landing page, identidade ou automação: primeiro obrigue a ideia a explicar para quem existe, qual problema resolve e como pode ser testada em sete dias.",
     kind: "prompt",
     prompt:
       "Atue como estrategista de produto. Pegue minha ideia abaixo e transforme em uma oferta testável em 7 dias. Entregue: público específico, problema urgente, promessa verificável, versão mínima da oferta, canal de aquisição, experimento de validação e 3 sinais objetivos de que devo continuar ou abandonar. Ideia: [COLE AQUI].",
@@ -94,8 +130,7 @@ const demoPosts: CommunityPost[] = [
   {
     id: "demo-ideia-members",
     title: "Ideia aberta: uma biblioteca pessoal que aprende com o que você salva",
-    body:
-      "Estamos desenhando a Biblioteca do Members para ir além de favoritos. A visão é que prompts, aulas, agentes e experimentos salvos formem um mapa do que você está tentando construir — e a Veronica use isso para sugerir o próximo passo.",
+    body: "Estamos desenhando a Biblioteca do Members para ir além de favoritos. A visão é que prompts, aulas, agentes e experimentos salvos formem um mapa do que você está tentando construir — e a Veronica use isso para sugerir o próximo passo.",
     kind: "ideia",
     prompt: "",
     mediaUrl: "",
@@ -123,23 +158,29 @@ const labs = [
   {
     eyebrow: "LAB 01 · AGENTES",
     title: "Sala de teste de agentes",
-    description: "Experimentos de comportamento, regras e handoff antes de uma agente chegar ao cliente real.",
+    description:
+      "Experimentos de comportamento, regras e handoff antes de uma agente chegar ao cliente real.",
     status: "Em teste",
     href: "/agentes",
+    cover: "agents" as const,
   },
   {
     eyebrow: "LAB 02 · CRIAÇÃO",
     title: "Studio Veronica",
-    description: "Novos fluxos de imagem, vídeo e direção criativa entram aqui antes de virarem produto definitivo.",
+    description:
+      "Novos fluxos de imagem, vídeo e direção criativa entram aqui antes de virarem produto definitivo.",
     status: "Explorar",
     href: "/studio-veronica",
+    cover: "studio" as const,
   },
   {
     eyebrow: "LAB 03 · PORTFOLIO",
     title: "Portfolio inteligente",
-    description: "Uma experiência que transforma briefing em presença profissional e prepara a próxima etapa do projeto.",
+    description:
+      "Uma experiência que transforma briefing em presença profissional e prepara a próxima etapa do projeto.",
     status: "Beta",
     href: "/portfolio",
+    cover: "community" as const,
   },
 ];
 
@@ -153,7 +194,7 @@ export function MembersShell({
   admin?: boolean;
 }) {
   return (
-    <div className="vh-members">
+    <div className={`vh-members ${admin ? "vm-editor-shell" : "vm-community-shell"}`}>
       <div className="vm-ambient" aria-hidden="true" />
       <header className="vm-header">
         <a className="vm-brand" href="/">
@@ -204,12 +245,12 @@ export function MemberLogin({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form className="vm-login vm-login-premium" onSubmit={submit}>
-      <div className="vm-login-icon"><LockKeyhole size={25} /></div>
+      <div className="vm-login-icon">
+        <LockKeyhole size={25} />
+      </div>
       <span className="vm-eyebrow">VERONICA MEMBERS</span>
       <h2>Seu espaço dentro da Hub.</h2>
-      <p>
-        Entre gratuitamente para salvar conteúdos, acompanhar Labs e participar das conversas.
-      </p>
+      <p>Entre gratuitamente para salvar conteúdos, acompanhar Labs e participar das conversas.</p>
       <label>
         E-mail
         <input
@@ -376,68 +417,86 @@ function PostCard({
 
   return (
     <article className="vm-post">
-      <div className="vm-post-top">
-        <span className="vm-avatar">v.</span>
-        <div>
-          <strong>Veronica Hub</strong>
-          <small>
-            Equipe editorial ·{" "}
-            {post.publishedAt
-              ? new Date(post.publishedAt).toLocaleDateString("pt-BR", {
-                  timeZone: "America/Sao_Paulo",
-                })
-              : ""}
-          </small>
-        </div>
-        {post.demo && <span className="vm-demo-pill">Demo</span>}
-        <span className="vm-tag">{category?.label}</span>
+      <div className="vm-post-cover">
+        {post.mediaUrl && post.kind === "video" ? (
+          <video
+            className="vm-media"
+            controls
+            preload="metadata"
+            poster="/images/members/studio-1280.webp"
+            src={post.mediaUrl}
+          >
+            Seu navegador não suporta este vídeo.
+          </video>
+        ) : post.mediaUrl ? (
+          <img
+            className="vm-media"
+            src={post.mediaUrl}
+            alt={post.title}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <MemberCover cover={topicCovers[post.kind] ?? "community"} />
+        )}
       </div>
-      <h2>{post.title}</h2>
-      <p className="vm-body">{post.body}</p>
-      {post.mediaUrl && post.kind === "video" ? (
-        <video className="vm-media" controls preload="metadata" src={post.mediaUrl}>
-          Seu navegador não suporta este vídeo.
-        </video>
-      ) : post.mediaUrl ? (
-        <img className="vm-media" src={post.mediaUrl} alt={post.title} loading="lazy" />
-      ) : null}
-      {post.prompt && (
-        <div className="vm-prompt">
+      <div className="vm-post-content">
+        <div className="vm-post-top">
+          <span className="vm-avatar">v.</span>
           <div>
-            <span>
-              <Terminal size={16} /> Prompt pronto para usar
-            </span>
-            <button
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(post.prompt);
-                  setCopied("Copiado!");
-                } catch {
-                  setCopied("Selecione o texto para copiar.");
-                }
-              }}
-            >
-              <Copy size={15} />
-              {copied || "Copiar"}
+            <strong>Veronica Hub</strong>
+            <small>
+              Equipe editorial ·{" "}
+              {post.publishedAt
+                ? new Date(post.publishedAt).toLocaleDateString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                  })
+                : ""}
+            </small>
+          </div>
+          {post.demo && <span className="vm-demo-pill">Demo</span>}
+          <span className="vm-tag">{category?.label}</span>
+        </div>
+        <h2>{post.title}</h2>
+        <p className="vm-body">{post.body}</p>
+        {post.prompt && (
+          <div className="vm-prompt">
+            <div>
+              <span>
+                <Terminal size={16} /> Prompt pronto para usar
+              </span>
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(post.prompt);
+                    setCopied("Copiado!");
+                  } catch {
+                    setCopied("Selecione o texto para copiar.");
+                  }
+                }}
+              >
+                <Copy size={15} />
+                {copied || "Copiar"}
+              </button>
+            </div>
+            <pre>{post.prompt}</pre>
+          </div>
+        )}
+        <div className="vm-post-actions">
+          <div>
+            <button aria-expanded={open} onClick={() => setOpen(!open)}>
+              <MessageCircle size={18} />
+              {open ? "Fechar conversa" : "Participar da conversa"}
+            </button>
+            <button onClick={onToggleSave} aria-pressed={saved}>
+              <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
+              {saved ? "Salvo" : "Salvar"}
             </button>
           </div>
-          <pre>{post.prompt}</pre>
+          <span>Exclusivo para membros</span>
         </div>
-      )}
-      <div className="vm-post-actions">
-        <div>
-          <button aria-expanded={open} onClick={() => setOpen(!open)}>
-            <MessageCircle size={18} />
-            {open ? "Fechar conversa" : "Participar da conversa"}
-          </button>
-          <button onClick={onToggleSave} aria-pressed={saved}>
-            <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
-            {saved ? "Salvo" : "Salvar"}
-          </button>
-        </div>
-        <span>Exclusivo para membros</span>
+        {open && <Discussion postId={post.id} demoComments={post.demoComments} />}
       </div>
-      {open && <Discussion postId={post.id} demoComments={post.demoComments} />}
     </article>
   );
 }
@@ -448,21 +507,24 @@ function LabsView() {
       <div className="vm-section-hero">
         <span className="vm-eyebrow">VERONICA LABS</span>
         <h2>Teste o que ainda não chegou ao público.</h2>
-        <p>
-          O Members vira a primeira camada de acesso aos experimentos do ecossistema Veronica.
-        </p>
+        <p>O Members vira a primeira camada de acesso aos experimentos do ecossistema Veronica.</p>
       </div>
       <div className="vm-labs-grid">
         {labs.map((lab) => (
           <a key={lab.title} className="vm-lab-card" href={lab.href}>
-            <span className="vm-eyebrow">{lab.eyebrow}</span>
-            <div className="vm-lab-icon"><Beaker /></div>
-            <h3>{lab.title}</h3>
-            <p>{lab.description}</p>
-            <footer>
-              <span>{lab.status}</span>
-              <ArrowUpRight size={17} />
-            </footer>
+            <MemberCover cover={lab.cover} className="vm-lab-cover" />
+            <div className="vm-lab-content">
+              <span className="vm-eyebrow">{lab.eyebrow}</span>
+              <div className="vm-lab-icon">
+                <Beaker />
+              </div>
+              <h3>{lab.title}</h3>
+              <p>{lab.description}</p>
+              <footer>
+                <span>{lab.status}</span>
+                <ArrowUpRight size={17} />
+              </footer>
+            </div>
           </a>
         ))}
       </div>
@@ -537,6 +599,7 @@ export default function Members() {
             {nav.map((item) => (
               <button
                 key={item.id}
+                aria-pressed={view === item.id}
                 className={view === item.id ? "is-active" : ""}
                 onClick={() => setView(item.id)}
               >
@@ -563,21 +626,73 @@ export default function Members() {
       </div>
 
       {!loading && !feed?.signedIn ? (
-        <div className="vm-gate">
-          <div className="vm-gate-copy">
-            <span className="vm-eyebrow">SEU CENTRO PESSOAL</span>
-            <h1>Um lugar para transformar curiosidade em construção.</h1>
-            <p>
-              Conteúdo, Labs, biblioteca pessoal e comunidade conectados ao restante da Veronica Hub.
-            </p>
-            <div className="vm-gate-points">
-              <span><Bookmark /> Salve o que importa.</span>
-              <span><Beaker /> Teste antes de todo mundo.</span>
-              <span><Layers /> Conecte conteúdo a ferramentas.</span>
+        <main className="vm-welcome">
+          <section className="vm-welcome-cover" aria-label="Veronica Members">
+            <MemberCover cover="community" priority sizes="(max-width: 760px) 100vw, 1200px" />
+            <span className="vm-welcome-label">
+              <LockKeyhole size={15} /> VERONICA MEMBERS
+            </span>
+            <div>
+              <span>Um espaço para ir além.</span>
+              <p>Aprender. Criar. Compartilhar.</p>
             </div>
+          </section>
+          <div className="vm-gate">
+            <div className="vm-gate-copy">
+              <span className="vm-eyebrow">SUA PRÓXIMA IDEIA COMEÇA AQUI</span>
+              <h1>Boas ideias merecem boa companhia.</h1>
+              <p>
+                Conteúdo, Labs, biblioteca pessoal e comunidade conectados ao restante da Veronica
+                Hub.
+              </p>
+              <div className="vm-gate-points">
+                <span>
+                  <Bookmark /> Salve o que importa.
+                </span>
+                <span>
+                  <Beaker /> Teste antes de todo mundo.
+                </span>
+                <span>
+                  <Layers /> Conecte conteúdo a ferramentas.
+                </span>
+              </div>
+            </div>
+            <MemberLogin onSuccess={refresh} />
           </div>
-          <MemberLogin onSuccess={refresh} />
-        </div>
+          <section className="vm-welcome-topics" aria-label="Dentro do Members">
+            <div className="vm-collection-heading">
+              <span className="vm-eyebrow">DENTRO DO MEMBERS</span>
+              <h2>Um universo para explorar.</h2>
+            </div>
+            <div className="vm-welcome-topics-grid">
+              {[
+                {
+                  cover: "agents" as const,
+                  label: "Agentes & prompts",
+                  detail: "Ideias que viram ferramentas.",
+                },
+                {
+                  cover: "studio" as const,
+                  label: "Imagem & criação",
+                  detail: "Novas formas de expressar sua visão.",
+                },
+                {
+                  cover: "community" as const,
+                  label: "Labs & comunidade",
+                  detail: "Aprendizados que você leva adiante.",
+                },
+              ].map((topic) => (
+                <article key={topic.label}>
+                  <MemberCover cover={topic.cover} sizes="(max-width: 760px) 90vw, 400px" />
+                  <div>
+                    <h3>{topic.label}</h3>
+                    <p>{topic.detail}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </main>
       ) : (
         <div className="vm-layout vm-layout-v2">
           <aside className="vm-sidebar">
@@ -626,26 +741,42 @@ export default function Members() {
 
           <main className="vm-main">
             {loading ? (
-              <div className="vm-empty" role="status">Carregando seu espaço…</div>
+              <div className="vm-empty" role="status">
+                Carregando seu espaço…
+              </div>
             ) : error ? (
               <div className="vm-empty" role="alert">
                 <h3>Vamos tentar novamente?</h3>
                 <p>{error}</p>
-                <button className="vm-primary" onClick={refresh}>Recarregar</button>
+                <button className="vm-primary" onClick={refresh}>
+                  Recarregar
+                </button>
               </div>
             ) : view === "labs" ? (
               <LabsView />
             ) : view === "biblioteca" ? (
               <section className="vm-view-section">
                 <div className="vm-section-hero vm-library-hero">
-                  <span className="vm-eyebrow">MINHA BIBLIOTECA</span>
-                  <h2>O que vale guardar, fica perto.</h2>
-                  <p>Seus conteúdos salvos neste dispositivo aparecem aqui.</p>
+                  <MemberCover cover="community" className="vm-section-cover" />
+                  <div className="vm-section-copy">
+                    <span className="vm-eyebrow">MINHA BIBLIOTECA</span>
+                    <h2>O que vale guardar, fica perto.</h2>
+                    <p>Seus conteúdos salvos neste dispositivo aparecem aqui.</p>
+                  </div>
                 </div>
                 <div className="vm-library-stats">
-                  <div><strong>{savedPosts.length}</strong><span>Itens salvos</span></div>
-                  <div><strong>{savedPosts.filter((p) => p.kind === "prompt").length}</strong><span>Prompts</span></div>
-                  <div><strong>{savedPosts.filter((p) => p.kind === "video").length}</strong><span>Vídeos</span></div>
+                  <div>
+                    <strong>{savedPosts.length}</strong>
+                    <span>Itens salvos</span>
+                  </div>
+                  <div>
+                    <strong>{savedPosts.filter((p) => p.kind === "prompt").length}</strong>
+                    <span>Prompts</span>
+                  </div>
+                  <div>
+                    <strong>{savedPosts.filter((p) => p.kind === "video").length}</strong>
+                    <span>Vídeos</span>
+                  </div>
                 </div>
                 {savedPosts.length ? (
                   savedPosts.map((post) => (
@@ -672,9 +803,10 @@ export default function Members() {
                 {view === "inicio" && (
                   <>
                     <section className="vm-dashboard-hero">
+                      <MemberCover cover="community" className="vm-dashboard-cover" priority />
                       <div>
-                        <span className="vm-eyebrow">SEU MEMBERS</span>
-                        <h2>O próximo passo do seu projeto pode começar aqui.</h2>
+                        <span className="vm-eyebrow">SEU ESPAÇO. SUAS POSSIBILIDADES.</span>
+                        <h2>Crie o que vem depois.</h2>
                         <p>Conteúdo, experimentos e conversas conectados à Veronica Hub.</p>
                         <div className="vm-hero-actions">
                           <button className="vm-primary" onClick={() => setView("labs")}>
@@ -685,28 +817,60 @@ export default function Members() {
                           </button>
                         </div>
                       </div>
-                      <div className="vm-orbit" aria-hidden="true">
-                        <span />
-                        <span />
-                        <span />
-                        <b>v.</b>
+                    </section>
+
+                    <section className="vm-topic-collection" aria-label="Explorar por tema">
+                      <div className="vm-collection-heading">
+                        <span className="vm-eyebrow">ESCOLHA SUA PRÓXIMA DESCOBERTA</span>
+                        <h2>Feito para a sua curiosidade.</h2>
+                      </div>
+                      <div className="vm-topic-grid">
+                        {kinds
+                          .filter((kind) => kind.id !== "todos")
+                          .map((kind) => (
+                            <button
+                              key={kind.id}
+                              onClick={() => {
+                                setFilter(kind.id);
+                                setView("comunidade");
+                              }}
+                            >
+                              <MemberCover
+                                cover={topicCovers[kind.id]}
+                                sizes="(max-width: 760px) 45vw, 240px"
+                              />
+                              <span>
+                                <kind.icon size={17} />
+                                {kind.label}
+                              </span>
+                            </button>
+                          ))}
                       </div>
                     </section>
 
                     <section className="vm-dashboard-grid">
                       <button onClick={() => setView("comunidade")}>
                         <Newspaper />
-                        <span><small>AGORA</small><strong>{allPosts.length} conteúdos disponíveis</strong></span>
+                        <span>
+                          <small>AGORA</small>
+                          <strong>{allPosts.length} conteúdos disponíveis</strong>
+                        </span>
                         <ChevronRight />
                       </button>
                       <button onClick={() => setView("biblioteca")}>
                         <Bookmark />
-                        <span><small>SUA BIBLIOTECA</small><strong>{savedPosts.length} itens salvos</strong></span>
+                        <span>
+                          <small>SUA BIBLIOTECA</small>
+                          <strong>{savedPosts.length} itens salvos</strong>
+                        </span>
                         <ChevronRight />
                       </button>
                       <button onClick={() => setView("labs")}>
                         <Beaker />
-                        <span><small>LABS</small><strong>3 experimentos para explorar</strong></span>
+                        <span>
+                          <small>LABS</small>
+                          <strong>3 experimentos para explorar</strong>
+                        </span>
                         <ChevronRight />
                       </button>
                     </section>
@@ -716,8 +880,9 @@ export default function Members() {
                       <div>
                         <strong>Comunidade em fase de demonstração</strong>
                         <p>
-                          Enquanto os primeiros membros reais ainda chegam, alguns perfis, comentários
-                          e publicações abaixo são fictícios e estão identificados como Demo.
+                          Enquanto os primeiros membros reais ainda chegam, alguns perfis,
+                          comentários e publicações abaixo são fictícios e estão identificados como
+                          Demo.
                         </p>
                       </div>
                     </section>
@@ -777,8 +942,12 @@ export default function Members() {
             <div className="vm-right-cta">
               <span className="vm-eyebrow">ECOSSISTEMA</span>
               <h4>Pronto para executar?</h4>
-              <a href="/agentes">Conhecer agentes <ArrowUpRight size={15} /></a>
-              <a href="/studio-veronica">Abrir Studio <ArrowUpRight size={15} /></a>
+              <a href="/agentes">
+                Conhecer agentes <ArrowUpRight size={15} />
+              </a>
+              <a href="/studio-veronica">
+                Abrir Studio <ArrowUpRight size={15} />
+              </a>
             </div>
           </aside>
         </div>
