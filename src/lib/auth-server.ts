@@ -55,47 +55,53 @@ const requestEmailCodeValidator = (input: unknown) => {
   return { email: email.trim().toLowerCase() };
 };
 
+// Núcleo do envio de código: o login do site e a tela de autorização do
+// conector MCP usam o MESMO fluxo (cooldown, hash, validade), cada um com a sua
+// camada de entrada.
+export async function issueEmailCodeCore(
+  email: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const db = getDb();
+
+  const recent = await db
+    .select()
+    .from(emailOtps)
+    .where(and(eq(emailOtps.email, email), isNull(emailOtps.consumedAt)))
+    .orderBy(desc(emailOtps.createdAt))
+    .limit(1);
+
+  const last = recent[0];
+  if (last && Date.now() - last.createdAt.getTime() < RESEND_COOLDOWN_MS) {
+    const waitSec = Math.ceil(
+      (RESEND_COOLDOWN_MS - (Date.now() - last.createdAt.getTime())) / 1000,
+    );
+    return { ok: false as const, error: `Aguarde ${waitSec}s antes de pedir um novo código.` };
+  }
+
+  const code = generateCode();
+  const codeHash = await hashCode(code);
+
+  try {
+    await sendCodeEmail(email, code);
+  } catch (error) {
+    return {
+      ok: false as const,
+      error: error instanceof Error ? error.message : "Falha ao enviar e-mail.",
+    };
+  }
+
+  await db.insert(emailOtps).values({
+    email,
+    codeHash,
+    expiresAt: new Date(Date.now() + CODE_TTL_MS),
+  });
+
+  return { ok: true as const };
+}
+
 export const requestEmailCode = createServerFn({ method: "POST" })
   .validator(requestEmailCodeValidator)
-  .handler(async ({ data }) => {
-    const db = getDb();
-    const { email } = data;
-
-    const recent = await db
-      .select()
-      .from(emailOtps)
-      .where(and(eq(emailOtps.email, email), isNull(emailOtps.consumedAt)))
-      .orderBy(desc(emailOtps.createdAt))
-      .limit(1);
-
-    const last = recent[0];
-    if (last && Date.now() - last.createdAt.getTime() < RESEND_COOLDOWN_MS) {
-      const waitSec = Math.ceil(
-        (RESEND_COOLDOWN_MS - (Date.now() - last.createdAt.getTime())) / 1000,
-      );
-      return { ok: false as const, error: `Aguarde ${waitSec}s antes de pedir um novo código.` };
-    }
-
-    const code = generateCode();
-    const codeHash = await hashCode(code);
-
-    try {
-      await sendCodeEmail(email, code);
-    } catch (error) {
-      return {
-        ok: false as const,
-        error: error instanceof Error ? error.message : "Falha ao enviar e-mail.",
-      };
-    }
-
-    await db.insert(emailOtps).values({
-      email,
-      codeHash,
-      expiresAt: new Date(Date.now() + CODE_TTL_MS),
-    });
-
-    return { ok: true as const };
-  });
+  .handler(async ({ data }) => issueEmailCodeCore(data.email));
 
 const verifyEmailCodeValidator = (input: unknown) => {
   const body = input as { email?: unknown; code?: unknown };
@@ -105,45 +111,58 @@ const verifyEmailCodeValidator = (input: unknown) => {
   return { email: body.email.trim().toLowerCase(), code: body.code.trim() };
 };
 
+// Confere e consome o código. Não cria usuário nem sessão: quem chama decide o
+// que o código dá direito (cookie de sessão no site; token OAuth no conector).
+export async function consumeEmailCodeCore(
+  email: string,
+  code: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const db = getDb();
+
+  const rows = await db
+    .select()
+    .from(emailOtps)
+    .where(
+      and(
+        eq(emailOtps.email, email),
+        isNull(emailOtps.consumedAt),
+        gt(emailOtps.expiresAt, new Date()),
+      ),
+    )
+    .orderBy(desc(emailOtps.createdAt))
+    .limit(1);
+
+  const otp = rows[0];
+  if (!otp) {
+    return { ok: false as const, error: "Código expirado ou não encontrado. Peça um novo." };
+  }
+
+  if (otp.attempts >= MAX_ATTEMPTS) {
+    await db.update(emailOtps).set({ consumedAt: new Date() }).where(eq(emailOtps.id, otp.id));
+    return { ok: false as const, error: "Muitas tentativas erradas. Peça um novo código." };
+  }
+
+  const codeHash = await hashCode(code);
+  if (codeHash !== otp.codeHash) {
+    await db
+      .update(emailOtps)
+      .set({ attempts: otp.attempts + 1 })
+      .where(eq(emailOtps.id, otp.id));
+    return { ok: false as const, error: "Código incorreto." };
+  }
+
+  await db.update(emailOtps).set({ consumedAt: new Date() }).where(eq(emailOtps.id, otp.id));
+  return { ok: true as const };
+}
+
 export const verifyEmailCode = createServerFn({ method: "POST" })
   .validator(verifyEmailCodeValidator)
   .handler(async ({ data }) => {
     const db = getDb();
     const { email, code } = data;
 
-    const rows = await db
-      .select()
-      .from(emailOtps)
-      .where(
-        and(
-          eq(emailOtps.email, email),
-          isNull(emailOtps.consumedAt),
-          gt(emailOtps.expiresAt, new Date()),
-        ),
-      )
-      .orderBy(desc(emailOtps.createdAt))
-      .limit(1);
-
-    const otp = rows[0];
-    if (!otp) {
-      return { ok: false as const, error: "Código expirado ou não encontrado. Peça um novo." };
-    }
-
-    if (otp.attempts >= MAX_ATTEMPTS) {
-      await db.update(emailOtps).set({ consumedAt: new Date() }).where(eq(emailOtps.id, otp.id));
-      return { ok: false as const, error: "Muitas tentativas erradas. Peça um novo código." };
-    }
-
-    const codeHash = await hashCode(code);
-    if (codeHash !== otp.codeHash) {
-      await db
-        .update(emailOtps)
-        .set({ attempts: otp.attempts + 1 })
-        .where(eq(emailOtps.id, otp.id));
-      return { ok: false as const, error: "Código incorreto." };
-    }
-
-    await db.update(emailOtps).set({ consumedAt: new Date() }).where(eq(emailOtps.id, otp.id));
+    const consumed = await consumeEmailCodeCore(email, code);
+    if (!consumed.ok) return consumed;
 
     let [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!user) {

@@ -1,3 +1,164 @@
+## Conector MCP "Veronica" — fase 1, Claude operando o Analytics (2026-10-03)
+
+**Responsável:** Claude Code, nesta sessão com Matheus. Branch
+`feat/mcp-veronica-fase1`. **Estado:** PR aberto, sem merge. Migração 0021
+testada numa branch do Neon; **não aplicada em produção**.
+
+### O que foi feito
+
+- Rota fixa `/mcp` no mesmo Worker, interceptada em `src/server.ts` como as
+  outras rotas fixas, junto de `/oauth/*` e dos metadados em `/.well-known/`.
+  O SDK do MCP só carrega quando alguém chama o conector (import tardio).
+- SDK oficial `@modelcontextprotocol/sdk` 1.31.0 com o transporte
+  **WebStandardStreamableHTTPServerTransport** (Request/Response, feito para
+  Workers), sem sessão, resposta JSON. Validador de schema
+  `@cfworker/json-schema` no lugar do Ajv, que usa `new Function` (proibido
+  no Worker). A 1.32.0 foi barrada pela trava de 24 h do `bunfig.toml`.
+- **OAuth 2.1 próprio, pequeno** (`src/lib/mcp/oauth.ts`). Avaliado e
+  descartado `@cloudflare/workers-oauth-provider`: exige binding KV
+  (`OAUTH_KV`) e assume o `export default` do Worker, e este repo não tem
+  wrangler.toml (o nitro gera o do build). O servidor próprio cumpre o que o
+  Claude exige: 401 com `resource_metadata`, RFC 9728 e 8414, registro
+  dinâmico (RFC 7591), PKCE S256, refresh com rotação, revogação RFC 7009.
+- **Tela de autorização** (`src/lib/mcp/authorize.ts`) reutiliza o login por
+  código de e-mail: `issueEmailCodeCore` e `consumeEmailCodeCore` foram
+  extraídos de `auth-server.ts` sem mudar o comportamento do login do site.
+  Código só é enviado se o e-mail for de admin; a tela responde igual nos
+  dois casos (não revela quem é admin).
+- **Só admin:** `findAdminUser` (mesma regra de `requireAdminCore`, por
+  e-mail ou id) é conferido ao emitir o código, ao trocar por token, a cada
+  refresh e a **cada chamada do /mcp** — rebaixar a conta corta o acesso na
+  hora.
+- Validação do catálogo movida, sem duplicar, para
+  `src/lib/affiliate-catalog-core.ts` (`validateProduct`, `finalizeProduct`,
+  `expandShopeeShortLink`, `validateStatus`, mais `validateMediaPatch`); o
+  painel admin e o conector chamam as mesmas funções. As leituras/escritas de
+  banco viraram funções simples em `affiliate-catalog-server.ts`
+  (`listAffiliateProductsCore`, `setProductActiveCore`,
+  `updateProductMediaCore`, `countAffiliateClicksCore`), usadas pelas
+  server functions e pelo conector.
+- Agente `veronica-mcp` no registro (INTERNAL, LEVEL_2, tenant interno, custo
+  zero por fato — nenhum modelo roda na conta da Veronica) e seis ferramentas
+  no `TOOL_REGISTRY` (`mcp.*`): três `read`, três `write`.
+- **Auditoria:** cada chamada abre uma linha em `AgentExecution` (RUNNING)
+  antes de agir e fecha em SUCCEEDED/FAILED com duração e código de erro
+  genérico. Se a linha não puder ser aberta, nada é executado. Metadados
+  passam por `sanitizeEvent`; não entram e-mail, token, link de afiliado nem
+  texto livre. `approvedBy` guarda o id interno do admin.
+- Instruções do servidor em PT-BR, curtas, com a persona da Veronica.
+- `affiliate-products.ts` passou a importar o JSON por caminho relativo com
+  `with { type: "json" }`, para carregar no `node --test`. Build inalterado.
+
+### Ferramentas
+
+| Ferramenta | Efeito | O que faz |
+| --- | --- | --- |
+| `listar_produtos` | leitura | catálogo completo, inclusive arquivados, com cliques de 30 dias |
+| `cadastrar_produto` | escrita | mesma validação do admin: expande link curto, exige `an_`, carimba Sub_id da casa se faltar, categoria, público, capa, vídeo, galeria; avisa mídia descartada |
+| `definir_capa_e_galeria` | escrita | `id`, `coverUrl`, `galleryUrls`; só HTTPS e até 4 — qualquer URL ruim recusa a chamada inteira |
+| `ativar_arquivar_produto` | escrita | ativa ou arquiva; nada é apagado |
+| `ver_cliques` | leitura | por produto e período (1–365 dias), com série diária UTC |
+| `status_dos_agentes` | leitura | DTO público do registro + o mesmo dado de `/api/agents/members/status` |
+
+### Como conectar no Claude
+
+Pré-requisitos (uma vez, feitos pelo dono — não feitos por este PR):
+
+1. Aplicar `drizzle/0021_mcp_oauth.sql` no Neon de produção (aditiva,
+   idempotente; mesmo texto testado na branch).
+2. Criar as variáveis do Worker `veronicahub-app` (Cloudflare → Workers →
+   Settings → Variables and Secrets, ou `wrangler secret put`):
+   `MCP_OAUTH_SECRET` (gerar com `openssl rand -base64 48`, tipo *Secret*) e
+   `MCP_PUBLIC_ORIGIN=https://veronicahub.com`. Sem o segredo, `/mcp`
+   responde 503.
+3. Merge e deploy.
+
+No Claude (claude.ai, Desktop ou celular, conta da Veronica):
+
+1. **Configurações → Conectores → Adicionar conector personalizado.**
+2. Nome: `Veronica`. URL: `https://veronicahub.com/mcp`. Deixe client ID e
+   secret em branco (o Claude se registra sozinho). **Adicionar.**
+3. Clique em **Conectar**. Abre `veronicahub.com/oauth/authorize`, mostrando
+   que o retorno é `claude.ai`.
+4. Digite o e-mail da conta admin → **Enviar código** → digite o código de 6
+   dígitos que chega por e-mail → **Autorizar**. Volta para o Claude
+   conectado.
+5. Numa conversa, ative o conector "Veronica" no menu de ferramentas e peça,
+   por exemplo, "liste os produtos do Analytics".
+
+Para desconectar: remova o conector no Claude. Para revogar todos os tokens
+de uma vez: `UPDATE "McpOAuthGrant" SET "revokedAt" = now() WHERE "revokedAt"
+IS NULL;` — ou tirar o papel admin da conta, que corta na hora.
+
+### Segurança
+
+- Token de acesso 1 h; refresh 14 dias com rotação; reapresentar refresh já
+  usado revoga a família inteira. Código de autorização: 5 min, uso único,
+  preso a cliente, redirect e PKCE.
+- O banco guarda só SHA-256 dos tokens (`McpOAuthGrant`).
+- Callbacks aceitos: `https://claude.ai/api/mcp/auth_callback`,
+  `https://claude.com/api/mcp/auth_callback` e loopback local
+  (`localhost`/`127.0.0.1`, qualquer porta) para o Claude Code — a tela avisa
+  quando o retorno é local. client_id do registro dinâmico é assinado (HMAC)
+  com as redirect_uris dentro: não há como trocar o destino.
+- Tela de autorização sem script, CSP fechada, `frame-ancestors 'none'`.
+- Nenhum segredo commitado. Novos: `MCP_OAUTH_SECRET`, `MCP_PUBLIC_ORIGIN`
+  (documentados em `.env.example`).
+- Não toca WhatsApp da Express, checkout, `revenueShare` nem conciliação.
+
+### Testes
+
+- `tests/mcp-veronica.test.mjs` (14 testes, sem rede nem banco): sem token →
+  401 com `resource_metadata`; token de não-admin → 403 (e admin rebaixado
+  depois também); token expirado → 401 `invalid_token`; não-admin não recebe
+  código; refresh, reuso e revogação; callback estranho, client_id
+  adulterado, PKCE errado; `cadastrar_produto` rejeita link sem `an_` e
+  aceita link válido (inclusive curto); `definir_capa_e_galeria` rejeita
+  http e 5 URLs; toda ferramenta gera linha em AgentExecution, sem e-mail,
+  token ou link no log; auditoria fora do ar = nada executado.
+- `bun run typecheck` limpo, `bun run test` 311/311, `bun run build` ok.
+- **Ponta a ponta no runtime do Worker** (`wrangler dev`/workerd sobre o
+  `.output/server` do build) contra a branch Neon `mcp-veronica-fase1`
+  (cópia da produção; migração 0021 aplicada duas vezes, idempotente):
+  registro, autorização, token, `initialize`, `tools/list`, as seis
+  ferramentas, recusas, refresh e revogação funcionaram; 10 linhas
+  `veronica-mcp` em AgentExecution, sem e-mail nem token. Os dados de teste
+  (2 usuários `mcp-e2e-*@teste.invalid` e o produto `mcp-e2e-produto`)
+  existem só nessa branch, que pode ser apagada.
+
+### Limites
+
+- Fase 1 só para admin; sem multiusuário, sem escopo por ferramenta.
+- Depois de um refresh, o token de acesso anterior segue válido até vencer
+  (até 1 h); revogação explícita corta tudo.
+- Sem limite de taxa próprio no /mcp além do OTP (cooldown de 60 s, 5
+  tentativas por código).
+- O SDK acrescenta ~210 KB gzip ao pacote do Worker (chunk carregado só no
+  `/mcp`): o .tgz do `.output/server` foi de ~2,35 MB para ~2,56 MB.
+- O registro dinâmico cria um client_id novo a cada conexão (sem estado, não
+  cresce tabela). CIMD não foi implementado; o Claude cai para DCR.
+
+### Registro que faltava neste arquivo (Analytics)
+
+- **PR #129** (22/09/2026): `AffiliateProduct` ganhou capa, vídeo e público
+  (migração 0015); admin expande link curto e carimba Sub_id da casa;
+  `/veronica-analytics` com capa no card, player 9:16 com download, filtros
+  "Para elas"/"Para eles" e "Copiar meu link" de divulgador via `/r/afiliado`.
+  https://github.com/Veronica-01Git/veronicahub-app/pull/129
+- **PR #151** (28/09/2026): galeria de imagens complementares
+  (`galleryUrls`, JSON de até 4 URLs HTTPS, migração 0017), no admin, no lote
+  TSV, em `/veronica-analytics` e `/veronica-rede`.
+  https://github.com/Veronica-01Git/veronicahub-app/pull/151
+- **3 produtos reais** no catálogo de produção (conferido por SELECT em
+  03/10/2026): `auxiliar-partida-compressor`,
+  `capa-de-chuva-moto-motoqueiro-impermeavel-reforcada-41619217982` e
+  `afina-panca-58213273842` — todos ativos, com capa e 2 imagens de galeria
+  hospedadas em CloudFront (`d2ol7oe51mr4n9.cloudfront.net`), sem vídeo.
+  Segundo o dono, capas e galerias foram geradas por IA (Seedream 5 Pro e
+  Nano Banana Pro via ElevenLabs) e hospedadas via Higgsfield.
+- A linha do Analytics na tabela da Home (seção de 2026-10-01) foi
+  atualizada: deixou de dizer "catálogo demonstrativo".
+
 ## Agente Members e portfólio de rotas na vitrine (2026-10-03)
 
 **Responsável:** Codex. PR #178 integrado à main, publicado na Cloudflare e
@@ -555,7 +716,7 @@ do código, não do briefing:
 | Redação (Wire TV) | `/blog` | Em produção | feed público `/api/wire/feed.json`, capa creditada | `/admin/wire`, `/admin/artigos`, `/admin/imagens` (interno, banco real) |
 | Atendimento (WhatsApp) | `/agentes#whatsapp` | Em implantação | sala de teste chama a agente real (`testarAgente`), selo `VH-AUT-WA-2026-000001` | Express Operations — **atendimento, aprovações e despacho leem `expressOpsMock`** |
 | Criação (Studio) | `/studio-veronica` | Parcial | geração de imagem ativa; vídeo, voz e avatar pendentes | não existe |
-| Analytics | `/veronica-analytics` | Demonstração | calculadora funcional, catálogo demonstrativo | `/admin/comissoes-shopee`, `/admin/produtos-shopee` |
+| Analytics | `/veronica-analytics` | Parcial — catálogo real *(atualizado em 03/10/2026)* | 3 produtos Shopee reais e ativos, com capa, galeria, público e link de divulgador (PRs #129 e #151); calculadora funcional; operável pelo Claude via conector MCP só-admin | `/admin/comissoes-shopee`, `/admin/produtos-shopee`, conector MCP `/mcp` |
 | Tutor | `/escola` | Parcial | `VeronicaDrawer skillId="school"` montado na Escola | não existe |
 | Carreira | `/veronica-curriculo-certo` (+ `-rh`) | Parcial | avaliação e triagem abertas | não existe |
 | Segurança | `/veronica-security` | Parcial | autoavaliação pública; análise segue manual | não existe |

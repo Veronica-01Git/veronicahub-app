@@ -120,6 +120,43 @@ export const TOOL_REGISTRY: readonly ToolDefinition[] = [
     sideEffect: "read",
     implementedBy: "src/lib/ai/agents/v-iva.ts",
   },
+  {
+    key: "mcp.products.list",
+    description:
+      "Lista os produtos do catálogo Analytics, inclusive arquivados, com cliques de 30 dias",
+    sideEffect: "read",
+    implementedBy: "src/lib/mcp/tools.ts",
+  },
+  {
+    key: "mcp.products.create",
+    description: "Cadastra ou atualiza produto de afiliado com a mesma validação do painel admin",
+    sideEffect: "write",
+    implementedBy: "src/lib/mcp/tools.ts",
+  },
+  {
+    key: "mcp.products.media",
+    description: "Define capa e galeria (HTTPS, até 4 imagens) de um produto do catálogo",
+    sideEffect: "write",
+    implementedBy: "src/lib/mcp/tools.ts",
+  },
+  {
+    key: "mcp.products.status",
+    description: "Ativa ou arquiva um produto do catálogo Analytics",
+    sideEffect: "write",
+    implementedBy: "src/lib/mcp/tools.ts",
+  },
+  {
+    key: "mcp.clicks.read",
+    description: "Lê cliques de afiliado por produto e período",
+    sideEffect: "read",
+    implementedBy: "src/lib/mcp/tools.ts",
+  },
+  {
+    key: "mcp.agents.status",
+    description: "Lê o registro de agentes e o estado do agente Members, só leitura",
+    sideEffect: "read",
+    implementedBy: "src/lib/mcp/tools.ts",
+  },
 ];
 
 export function toolDefinition(key: string): ToolDefinition | undefined {
@@ -390,11 +427,67 @@ export const MEMBERS_COMMUNITY: RegisteredAgent = {
   ],
 };
 
+const VERONICA_MCP: RegisteredAgent = {
+  slug: "veronica-mcp",
+  workforceId: null,
+  ownName: "Veronica MCP",
+  ownDescription:
+    "Conector MCP da Veronica no Claude: opera o catálogo e os cliques do Veronica Analytics, só para a conta admin.",
+  version: "1.0.0",
+  status: "INTERNAL",
+  statusBasis:
+    "Fase 1 do conector MCP (/mcp), aberta só à conta com role admin após login por código de e-mail. Cada chamada de ferramenta é registrada em AgentExecution; nada é executado sem o admin pedir.",
+  autonomyLevel: "LEVEL_2",
+  tenantScope: "internal",
+  allowedTenants: [HOUSE_TENANT],
+  skills: ["cap:catalogo-analytics", "cap:leitura-de-cliques"],
+  tools: [
+    { key: "mcp.products.list", requiresApproval: false },
+    { key: "mcp.products.create", requiresApproval: false },
+    { key: "mcp.products.media", requiresApproval: false },
+    { key: "mcp.products.status", requiresApproval: false },
+    { key: "mcp.clicks.read", requiresApproval: false },
+    { key: "mcp.agents.status", requiresApproval: false },
+  ],
+  // Fato, não política: o conector não chama modelo nenhum — quem raciocina é
+  // o Claude do admin, fora desta conta. Só consulta e grava no próprio banco.
+  maxCostPerTaskMicros: 0,
+  costCurrency: "USD",
+  // 10 s por chamada: a mais lenta é cadastrar_produto, que pode seguir até 5
+  // redirecionamentos de link curto da Shopee antes de gravar no Neon.
+  maxLatencyMs: 10_000,
+  ceilingsBasis:
+    "Definido em 03/10/2026 na fase 1 do conector MCP. Custo zero por fato: nenhuma chamada de modelo na conta da Veronica. Latência de 10 s: até 5 saltos de link curto da Shopee mais gravação no Neon, dentro do limite de uma requisição do Worker.",
+  approval: {
+    requiresApproval: false,
+    handoffTriggers: [
+      "produto com link recusado pela validação",
+      "tentativa de acesso sem role admin",
+    ],
+  },
+  businessRules: [
+    {
+      id: "so-admin",
+      description: "Só a conta com role admin recebe token e executa ferramentas",
+      enforcedBy: "src/lib/mcp/http.ts",
+      forbiddenOutputPatterns: [],
+    },
+    {
+      id: "validacao-do-admin",
+      description:
+        "Cadastro usa a mesma validação do painel: link de afiliado an_, Sub_id, categoria e mídia HTTPS",
+      enforcedBy: "src/lib/affiliate-catalog-core.ts",
+      forbiddenOutputPatterns: [],
+    },
+  ],
+};
+
 export const AGENT_REGISTRY: readonly RegisteredAgent[] = [
   MEMBERS_COMMUNITY,
   WIRE_REDACAO,
   WHATSAPP_ATENDIMENTO,
   V_IVA,
+  VERONICA_MCP,
 ];
 
 export function registeredAgent(slug: string): RegisteredAgent | undefined {

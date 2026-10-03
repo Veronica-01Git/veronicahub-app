@@ -10,6 +10,25 @@ function getAdminEmails(): string[] {
     .filter(Boolean);
 }
 
+// Mesma regra de admin do requireAdminCore, mas a partir de um e-mail ou id em
+// vez da sessão por cookie — é o que o conector MCP usa, que não tem cookie.
+// Quem não existe na tabela ou não é admin devolve null.
+export async function findAdminUser(by: { email: string } | { id: string }) {
+  const db = getDb();
+  const [user] = await db
+    .select()
+    .from(users)
+    .where("email" in by ? eq(users.email, by.email.trim().toLowerCase()) : eq(users.id, by.id))
+    .limit(1);
+  if (!user) return null;
+
+  if (user.role !== "admin" && getAdminEmails().includes(user.email.toLowerCase())) {
+    await db.update(users).set({ role: "admin" }).where(eq(users.id, user.id));
+    return { ...user, role: "admin" as const };
+  }
+  return user.role === "admin" ? user : null;
+}
+
 export async function requireAdminCore() {
   const userId = await getSessionUserId();
   if (!userId) return null;
