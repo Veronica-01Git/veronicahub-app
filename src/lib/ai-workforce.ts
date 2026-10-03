@@ -43,12 +43,7 @@ import { sealRecords } from "./seals.ts";
  * que ninguém precise adivinhar o que "parcial" quer dizer.
  */
 export type EstadoId =
-  | "producao"
-  | "implantacao"
-  | "parcial"
-  | "demonstracao"
-  | "oferta"
-  | "conceito";
+  "producao" | "implantacao" | "parcial" | "demonstracao" | "oferta" | "conceito";
 
 export type Estado = {
   readonly id: EstadoId;
@@ -129,7 +124,8 @@ export type AgenteWorkforceId =
   | "seguranca"
   | "consignacao"
   | "portfolio"
-  | "fashion";
+  | "fashion"
+  | "members";
 
 export type EixoDeImpacto = "Receita" | "Conversão" | "Custo" | "Eficiência" | "Ativos" | "Margem";
 
@@ -177,6 +173,41 @@ export type AgenteWorkforce = {
 };
 
 export const WORKFORCE: readonly AgenteWorkforce[] = [
+  {
+    id: "members",
+    nome: "Agente Members",
+    curto: "Members",
+    etiqueta: "COMMUNITY OPERATOR",
+    problema: "Uma comunidade precisa de conteúdo útil e de respostas que ajudam a avançar.",
+    funcao:
+      "Publica exercícios práticos, acolhe perguntas aprovadas e acompanha a atividade real do Members.",
+    capacidades: ["Publica exercícios", "Responde perguntas", "Conecta rotas", "Lê atividade"],
+    produtoId: "members",
+    estado: "parcial",
+    prova:
+      "A operação pode ser conferida em /membros e no histórico público em /api/agents/members/status. Publicações e respostas têm autoria oficial de IA.",
+    painel: {
+      to: "/admin/membros",
+      rotulo: "Operação Members",
+      acesso: "interno",
+      administra: [
+        "Pausa do agente",
+        "Rodada manual",
+        "Histórico de execução",
+        "Moderação de comentários",
+      ],
+    },
+    pendencias: [
+      "Comentários aguardam aprovação da equipe antes da resposta da IA",
+      "Sem envio automático de mensagens externas ou promessa de retorno financeiro",
+    ],
+    impacto: {
+      eixo: "Eficiência",
+      texto:
+        "Mantém uma cadência de conteúdo e ajuda membros a encontrar a próxima ação dentro da Hub.",
+    },
+    midia: { base: "members", alt: "Comunidade criativa trabalhando em um encontro" },
+  },
   {
     id: "atendimento",
     nome: "Agente de Atendimento",
@@ -297,9 +328,9 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
     ],
     produtoId: "analytics",
     comercialId: "analytics-afiliado",
-    estado: "demonstracao",
+    estado: "parcial",
     prova:
-      "A calculadora é funcional e a conciliação de comissão tem painel interno próprio; a descoberta de produtos roda com catálogo demonstrativo.",
+      "O catálogo de ofertas publicado em /veronica-analytics usa produtos habilitados, links rastreados e resultados da conta. A conciliação tem painel interno próprio.",
     painel: {
       to: "/admin/comissoes-shopee",
       rotulo: "Conciliação de comissões",
@@ -801,11 +832,7 @@ export const VERTICAIS: readonly Vertical[] = [
  * "piloto" aqui e no selo, juntos.
  */
 export type TipoDeImplementacao =
-  | "producao"
-  | "piloto"
-  | "implantacao"
-  | "demonstracao"
-  | "laboratorio";
+  "producao" | "piloto" | "implantacao" | "demonstracao" | "laboratorio";
 
 export const TIPO_DE_IMPLEMENTACAO: Record<TipoDeImplementacao, string> = {
   producao: "Produção",

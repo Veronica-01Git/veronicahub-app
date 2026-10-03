@@ -1,0 +1,237 @@
+.vap-section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 84px 28px 96px;
+  scroll-margin-top: 90px;
+}
+.vap-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+  margin-bottom: 36px;
+}
+.vap-eyebrow {
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.17em;
+  color: #a4acc0;
+}
+.vap-heading h2 {
+  font-size: clamp(32px, 4vw, 54px);
+  line-height: 1.07;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  margin: 14px 0 0;
+}
+.vap-heading h2 span {
+  color: #a0a4b6;
+}
+.vap-heading > p {
+  max-width: 390px;
+  color: #a5aabc;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.vap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+.vap-card {
+  background: linear-gradient(135deg, #191d29, #131621);
+  border: 1px solid #ffffff15;
+  border-radius: 22px;
+  overflow: hidden;
+  scroll-margin-top: 100px;
+  transition:
+    border-color 0.2s,
+    transform 0.2s;
+}
+.vap-card:hover {
+  border-color: #b9d6ff50;
+  transform: translateY(-3px);
+}
+.vap-featured {
+  border-color: #b8c9ff50;
+}
+.vap-cover {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: #202838;
+}
+.vap-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.vap-cover:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0005, transparent 40%, #0d12249c);
+}
+.vap-number {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: white;
+  z-index: 1;
+}
+.vap-badge {
+  position: absolute;
+  bottom: 16px;
+  left: 17px;
+  background: #10182dcd;
+  border: 1px solid #ffffff28;
+  backdrop-filter: blur(15px);
+  color: #ecf3ff;
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-size: 10px;
+  z-index: 1;
+}
+.vap-body {
+  padding: 23px;
+}
+.vap-body h3 {
+  font-size: 23px;
+  letter-spacing: -0.03em;
+  font-weight: 550;
+  margin: 8px 0 11px;
+}
+.vap-function {
+  font-size: 13px;
+  line-height: 1.75;
+  color: #b3bacb;
+  min-height: 69px;
+}
+.vap-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 18px 0 23px;
+}
+.vap-skills span {
+  font-size: 10px;
+  color: #c3cbe0;
+  border: 1px solid #ffffff14;
+  border-radius: 7px;
+  padding: 5px 7px;
+}
+.vap-routes {
+  padding-top: 17px;
+  border-top: 1px solid #ffffff12;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.vap-routes > span {
+  font-size: 9px;
+  color: #808a9e;
+  letter-spacing: 0.13em;
+}
+.vap-routes a {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #e4edff;
+  text-decoration: none;
+  min-height: 28px;
+}
+.vap-routes a:hover {
+  color: #b8dbff;
+}
+.vap-proof {
+  margin-top: 16px;
+  border-top: 1px solid #ffffff12;
+  padding-top: 16px;
+}
+.vap-proof summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #b3bed4;
+  min-height: 28px;
+  list-style: none;
+}
+.vap-proof summary svg:last-child {
+  margin-left: auto;
+}
+.vap-proof p,
+.vap-proof li {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #97a3ba;
+}
+.vap-proof p {
+  margin: 12px 0;
+}
+.vap-proof strong {
+  display: block;
+  font-size: 10px;
+  color: #d8e0ef;
+  margin-top: 14px;
+}
+.vap-proof ul {
+  padding-left: 16px;
+}
+.vap-proof a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #c6ddff;
+  font-size: 12px;
+  margin: 10px 0;
+}
+.vap-card a:focus-visible,
+.vap-proof summary:focus-visible {
+  outline: 2px solid #b7d5ff;
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+@media (max-width: 1000px) {
+  .vap-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .vap-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .vap-heading > p {
+    max-width: 580px;
+  }
+}
+@media (max-width: 620px) {
+  .vap-section {
+    padding: 45px 20px 55px;
+  }
+  .vap-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .vap-heading {
+    gap: 16px;
+  }
+  .vap-heading > p {
+    font-size: 14px;
+  }
+  .vap-function {
+    min-height: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vap-card {
+    transition: none;
+  }
+  .vap-card:hover {
+    transform: none;
+  }
+}

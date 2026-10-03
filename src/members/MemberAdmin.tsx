@@ -1,3 +1,4 @@
+import { MemberAgentControl } from "./AgentControl";
 import { useEffect, useState, type FormEvent } from "react";
 import { MembersShell, MemberLogin, kinds } from "./Members";
 import { memberAdminFeed, saveMemberPost, moderateMemberComment } from "./server";
@@ -83,6 +84,7 @@ export default function MemberAdmin() {
   return (
     <MembersShell admin>
       <main className="vm-editor-layout">
+        <MemberAgentControl onComplete={refresh} />
         <aside>
           <span className="vm-eyebrow">COMUNIDADE</span>
           <h1>Seu próximo post.</h1>

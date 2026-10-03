@@ -36,7 +36,10 @@ export const portfolioGenerations = pgTable(
   "PortfolioGeneration",
   {
     id: text("id").primaryKey(),
-    userId: text("userId").notNull().references(() => users.id).unique(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id)
+      .unique(),
     status: text("status").notNull(), // pending | complete | failed
     attempts: integer("attempts").notNull().default(1),
     briefJson: text("briefJson").notNull(),
@@ -538,7 +541,15 @@ export const agenteBriefings = pgTable(
 );
 
 // Additive community tables share the existing migration schema.
-export { memberPosts, memberComments, memberCommentCooldown } from "../members/schema";
+export {
+  memberPosts,
+  memberComments,
+  memberCommentCooldown,
+  memberAgentSettings,
+  memberAgentBudget,
+  memberAgentTasks,
+  memberAgentReplies,
+} from "../members/schema";
 
 // Veronica AI Workforce Platform — registro de agentes, execuções, avaliações
 // do V-IVA e trilha de lifecycle. Mesmo padrão aditivo da linha acima.

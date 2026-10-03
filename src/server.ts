@@ -1,3 +1,4 @@
+import { handleMembersAgent } from "./members/agent-runtime.server";
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
@@ -250,6 +251,13 @@ const app = {
         console.error("Erro ao encaminhar produto de afiliado:", error);
         return new Response("produto indisponível", { status: 500 });
       }
+    }
+
+    if (
+      url.pathname === "/api/cron/members-agent" ||
+      url.pathname === "/api/agents/members/status"
+    ) {
+      return handleMembersAgent(request);
     }
 
     if (url.pathname === "/api/cron/generate-article" && request.method === "POST") {
