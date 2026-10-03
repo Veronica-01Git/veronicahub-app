@@ -1,6 +1,6 @@
 import { index, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import { users } from "@/lib/schema";
+import { users } from "../../lib/schema";
 
 // Tenant is explicit so the fitness operation can be licensed to other coaches
 // without sharing their rosters or community posts.
