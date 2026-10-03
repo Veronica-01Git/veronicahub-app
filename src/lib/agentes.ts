@@ -156,9 +156,9 @@ const WHATSAPP_EMPRESARIAL: Agente = {
 const ANALYTICS_AFILIADO: Agente = {
   id: "analytics-afiliado",
   nome: "Veronica Analytics",
-  tagline: "Ela já sabe o que está vendendo hoje. Você só posta.",
+  tagline: "Ofertas reais, interesse registrado e sugestões para o próximo passo.",
   promessa:
-    "Escolha uma oferta que já está vendendo e receba o kit pronto: roteiro, legenda, hashtags e o seu link rastreado — com a Veronica escolhendo por você se preferir.",
+    "Confira ofertas habilitadas, receba sugestões de divulgação e acompanhe seus links rastreados. O agente identifica o interesse registrado; vendas e comissões dependem do relatório da Shopee.",
   ancora: "analytics",
   guia: "Veronica",
   desenvolvedor: "Yo Lab & co.",
@@ -188,10 +188,10 @@ const ANALYTICS_AFILIADO: Agente = {
     },
   ],
   entregas: [
-    "Feed de ofertas com GMV e crescimento, renovado a cada ciclo",
-    "Kit por oferta: roteiro de vídeo, legenda, hashtags e gancho",
+    "Curadoria horária do catálogo habilitado, com histórico verificável",
+    "Sugestões de gancho, roteiro e legenda, com revisão e modo de geração identificado",
     "Link de afiliado carimbado com o seu código e painel de comissão conciliada",
-    "Veronica entrevista, recomenda a oferta e cobra o resultado depois",
+    "Prioriza pelo interesse registrado nos links da Hub e pela completude do cadastro",
   ],
   pendencias: [
     "A venda e a comissão acontecem na Shopee; a confirmação depende da importação do relatório oficial",

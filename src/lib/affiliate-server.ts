@@ -47,6 +47,7 @@ async function ensureAffiliateStorage() {
 const ALLOWED_PLACEMENTS = new Set([
   "analytics_catalogo",
   "analytics_feed",
+  "analytics_agent",
   "rede_catalogo",
   "link_divulgador",
   ...ANALYTICS_SOURCES.map((source) => source.key),

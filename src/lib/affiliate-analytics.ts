@@ -45,6 +45,7 @@ export function analyticsSourceLabel(key: string) {
       {
         analytics_catalogo: "Catálogo",
         analytics_feed: "Conteúdo",
+        analytics_agent: "Agente Analytics",
         rede_catalogo: "Veronica Rede",
       } as Record<string, string>
     )[key] ??
