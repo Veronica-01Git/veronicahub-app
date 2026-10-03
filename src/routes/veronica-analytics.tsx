@@ -1,3 +1,4 @@
+import { AnalyticsAgentPresence } from "../analytics-agent/Presence";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -677,6 +678,13 @@ function VeronicaAnalytics() {
                   products={products}
                   onRefresh={() => setReload((value) => value + 1)}
                   onOpen={open}
+                />
+                <AnalyticsAgentPresence
+                  admin={!!revenue?.ok}
+                  onOpen={(id) => {
+                    const p = products.find((p) => p.id === id);
+                    if (p) open(p);
+                  }}
                 />
                 <div className="my-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
                   {[

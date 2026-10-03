@@ -55,6 +55,24 @@ export type ToolDefinition = {
  */
 export const TOOL_REGISTRY: readonly ToolDefinition[] = [
   {
+    key: "analytics.catalog.read",
+    description: "Lê somente produtos habilitados da Hub",
+    sideEffect: "read",
+    implementedBy: "src/analytics-agent/runtime.server.ts",
+  },
+  {
+    key: "analytics.interest.read",
+    description: "Lê contagens agregadas de cliques da própria Hub",
+    sideEffect: "read",
+    implementedBy: "src/analytics-agent/runtime.server.ts",
+  },
+  {
+    key: "analytics.briefing.publish",
+    description: "Grava sugestões e evidências do agente",
+    sideEffect: "write",
+    implementedBy: "src/analytics-agent/runtime.server.ts",
+  },
+  {
     key: "members.post.publish",
     description: "Publica exercício editorial oficial",
     sideEffect: "write",
@@ -482,7 +500,53 @@ const VERONICA_MCP: RegisteredAgent = {
   ],
 };
 
+export const ANALYTICS_COMMERCE: RegisteredAgent = {
+  slug: "analytics-commerce",
+  workforceId: "analytics",
+  version: "1.0.0",
+  status: "INTERNAL",
+  statusBasis:
+    "Piloto de curadoria: execução horária persistida, catálogo real e contagens da Hub. Evidência pública em /api/agents/analytics/status; não executa vendas ou conciliação financeira.",
+  autonomyLevel: "LEVEL_2",
+  tenantScope: "internal",
+  allowedTenants: [HOUSE_TENANT],
+  skills: [
+    "cap:analytics-catalog-integrity",
+    "cap:analytics-interest-ranking",
+    "cap:analytics-creative-briefing",
+    "cap:analytics-audit",
+  ],
+  tools: [
+    { key: "analytics.catalog.read", requiresApproval: false },
+    { key: "analytics.interest.read", requiresApproval: false },
+    { key: "analytics.briefing.publish", requiresApproval: false },
+  ],
+  maxCostPerTaskMicros: 5000,
+  costCurrency: "USD",
+  maxLatencyMs: 60000,
+  ceilingsBasis:
+    "Limite de uma tentativa de modelo por hora. Entrada fixa inferior a 2.000 tokens, saída limitada a 900 tokens; reserva conservadora de 2.000 micros. Teto 5.000 micros e timeout do modelo de 13 segundos; sem envio de dados pessoais ao provedor.",
+  approval: {
+    requiresApproval: false,
+    handoffTriggers: ["catálogo indisponível", "links recusados", "modelo ou saída inválida"],
+  },
+  businessRules: [
+    {
+      id: "cliques-nao-sao-vendas",
+      description: "Interesse é encaminhamento, nunca venda ou lucro",
+      enforcedBy: "src/analytics-agent/engine.ts",
+      forbiddenOutputPatterns: ["lucro garantido"],
+    },
+    {
+      id: "isolamento-da-hub",
+      description: "Não acessa dados de clientes nem altera catálogos, comissões ou pagamentos",
+      enforcedBy: "src/analytics-agent/runtime.server.ts",
+      forbiddenOutputPatterns: [],
+    },
+  ],
+};
 export const AGENT_REGISTRY: readonly RegisteredAgent[] = [
+  ANALYTICS_COMMERCE,
   MEMBERS_COMMUNITY,
   WIRE_REDACAO,
   WHATSAPP_ATENDIMENTO,
