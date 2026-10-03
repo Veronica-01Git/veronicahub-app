@@ -1,3 +1,4 @@
+import { product } from "./ecosystem.ts";
 import { rotaDoAgente, type AgenteWorkforce } from "./ai-workforce.ts";
 /** Links derivados da rota canônica; provas extras têm endpoints implementados. */
 export function routesForAgent(a: AgenteWorkforce) {
@@ -7,5 +8,11 @@ export function routesForAgent(a: AgenteWorkforce) {
     routes.push({ href: "/api/wire/feed.json", label: "Feed de publicações" });
   if (a.id === "members")
     routes.push({ href: "/api/agents/members/status", label: "Histórico público" });
+  if (a.id === "carreira") routes.push({ href: product("rh").to, label: product("rh").name });
+  if (a.painel && a.painel.to !== main.to)
+    routes.push({
+      href: a.painel.to,
+      label: `${a.painel.rotulo}${a.painel.acesso === "interno" ? " · acesso restrito" : ""}`,
+    });
   return routes;
 }
