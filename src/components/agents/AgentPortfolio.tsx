@@ -1,3 +1,4 @@
+import { useAnalyticsAgentStatus, analyticsHealthLabel } from "../../analytics-agent/Presence";
 import { routesForAgent } from "../../lib/agent-portfolio";
 import { ArrowUpRight, ChevronDown, Sparkles } from "lucide-react";
 import { WORKFORCE, ESTADOS } from "../../lib/ai-workforce";
@@ -5,6 +6,7 @@ import { useMembersAgentStatus, membersHealthLabel } from "../../members/AgentPr
 import "./agent-portfolio.css";
 export function AgentPortfolio() {
   const { data, unavailable } = useMembersAgentStatus();
+  const analytics = useAnalyticsAgentStatus();
   return (
     <section className="vap-section" id="portfolio-agentes" aria-labelledby="vap-title">
       <div className="vap-heading">
@@ -32,7 +34,13 @@ export function AgentPortfolio() {
               : !data
                 ? "Verificando operação"
                 : membersHealthLabel(data.health)
-            : state.rotulo;
+            : a.id === "analytics"
+              ? analytics.unavailable
+                ? "Status indisponível"
+                : analytics.data
+                  ? analyticsHealthLabel(analytics.data.health)
+                  : "Verificando operação"
+              : state.rotulo;
           return (
             <article
               className={`vap-card ${members ? "vap-featured" : ""}`}
@@ -80,6 +88,12 @@ export function AgentPortfolio() {
                     data?.recent.map((p) => (
                       <a key={p.postId} href={p.href}>
                         {p.title} <ArrowUpRight size={13} />
+                      </a>
+                    ))}
+                  {a.id === "analytics" &&
+                    analytics.data?.recommendations.map((b) => (
+                      <a key={b.productId} href="/veronica-analytics#agente-analytics">
+                        {b.title} <ArrowUpRight size={13} />
                       </a>
                     ))}
                   <strong>Escopo atual</strong>

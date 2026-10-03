@@ -318,19 +318,19 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
     etiqueta: "COMMERCE INTELLIGENCE",
     problema: "Escolher o que divulgar no escuro custa mais caro do que divulgar errado.",
     funcao:
-      "Lê o catálogo de ofertas, recomenda o que vale divulgar e monta o kit criativo com o link rastreado.",
+      "Confere o catálogo habilitado, prioriza ofertas pelo interesse registrado nos links da Hub e prepara sugestões de divulgação rastreáveis.",
     capacidades: [
       "Ranqueia oferta",
       "Recomenda",
       "Monta kit",
       "Rastreia link",
-      "Concilia comissão",
+      "Registra evidências",
     ],
     produtoId: "analytics",
     comercialId: "analytics-afiliado",
     estado: "parcial",
     prova:
-      "O catálogo de ofertas publicado em /veronica-analytics usa produtos habilitados, links rastreados e resultados da conta. A conciliação tem painel interno próprio.",
+      "A curadoria e as sugestões publicadas em /veronica-analytics têm execução persistida e histórico em /api/agents/analytics/status. Modelo e regras são identificados. A conciliação financeira permanece humana.",
     painel: {
       to: "/admin/comissoes-shopee",
       rotulo: "Conciliação de comissões",
@@ -348,7 +348,7 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
     impacto: {
       eixo: "Receita",
       texto:
-        "Mede o que já está vendendo antes da divulgação, em vez de descobrir depois do gasto.",
+        "Usa o interesse registrado e a qualidade do cadastro para orientar divulgações; receita depende de vendas elegíveis e comissões confirmadas.",
     },
     midia: { base: "analytics", alt: "Analista estudando produtos e dados de comércio digital" },
   },

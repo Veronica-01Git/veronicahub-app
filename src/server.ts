@@ -1,3 +1,4 @@
+import { handleAnalyticsAgent } from "./analytics-agent/runtime.server";
 import { handleMembersAgent } from "./members/agent-runtime.server";
 import "./lib/error-capture";
 
@@ -274,6 +275,12 @@ const app = {
         return new Response("produto indisponível", { status: 500 });
       }
     }
+
+    if (
+      url.pathname === "/api/agents/analytics/status" ||
+      url.pathname === "/api/cron/analytics-agent"
+    )
+      return handleAnalyticsAgent(request);
 
     if (
       url.pathname === "/api/cron/members-agent" ||

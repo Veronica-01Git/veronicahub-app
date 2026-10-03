@@ -6,6 +6,8 @@ export function routesForAgent(a: AgenteWorkforce) {
   const routes = [{ href: main.to, label: main.name }];
   if (a.id === "redacao")
     routes.push({ href: "/api/wire/feed.json", label: "Feed de publicações" });
+  if (a.id === "analytics")
+    routes.push({ href: "/api/agents/analytics/status", label: "Histórico público" });
   if (a.id === "members")
     routes.push({ href: "/api/agents/members/status", label: "Histórico público" });
   if (a.id === "carreira") routes.push({ href: product("rh").to, label: product("rh").name });
