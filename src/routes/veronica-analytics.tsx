@@ -434,6 +434,7 @@ function VeronicaAnalytics() {
     />
   );
 
+  const loadingAccountData = !accountError && (account === null || (account.ok && stats === null));
   const accountPrompt = (
     <div className={`${card} p-7 sm:p-10`}>
       <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800">
@@ -445,19 +446,21 @@ function VeronicaAnalytics() {
           : account === null
             ? "Verificando sua conta…"
             : account.ok
-              ? "Seus resultados não estão disponíveis agora"
+              ? stats === null
+                ? "Carregando seus resultados…"
+                : "Seus resultados não estão disponíveis agora"
               : account.reason === "anonimo"
                 ? "Seus links merecem um lugar só deles."
                 : "Não foi possível preparar sua conta"}
       </h3>
       <p className="mt-3 max-w-lg text-sm leading-6 text-[#737b76]">
-        {account === null && !accountError
+        {loadingAccountData
           ? "Estamos preparando seus links e resultados."
           : account?.ok || accountError || (account && !account.ok && account.reason !== "anonimo")
-            ? "Tente atualizar. Nenhuma falha de carregamento é apresentada como zero cliques."
+            ? "Não conseguimos consultar seus resultados agora. Tente novamente em instantes."
             : "Entre na Veronica Rede para obter seu link pessoal e acompanhar os cliques das suas divulgações. Você pode explorar as ofertas agora."}
       </p>
-      {account === null && !accountError ? (
+      {loadingAccountData ? (
         <div className="mt-5 h-2 w-36 animate-pulse rounded-full bg-emerald-100" />
       ) : account?.ok ||
         accountError ||
