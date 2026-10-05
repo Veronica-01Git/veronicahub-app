@@ -211,15 +211,22 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
   },
   {
     id: "lz-fitness",
-    nome: "Agente Fitness LZ",
-    curto: "Fitness LZ",
+    nome: "Verônica Wellness",
+    curto: "Wellness",
     etiqueta: "FITNESS LAB",
-    problema: "Um personal independente precisa cuidar dos alunos e manter conteúdo com a própria identidade todos os dias.",
-    funcao: "Laboratório supervisionado que registra casos reais e regras aprovadas por Lucas para a futura operação editorial e de alunos.",
-    capacidades: ["Registra cenários", "Organiza regras", "Prepara avaliação"],
+    problema:
+      "Um personal independente precisa cuidar dos alunos e manter conteúdo com a própria identidade todos os dias.",
+    funcao:
+      "Organiza avaliações iniciais e guias educativos personalizados; encaminha a jornada para revisão do profissional autorizado.",
+    capacidades: [
+      "Organiza avaliações",
+      "Personaliza guias educativos",
+      "Encaminha revisão profissional",
+    ],
     produtoId: "clientes",
-    estado: "conceito",
-    prova: "O painel reservado do LZ reúne a turma, aulas e os cenários ensinados pelo coach. Ainda não gera nem publica conteúdo por IA.",
+    estado: "parcial",
+    prova:
+      "A vitrine de Agentes Humanos oferece avaliação e guia educativo por regras. Planos individuais são liberados pela equipe autorizada; não há prescrição autônoma por IA.",
     selo: "VH-MEM-2026-000002",
     painel: {
       to: "/clientes/lz-team/painel",
@@ -230,7 +237,7 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
     pendencias: [
       "Conectar o modelo e avaliar respostas contra os casos aprovados",
       "Criar calendário editorial, revisão humana e integração autorizada com o Instagram",
-      "Nenhuma publicação automática ou conselho individual de saúde está ativo",
+      "Avatar ao vivo e publicação automática ainda não estão ativos",
     ],
     midia: { base: "members", alt: "Pessoas reunidas para compartilhar uma rotina de treinamento" },
   },

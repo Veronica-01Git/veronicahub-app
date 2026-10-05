@@ -8,8 +8,10 @@ type AccountGateMode = "account-required" | "account-not-authorized" | "configur
 export function PrivateClientAccountGate({
   mode,
   onAccessChanged,
+  context = "private-client",
 }: {
   readonly mode: AccountGateMode;
+  readonly context?: "private-client" | "wellness";
   readonly onAccessChanged: () => void | Promise<void>;
 }) {
   const requestCode = useServerFn(requestEmailCode);
@@ -122,17 +124,18 @@ export function PrivateClientAccountGate({
     <div className="rounded-[18px] border border-black/[.08] bg-white/90 p-5 text-black shadow-[0_18px_50px_rgba(0,0,0,.06)]">
       <div className="flex items-center gap-2 text-sm font-semibold text-black/80">
         <KeyRound className="h-4 w-4 text-cyan-600" aria-hidden />
-        Segunda confirmação
+        {context === "wellness" ? "Sua conta Verônica" : "Segunda confirmação"}
       </div>
       <p className="mt-2 text-sm leading-6 text-black/50">
-        Confirme um e-mail autorizado. O selo identifica o projeto, mas não libera dados privados
-        sozinho.
+        {context === "wellness"
+          ? "Entre ou crie sua conta com um código enviado ao seu e-mail. Seu guia fica salvo para você."
+          : "Confirme um e-mail autorizado. O selo identifica o projeto, mas não libera dados privados sozinho."}
       </p>
 
       {step === "email" ? (
         <form onSubmit={submitEmail} className="mt-5 grid gap-3">
           <label htmlFor="private-client-email" className="text-xs font-semibold text-black/55">
-            E-mail do responsável
+            {context === "wellness" ? "Seu e-mail" : "E-mail do responsável"}
           </label>
           <div className="flex min-h-12 items-center gap-2 rounded-xl border border-black/10 bg-white px-3 focus-within:border-cyan-400">
             <Mail className="h-4 w-4 text-black/35" aria-hidden />

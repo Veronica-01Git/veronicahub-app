@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentesRouteImport } from './routes/agentes'
+import { Route as AgentesHumanosRouteImport } from './routes/agentes-humanos'
 import { Route as AulaZeroRouteImport } from './routes/aula-zero'
 import { Route as ClientesVeronicaRouteImport } from './routes/clientes-veronica'
 import { Route as ComandosRouteImport } from './routes/comandos'
@@ -39,9 +40,9 @@ import { Route as AdminComissoesShopeeRouteImport } from './routes/admin/comisso
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminMembrosRouteImport } from './routes/admin/membros'
 import { Route as AdminProdutosShopeeRouteImport } from './routes/admin/produtos-shopee'
+import { Route as AdminVIvaRouteImport } from './routes/admin/v-iva'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as AdminWireRouteImport } from './routes/admin/wire'
-import { Route as AdminVIvaRouteImport } from './routes/admin/v-iva'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogExpedienteRouteImport } from './routes/blog/expediente'
@@ -59,9 +60,12 @@ import { Route as BlogRedeDeFontesRelatoriosRouteImport } from './routes/blog/re
 import { Route as ClientesExpressEntulhoOperacoesRouteImport } from './routes/clientes/express-entulho/operacoes'
 import { Route as ClientesExpressEntulhoOperacoesDemoRouteImport } from './routes/clientes/express-entulho/operacoes-demo'
 import { Route as ClientesExpressEntulhoPropostaRouteImport } from './routes/clientes/express-entulho/proposta'
+import { Route as ClientesLeeRicardoIndexRouteImport } from './routes/clientes/lee-ricardo/index'
+import { Route as ClientesLeeRicardoMembrosRouteImport } from './routes/clientes/lee-ricardo/membros'
+import { Route as ClientesLeeRicardoPainelRouteImport } from './routes/clientes/lee-ricardo/painel'
 import { Route as ClientesLzTeamIndexRouteImport } from './routes/clientes/lz-team/index'
-import { Route as ClientesLzTeamPainelRouteImport } from './routes/clientes/lz-team/painel'
 import { Route as ClientesLzTeamMembrosRouteImport } from './routes/clientes/lz-team/membros'
+import { Route as ClientesLzTeamPainelRouteImport } from './routes/clientes/lz-team/painel'
 import { Route as ClientesVeronicaFashionOperatorIndexRouteImport } from './routes/clientes/veronica-fashion-operator/index'
 import { Route as ClientesVeronicaFashionOperatorExecucaoRouteImport } from './routes/clientes/veronica-fashion-operator/execucao'
 import { Route as PreviewExpressOperationsBSplatRouteImport } from './routes/preview/express-operations-b/$'
@@ -84,6 +88,11 @@ const IndexRoute = IndexRouteImport.update({
 const AgentesRoute = AgentesRouteImport.update({
   id: '/agentes',
   path: '/agentes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentesHumanosRoute = AgentesHumanosRouteImport.update({
+  id: '/agentes-humanos',
+  path: '/agentes-humanos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AulaZeroRoute = AulaZeroRouteImport.update({
@@ -227,6 +236,11 @@ const AdminProdutosShopeeRoute = AdminProdutosShopeeRouteImport.update({
   path: '/admin/produtos-shopee',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVIvaRoute = AdminVIvaRouteImport.update({
+  id: '/admin/v-iva',
+  path: '/admin/v-iva',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
   id: '/admin/veronica-universe',
   path: '/admin/veronica-universe',
@@ -235,11 +249,6 @@ const AdminVeronicaUniverseRoute = AdminVeronicaUniverseRouteImport.update({
 const AdminWireRoute = AdminWireRouteImport.update({
   id: '/admin/wire',
   path: '/admin/wire',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminVIvaRoute = AdminVIvaRouteImport.update({
-  id: '/admin/v-iva',
-  path: '/admin/v-iva',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -334,19 +343,36 @@ const ClientesExpressEntulhoPropostaRoute =
     path: '/clientes/express-entulho/proposta',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ClientesLeeRicardoIndexRoute = ClientesLeeRicardoIndexRouteImport.update({
+  id: '/clientes/lee-ricardo/',
+  path: '/clientes/lee-ricardo/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesLeeRicardoMembrosRoute =
+  ClientesLeeRicardoMembrosRouteImport.update({
+    id: '/clientes/lee-ricardo/membros',
+    path: '/clientes/lee-ricardo/membros',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ClientesLeeRicardoPainelRoute =
+  ClientesLeeRicardoPainelRouteImport.update({
+    id: '/clientes/lee-ricardo/painel',
+    path: '/clientes/lee-ricardo/painel',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ClientesLzTeamIndexRoute = ClientesLzTeamIndexRouteImport.update({
   id: '/clientes/lz-team/',
   path: '/clientes/lz-team/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClientesLzTeamPainelRoute = ClientesLzTeamPainelRouteImport.update({
-  id: '/clientes/lz-team/painel',
-  path: '/clientes/lz-team/painel',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ClientesLzTeamMembrosRoute = ClientesLzTeamMembrosRouteImport.update({
   id: '/clientes/lz-team/membros',
   path: '/clientes/lz-team/membros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesLzTeamPainelRoute = ClientesLzTeamPainelRouteImport.update({
+  id: '/clientes/lz-team/painel',
+  path: '/clientes/lz-team/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientesVeronicaFashionOperatorIndexRoute =
@@ -431,6 +457,7 @@ const ClientesExpressEntulhoOperacoesTestarRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
+  '/agentes-humanos': typeof AgentesHumanosRoute
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
@@ -458,9 +485,9 @@ export interface FileRoutesByFullPath {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
+  '/admin/v-iva': typeof AdminVIvaRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
-  '/admin/v-iva': typeof AdminVIvaRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
@@ -479,10 +506,13 @@ export interface FileRoutesByFullPath {
   '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
-  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
+  '/clientes/lee-ricardo/membros': typeof ClientesLeeRicardoMembrosRoute
+  '/clientes/lee-ricardo/painel': typeof ClientesLeeRicardoPainelRoute
   '/clientes/lz-team/membros': typeof ClientesLzTeamMembrosRoute
+  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/lee-ricardo/': typeof ClientesLeeRicardoIndexRoute
   '/clientes/lz-team/': typeof ClientesLzTeamIndexRoute
   '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
@@ -499,6 +529,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
+  '/agentes-humanos': typeof AgentesHumanosRoute
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
@@ -526,9 +557,9 @@ export interface FileRoutesByTo {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
+  '/admin/v-iva': typeof AdminVIvaRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
-  '/admin/v-iva': typeof AdminVIvaRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
@@ -546,10 +577,13 @@ export interface FileRoutesByTo {
   '/blog/rede-de-fontes/relatorios': typeof BlogRedeDeFontesRelatoriosRoute
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
-  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
+  '/clientes/lee-ricardo/membros': typeof ClientesLeeRicardoMembrosRoute
+  '/clientes/lee-ricardo/painel': typeof ClientesLeeRicardoPainelRoute
   '/clientes/lz-team/membros': typeof ClientesLzTeamMembrosRoute
+  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/lee-ricardo': typeof ClientesLeeRicardoIndexRoute
   '/clientes/lz-team': typeof ClientesLzTeamIndexRoute
   '/clientes/veronica-fashion-operator': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
@@ -567,6 +601,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
+  '/agentes-humanos': typeof AgentesHumanosRoute
   '/aula-zero': typeof AulaZeroRoute
   '/clientes-veronica': typeof ClientesVeronicaRoute
   '/comandos': typeof ComandosRoute
@@ -594,9 +629,9 @@ export interface FileRoutesById {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
+  '/admin/v-iva': typeof AdminVIvaRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
-  '/admin/v-iva': typeof AdminVIvaRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/expediente': typeof BlogExpedienteRoute
   '/blog/rede-de-fontes': typeof BlogRedeDeFontesRouteWithChildren
@@ -615,10 +650,13 @@ export interface FileRoutesById {
   '/clientes/express-entulho/operacoes': typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   '/clientes/express-entulho/operacoes-demo': typeof ClientesExpressEntulhoOperacoesDemoRoute
   '/clientes/express-entulho/proposta': typeof ClientesExpressEntulhoPropostaRoute
-  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
+  '/clientes/lee-ricardo/membros': typeof ClientesLeeRicardoMembrosRoute
+  '/clientes/lee-ricardo/painel': typeof ClientesLeeRicardoPainelRoute
   '/clientes/lz-team/membros': typeof ClientesLzTeamMembrosRoute
+  '/clientes/lz-team/painel': typeof ClientesLzTeamPainelRoute
   '/clientes/veronica-fashion-operator/execucao': typeof ClientesVeronicaFashionOperatorExecucaoRoute
   '/preview/express-operations-b/$': typeof PreviewExpressOperationsBSplatRoute
+  '/clientes/lee-ricardo/': typeof ClientesLeeRicardoIndexRoute
   '/clientes/lz-team/': typeof ClientesLzTeamIndexRoute
   '/clientes/veronica-fashion-operator/': typeof ClientesVeronicaFashionOperatorIndexRoute
   '/clientes/express-entulho/operacoes/$secao': typeof ClientesExpressEntulhoOperacoesSecaoRoute
@@ -637,6 +675,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agentes'
+    | '/agentes-humanos'
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
@@ -664,9 +703,9 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/membros'
     | '/admin/produtos-shopee'
+    | '/admin/v-iva'
     | '/admin/veronica-universe'
     | '/admin/wire'
-    | '/admin/v-iva'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
@@ -685,10 +724,13 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
-    | '/clientes/lz-team/painel'
+    | '/clientes/lee-ricardo/membros'
+    | '/clientes/lee-ricardo/painel'
     | '/clientes/lz-team/membros'
+    | '/clientes/lz-team/painel'
     | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/lee-ricardo/'
     | '/clientes/lz-team/'
     | '/clientes/veronica-fashion-operator/'
     | '/clientes/express-entulho/operacoes/$secao'
@@ -705,6 +747,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agentes'
+    | '/agentes-humanos'
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
@@ -732,9 +775,9 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/membros'
     | '/admin/produtos-shopee'
+    | '/admin/v-iva'
     | '/admin/veronica-universe'
     | '/admin/wire'
-    | '/admin/v-iva'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
@@ -752,10 +795,13 @@ export interface FileRouteTypes {
     | '/blog/rede-de-fontes/relatorios'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
-    | '/clientes/lz-team/painel'
+    | '/clientes/lee-ricardo/membros'
+    | '/clientes/lee-ricardo/painel'
     | '/clientes/lz-team/membros'
+    | '/clientes/lz-team/painel'
     | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/lee-ricardo'
     | '/clientes/lz-team'
     | '/clientes/veronica-fashion-operator'
     | '/clientes/express-entulho/operacoes/$secao'
@@ -772,6 +818,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/agentes'
+    | '/agentes-humanos'
     | '/aula-zero'
     | '/clientes-veronica'
     | '/comandos'
@@ -799,9 +846,9 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/membros'
     | '/admin/produtos-shopee'
+    | '/admin/v-iva'
     | '/admin/veronica-universe'
     | '/admin/wire'
-    | '/admin/v-iva'
     | '/blog/$slug'
     | '/blog/expediente'
     | '/blog/rede-de-fontes'
@@ -820,10 +867,13 @@ export interface FileRouteTypes {
     | '/clientes/express-entulho/operacoes'
     | '/clientes/express-entulho/operacoes-demo'
     | '/clientes/express-entulho/proposta'
-    | '/clientes/lz-team/painel'
+    | '/clientes/lee-ricardo/membros'
+    | '/clientes/lee-ricardo/painel'
     | '/clientes/lz-team/membros'
+    | '/clientes/lz-team/painel'
     | '/clientes/veronica-fashion-operator/execucao'
     | '/preview/express-operations-b/$'
+    | '/clientes/lee-ricardo/'
     | '/clientes/lz-team/'
     | '/clientes/veronica-fashion-operator/'
     | '/clientes/express-entulho/operacoes/$secao'
@@ -841,6 +891,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentesRoute: typeof AgentesRoute
+  AgentesHumanosRoute: typeof AgentesHumanosRoute
   AulaZeroRoute: typeof AulaZeroRoute
   ClientesVeronicaRoute: typeof ClientesVeronicaRoute
   ComandosRoute: typeof ComandosRoute
@@ -868,9 +919,9 @@ export interface RootRouteChildren {
   AdminImagensRoute: typeof AdminImagensRoute
   AdminMembrosRoute: typeof AdminMembrosRoute
   AdminProdutosShopeeRoute: typeof AdminProdutosShopeeRoute
+  AdminVIvaRoute: typeof AdminVIvaRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   AdminWireRoute: typeof AdminWireRoute
-  AdminVIvaRoute: typeof AdminVIvaRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogExpedienteRoute: typeof BlogExpedienteRoute
   BlogRedeDeFontesRoute: typeof BlogRedeDeFontesRouteWithChildren
@@ -887,9 +938,12 @@ export interface RootRouteChildren {
   ClientesExpressEntulhoOperacoesRoute: typeof ClientesExpressEntulhoOperacoesRouteWithChildren
   ClientesExpressEntulhoOperacoesDemoRoute: typeof ClientesExpressEntulhoOperacoesDemoRoute
   ClientesExpressEntulhoPropostaRoute: typeof ClientesExpressEntulhoPropostaRoute
-  ClientesLzTeamPainelRoute: typeof ClientesLzTeamPainelRoute
+  ClientesLeeRicardoMembrosRoute: typeof ClientesLeeRicardoMembrosRoute
+  ClientesLeeRicardoPainelRoute: typeof ClientesLeeRicardoPainelRoute
   ClientesLzTeamMembrosRoute: typeof ClientesLzTeamMembrosRoute
+  ClientesLzTeamPainelRoute: typeof ClientesLzTeamPainelRoute
   ClientesVeronicaFashionOperatorExecucaoRoute: typeof ClientesVeronicaFashionOperatorExecucaoRoute
+  ClientesLeeRicardoIndexRoute: typeof ClientesLeeRicardoIndexRoute
   ClientesLzTeamIndexRoute: typeof ClientesLzTeamIndexRoute
   ClientesVeronicaFashionOperatorIndexRoute: typeof ClientesVeronicaFashionOperatorIndexRoute
 }
@@ -908,6 +962,13 @@ declare module '@tanstack/react-router' {
       path: '/agentes'
       fullPath: '/agentes'
       preLoaderRoute: typeof AgentesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agentes-humanos': {
+      id: '/agentes-humanos'
+      path: '/agentes-humanos'
+      fullPath: '/agentes-humanos'
+      preLoaderRoute: typeof AgentesHumanosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aula-zero': {
@@ -1106,6 +1167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProdutosShopeeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/v-iva': {
+      id: '/admin/v-iva'
+      path: '/admin/v-iva'
+      fullPath: '/admin/v-iva'
+      preLoaderRoute: typeof AdminVIvaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/veronica-universe': {
       id: '/admin/veronica-universe'
       path: '/admin/veronica-universe'
@@ -1118,13 +1186,6 @@ declare module '@tanstack/react-router' {
       path: '/admin/wire'
       fullPath: '/admin/wire'
       preLoaderRoute: typeof AdminWireRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/v-iva': {
-      id: '/admin/v-iva'
-      path: '/admin/v-iva'
-      fullPath: '/admin/v-iva'
-      preLoaderRoute: typeof AdminVIvaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -1246,6 +1307,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesExpressEntulhoPropostaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes/lee-ricardo/': {
+      id: '/clientes/lee-ricardo/'
+      path: '/clientes/lee-ricardo'
+      fullPath: '/clientes/lee-ricardo/'
+      preLoaderRoute: typeof ClientesLeeRicardoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/lee-ricardo/membros': {
+      id: '/clientes/lee-ricardo/membros'
+      path: '/clientes/lee-ricardo/membros'
+      fullPath: '/clientes/lee-ricardo/membros'
+      preLoaderRoute: typeof ClientesLeeRicardoMembrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/lee-ricardo/painel': {
+      id: '/clientes/lee-ricardo/painel'
+      path: '/clientes/lee-ricardo/painel'
+      fullPath: '/clientes/lee-ricardo/painel'
+      preLoaderRoute: typeof ClientesLeeRicardoPainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/lz-team/': {
       id: '/clientes/lz-team/'
       path: '/clientes/lz-team'
@@ -1253,18 +1335,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesLzTeamIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clientes/lz-team/painel': {
-      id: '/clientes/lz-team/painel'
-      path: '/clientes/lz-team/painel'
-      fullPath: '/clientes/lz-team/painel'
-      preLoaderRoute: typeof ClientesLzTeamPainelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/clientes/lz-team/membros': {
       id: '/clientes/lz-team/membros'
       path: '/clientes/lz-team/membros'
       fullPath: '/clientes/lz-team/membros'
       preLoaderRoute: typeof ClientesLzTeamMembrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/lz-team/painel': {
+      id: '/clientes/lz-team/painel'
+      path: '/clientes/lz-team/painel'
+      fullPath: '/clientes/lz-team/painel'
+      preLoaderRoute: typeof ClientesLzTeamPainelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clientes/veronica-fashion-operator/': {
@@ -1443,6 +1525,7 @@ const ClientesExpressEntulhoOperacoesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentesRoute: AgentesRoute,
+  AgentesHumanosRoute: AgentesHumanosRoute,
   AulaZeroRoute: AulaZeroRoute,
   ClientesVeronicaRoute: ClientesVeronicaRoute,
   ComandosRoute: ComandosRoute,
@@ -1470,9 +1553,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminImagensRoute: AdminImagensRoute,
   AdminMembrosRoute: AdminMembrosRoute,
   AdminProdutosShopeeRoute: AdminProdutosShopeeRoute,
+  AdminVIvaRoute: AdminVIvaRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   AdminWireRoute: AdminWireRoute,
-  AdminVIvaRoute: AdminVIvaRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogExpedienteRoute: BlogExpedienteRoute,
   BlogRedeDeFontesRoute: BlogRedeDeFontesRouteWithChildren,
@@ -1491,10 +1574,13 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesExpressEntulhoOperacoesDemoRoute:
     ClientesExpressEntulhoOperacoesDemoRoute,
   ClientesExpressEntulhoPropostaRoute: ClientesExpressEntulhoPropostaRoute,
-  ClientesLzTeamPainelRoute: ClientesLzTeamPainelRoute,
+  ClientesLeeRicardoMembrosRoute: ClientesLeeRicardoMembrosRoute,
+  ClientesLeeRicardoPainelRoute: ClientesLeeRicardoPainelRoute,
   ClientesLzTeamMembrosRoute: ClientesLzTeamMembrosRoute,
+  ClientesLzTeamPainelRoute: ClientesLzTeamPainelRoute,
   ClientesVeronicaFashionOperatorExecucaoRoute:
     ClientesVeronicaFashionOperatorExecucaoRoute,
+  ClientesLeeRicardoIndexRoute: ClientesLeeRicardoIndexRoute,
   ClientesLzTeamIndexRoute: ClientesLzTeamIndexRoute,
   ClientesVeronicaFashionOperatorIndexRoute:
     ClientesVeronicaFashionOperatorIndexRoute,

@@ -567,4 +567,11 @@ export {
 export { mcpOAuthGrants } from "./mcp/schema";
 
 // Operação fitness isolada por cliente.
-export { fitnessStudents, fitnessLessons, fitnessPosts, fitnessAgentCases } from "../features/lz-team/platform.schema";
+export {
+  fitnessStudents,
+  fitnessLessons,
+  fitnessPosts,
+  fitnessAgentCases,
+} from "../features/lz-team/platform.schema";
+
+export { wellnessJourneys } from "../features/wellness/schema";

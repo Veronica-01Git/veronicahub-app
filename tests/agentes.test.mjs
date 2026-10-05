@@ -164,6 +164,8 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/clientes/",
   "/clientes/$clientSlug",
   "/clientes/admin",
+  "/clientes/lee-ricardo/membros", // área privada alcançada pelo site de Lee
+  "/clientes/lee-ricardo/painel", // gestão protegida alcançada pelo site de Lee
   "/clientes/lz-team/membros", // comunidade privada acessada pela página pública do LZ
   "/clientes/veronica-fashion-operator/",
   "/clientes/veronica-fashion-operator/execucao",

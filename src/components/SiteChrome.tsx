@@ -11,6 +11,8 @@ import {
   GraduationCap,
   Wand2,
   Briefcase,
+  Bot,
+  Users,
   Newspaper,
   LayoutGrid,
   ArrowRight,
@@ -330,21 +332,51 @@ function NavigationGroupLinks({
 }) {
   return (
     <div className="grid gap-1 p-2">
-      {group.items.map((item) => (
-        <Link
-          key={item.id}
-          to={item.to}
-          onClick={onNavigate}
-          className="group rounded-lg px-3 py-2.5 transition hover:bg-neon-green/[0.07] focus-visible:outline-2 focus-visible:outline-neon-green"
-        >
-          <span className="block text-sm font-medium text-foreground group-hover:text-neon-green">
-            {item.name}
-          </span>
-          <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-            {item.description}
-          </span>
-        </Link>
-      ))}
+      {group.id === "business" ? (
+        <div className="border-b border-border/50 pb-2">
+          <a
+            href="/agentes"
+            onClick={onNavigate}
+            className="block rounded-lg px-3 py-3 hover:bg-neon-green/10"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <Bot size={18} /> AGENTES DE IA
+            </span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              Automação e escala 24/7
+            </span>
+          </a>
+          <a
+            href="/agentes-humanos"
+            onClick={onNavigate}
+            className="block rounded-lg px-3 py-3 hover:bg-neon-green/10"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <Users size={18} /> AGENTES HUMANOS
+            </span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              Curadoria, consultoria e suporte humano especializado
+            </span>
+          </a>
+        </div>
+      ) : null}
+      {group.items
+        .filter((item) => group.id !== "business" || !["agentes", "human-agents"].includes(item.id))
+        .map((item) => (
+          <Link
+            key={item.id}
+            to={item.to}
+            onClick={onNavigate}
+            className="group rounded-lg px-3 py-2.5 transition hover:bg-neon-green/[0.07] focus-visible:outline-2 focus-visible:outline-neon-green"
+          >
+            <span className="block text-sm font-medium text-foreground group-hover:text-neon-green">
+              {item.name}
+            </span>
+            <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+              {item.description}
+            </span>
+          </Link>
+        ))}
     </div>
   );
 }
@@ -413,7 +445,12 @@ export function SiteHeader({
             const Icon = HEADER_GROUP_ICONS[group.id];
             const open = activeMenu === group.id;
             return (
-              <div key={group.id} className="relative">
+              <div
+                key={group.id}
+                className="relative"
+                onMouseEnter={() => setActiveMenu(group.id)}
+                onMouseLeave={() => setActiveMenu(null)}
+              >
                 <button
                   type="button"
                   aria-expanded={open}
@@ -431,7 +468,7 @@ export function SiteHeader({
                 {open && (
                   <div
                     id={`header-menu-${group.id}`}
-                    className="absolute left-1/2 top-full z-40 mt-3 w-80 max-h-[min(70vh,540px)] -translate-x-1/2 overflow-y-auto rounded-xl border border-border/70 bg-background/95 shadow-[0_24px_70px_-20px_oklch(0_0_0/0.85)] backdrop-blur-xl"
+                    className="absolute left-1/2 top-full z-40 pt-3 w-80 max-h-[min(70vh,540px)] -translate-x-1/2 overflow-y-auto rounded-xl border border-border/70 bg-background/95 shadow-[0_24px_70px_-20px_oklch(0_0_0/0.85)] backdrop-blur-xl"
                   >
                     <p className="border-b border-border/50 px-5 py-3 font-mono-tech text-[10px] uppercase tracking-[0.2em] text-neon-green">
                       {group.label}
@@ -504,7 +541,10 @@ export function SiteHeader({
         </nav>
       )}
       {/* Fio de acento apenas na borda superior; a base mantém a divisória neutra do cabeçalho. */}
-      <div aria-hidden className="vh-header-rule pointer-events-none absolute inset-x-0 top-0" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-red-700 via-red-600 to-red-500 shadow-[0_2px_12px_rgba(220,38,38,.28)]"
+      />
     </header>
   );
 }
