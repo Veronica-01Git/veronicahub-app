@@ -44,6 +44,26 @@ export type Product = {
 };
 export const PRODUCTS: Product[] = [
   {
+    id: "human-agents",
+    name: "Agentes Humanos",
+    category: "Ferramentas",
+    to: "/agentes-humanos",
+    status: "Disponível",
+    description: "Curadoria, consultoria e suporte humano especializado",
+    external: false,
+    public: true,
+  },
+  {
+    id: "lee-ricardo",
+    name: "Lee Ricardo · Nutrição",
+    category: "Projetos especiais",
+    to: "/clientes/lee-ricardo",
+    status: "Parcial",
+    description: "Nutrição, hábitos e uma jornada com identidade própria",
+    external: false,
+    public: true,
+  },
+  {
     id: "members",
     name: "Members",
     category: "Mídia",
@@ -279,9 +299,11 @@ export const HEADER_NAV_GROUPS = [
   {
     id: "business",
     label: "Soluções",
-    items: ["agentes", "foguete", "analytics", "security", "career", "rh"].map(product),
+    items: ["agentes", "human-agents", "foguete", "analytics", "security", "career", "rh"].map(
+      product,
+    ),
   },
-  { id: "explore", label: "Explorar", items: ["members", "clientes"].map(product) },
+  { id: "explore", label: "Explorar", items: ["members", "clientes", "lee-ricardo"].map(product) },
 ] as const;
 export const SPECIAL_PROJECTS = PRODUCTS.filter((item) => item.category === "Projetos especiais");
 export const HOME_PRODUCTS = [

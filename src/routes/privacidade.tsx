@@ -16,12 +16,40 @@ export const Route = createFileRoute("/privacidade")({
   }),
 });
 
-const ATUALIZADA_EM = "26 de setembro de 2026";
+const ATUALIZADA_EM = "5 de outubro de 2026";
 const EMAIL_CONTATO = SOCIAL_LINKS.email.replace("mailto:", "");
 
 type Secao = { id: string; titulo: string; corpo: ReactNode };
 
 const secoes: Secao[] = [
+  {
+    id: "wellness",
+    titulo: "Avaliação inicial e acompanhamento Wellness",
+    corpo: (
+      <>
+        <p>
+          Na jornada Wellness, usamos seu nome, objetivo, disponibilidade, experiência e as
+          informações sobre dificuldades ou limitações que você escolher informar. Relatos de saúde
+          podem ser dados sensíveis. O envio depende de autorização específica para criar o guia e
+          disponibilizar a avaliação à equipe do profissional escolhido.
+        </p>
+        <p>
+          As respostas ficam vinculadas à sua conta no banco de dados da plataforma, acessíveis a
+          você e à equipe autorizada daquele profissional. Não são exibidas na vitrine pública nem
+          usadas para marketing a partir deste aceite. O guia inicial é organizado por regras
+          educativas; estas respostas não são enviadas a um provedor externo de geração de texto
+          neste fluxo.
+        </p>
+        <p>
+          A avaliação, o guia e o plano são mantidos enquanto você desejar conservar esta jornada.
+          Você pode excluí-los na própria área, retirando o acesso operacional. Cópias temporárias
+          em backups seguem o ciclo de retenção do provedor. Para outras solicitações de acesso,
+          correção ou eliminação, use o contato indicado nesta política. Esta primeira versão atende
+          maiores de 18 anos.
+        </p>
+      </>
+    ),
+  },
   {
     id: "quem-somos",
     titulo: "1. Quem é responsável pelos dados",

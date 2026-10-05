@@ -12,6 +12,9 @@ import {
   setLzStudentStatus,
 } from "./platform.functions";
 
+import { WellnessJourney } from "@/features/wellness/journey-ui";
+import { WellnessTheme } from "@/features/wellness/theme";
+
 type Snapshot = Awaited<ReturnType<typeof getLzPlatform>>;
 type Section = "painel" | "membros";
 
@@ -30,7 +33,7 @@ export function LzPlatform({ section }: { section: Section }) {
   useEffect(() => { void refresh(); }, [refresh]);
 
   return (
-    <div className="min-h-screen bg-[#f5f8f6] font-sans text-[#16241d]">
+    <WellnessTheme identity="lz-team"><div className="lz-workspace min-h-screen bg-[#f5f8f6] font-sans text-[#16241d]">
       <header className="border-b border-[#e2e9e4] bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4">
           <Link to="/clientes/lz-team" className="text-base font-black tracking-[-.04em]">
@@ -42,6 +45,7 @@ export function LzPlatform({ section }: { section: Section }) {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-8 sm:pt-12">
+        <WellnessJourney professional="lz-team" management={section === "painel"} />
         {!state ? (
           <div className={card}><Loader2 className="h-5 w-5 animate-spin" aria-hidden /> Verificando sua conta…</div>
         ) : state.role === "visitor" ? (
@@ -101,7 +105,7 @@ export function LzPlatform({ section }: { section: Section }) {
         )}
         {error && !state ? <p role="alert" className="mt-4 text-sm text-red-700">{error}</p> : null}
       </main>
-    </div>
+    </div></WellnessTheme>
   );
 }
 
