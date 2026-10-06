@@ -38,7 +38,7 @@ export async function generateText(
       provider === "groq"
         ? input.groqModel
         : provider === "gemini"
-          ? "gemini-2.5-flash-lite"
+          ? "gemini-3.5-flash-lite"
           : "claude-haiku-4-5-20251001";
     let url: string;
     let headers: Record<string, string>;
