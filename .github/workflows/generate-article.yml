@@ -64,11 +64,11 @@ jobs:
               curl --silent --show-error --max-time 15 \
                 "https://veronicahub.com/api/cron/wire-health" \
                 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" -o readiness.json || true
-              if jq -e '.revision == "wire-recovery-v2"' readiness.json >/dev/null 2>&1; then ready=true; break; fi
+              if jq -e '.revision == "wire-recovery-v3"' readiness.json >/dev/null 2>&1; then ready=true; break; fi
               sleep 15
             done
             if [ "$ready" != "true" ]; then
-              echo "::error::O Worker ainda não publicou a revisão wire-recovery-v2. Confira o build/deploy no Cloudflare."
+              echo "::error::O Worker ainda não publicou a revisão wire-recovery-v3. Confira o build/deploy no Cloudflare."
               exit 1
             fi
             probe_status=$(curl --silent --show-error --max-time 60 \

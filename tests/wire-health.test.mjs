@@ -30,7 +30,7 @@ test("readiness checks incur no generation cost; POST returns only safe provider
     new Request("https://example.com/api/cron/wire-health", { headers }),
     deps,
   );
-  assert.equal((await get.json()).revision, "wire-recovery-v2");
+  assert.equal((await get.json()).revision, "wire-recovery-v3");
   assert.equal(calls, 0);
   const post = await handleWireHealth(
     new Request("https://example.com/api/cron/wire-health", { method: "POST", headers }),
