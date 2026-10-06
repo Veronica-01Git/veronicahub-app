@@ -13,8 +13,9 @@
  *
  * Atualização do dono em 06/10/2026: móveis, terra, telhas, madeira, mdf,
  * vidro e poda passam a ter preço na caçamba média (a `cacamba-menor`) e na
- * grande — o valor da demolição + R$ 50,00. Tambor e entulho/gesso na grande
- * continuam sem preço.
+ * grande — o valor da demolição + R$ 50,00. No mesmo dia: entulho e gesso na
+ * grande = R$ 450, e tambor = R$ 180 para qualquer material. Só o entulho na
+ * caçamba menor continua sem preço.
  *
  * A guarda em whatsapp-agent.ts confere valores deterministically. Um número
  * não confirmado não deve entrar na matriz apenas para preencher uma lacuna.
@@ -161,6 +162,21 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
       { produto: "cacamba-menor" as const, material, cidade: ITAJAI, valorReais: 220 + 50 },
       { produto: "cacamba-grande" as const, material, cidade: ITAJAI, valorReais: 450 + 50 },
     ]),
+
+    /*
+     * DONO, 06/10/2026, resposta às lacunas da tabela: "grande 450 caçamba,
+     * 450. tambor 180,00". Entulho e gesso na caçamba grande = R$ 450; o
+     * tambor custa R$ 180 para qualquer material (demolição e entulho já
+     * estavam em 180). Continua sem preço só o entulho na caçamba menor.
+     */
+    { produto: "cacamba-grande", material: "entulho", cidade: ITAJAI, valorReais: 450 },
+    { produto: "cacamba-grande", material: "gesso", cidade: ITAJAI, valorReais: 450 },
+    ...["gesso", ...MATERIAIS_COM_ACRESCIMO].map((material) => ({
+      produto: "tambor" as const,
+      material,
+      cidade: ITAJAI,
+      valorReais: 180,
+    })),
   ],
 
   precoPadraoTodasCidades: true,

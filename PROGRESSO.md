@@ -1,3 +1,18 @@
+## Express Entulho: lacunas da tabela preenchidas (2026-10-06)
+
+Resposta do dono às lacunas: "grande 450 caçamba, 450. tambor 180,00".
+
+- **Caçamba grande:** entulho R$ 450 e gesso R$ 450.
+- **Tambor:** R$ 180 para qualquer material. Demolição e entulho já estavam
+  em 180; entraram gesso, móveis, terra, telhas, madeira, mdf, vidro e poda.
+  O tambor continua disponível só em Itajaí.
+- **Matriz:** passou de 19 para 29 combinações.
+- **Única lacuna restante:** entulho na caçamba menor (média), que o agente
+  encaminha para a equipe.
+- **Testes:** `whatsapp-webhook.test.mjs` foi atualizado e ganhou um teste
+  novo. No `express-assisted-ops.test.mjs`, o cenário "sem preço" passou a
+  usar entulho na menor. Resultado: 337/337.
+
 ## Express Entulho: tabela de preços ampliada no cérebro do agente (2026-10-06)
 
 **Pedido do dono:** "móveis, terra, telhas, madeira, mdf, vidro, poda — esses
