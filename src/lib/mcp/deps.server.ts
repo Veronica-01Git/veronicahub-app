@@ -14,7 +14,7 @@
  * ADMIN_EMAILS.
  */
 
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, count, eq, gt, isNull } from "drizzle-orm";
 import { getDb } from "../db";
 import { findAdminUser } from "../admin-core.server";
 import { consumeEmailCodeCore, issueEmailCodeCore } from "../auth-server";
@@ -84,6 +84,18 @@ const store: OAuthStore = {
       .limit(1);
     return row?.familyId ?? null;
   },
+  async revokeKind(familyId, kind, now) {
+    await getDb()
+      .update(mcpOAuthGrants)
+      .set({ revokedAt: now })
+      .where(
+        and(
+          eq(mcpOAuthGrants.familyId, familyId),
+          eq(mcpOAuthGrants.kind, kind),
+          isNull(mcpOAuthGrants.revokedAt),
+        ),
+      );
+  },
   async revokeFamily(familyId, now) {
     await getDb()
       .update(mcpOAuthGrants)
@@ -134,6 +146,19 @@ async function ensureMcpAgent(): Promise<void> {
 }
 
 const executions: ExecutionPort = {
+  async countSince(actorId, since) {
+    const [row] = await getDb()
+      .select({ n: count() })
+      .from(agentExecutions)
+      .where(
+        and(
+          eq(agentExecutions.agentId, MCP_AGENT_SLUG),
+          eq(agentExecutions.approvedBy, actorId),
+          gt(agentExecutions.queuedAt, since),
+        ),
+      );
+    return Number(row?.n ?? 0);
+  },
   async start({ toolKey, actorId }) {
     await ensureMcpAgent();
     const spec = registeredAgent(MCP_AGENT_SLUG)!;

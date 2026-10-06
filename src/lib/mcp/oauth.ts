@@ -62,6 +62,8 @@ export interface OAuthStore {
   /** Família de qualquer token já emitido (mesmo usado ou vencido), ou null. */
   familyOf(tokenHash: string): Promise<string | null>;
   revokeFamily(familyId: string, now: Date): Promise<void>;
+  /** Revoga só os tokens de um tipo na família (ex.: acessos antigos no refresh). */
+  revokeKind(familyId: string, kind: GrantKind, now: Date): Promise<void>;
 }
 
 export type AdminRef = { id: string };
@@ -461,6 +463,9 @@ export async function handleToken(request: Request, deps: OAuthDeps): Promise<Re
       await deps.store.revokeFamily(grant.familyId, now);
       return oauthError("invalid_grant", "Conta sem acesso ao conector.");
     }
+    // Renovou: o acesso anterior desta conexão deixa de valer agora, e não só
+    // quando vencer. Só um token de acesso vivo por conexão.
+    await deps.store.revokeKind(grant.familyId, "access", now);
     return issuePair(grant, deps);
   }
 

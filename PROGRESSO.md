@@ -1,3 +1,23 @@
+## Conector MCP "Veronica" — fase 2, reforço de segurança (2026-10-06)
+
+**Responsável:** Claude Code, com Matheus. Branch `claude/zealous-bohr-h40813`.
+Sem migração, sem segredo novo, sem ferramenta nova.
+
+- **Limite de chamadas:** 60 chamadas de ferramenta por minuto por conta
+  admin (`MAX_CALLS_PER_MINUTE` em `src/lib/mcp/tools.ts`), contado nas
+  linhas de AgentExecution — vale entre isolates do Worker. A recusa não
+  executa nada e não grava linha.
+- **Token antigo revogado na renovação:** ao trocar o refresh token, o token
+  de acesso anterior da mesma conexão é revogado na hora (`revokeKind` em
+  `src/lib/mcp/oauth.ts`). Antes, valia até vencer (até 1 h).
+- **Painel `/admin/conector-mcp`:** chamadas e falhas das últimas 24 h,
+  conexões ativas, as últimas 50 chamadas (ferramenta, status, motivo,
+  duração) e o botão "Desconectar todas as conexões", com confirmação. Só
+  metadado — sem e-mail, token ou link. Link no painel admin.
+- Testes: 2 novos em `tests/mcp-veronica.test.mjs` (refresh revoga o acesso
+  anterior; a 61ª chamada no minuto é recusada sem executar nem gravar).
+  Rota do painel declarada em `tests/agentes.test.mjs`.
+
 ## Express Entulho: lacunas da tabela preenchidas (2026-10-06)
 
 Resposta do dono às lacunas: "grande 450 caçamba, 450. tambor 180,00".
