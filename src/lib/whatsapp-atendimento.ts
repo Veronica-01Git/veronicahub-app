@@ -213,3 +213,59 @@ export function mensagemDeAlerta(params: {
     ].join("\n"),
   };
 }
+
+/* ------------------------------------------- 4. Coexistence: eco do app */
+
+/**
+ * Mensagem que a EQUIPE mandou pelo aplicativo WhatsApp Business do celular.
+ *
+ * Com o Coexistence, o mesmo número fica no app e na Cloud API. Quando alguém
+ * responde um cliente pelo celular, a Meta avisa o webhook no campo
+ * `smb_message_echoes`. Sem tratar esse aviso, a agente não saberia que uma
+ * pessoa já respondeu e falaria por cima dela — exatamente a regra 1 deste
+ * arquivo, só que vinda do celular em vez do painel.
+ */
+export type EcoDoApp = {
+  /** O CLIENTE (destinatário do eco), no formato que a Meta devolve. */
+  readonly waId: string;
+  readonly providerId: string;
+  readonly kind: string;
+  readonly texto: string;
+  readonly ocorridoEm: Date;
+};
+
+type EcoMeta = MensagemMeta & { to?: string };
+
+export function extrairEcos(
+  value: { message_echoes?: readonly EcoMeta[] } | undefined,
+  agora: Date = new Date(),
+): readonly EcoDoApp[] {
+  const out: EcoDoApp[] = [];
+  for (const eco of value?.message_echoes ?? []) {
+    if (!eco?.id || !eco.to) continue;
+    const conteudo = extrairConteudo(eco);
+    const segundos = Number(eco.timestamp);
+    out.push({
+      waId: eco.to,
+      providerId: eco.id,
+      kind: conteudo.kind,
+      texto: conteudo.texto || conteudo.paraOAgente,
+      ocorridoEm: Number.isFinite(segundos) && segundos > 0 ? new Date(segundos * 1000) : agora,
+    });
+  }
+  return out;
+}
+
+/**
+ * Campos do webhook que existem só no Coexistence e que NÃO são mensagem
+ * nova: `history` (cópia de até 6 meses de conversas do app) e
+ * `smb_app_state_sync` (contatos do app).
+ *
+ * São ignorados de propósito. Guardar o histórico inteiro aqui seria juntar
+ * dado pessoal sem necessidade — ele continua no celular da empresa — e
+ * tratá-lo como mensagem faria a agente responder conversa de meses atrás.
+ */
+export const CAMPOS_IGNORADOS_COEXISTENCE: ReadonlySet<string> = new Set([
+  "history",
+  "smb_app_state_sync",
+]);
