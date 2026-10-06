@@ -1,0 +1,214 @@
+/* Escola shares the Home's workforce tokens and image treatment. */
+.school-page .school-dim {
+  color: var(--wf-dim);
+}
+.school-page .school-section {
+  padding-block: clamp(4rem, 8vw, 8rem);
+  border-top: 1px solid var(--wf-line);
+}
+.school-page .school-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: min(95svh, 1060px);
+  display: flex;
+  align-items: end;
+  padding-block: clamp(5rem, 10vh, 8rem) 2rem;
+}
+.school-page .school-hero-image {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+}
+.school-page .school-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 64% 40%;
+}
+.school-page .school-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(12, 16, 17, 0.96),
+      rgba(12, 16, 17, 0.82) 28%,
+      rgba(12, 16, 17, 0.25) 75%
+    ),
+    linear-gradient(0deg, var(--wf-ink), transparent 60%);
+}
+.school-page .school-title {
+  font-size: clamp(3.5rem, 8.5vw, 8rem);
+  letter-spacing: -0.055em;
+  line-height: 0.94;
+  max-width: 9ch;
+}
+.school-page .school-title span {
+  color: var(--wf-signal);
+}
+.school-page .school-hero-copy {
+  max-width: 35rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+  line-height: 1.75;
+}
+.school-page .school-hero-rail {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 1.3rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
+}
+.school-page .school-intro {
+  display: grid;
+  gap: clamp(2rem, 6vw, 6rem);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  align-items: center;
+}
+.school-page .school-start,
+.school-page .school-syllabus {
+  border: 1px solid var(--wf-line-2);
+  border-radius: 1.25rem;
+  background: var(--wf-ink-2);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+.school-page .school-text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--wf-text);
+  font-size: 0.85rem;
+  min-height: 44px;
+}
+.school-page button:focus-visible,
+.school-page .school-text-button:focus-visible {
+  outline: 2px solid var(--wf-signal);
+  outline-offset: 4px;
+}
+.school-page .school-section-heading {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1.2fr 0.8fr;
+  align-items: end;
+}
+.school-page .school-track-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.school-page .school-track-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4vw, 4rem);
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+}
+.school-page .school-image-tag {
+  color: var(--wf-text);
+  background: oklch(0.13 0.006 200 / 0.8);
+  backdrop-filter: blur(10px);
+}
+.school-page .wf-plate-media img {
+  filter: saturate(0.82) contrast(1.04);
+}
+.school-page .school-method {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem;
+  border-top: 1px solid rgb(20 25 25 / 0.2);
+}
+.school-page .school-method article {
+  padding-top: 1.5rem;
+}
+.school-page .school-method article p:last-child {
+  color: rgb(20 25 25 / 0.7);
+}
+.school-page .school-module {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 1rem;
+  padding-top: 1.4rem;
+  margin-top: 1.4rem;
+  border-top: 1px solid var(--wf-line);
+}
+.school-page .school-module span:last-child {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+}
+.school-page .school-module-ready {
+  color: var(--wf-signal);
+}
+.school-page .school-tutor {
+  background: var(--wf-ink-2);
+}
+.school-page .school-tutor-plate {
+  border-top: 0;
+  padding-block: 0;
+}
+.school-page .school-next {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.school-page .school-next-link {
+  padding: 2rem;
+  border: 1px solid var(--wf-line);
+  transition: background-color 220ms ease;
+}
+.school-page .school-next-link:hover {
+  background: var(--wf-ink-2);
+}
+@media (max-width: 960px) {
+  .school-page .school-intro,
+  .school-page .school-section-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .school-page .school-method {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .school-page .school-hero {
+    min-height: 850px;
+  }
+}
+@media (max-width: 600px) {
+  .school-page .school-hero {
+    min-height: 92svh;
+    padding-top: 6rem;
+  }
+  .school-page .school-hero-image img {
+    object-position: 68% 30%;
+  }
+  .school-page .school-hero::after {
+    background: linear-gradient(
+      0deg,
+      var(--wf-ink) 3%,
+      rgba(12, 16, 17, 0.9) 32%,
+      rgba(12, 16, 17, 0.45) 75%,
+      rgba(12, 16, 17, 0.18)
+    );
+  }
+  .school-page .school-title {
+    font-size: clamp(3.1rem, 13vw, 4.8rem);
+  }
+  .school-page .school-hero-rail span:last-child {
+    display: none;
+  }
+  .school-page .school-next {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .school-page .school-method {
+    gap: 1.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .school-page .school-next-link {
+    transition: none;
+  }
+}
