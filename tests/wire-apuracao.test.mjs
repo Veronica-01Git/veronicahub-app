@@ -9,9 +9,23 @@ import {
   pareceMateria,
   textoCombinaComTitulo,
   tentarOutraPauta,
+  SIGNAL_KEYWORDS,
+  fatoForaDoRecorte,
 } from "../src/lib/wire-apuracao.ts";
 
 const AGORA = Date.parse("2026-10-01T15:00:00Z");
+
+test("desk selection excludes fashion models and foreign finance but preserves linked Brazilian news", () => {
+  assert.equal(SIGNAL_KEYWORDS.ia.test("Modelo descoberta em posto de gasolina morre"), false);
+  assert.equal(SIGNAL_KEYWORDS.ia.test("Google lança Gemini no Brasil"), true);
+  assert.equal(SIGNAL_KEYWORDS.economia.test("Economia brasileira cresce"), true);
+  assert.equal(SIGNAL_KEYWORDS.economia.test("Atividade econômica avança na China"), true);
+  assert.equal(fatoForaDoRecorte("Wall Street sobe e juros dos Treasuries entram no radar"), true);
+  assert.equal(fatoForaDoRecorte("Fed reduz juros nos EUA"), true);
+  assert.equal(fatoForaDoRecorte("Como os juros do Fed afetam o Brasil"), false);
+  assert.equal(fatoForaDoRecorte("China anuncia acordo com a Alemanha"), false);
+  assert.equal(fatoForaDoRecorte("Dólar recua e Selic permanece estável"), false);
+});
 
 test("editorial refusal advances once; authentication, network and quality errors stop", () => {
   const recusa = { ok: false, error: "sem fato verificável no momento (apuração: portal.com.br)" };

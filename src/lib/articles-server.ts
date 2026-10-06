@@ -12,6 +12,8 @@ import { resolveEditorialChannel, scheduledEditorialChannel } from "./editorial-
 import { RECUSA_PAUTA_SC, foraDaPautaSc, tituloDeIndice } from "./pauta-sc";
 import {
   TEXTO_MINIMO_POR_FONTE,
+  SIGNAL_KEYWORDS,
+  fatoForaDoRecorte,
   assuntoRepetido,
   escolherPautas,
   extrairTexto,
@@ -151,23 +153,6 @@ const RSS_FEEDS: Record<Beat, string[]> = {
     googleNewsBrasil(`"Santa Catarina" (${sitesDe(PORTAIS_SC)})`),
   ],
   veronica: [],
-};
-
-const SIGNAL_KEYWORDS: Record<Beat, RegExp> = {
-  ia: /\b(ai|artificial intelligence|intelig[êe]ncia artificial|modelo|model|chip|rob[ôo]|software|algoritmo)\b/i,
-  clima:
-    /\b(terras? raras?|rare earths?|minera(l|is|ção|cao)|l[íi]tio|lithium|ni[óo]bio|climate|clima|energy|energia|solar|wind|e[óo]lica|battery|bateria|emiss[õo]|desmatamento|enchente|seca)\b/i,
-  economia:
-    /\b(econom|central bank|banco central|currency|moeda|inflation|infla[çc][ãa]o|cbdc|yuan|drex|pix|juros|selic|c[âa]mbio|d[óo]lar|pib)\b/i,
-  geopolitica:
-    /\b(china|chin[êe]s|chinese|brasil|brazil|trade|com[ée]rcio|tariff|tarifa|chip|semiconductor|semicondutor|geopolit|diplomac|acordo|brics|mercosul)\b/i,
-  mercado:
-    /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip|rodada|aquisi[çc][ãa]o)\b/i,
-  // Os feeds de SC já são recortados por portal e por cidade, e a manchete
-  // local raramente repete o nome da cidade. Qualquer título passa aqui; quem
-  // tira polícia e tragédia é o foraDaPautaSc.
-  sc: /\S/,
-  veronica: /\bveronica\b/i,
 };
 
 // Recorte geográfico aplicado a TODO sinal, venha do GDELT ou do RSS.
@@ -920,6 +905,7 @@ function candidataNaPauta(beat: Beat, c: Candidata, recentes: string[]): boolean
   } else if (!inEditorialScope(c.titulo, c.dominio)) {
     return false;
   }
+  if (beat !== "sc" && fatoForaDoRecorte(c.titulo)) return false;
   return findSimilarHeadline(c.titulo, recentes) === null;
 }
 
