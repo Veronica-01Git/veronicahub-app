@@ -1,5 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, BookOpen, MessageCircle, Play, Wand2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  MessageCircle,
+  Play,
+  Wand2,
+} from "lucide-react";
 import { useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
@@ -16,16 +24,22 @@ export const Route = createFileRoute("/escola")({
       { name: "description", content: DESCRIPTION },
       { property: "og:title", content: "Escola Veronica · YO LAB & CO." },
       { property: "og:description", content: DESCRIPTION },
-      { property: "og:image", content: "https://veronicahub.com/images/escola/campus-1920.webp" },
-      { name: "twitter:image", content: "https://veronicahub.com/images/escola/campus-1920.webp" },
+      {
+        property: "og:image",
+        content: "https://veronicahub.com/images/escola/campus-v2-1600.webp",
+      },
+      {
+        name: "twitter:image",
+        content: "https://veronicahub.com/images/escola/campus-v2-1600.webp",
+      },
       { name: "theme-color", content: "#1a1d1e" },
     ],
     links: [
       {
         rel: "preload",
         as: "image",
-        href: `${IMAGE_ROOT}/campus-1280.webp`,
-        imageSrcSet: imageSrcSet("campus"),
+        href: `${IMAGE_ROOT}/campus-v2-1280.webp`,
+        imageSrcSet: imageSrcSet("campus-v2"),
         imageSizes: "100vw",
         type: "image/webp",
         fetchPriority: "high",
@@ -47,7 +61,7 @@ export const Route = createFileRoute("/escola")({
 });
 
 function imageSrcSet(name: string) {
-  return `${IMAGE_ROOT}/${name}-640.webp 640w, ${IMAGE_ROOT}/${name}-1280.webp 1280w, ${IMAGE_ROOT}/${name}-1920.webp 1920w`;
+  return `${IMAGE_ROOT}/${name}-640.webp 640w, ${IMAGE_ROOT}/${name}-1280.webp 1280w, ${IMAGE_ROOT}/${name}-1600.webp 1600w`;
 }
 function SchoolImage({ name, alt, hero = false }: { name: string; alt: string; hero?: boolean }) {
   return (
@@ -56,7 +70,7 @@ function SchoolImage({ name, alt, hero = false }: { name: string; alt: string; h
       srcSet={imageSrcSet(name)}
       sizes={hero ? "100vw" : "(max-width: 960px) 100vw, 56vw"}
       width={1280}
-      height={735}
+      height={720}
       alt={alt}
       loading={hero ? "eager" : "lazy"}
       fetchPriority={hero ? "high" : undefined}
@@ -72,8 +86,8 @@ const tracks = [
     title: "Dê forma às suas ideias.",
     copy: "Avatar, voz, vídeo e direção criativa. Aprenda a transformar uma intenção em uma identidade que pode ser vista e ouvida.",
     hash: "create",
-    image: "create",
-    alt: "Agentes com alfaiataria YO em um estúdio cinematográfico de criação.",
+    image: "create-v2",
+    alt: "Veronica e um mentor YO criando em um atelier de produção visual.",
   },
   {
     code: "02",
@@ -81,7 +95,7 @@ const tracks = [
     title: "Construa o que imagina.",
     copy: "Sites, aplicativos e experiências digitais. Conecte design e tecnologia para construir projetos que você consegue demonstrar.",
     hash: "build",
-    image: "build",
+    image: "build-v2",
     alt: "Veronica e agentes YO examinando um núcleo óptico no laboratório.",
   },
   {
@@ -90,7 +104,7 @@ const tracks = [
     title: "Faça sua criação crescer.",
     copy: "Copy, conteúdo, afiliados e leitura de dados. Entenda como apresentar seu trabalho e organizar uma operação comercial.",
     hash: "grow",
-    image: "grow",
+    image: "grow-v2",
     alt: "Agentes YO reunidos em um ambiente de análise com iluminação verde discreta.",
   },
   {
@@ -99,7 +113,7 @@ const tracks = [
     title: "Proteja o que construiu.",
     copy: "Segurança defensiva, prevenção e análise autorizada. Aprenda a reconhecer riscos e cuidar dos seus projetos digitais.",
     hash: "secure",
-    image: "secure",
+    image: "secure-v2",
     alt: "Veronica com agentes YO em um corredor tecnológico de servidores.",
   },
 ] as const;
@@ -124,36 +138,27 @@ function Escola() {
       <main>
         <section className="school-hero" aria-labelledby="school-title">
           <div className="school-hero-image" aria-hidden="true">
-            <SchoolImage name="campus" alt="" hero />
+            <SchoolImage name="campus-v2" alt="" hero />
           </div>
           <div className="wf-wrap school-hero-content">
             <p className="wf-label flex items-center gap-2.5">
               <span className="wf-led" aria-hidden="true" />
-              YO LAB &amp; CO. · Escola Veronica
+              YO LAB &amp; CO. · Inteligência artificial
             </p>
-            <h1 id="school-title" className="wf-display school-title mt-6">
-              Aprenda.
-              <br />
-              Construa.
-              <br />
-              <span>Publique.</span>
+            <h1 id="school-title" className="wf-display school-title">
+              Escola <span>Veronica.</span>
             </h1>
-            <p className="school-hero-copy mt-7">
-              Inteligência artificial se aprende criando.
-              <br />
-              Sua próxima ideia pode ser o seu primeiro projeto.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <p className="school-hero-copy">O futuro se aprende criando.</p>
+            <div className="school-hero-actions">
               <Link to="/aula-zero" className="wf-btn wf-btn-primary">
-                Começar pela Aula Zero <ArrowRight size={16} aria-hidden="true" />
+                Comece a criar <ArrowRight size={16} aria-hidden="true" />
               </Link>
-              <a href="#trilhas" className="wf-btn wf-btn-ghost">
-                Escolher minha trilha <ArrowUpRight size={16} aria-hidden="true" />
-              </a>
             </div>
-            <div className="school-hero-rail mt-12">
-              <span>Watch · Build · Test · Publish</span>
-              <span>Veronica School of Artificial Intelligence</span>
+            <div className="school-hero-rail">
+              <span>Um campus para a sua próxima ideia.</span>
+              <a href="#trilhas" className="school-discover wf-focus">
+                Explore a Escola <ArrowDown size={16} aria-hidden="true" />
+              </a>
             </div>
           </div>
         </section>
@@ -318,8 +323,8 @@ function Escola() {
             <div className="wf-plate school-tutor-plate">
               <div className="wf-plate-media wf-reveal">
                 <SchoolImage
-                  name="tutor"
-                  alt="Veronica e agentes YO em uma sala circular de colaboração."
+                  name="tutor-v2"
+                  alt="Veronica orientando um estudante em uma sala de mentoria do campus YO."
                 />
                 <span className="wf-plate-tag wf-chip school-image-tag">Veronica Tutor</span>
               </div>
