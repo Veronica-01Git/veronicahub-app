@@ -18,6 +18,8 @@ import {
   Volume2,
 } from "lucide-react";
 import { SiteHeader, SiteFooter, SOCIAL_LINKS } from "@/components/SiteChrome";
+import { CampusHero, CampusImage, CampusNavigation } from "@/components/learning/CampusVisuals";
+import { campusImage, campusSrcSet } from "@/lib/yo-visuals";
 import { VeronicaSeal } from "@/components/VeronicaSeal";
 import { formatBRL } from "@/lib/account";
 import { getVoicePackCheckoutUrl } from "@/lib/prompt-pack-commerce";
@@ -25,7 +27,19 @@ import { getVoicePackCheckoutUrl } from "@/lib/prompt-pack-commerce";
 export const Route = createFileRoute("/prompt-packs")({
   component: PromptPacks,
   head: () => ({
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: campusImage("packs"),
+        imageSrcSet: campusSrcSet("packs"),
+        imageSizes: "100vw",
+        type: "image/webp",
+        fetchPriority: "high",
+      },
+    ],
     meta: [
+      { property: "og:image", content: "https://veronicahub.com/images/yo-campus/packs-1600.webp" },
       { title: "Prompt Packs — Comandos prontos pra IA real | Veronica Hub" },
       {
         name: "description",
@@ -209,8 +223,22 @@ function PackCard({ pack }: { pack: PromptPack }) {
   return (
     <div
       id={pack.slug}
-      className="flex flex-col gap-4 rounded-sm border border-border/60 bg-surface/70 p-5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-neon-green/60 hover:shadow-glow-green sm:p-6"
+      className="yo-pack-card flex flex-col gap-4 border border-border/60 bg-surface/70 p-6 transition duration-300 hover:border-neon-green/60"
     >
+      <div className="yo-pack-cover">
+        <CampusImage
+          name={
+            pack.slug === "voz-narracao-ia"
+              ? "aula"
+              : pack.slug === "avatar-digital"
+                ? "core"
+                : pack.slug === "vfx-ultra-realista"
+                  ? "portfolio"
+                  : "packs"
+          }
+          alt={`Veronica no laboratório criativo do pack ${pack.name}.`}
+        />
+      </div>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap gap-2">
@@ -327,269 +355,262 @@ function FaqItem({ q, a, defaultOpen = false }: { q: string; a: string; defaultO
 
 function PromptPacks() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
-      <SiteHeader />
+    <div className="vh-wf yo-learning min-h-screen">
+      <SiteHeader brand="yo" />
 
-      {/* Hero — direto, sem CTA genérico */}
-      <section className="relative overflow-hidden border-b border-border/40 py-14 md:py-20">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-30"
-          style={{
-            background:
-              "radial-gradient(circle at 20% 10%, oklch(0.85 0.22 155 / 0.16), transparent 55%)",
-          }}
+      <main>
+        <CampusHero
+          image="packs"
+          eyebrow="YO LAB & CO. · Biblioteca criativa"
+          title={
+            <>
+              Prompt<span>Packs.</span>
+            </>
+          }
+          copy="Intenção, direção e comandos para criar melhor."
+          action={
+            <a href="#packs" className="wf-btn wf-btn-primary">
+              Explorar os packs
+              <ArrowRight size={16} />
+            </a>
+          }
+          discover="#packs"
+          discoverLabel="Entre na biblioteca"
         />
-        <div className="relative mx-auto max-w-3xl px-6 text-center">
-          <div className="mx-auto inline-flex items-center gap-3 rounded-full border border-neon-green/40 bg-background/60 px-4 py-1.5 font-mono-tech text-[10px] uppercase tracking-widest text-neon-green backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse-dot" />
-            Prompt Packs
+
+        {/* Faixa de confiança */}
+        <section className="border-b border-border/40 bg-surface/40 px-6 py-6">
+          <div className="mx-auto flex max-w-6xl flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-8 sm:gap-y-3">
+            {TRUST_ITEMS.map((t) => (
+              <div
+                key={t.label}
+                className="flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground"
+              >
+                <t.icon className="h-4 w-4 flex-shrink-0 text-neon-green" />
+                {t.label}
+              </div>
+            ))}
           </div>
-          <h1
-            className="mx-auto mt-6 max-w-2xl font-display text-3xl sm:text-4xl md:text-5xl"
-            style={{ letterSpacing: "-0.03em", lineHeight: "1.05" }}
-          >
-            Prompts que saem do papel.{" "}
-            <span className="text-neon-green text-glow-green">Resultado aplicável.</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.6] text-muted-foreground sm:text-base">
-            Guias diretos, organizados e testados para você produzir melhor com inteligência
-            artificial — mesmo que esteja começando agora.
-          </p>
-        </div>
-      </section>
+        </section>
 
-      {/* Faixa de confiança */}
-      <section className="border-b border-border/40 bg-surface/40 px-6 py-6">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-8 sm:gap-y-3">
-          {TRUST_ITEMS.map((t) => (
-            <div
-              key={t.label}
-              className="flex items-center gap-2 font-mono-tech text-[11px] uppercase tracking-widest text-muted-foreground"
-            >
-              <t.icon className="h-4 w-4 flex-shrink-0 text-neon-green" />
-              {t.label}
+        {/* Degustação gratuita */}
+        <section className="border-b border-border/40 bg-surface/30 py-14 md:py-20">
+          <div className="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+            <div className="relative overflow-hidden rounded-sm border border-neon-green/40 bg-background p-6 shadow-glow-green sm:p-8">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-40"
+                style={{
+                  background:
+                    "radial-gradient(circle at 100% 0%, oklch(0.85 0.22 155 / 0.24), transparent 48%)",
+                }}
+              />
+              <div className="relative">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="font-mono-tech text-[10px] uppercase tracking-[0.2em] text-neon-green">
+                    Material gratuito
+                  </span>
+                  <span className="rounded-full border border-border/70 px-3 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                    PDF · 8 páginas
+                  </span>
+                </div>
+                <Volume2 className="mt-10 h-10 w-10 text-neon-cyan" />
+                <h2
+                  className="mt-5 max-w-md font-display text-3xl text-foreground sm:text-4xl"
+                  style={{ letterSpacing: "-0.035em", lineHeight: "1.05" }}
+                >
+                  Sprint Voz IA
+                </h2>
+                <p className="mt-4 max-w-md text-[14px] leading-relaxed text-muted-foreground">
+                  Cinco comandos e uma missão guiada para transformar um texto comum em uma narração
+                  clara, humana e publicável.
+                </p>
+                <a
+                  href="/downloads/sprint-voz-ia-5-comandos-veronica.pdf"
+                  download
+                  className="mt-7 inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-glow-green transition hover:-translate-y-0.5 hover:brightness-110 sm:w-auto"
+                >
+                  <Download className="h-4 w-4" />
+                  Baixar sprint gratuito
+                </a>
+                <p className="mt-3 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
+                  Sem cadastro · acesso imediato
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Degustação gratuita */}
-      <section className="border-b border-border/40 bg-surface/30 py-14 md:py-20">
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-          <div className="relative overflow-hidden rounded-sm border border-neon-green/40 bg-background p-6 shadow-glow-green sm:p-8">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-40"
-              style={{
-                background:
-                  "radial-gradient(circle at 100% 0%, oklch(0.85 0.22 155 / 0.24), transparent 48%)",
-              }}
-            />
-            <div className="relative">
-              <div className="flex items-center justify-between gap-4">
-                <span className="font-mono-tech text-[10px] uppercase tracking-[0.2em] text-neon-green">
-                  Material gratuito
+            <div>
+              <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
+                <span className="h-px w-8 bg-neon-cyan" />
+                Aprenda fazendo
+              </div>
+              <h2
+                className="mt-4 max-w-2xl font-display text-2xl sm:text-3xl md:text-4xl"
+                style={{ letterSpacing: "-0.03em", lineHeight: "1.08" }}
+              >
+                Um pequeno projeto completo, não uma amostra vazia.
+              </h2>
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                {SPRINT_MISSIONS.map((mission, index) => (
+                  <div
+                    key={mission}
+                    className="flex items-start gap-3 rounded-sm border border-border/60 bg-background/50 p-4"
+                  >
+                    <span className="font-mono-tech text-[10px] text-neon-green">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-[13px] leading-snug text-foreground">{mission}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <Timer className="h-4 w-4 text-neon-green" /> 20–30 minutos
                 </span>
-                <span className="rounded-full border border-border/70 px-3 py-1 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
-                  PDF · 8 páginas
+                <span className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-neon-green" /> Resultado verificável
                 </span>
               </div>
-              <Volume2 className="mt-10 h-10 w-10 text-neon-cyan" />
-              <h2
-                className="mt-5 max-w-md font-display text-3xl text-foreground sm:text-4xl"
-                style={{ letterSpacing: "-0.035em", lineHeight: "1.05" }}
-              >
-                Sprint Voz IA
-              </h2>
-              <p className="mt-4 max-w-md text-[14px] leading-relaxed text-muted-foreground">
-                Cinco comandos e uma missão guiada para transformar um texto comum em uma narração
-                clara, humana e publicável.
-              </p>
-              <a
-                href="/downloads/sprint-voz-ia-5-comandos-veronica.pdf"
-                download
-                className="mt-7 inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-glow-green transition hover:-translate-y-0.5 hover:brightness-110 sm:w-auto"
-              >
-                <Download className="h-4 w-4" />
-                Baixar sprint gratuito
-              </a>
-              <p className="mt-3 font-mono-tech text-[9px] uppercase tracking-widest text-muted-foreground">
-                Sem cadastro · acesso imediato
-              </p>
             </div>
           </div>
+        </section>
 
-          <div>
-            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-              <span className="h-px w-8 bg-neon-cyan" />
-              Aprenda fazendo
+        {/* Método de aprendizagem */}
+        <section className="border-b border-border/40 py-14 md:py-20">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="mb-10 max-w-2xl">
+              <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+                <BookOpen className="h-4 w-4" />
+                Método Veronica
+              </div>
+              <h2
+                className="mt-4 font-display text-2xl sm:text-3xl md:text-4xl"
+                style={{ letterSpacing: "-0.03em" }}
+              >
+                Informação, exercício, execução e revisão.
+              </h2>
+              <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground sm:text-[15px]">
+                Cada etapa explica uma decisão, entrega um comando e exige uma produção real. Você
+                termina com uma peça pronta e um critério para avaliar a própria evolução.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              {LEARNING_PATH.map((item) => (
+                <article
+                  key={item.step}
+                  className="group rounded-sm border border-border/60 bg-surface/40 p-5 transition hover:-translate-y-1 hover:border-neon-cyan/50"
+                >
+                  <span className="font-mono-tech text-[10px] tracking-widest text-neon-green">
+                    {item.step}
+                  </span>
+                  <h3 className="mt-5 font-display text-lg text-foreground">{item.title}</h3>
+                  <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+                    {item.desc}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Grade de produtos */}
+        <section id="packs" className="scroll-mt-24 mx-auto max-w-6xl px-6 py-14 md:py-20">
+          <div className="mb-10 flex flex-col gap-3">
+            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <span className="h-px w-8 bg-neon-green" />
+              Comece pelo que já está pronto
             </div>
             <h2
-              className="mt-4 max-w-2xl font-display text-2xl sm:text-3xl md:text-4xl"
-              style={{ letterSpacing: "-0.03em", lineHeight: "1.08" }}
+              className="font-display text-2xl sm:text-3xl md:text-4xl"
+              style={{ letterSpacing: "-0.03em" }}
             >
-              Um pequeno projeto completo, não uma amostra vazia.
+              Um produto completo hoje. Os próximos já estão a caminho.
             </h2>
-            <div className="mt-7 grid gap-3 sm:grid-cols-2">
-              {SPRINT_MISSIONS.map((mission, index) => (
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {[...PACKS]
+              .sort((a, b) => Number(b.available) - Number(a.available))
+              .map((pack) => (
+                <PackCard key={pack.slug} pack={pack} />
+              ))}
+          </div>
+        </section>
+
+        {/* O que você recebe */}
+        <section className="border-t border-border/40 bg-surface/40 py-14 md:py-20">
+          <div className="mx-auto max-w-5xl px-6">
+            <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
+              <span className="h-px w-8 bg-neon-cyan" />O que você recebe no pack completo
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {DELIVERABLES.map((d) => (
                 <div
-                  key={mission}
-                  className="flex items-start gap-3 rounded-sm border border-border/60 bg-background/50 p-4"
+                  key={d.title}
+                  className="flex flex-col gap-3 rounded-sm border border-border/60 bg-background/60 p-5"
                 >
-                  <span className="font-mono-tech text-[10px] text-neon-green">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="text-[13px] leading-snug text-foreground">{mission}</span>
+                  <d.icon className="h-6 w-6 text-neon-green" />
+                  <h3
+                    className="font-display text-base text-foreground"
+                    style={{ letterSpacing: "-0.02em" }}
+                  >
+                    {d.title}
+                  </h3>
+                  <p className="text-[13px] leading-[1.5] text-muted-foreground">{d.desc}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <Timer className="h-4 w-4 text-neon-green" /> 20–30 minutos
-              </span>
-              <span className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-neon-green" /> Resultado verificável
-              </span>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="border-t border-border/40 py-14 md:py-20">
+          <div className="mx-auto max-w-3xl px-6">
+            <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
+              <span className="h-px w-8 bg-neon-green" />
+              Dúvidas rápidas
+            </div>
+            <div className="divide-y divide-border/60 rounded-sm border border-border/60 bg-background/50 backdrop-blur">
+              {FAQS.map((f, i) => (
+                <FaqItem key={f.q} q={f.q} a={f.a} defaultOpen={i === 0} />
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Método de aprendizagem */}
-      <section className="border-b border-border/40 py-14 md:py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-10 max-w-2xl">
-            <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-              <BookOpen className="h-4 w-4" />
-              Método Veronica
-            </div>
-            <h2
-              className="mt-4 font-display text-2xl sm:text-3xl md:text-4xl"
-              style={{ letterSpacing: "-0.03em" }}
-            >
-              Informação, exercício, execução e revisão.
+        {/* CTA final */}
+        <section className="border-t border-border/40 bg-surface/40 py-14 md:py-20">
+          <div className="mx-auto max-w-2xl px-6 text-center">
+            <h2 className="font-display text-2xl sm:text-3xl" style={{ letterSpacing: "-0.03em" }}>
+              Ainda não decidiu qual pack?
             </h2>
-            <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground sm:text-[15px]">
-              Cada etapa explica uma decisão, entrega um comando e exige uma produção real. Você
-              termina com uma peça pronta e um critério para avaliar a própria evolução.
+            <p className="mt-3 text-[14px] leading-[1.6] text-muted-foreground sm:text-[15px]">
+              Fala com a gente pelo WhatsApp ou dá mais uma olhada nos packs acima.
             </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {LEARNING_PATH.map((item) => (
-              <article
-                key={item.step}
-                className="group rounded-sm border border-border/60 bg-surface/40 p-5 transition hover:-translate-y-1 hover:border-neon-cyan/50"
+            <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <a
+                href="#packs"
+                className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-sm border border-border/60 bg-background/40 px-6 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-foreground backdrop-blur transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green sm:w-auto"
               >
-                <span className="font-mono-tech text-[10px] tracking-widest text-neon-green">
-                  {item.step}
-                </span>
-                <h3 className="mt-5 font-display text-lg text-foreground">{item.title}</h3>
-                <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
-                  {item.desc}
-                </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Grade de produtos */}
-      <section id="packs" className="mx-auto max-w-6xl px-6 py-14 md:py-20">
-        <div className="mb-10 flex flex-col gap-3">
-          <div className="flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />
-            Comece pelo que já está pronto
-          </div>
-          <h2
-            className="font-display text-2xl sm:text-3xl md:text-4xl"
-            style={{ letterSpacing: "-0.03em" }}
-          >
-            Um produto completo hoje. Os próximos já estão a caminho.
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {[...PACKS]
-            .sort((a, b) => Number(b.available) - Number(a.available))
-            .map((pack) => (
-              <PackCard key={pack.slug} pack={pack} />
-            ))}
-        </div>
-      </section>
-
-      {/* O que você recebe */}
-      <section className="border-t border-border/40 bg-surface/40 py-14 md:py-20">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="mb-10 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-cyan">
-            <span className="h-px w-8 bg-neon-cyan" />O que você recebe no pack completo
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {DELIVERABLES.map((d) => (
-              <div
-                key={d.title}
-                className="flex flex-col gap-3 rounded-sm border border-border/60 bg-background/60 p-5"
+                Ver os packs
+              </a>
+              <a
+                href={SOCIAL_LINKS.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-glow-green transition hover:-translate-y-0.5 hover:brightness-110 sm:w-auto"
               >
-                <d.icon className="h-6 w-6 text-neon-green" />
-                <h3
-                  className="font-display text-base text-foreground"
-                  style={{ letterSpacing: "-0.02em" }}
-                >
-                  {d.title}
-                </h3>
-                <p className="text-[13px] leading-[1.5] text-muted-foreground">{d.desc}</p>
-              </div>
-            ))}
+                <MessageCircle className="h-4 w-4" />
+                Falar no WhatsApp
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FAQ */}
-      <section className="border-t border-border/40 py-14 md:py-20">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="mb-8 flex items-center gap-3 font-mono-tech text-[11px] uppercase tracking-widest text-neon-green">
-            <span className="h-px w-8 bg-neon-green" />
-            Dúvidas rápidas
-          </div>
-          <div className="divide-y divide-border/60 rounded-sm border border-border/60 bg-background/50 backdrop-blur">
-            {FAQS.map((f, i) => (
-              <FaqItem key={f.q} q={f.q} a={f.a} defaultOpen={i === 0} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA final */}
-      <section className="border-t border-border/40 bg-surface/40 py-14 md:py-20">
-        <div className="mx-auto max-w-2xl px-6 text-center">
-          <h2 className="font-display text-2xl sm:text-3xl" style={{ letterSpacing: "-0.03em" }}>
-            Ainda não decidiu qual pack?
-          </h2>
-          <p className="mt-3 text-[14px] leading-[1.6] text-muted-foreground sm:text-[15px]">
-            Fala com a gente pelo WhatsApp ou dá mais uma olhada nos packs acima.
-          </p>
-          <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <a
-              href="#packs"
-              className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-sm border border-border/60 bg-background/40 px-6 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-foreground backdrop-blur transition hover:-translate-y-0.5 hover:border-neon-green/60 hover:text-neon-green sm:w-auto"
-            >
-              Ver os packs
-            </a>
-            <a
-              href={SOCIAL_LINKS.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-sm bg-neon-green px-6 py-3 font-mono-tech text-[11px] uppercase tracking-widest text-primary-foreground shadow-glow-green transition hover:-translate-y-0.5 hover:brightness-110 sm:w-auto"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Falar no WhatsApp
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <SiteFooter />
+        <CampusNavigation current="/prompt-packs" />
+      </main>
+      <SiteFooter brand="yo" />
     </div>
   );
 }

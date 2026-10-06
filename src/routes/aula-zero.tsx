@@ -10,15 +10,28 @@ import {
   Headphones,
   Play,
   RotateCcw,
-  Sparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { SiteFooter, SiteHeader, SOCIAL_LINKS } from "@/components/SiteChrome";
+import { CampusHero, CampusNavigation } from "@/components/learning/CampusVisuals";
+import { campusImage, campusSrcSet } from "@/lib/yo-visuals";
 
 export const Route = createFileRoute("/aula-zero")({
   component: AulaZero,
   head: () => ({
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: campusImage("aula"),
+        imageSrcSet: campusSrcSet("aula"),
+        imageSizes: "100vw",
+        type: "image/webp",
+        fetchPriority: "high",
+      },
+    ],
     meta: [
+      { property: "og:image", content: "https://veronicahub.com/images/yo-campus/aula-1600.webp" },
       { title: "Aula Zero — Sua primeira narração com IA | Veronica Hub" },
       {
         name: "description",
@@ -106,63 +119,59 @@ function AulaZero() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
-      <SiteHeader />
+    <div className="vh-wf yo-learning min-h-screen">
+      <SiteHeader brand="yo" />
 
       <main>
-        <section className="relative overflow-hidden border-b border-border/40 py-14 md:py-20">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-80"
-            style={{
-              background:
-                "radial-gradient(circle at 78% 22%, oklch(0.85 0.22 155 / 0.16), transparent 34%), radial-gradient(circle at 14% 4%, oklch(0.88 0.15 195 / 0.1), transparent 28%)",
-            }}
-          />
-          <div className="relative mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1.04fr_.96fr] lg:items-center">
+        <CampusHero
+          image="aula"
+          eyebrow="YO LAB & CO. · Escola Veronica"
+          title={
+            <>
+              Aula <span>Zero.</span>
+            </>
+          }
+          copy="Sua primeira narração com inteligência artificial."
+          action={
+            <a href="#assistir" className="wf-btn wf-btn-primary">
+              <Play size={16} aria-hidden="true" />
+              Começar a aula
+            </a>
+          }
+          discover="#assistir"
+          discoverLabel="Entre no atelier"
+        />
+        <section className="yo-lesson-player" aria-labelledby="lesson-intro">
+          <div className="wf-wrap">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-neon-green/40 bg-neon-green/[0.06] px-3 py-1.5 font-mono-tech text-[10px] uppercase tracking-[0.18em] text-neon-green">
-                <Sparkles className="h-3 w-3" />
-                Aula gratuita · execução imediata
-              </div>
-              <h1
-                className="mt-6 max-w-3xl font-display text-5xl sm:text-6xl md:text-7xl"
-                style={{ letterSpacing: "-0.055em", lineHeight: "0.93" }}
-              >
-                Crie sua primeira
-                <span className="block text-neon-green text-glow-green">narração com IA.</span>
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Uma aula curta para transformar um texto comum em uma voz clara, natural e pronta
-                para vídeo. Você termina com um projeto de 30 segundos — não apenas teoria.
+              <p className="wf-index">01 — Atelier de voz</p>
+              <h2 id="lesson-intro" className="wf-h2 mt-5">
+                Uma ideia.
+                <br />
+                Sua primeira voz.
+              </h2>
+              <p className="wf-lede mt-6">
+                Uma aula gratuita para transformar um texto comum em uma narração clara, natural e
+                pronta para vídeo. Construa seu projeto de 30 segundos.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <a
-                  href="#assistir"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-sm bg-neon-green px-6 font-mono-tech text-[11px] uppercase tracking-[0.16em] text-primary-foreground shadow-glow-green transition hover:-translate-y-0.5 hover:brightness-110"
-                >
-                  <Play className="h-4 w-4 fill-current" /> Começar agora
-                </a>
-                <Link
-                  to="/prompt-packs"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-sm border border-border/70 bg-surface/50 px-6 font-mono-tech text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition hover:border-neon-cyan/60 hover:text-neon-cyan"
-                >
-                  Materiais de apoio <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-              <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 font-mono-tech text-[10px] uppercase tracking-widest text-muted-foreground">
-                <span className="inline-flex items-center gap-2">
-                  <Clock3 className="h-3.5 w-3.5 text-neon-cyan" /> 8 minutos
+              <div className="yo-lesson-info">
+                <span>
+                  <Clock3 size={14} />8 minutos
                 </span>
-                <span className="inline-flex items-center gap-2">
-                  <Headphones className="h-3.5 w-3.5 text-neon-cyan" /> Iniciante
+                <span>
+                  <Headphones size={14} />
+                  Iniciante
                 </span>
-                <span className="inline-flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-neon-green" /> Projeto prático
+                <span>
+                  <Check size={14} />
+                  Projeto prático
                 </span>
               </div>
+              <Link to="/prompt-packs" className="wf-btn wf-btn-ghost mt-7">
+                Materiais de apoio
+                <ArrowRight size={15} />
+              </Link>
             </div>
-
             <div id="assistir" className="relative scroll-mt-28">
               <div className="overflow-hidden rounded-sm border border-neon-green/30 bg-[#030d0c] shadow-[0_30px_90px_-45px_oklch(0.85_0.22_155/0.8)]">
                 <div className="flex items-center justify-between border-b border-border/50 px-4 py-3 font-mono-tech text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -178,7 +187,7 @@ function AulaZero() {
                     controls
                     playsInline
                     preload="metadata"
-                    poster="/videos/veronica-aula-zero-poster.jpg"
+                    poster={campusImage("aula")}
                     aria-label="Apresentação da Aula Zero pela Veronica Teacher"
                   >
                     <source src="/videos/veronica-aula-zero-intro.mp4" type="video/mp4" />
@@ -380,9 +389,10 @@ function AulaZero() {
             <Download className="h-4 w-4" /> Baixar material gratuito
           </Link>
         </section>
+        <CampusNavigation current="/aula-zero" />
       </main>
 
-      <SiteFooter />
+      <SiteFooter brand="yo" />
     </div>
   );
 }

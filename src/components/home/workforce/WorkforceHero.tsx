@@ -1,13 +1,13 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { CampusImage } from "@/components/learning/CampusVisuals";
 import { WORKFORCE, WORKFORCE_OPERANDO } from "@/lib/ai-workforce";
 import { haQuantoTempo, type SinalDoWire } from "./useWireSignal";
 
 /**
  * 01 — HERO · VERONICA CORE.
  *
- * Pouquíssimo texto, de propósito. O retrato já é um ativo do Hub
- * (veronica-hero-static.webp, 53 KB, fundo preto nativo): ele dissolve no
- * fundo pela máscara radial, sem caixa, sem moldura de "card".
+ * A Veronica de cabelo curto e o campus YO são a identidade visual canônica.
+ * Fotografia responsiva com prioridade de carregamento na primeira tela.
  *
  * O "AGENT NETWORK" do trilho só afirma o que é contável no código: quantos
  * agentes estão declarados e quantos estão em estado de operação. O único
@@ -18,14 +18,7 @@ export function WorkforceHero({ sinal }: { sinal: SinalDoWire | null }) {
   return (
     <section className="wf-hero" aria-labelledby="wf-hero-title">
       <div className="wf-hero-portrait" aria-hidden="true">
-        <img
-          src="/images/veronica/veronica-hero-static.webp"
-          alt=""
-          width={768}
-          height={1366}
-          fetchPriority="high"
-          decoding="async"
-        />
+        <CampusImage name="core" alt="" hero />
       </div>
 
       <div className="wf-hero-frame" aria-hidden="true">
@@ -48,9 +41,7 @@ export function WorkforceHero({ sinal }: { sinal: SinalDoWire | null }) {
 
         <div className="mt-8 grid gap-8 sm:mt-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <p className="wf-lede max-w-[34rem]">
-            Inteligência artificial especializada para operar funções reais de empresas. Uma
-            inteligência central, agentes com função definida e uma plataforma inteira onde eles já
-            trabalham.
+            Uma inteligência central. Agentes especializados para operar funções reais de empresas.
           </p>
           <div className="flex flex-wrap gap-3">
             <a href="#workforce" className="wf-btn wf-btn-primary">
