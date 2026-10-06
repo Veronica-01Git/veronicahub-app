@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CampusNavigation } from "@/components/learning/CampusVisuals";
-import { campusImage, campusSrcSet } from "@/lib/yo-visuals";
 import { useCallback, useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { BuildWorkforce } from "@/components/home/workforce/BuildWorkforce";
@@ -46,8 +45,8 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: DESCRICAO },
       { name: "twitter:title", content: TITULO },
       { name: "twitter:description", content: DESCRICAO },
-      { property: "og:image", content: "https://veronicahub.com/images/yo-campus/core-1600.webp" },
-      { name: "twitter:image", content: "https://veronicahub.com/images/yo-campus/core-1600.webp" },
+      { property: "og:image", content: "https://veronicahub.com/images/brand/yo-lab-logo.webp" },
+      { name: "twitter:image", content: "https://veronicahub.com/images/brand/yo-lab-logo.webp" },
       { name: "theme-color", content: "#1a1d1e" },
     ],
     links: [
@@ -55,9 +54,7 @@ export const Route = createFileRoute("/")({
       {
         rel: "preload",
         as: "image",
-        href: campusImage("core"),
-        imageSrcSet: campusSrcSet("core"),
-        imageSizes: "100vw",
+        href: "/images/veronica/veronica-hero-static.webp",
         type: "image/webp",
         fetchPriority: "high",
       },

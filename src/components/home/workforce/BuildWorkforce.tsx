@@ -1,6 +1,6 @@
 import { ArrowUpRight, Check, Mail, MessageCircle } from "lucide-react";
 import { useMemo, useState } from "react";
-import { campusImage, campusSrcSet } from "@/lib/yo-visuals";
+import { worldImage, worldSrcSet } from "@/lib/yo-visuals";
 import { SOCIAL_LINKS } from "@/components/SiteChrome";
 import { DEPARTAMENTOS, WORKFORCE, type AgenteWorkforceId } from "@/lib/ai-workforce";
 
@@ -61,8 +61,8 @@ export function BuildWorkforce({
       aria-labelledby="wf-final-title"
     >
       <img
-        src={campusImage("core")}
-        srcSet={campusSrcSet("core")}
+        src={worldImage("portfolio")}
+        srcSet={worldSrcSet("portfolio")}
         sizes="60vw"
         alt=""
         aria-hidden="true"
