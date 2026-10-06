@@ -146,21 +146,20 @@ test("combinação que o responsável não soube informar devolve null, não uma
   // "o tambor eu não sei te passar o valor e a caçamba grande eu também não
   // sei". Entre 18 e 19/09 essas duas caixas chegaram a ser preenchidas com
   // 230 e 550, sem fonte. Voltaram a ser null, e é este teste que segura.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), null);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), null);
+  // Em 06/10 o dono informou os dois (ver "lacunas preenchidas" abaixo).
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "gesso", "itajai"), 180);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), 450);
 
   // Regra vigente: valor-base se aplica às cidades atendidas.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), 220);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "navegantes"), 280);
 
-  // Materiais que a agente reconhece mas cujo preço ninguém passou. (Terra
-  // ganhou preço nas caçambas em 06/10; no tambor continua sem.)
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "terra", "itajai"), null);
+  // A única combinação que segue sem preço depois de 06/10.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "entulho", "itajai"), null);
   // Entulho tem preço no TAMBOR (peça oficial da empresa, 14/09), e continuar
   // sem preço na caçamba é o ponto: material com preço num produto não vira
   // preço no outro.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "entulho", "itajai"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "entulho", "navegantes"), null);
 });
 
 test("matriz vigente em 02/10 tem cinco combinações confirmadas", () => {
@@ -172,15 +171,16 @@ test("matriz vigente em 02/10 tem cinco combinações confirmadas", () => {
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itajai"), 280);
   // Valores antigos por cidade foram substituídos pela matriz padrão em 02/10.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "itapema"), 280);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itapema"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itapema"), 450);
   // A PRÓPRIA EMPRESA, no WhatsApp dela (14/09, 13:26): peça oficial do tambor
   // com a legenda "Tambor de entulho / 180 reias e fica 3 dias". Fonte forte.
   // A cidade é Itajaí porque o tambor só existe lá — regra já registrada, não
   // suposição nova. Ver o teste do tambor mais abaixo, que é o que segura isso.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "entulho", "itajai"), 180);
 
-  // + 14 combinações de 06/10 (ver o teste seguinte): 5 + 7 materiais × 2 caçambas.
-  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 19, "nenhum preço sem fonte entrou");
+  // + 14 combinações de 06/10 (7 materiais × 2 caçambas) + 10 das lacunas
+  // preenchidas no mesmo dia (entulho e gesso na grande; tambor em 8 materiais).
+  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 29, "nenhum preço sem fonte entrou");
 });
 
 test("dono, 06/10: sete materiais custam a demolição + R$ 50 nas duas caçambas", () => {
@@ -190,12 +190,7 @@ test("dono, 06/10: sete materiais custam a demolição + R$ 50 nas duas caçamba
       assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", material, cidade.id), 270);
       assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", material, cidade.id), 500);
     }
-    // O tambor não entrou no pedido.
-    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", material, "itajai"), null);
   }
-  // Entulho e gesso na grande continuam sem preço: o pedido não os citou.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "entulho", "itajai"), null);
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), null);
 
   // A guarda aceita o valor certo e recusa o da demolição para esses materiais.
   assert.equal(
@@ -224,7 +219,7 @@ test("preço padrão confirmado em 02/10 vale nas cidades onde o produto é aten
   for (const cidade of REGRAS_EXPRESS_ENTULHO.cidades) {
     assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", cidade.id), 220);
     assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", cidade.id), 280);
-    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", cidade.id), null);
+    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", cidade.id), 450);
   }
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "demolicao", "itapema"), null);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "curitiba"), null);
@@ -242,6 +237,24 @@ test("a agente reconhece os materiais que o dono lista, mesmo sem preço deles",
   }
   // E reconhecer não virou permissão para cotar.
   assert.equal(respostaSegura("Para terra em Itajaí a menor sai R$ 220.", undefined, ""), false);
+});
+
+test("dono, 06/10: lacunas preenchidas — grande 450 para entulho e gesso, tambor 180 para tudo", () => {
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "entulho", "itajai"), 450);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "penha"), 450);
+  for (const material of REGRAS_EXPRESS_ENTULHO.materiais) {
+    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", material.id, "itajai"), 180);
+    // O tambor continua só em Itajaí, com qualquer material.
+    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", material.id, "itapema"), null);
+  }
+  assert.equal(
+    respostaSegura("O tambor para poda fica R$ 180.", undefined, "poda em Itajaí, tambor"),
+    true,
+  );
+  assert.equal(
+    respostaSegura("A grande com entulho sai R$ 500.", undefined, "entulho em Itajaí, grande"),
+    false,
+  );
 });
 
 test("tambor só existe em Itajaí; prazos valem em todas as cidades", () => {

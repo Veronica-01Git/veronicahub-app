@@ -85,7 +85,8 @@ test("cenários confirmados passam pelo núcleo real sem chamar WhatsApp ou mode
   const desconto = await decidir("me dá 10% de desconto");
   assert.equal(desconto.escalar, true);
   assert.equal(valoresCitados(desconto.texto).length, 0);
-  const semPreco = await decidir("caçamba grande, gesso, Itapema");
+  // Única combinação ainda sem preço depois de 06/10 (gesso na grande virou R$ 450).
+  const semPreco = await decidir("caçamba menor, entulho, Itapema");
   assert.equal(semPreco.escalar, true);
   assert.equal(valoresCitados(semPreco.texto).length, 0);
 });
