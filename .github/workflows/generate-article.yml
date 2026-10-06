@@ -81,9 +81,14 @@ jobs:
             fi
           fi
 
-          # Rodada manual pode escolher a editoria; o endpoint já aceita ?beat=.
+          # A verificação pós-deploy usa economia. Cron mantém o rodízio por
+          # hora; a rodada manual continua respeitando a editoria escolhida.
           BEAT_QUERY=""
-          if [ -n "${{ inputs.beat }}" ]; then BEAT_QUERY="?beat=${{ inputs.beat }}"; fi
+          if [ -n "${{ inputs.beat }}" ]; then
+            BEAT_QUERY="?beat=${{ inputs.beat }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            BEAT_QUERY="?beat=economia"
+          fi
 
           status=$(curl --silent --show-error \
             --max-time 120 \
