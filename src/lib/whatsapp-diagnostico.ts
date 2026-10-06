@@ -25,7 +25,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import Groq from "groq-sdk";
 import { PROVEDOR_ANTHROPIC, PROVEDOR_GROQ } from "./whatsapp-provedores";
-import { getWhatsAppConfig } from "./whatsapp-cloud";
+import { cabecalhosAuth, getWhatsAppConfig, type WhatsAppConfig } from "./whatsapp-cloud";
 
 export type SondaGroq = {
   /** O runtime enxerga o segredo? Não diz nada sobre o valor dele. */
@@ -147,20 +147,28 @@ export async function diagnosticarAnthropic(
 /* --------------------------------------------------------------- whatsapp */
 
 /**
- * Lê o próprio número na Graph API. É a chamada mais barata que prova que o
- * token vale: não envia mensagem, não toca em conversa de ninguém, e devolve
- * 401 quando o token expirou.
+ * A chamada mais barata que prova que a credencial vale — não envia mensagem
+ * e não toca em conversa de ninguém.
+ *
+ * - Meta direta: lê o próprio número na Graph API (401 = token expirado).
+ * - 360dialog: lê a configuração do webhook com a D360-API-KEY (401 = chave
+ *   inválida ou revogada).
  */
-async function sondarWhatsApp(config: {
-  phoneNumberId: string;
-  accessToken: string;
-  graphVersion: string;
-}): Promise<number> {
-  const resposta = await fetch(
-    `https://graph.facebook.com/${config.graphVersion}/${config.phoneNumberId}?fields=id`,
-    { headers: { authorization: `Bearer ${config.accessToken}` } },
-  );
+async function sondarWhatsApp(config: WhatsAppConfig): Promise<number> {
+  const url =
+    config.provedor === "360dialog"
+      ? "https://waba-v2.360dialog.io/v1/configs/webhook"
+      : `https://graph.facebook.com/${config.graphVersion}/${config.phoneNumberId}?fields=id`;
+  const resposta = await fetch(url, { headers: cabecalhosAuth(config) });
   return resposta.status;
+}
+
+/** Mesma tradução, para a chave da 360dialog. Nunca ecoa o corpo. */
+function motivoDa360dialog(status: number): string | null {
+  if (status === 200) return null;
+  if (status === 401 || status === 403)
+    return `a 360dialog recusou a chave (${status}) — D360_API_KEY inválida ou revogada`;
+  return `a 360dialog respondeu ${status}`;
 }
 
 /** Traduz o status da Graph sem nunca ecoar o corpo — erro de auth vaza token. */
@@ -175,11 +183,7 @@ function motivoDaGraph(status: number): string | null {
 }
 
 export async function diagnosticarWhatsApp(
-  sonda: (config: {
-    phoneNumberId: string;
-    accessToken: string;
-    graphVersion: string;
-  }) => Promise<number> = sondarWhatsApp,
+  sonda: (config: WhatsAppConfig) => Promise<number> = sondarWhatsApp,
   config = getWhatsAppConfig(),
 ): Promise<SondaWhatsApp> {
   if (!config) {
@@ -187,7 +191,9 @@ export async function diagnosticarWhatsApp(
       configurado: false,
       respondeu: false,
       status: null,
-      motivo: "WHATSAPP_PHONE_NUMBER_ID ou WHATSAPP_ACCESS_TOKEN não configurados",
+      motivo:
+        "WHATSAPP_PHONE_NUMBER_ID ou WHATSAPP_ACCESS_TOKEN não configurados " +
+        "(ou, com WHATSAPP_PROVEDOR=360dialog, D360_API_KEY) — ou envio ainda travado",
     };
   }
   try {
@@ -196,7 +202,7 @@ export async function diagnosticarWhatsApp(
       configurado: true,
       respondeu: status === 200,
       status,
-      motivo: motivoDaGraph(status),
+      motivo: config.provedor === "360dialog" ? motivoDa360dialog(status) : motivoDaGraph(status),
     };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

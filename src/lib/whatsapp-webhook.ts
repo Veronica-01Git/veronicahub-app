@@ -21,6 +21,10 @@ import {
   sendText,
   uploadAudio,
   verifyWebhookSignature,
+  CABECALHO_TOKEN_WEBHOOK,
+  provedorWhatsApp,
+  TAMANHO_MINIMO_TOKEN_WEBHOOK,
+  verificarTokenWebhook,
 } from "./whatsapp-cloud";
 import { decidirVoz, sintetizar, transcrever } from "./whatsapp-voz";
 import { extrairFalhasDeEntrega, type FalhaDeEntrega, type StatusMeta } from "./whatsapp-status";
@@ -100,23 +104,40 @@ export async function handleWhatsAppWebhook(
   request: Request,
   waitUntil?: (p: Promise<unknown>) => void,
 ): Promise<Response> {
-  const appSecret = process.env.WHATSAPP_APP_SECRET;
-  if (!appSecret) {
-    console.error("WHATSAPP_APP_SECRET não configurada — recusando webhook");
-    return new Response("not configured", { status: 500 });
-  }
-
-  // Corpo CRU: a assinatura é sobre estes bytes. Reserializar quebra tudo.
+  // Corpo CRU: a assinatura da Meta é sobre estes bytes. Reserializar quebra tudo.
   const rawBody = await request.text();
 
-  const assinaturaOk = await verifyWebhookSignature(
-    rawBody,
-    request.headers.get("x-hub-signature-256"),
-    appSecret,
-  );
-  if (!assinaturaOk) {
-    console.warn("Webhook WhatsApp com assinatura inválida — descartado");
-    return new Response("forbidden", { status: 403 });
+  if (provedorWhatsApp() === "360dialog") {
+    // A 360dialog não assina; manda o nosso segredo num cabeçalho (ver
+    // verificarTokenWebhook). Sem segredo configurado, ninguém entra.
+    const esperado = process.env.WHATSAPP_WEBHOOK_TOKEN ?? "";
+    if (esperado.length < TAMANHO_MINIMO_TOKEN_WEBHOOK) {
+      console.error("WHATSAPP_WEBHOOK_TOKEN ausente ou curto — recusando webhook da 360dialog");
+      return new Response("not configured", { status: 500 });
+    }
+    const tokenOk = await verificarTokenWebhook(
+      request.headers.get(CABECALHO_TOKEN_WEBHOOK),
+      esperado,
+    );
+    if (!tokenOk) {
+      console.warn("Webhook 360dialog sem o segredo correto — descartado");
+      return new Response("forbidden", { status: 403 });
+    }
+  } else {
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    if (!appSecret) {
+      console.error("WHATSAPP_APP_SECRET não configurada — recusando webhook");
+      return new Response("not configured", { status: 500 });
+    }
+    const assinaturaOk = await verifyWebhookSignature(
+      rawBody,
+      request.headers.get("x-hub-signature-256"),
+      appSecret,
+    );
+    if (!assinaturaOk) {
+      console.warn("Webhook WhatsApp com assinatura inválida — descartado");
+      return new Response("forbidden", { status: 403 });
+    }
   }
 
   const processamento = processarPayload(rawBody).catch((error) => {

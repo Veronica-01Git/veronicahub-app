@@ -12,6 +12,27 @@ const GRAPH_HOST = "graph.facebook.com";
 const DEFAULT_GRAPH_VERSION = "v21.0";
 
 /**
+ * QUEM LEVA A MENSAGEM ATÉ A META.
+ *
+ * - `meta` (padrão): Cloud API direta, `graph.facebook.com`, Bearer token e
+ *   `WHATSAPP_PHONE_NUMBER_ID` no caminho.
+ * - `360dialog`: provedor oficial (BSP) que faz a ligação do Coexistence —
+ *   o número atual da empresa continua no app do celular (ver
+ *   docs/coexistence-express.md). Mesmo formato de mensagem da Cloud API, mas
+ *   outro host, a chave vai em `D360-API-KEY` e não há id de número no
+ *   caminho: a chave já é do número.
+ *
+ * Escolhido por `WHATSAPP_PROVEDOR`. Qualquer valor diferente de "360dialog"
+ * é Meta direta — o comportamento de antes desta opção existir.
+ */
+export type ProvedorWhatsApp = "meta" | "360dialog";
+const HOST_360DIALOG = "waba-v2.360dialog.io";
+
+export function provedorWhatsApp(): ProvedorWhatsApp {
+  return process.env.WHATSAPP_PROVEDOR?.trim().toLowerCase() === "360dialog" ? "360dialog" : "meta";
+}
+
+/**
  * A TRAVA DE ENVIO, e por que ela existe.
  *
  * Até 21/09 bastava ter `WHATSAPP_PHONE_NUMBER_ID` e `WHATSAPP_ACCESS_TOKEN`
@@ -39,10 +60,14 @@ const ENVIO_LIBERADO = "sim-o-dono-aprovou";
 export type MotivoBloqueio = "sem-credenciais" | "envio-nao-liberado";
 
 /** Por que o envio está bloqueado — ou `null` quando pode sair. */
+function temCredenciais(): boolean {
+  return provedorWhatsApp() === "360dialog"
+    ? Boolean(process.env.D360_API_KEY)
+    : Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN);
+}
+
 export function motivoEnvioBloqueado(): MotivoBloqueio | null {
-  if (!process.env.WHATSAPP_PHONE_NUMBER_ID || !process.env.WHATSAPP_ACCESS_TOKEN) {
-    return "sem-credenciais";
-  }
+  if (!temCredenciais()) return "sem-credenciais";
   if (process.env.WHATSAPP_ENVIO_LIBERADO !== ENVIO_LIBERADO) return "envio-nao-liberado";
   return null;
 }
@@ -53,10 +78,66 @@ export const EXPLICACAO_BLOQUEIO: Record<MotivoBloqueio, string> = {
 };
 
 export type WhatsAppConfig = {
+  /** Ausente = Meta direta (configs antigas e testes continuam válidos). */
+  readonly provedor?: ProvedorWhatsApp;
+  /** Vazio na 360dialog: a chave já identifica o número. */
   readonly phoneNumberId: string;
+  /** Bearer token da Meta, ou a D360-API-KEY na 360dialog. */
   readonly accessToken: string;
   readonly graphVersion: string;
 };
+
+/* ---------------------------------------- endereços e autenticação, num lugar */
+
+function eh360(config: WhatsAppConfig): boolean {
+  return config.provedor === "360dialog";
+}
+
+export function urlMensagens(config: WhatsAppConfig): string {
+  return eh360(config)
+    ? `https://${HOST_360DIALOG}/messages`
+    : `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/messages`;
+}
+
+export function urlUploadMidia(config: WhatsAppConfig): string {
+  return eh360(config)
+    ? `https://${HOST_360DIALOG}/media`
+    : `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/media`;
+}
+
+export function urlInfoMidia(config: WhatsAppConfig, mediaId: string): string {
+  const id = encodeURIComponent(mediaId);
+  return eh360(config)
+    ? `https://${HOST_360DIALOG}/${id}`
+    : `https://${GRAPH_HOST}/${config.graphVersion}/${id}`;
+}
+
+/**
+ * Onde baixar o arquivo. Na 360dialog, a url que a Meta devolve aponta para
+ * `lookaside.fbsbx.com`, que não aceita a chave da 360dialog: troca-se o host
+ * pelo da 360dialog (e somem as barras invertidas de escape), como manda a
+ * documentação deles. Qualquer outro host é recusado — a chave não sai daqui
+ * para um endereço que não conhecemos.
+ */
+export function urlDownloadMidia(config: WhatsAppConfig, url: string): string | null {
+  if (!eh360(config)) return url;
+  const limpa = url.replace(/\\/g, "");
+  let alvo: URL;
+  try {
+    alvo = new URL(limpa);
+  } catch {
+    return null;
+  }
+  if (alvo.protocol !== "https:") return null;
+  if (alvo.hostname === "lookaside.fbsbx.com") alvo.hostname = HOST_360DIALOG;
+  return alvo.hostname === HOST_360DIALOG ? alvo.toString() : null;
+}
+
+export function cabecalhosAuth(config: WhatsAppConfig): Record<string, string> {
+  return eh360(config)
+    ? { "D360-API-KEY": config.accessToken }
+    : { authorization: `Bearer ${config.accessToken}` };
+}
 
 /**
  * Config de envio. `null` quando não está configurado OU quando o envio
@@ -72,6 +153,11 @@ export type WhatsAppConfig = {
  */
 export function getWhatsAppConfig(): WhatsAppConfig | null {
   if (motivoEnvioBloqueado() !== null) return null;
+  if (provedorWhatsApp() === "360dialog") {
+    const chave = process.env.D360_API_KEY;
+    if (!chave) return null;
+    return { provedor: "360dialog", phoneNumberId: "", accessToken: chave, graphVersion: "" };
+  }
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   if (!phoneNumberId || !accessToken) return null;
@@ -131,6 +217,38 @@ export async function verifyWebhookSignature(
   );
 }
 
+/**
+ * Webhook da 360dialog: ela NÃO assina o corpo como a Meta faz. O que ela
+ * permite é mandar cabeçalhos nossos em todo aviso (`POST /v1/configs/webhook`
+ * com `headers`). Então a prova de origem é um segredo só nosso, configurado
+ * lá e aqui (`WHATSAPP_WEBHOOK_TOKEN`), conferido neste cabeçalho.
+ */
+export const CABECALHO_TOKEN_WEBHOOK = "x-veronica-webhook-token";
+
+/** Abaixo disto o segredo é adivinhável; o webhook recusa a configuração. */
+export const TAMANHO_MINIMO_TOKEN_WEBHOOK = 32;
+
+/**
+ * Compara em tempo constante. Os dois lados passam por SHA-256 antes: assim o
+ * tempo não depende de quantos caracteres batem NEM do tamanho do segredo.
+ */
+export async function verificarTokenWebhook(
+  recebido: string | null,
+  esperado: string,
+): Promise<boolean> {
+  if (!recebido || esperado.length < TAMANHO_MINIMO_TOKEN_WEBHOOK) return false;
+  const enc = new TextEncoder();
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest("SHA-256", enc.encode(recebido)),
+    crypto.subtle.digest("SHA-256", enc.encode(esperado)),
+  ]);
+  const x = new Uint8Array(a);
+  const y = new Uint8Array(b);
+  let diferenca = 0;
+  for (let i = 0; i < x.length; i++) diferenca |= x[i] ^ y[i];
+  return diferenca === 0;
+}
+
 export type EnvioResultado =
   | { readonly ok: true; readonly providerId: string }
   | { readonly ok: false; readonly erro: string };
@@ -146,23 +264,20 @@ export async function sendText(to: string, body: string): Promise<EnvioResultado
     return { ok: false, erro: EXPLICACAO_BLOQUEIO[motivo ?? "sem-credenciais"] };
   }
 
-  const resposta = await fetch(
-    `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/messages`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${config.accessToken}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to,
-        type: "text",
-        text: { preview_url: false, body },
-      }),
+  const resposta = await fetch(urlMensagens(config), {
+    method: "POST",
+    headers: {
+      ...cabecalhosAuth(config),
+      "content-type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "text",
+      text: { preview_url: false, body },
+    }),
+  });
 
   const texto = await resposta.text();
   if (!resposta.ok) {
@@ -184,10 +299,10 @@ export async function markAsRead(providerId: string): Promise<void> {
   const config = getWhatsAppConfig();
   if (!config) return;
   try {
-    await fetch(`https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/messages`, {
+    await fetch(urlMensagens(config), {
       method: "POST",
       headers: {
-        authorization: `Bearer ${config.accessToken}`,
+        ...cabecalhosAuth(config),
         "content-type": "application/json",
       },
       body: JSON.stringify({
@@ -243,16 +358,13 @@ export async function uploadAudio(
   );
 
   try {
-    const resposta = await fetch(
-      `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/media`,
-      {
-        method: "POST",
-        // Sem content-type à mão: o fetch precisa inserir o boundary do
-        // multipart sozinho, e defini-lo aqui quebraria o corpo.
-        headers: { authorization: `Bearer ${config.accessToken}` },
-        body: form,
-      },
-    );
+    const resposta = await fetch(urlUploadMidia(config), {
+      method: "POST",
+      // Sem content-type à mão: o fetch precisa inserir o boundary do
+      // multipart sozinho, e defini-lo aqui quebraria o corpo.
+      headers: cabecalhosAuth(config),
+      body: form,
+    });
 
     if (!resposta.ok) return { ok: false, erro: `Graph respondeu ${resposta.status} no upload` };
 
@@ -274,23 +386,20 @@ export async function sendAudio(to: string, mediaId: string): Promise<EnvioResul
     return { ok: false, erro: EXPLICACAO_BLOQUEIO[motivo ?? "sem-credenciais"] };
   }
 
-  const resposta = await fetch(
-    `https://${GRAPH_HOST}/${config.graphVersion}/${config.phoneNumberId}/messages`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${config.accessToken}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to,
-        type: "audio",
-        audio: { id: mediaId },
-      }),
+  const resposta = await fetch(urlMensagens(config), {
+    method: "POST",
+    headers: {
+      ...cabecalhosAuth(config),
+      "content-type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "audio",
+      audio: { id: mediaId },
+    }),
+  });
 
   const texto = await resposta.text();
   if (!resposta.ok) return { ok: false, erro: `Graph respondeu ${resposta.status}` };
@@ -322,16 +431,19 @@ export async function downloadMedia(
   }
 
   try {
-    const meta = await fetch(`https://${GRAPH_HOST}/${config.graphVersion}/${mediaId}`, {
-      headers: { authorization: `Bearer ${config.accessToken}` },
+    const meta = await fetch(urlInfoMidia(config, mediaId), {
+      headers: cabecalhosAuth(config),
     });
     if (!meta.ok) return { ok: false, erro: `Graph respondeu ${meta.status} ao localizar a mídia` };
 
     const info = (await meta.json()) as { url?: string; mime_type?: string };
     if (!info.url) return { ok: false, erro: "Graph não devolveu url da mídia" };
 
-    const arquivo = await fetch(info.url, {
-      headers: { authorization: `Bearer ${config.accessToken}` },
+    const destino = urlDownloadMidia(config, info.url);
+    if (!destino) return { ok: false, erro: "url de mídia com host inesperado — recusada" };
+
+    const arquivo = await fetch(destino, {
+      headers: cabecalhosAuth(config),
     });
     if (!arquivo.ok) return { ok: false, erro: `Download da mídia respondeu ${arquivo.status}` };
 

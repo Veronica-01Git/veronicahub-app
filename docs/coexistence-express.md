@@ -45,12 +45,33 @@ cliente em PDF. Este arquivo é a parte técnica.
 - A trava `WHATSAPP_ENVIO_LIBERADO` continua fechada. Ligar o Coexistence
   **não** faz a agente falar.
 
-## Decisão pendente: qual parceiro faz a ligação
+## Parceiro: 360dialog (decidido em 06/10/2026)
 
-| Caminho                                                                     | Prazo                                     | Custo                        | Código                                           |
-| --------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------- | ------------------------------------------------ |
-| Veronica Hub vira **Tech Provider** (app Meta próprio + Embedded Signup v4) | dias a semanas (verificação + App Review) | sem mensalidade de terceiros | mantém a Graph API direta de hoje                |
-| **BSP** com Coexistence (ex.: 360dialog)                                    | horas a dias                              | mensalidade do BSP           | troca host e autenticação em `whatsapp-cloud.ts` |
+Escolhido pela velocidade (horas a dias, contra semanas para virar Tech
+Provider). O código suporta os dois caminhos; a troca é por ambiente.
+
+- `WHATSAPP_PROVEDOR=360dialog`, `D360_API_KEY` (chave do número no painel da
+  360dialog) e `WHATSAPP_WEBHOOK_TOKEN` (32+ caracteres, `openssl rand -hex 32`).
+- Envio: `POST https://waba-v2.360dialog.io/messages`, cabeçalho
+  `D360-API-KEY`, mesmo corpo da Cloud API.
+- Mídia: `GET /{media-id}` devolve uma url `lookaside.fbsbx.com`; o host é
+  trocado por `waba-v2.360dialog.io` (qualquer outro host é recusado, para a
+  chave não vazar).
+- **Webhook sem assinatura**: a 360dialog não assina o corpo. A prova de
+  origem é o nosso segredo no cabeçalho `x-veronica-webhook-token`, conferido
+  em tempo constante. Configurar uma vez:
+
+  ```
+  POST https://waba-v2.360dialog.io/v1/configs/webhook
+  D360-API-KEY: <chave>
+  {"url": "https://veronicahub.com/api/whatsapp/webhook",
+   "headers": {"x-veronica-webhook-token": "<WHATSAPP_WEBHOOK_TOKEN>"}}
+  ```
+
+- Diagnóstico (`/api/whatsapp/diagnostico`) sonda `GET /v1/configs/webhook`.
+- Da 360dialog para o Coexistence: o cliente precisa de conta e plano na
+  360dialog; selo azul (OBA) e verificação clássica não são suportados; um
+  número COEX não migra entre WABAs.
 
 ## Sequência
 
@@ -58,10 +79,13 @@ cliente em PDF. Este arquivo é a parte técnica.
    conta Google ou no iCloud.
 2. Cliente: app atualizado, Meta Business com o dono como administrador e
    endereço único (Cartão CNPJ = nota fiscal = Google).
-3. Nós: parceiro escolhido e campos do webhook assinados: `messages`,
-   `smb_message_echoes`, `history`, `smb_app_state_sync`, `account_update`.
+3. Nós: conta 360dialog da Express criada (pelo dono, com cartão da
+   empresa), webhook configurado com o cabeçalho secreto e campos
+   `messages`, `smb_message_echoes`, `history`, `smb_app_state_sync`,
+   `account_update` ativos.
 4. Cliente: **autorização assinada** (última página do PDF).
-5. Juntos (30–40 min): Embedded Signup → "conectar app existente" →
+5. Juntos (30–40 min): link de onboarding da 360dialog (Embedded Signup da
+   Meta) → "conectar app existente" →
    confirmação por QR code no celular → compartilhar histórico. Celular no
    Wi-Fi, no carregador e com o app aberto até a sincronização terminar.
 6. Fase observação: trava fechada; conferir no painel o que chega e os
