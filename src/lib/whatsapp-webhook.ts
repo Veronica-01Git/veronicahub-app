@@ -22,13 +22,28 @@ import {
   uploadAudio,
   verifyWebhookSignature,
 } from "./whatsapp-cloud";
-import { decidirVoz, marcarComoTranscricao, sintetizar, transcrever } from "./whatsapp-voz";
+import { decidirVoz, sintetizar, transcrever } from "./whatsapp-voz";
 import { extrairFalhasDeEntrega, type FalhaDeEntrega, type StatusMeta } from "./whatsapp-status";
+import {
+  agentePodeResponder,
+  chaveDoLote,
+  JANELA_AGRUPAMENTO_MS,
+  montarLote,
+  type LinhaDaConversa,
+} from "./whatsapp-atendimento";
+import { avisarEquipe } from "./whatsapp-alerta";
 
 const TENANT = "express-entulho";
 
 /** Quantas mensagens anteriores a agente relê — um orçamento inteiro cabe folgado. */
 const MENSAGENS_DE_MEMORIA = 30;
+
+/** Quantas linhas se leem para montar lote + memória (com folga para marcadores). */
+const LINHAS_LIDAS = 80;
+
+function esperar(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 type MetaValue = {
   messages?: MensagemMeta[];
@@ -234,33 +249,23 @@ async function processarMensagem(
   // Figurinha e reação ficam registradas, mas não merecem resposta.
   if (conteudo.ignorar) return;
 
-  const anteriores = await db.$count(
-    waMessages,
-    and(eq(waMessages.conversationId, conversa.id), eq(waMessages.direction, "entrada")),
-  );
-
   /**
    * Áudio do cliente vira texto antes de chegar ao agente.
    *
-   * O PADRÃO AQUI É O ANTIGO, e isso é deliberado: `conteudo` já chega com
-   * humanoObrigatorio true, e só estas linhas podem derrubá-lo. Sem chave,
-   * download recusado, áudio inaudível ou transcrição vazia, nada é
-   * derrubado e uma pessoa ouve — exatamente como antes de 20/09. A regra
-   * de whatsapp-mensagem.ts continua de pé: o que o agente não entende vai
-   * para um humano; o que mudou é que agora ele entende quase sempre.
+   * A transcrição é gravada no corpo da própria mensagem, e é de lá que o
+   * lote a lê (whatsapp-atendimento.ts). Sem chave, download recusado, áudio
+   * inaudível ou transcrição vazia: o corpo fica vazio, o lote marca
+   * "precisa de humano" e uma pessoa ouve — o comportamento de antes de 20/09.
    */
-  let paraOAgente = conteudo.paraOAgente;
-  let forcarHumano = conteudo.humanoObrigatorio;
-  let transcricao: string | null = null;
-
   if (conteudo.precisaTranscrever && conteudo.mediaId) {
     const midia = await downloadMedia(conteudo.mediaId);
     if (midia.ok) {
       const ouvido = await transcrever(midia.bytes, midia.mimeType);
       if (ouvido.ok) {
-        transcricao = ouvido.texto;
-        paraOAgente = marcarComoTranscricao(ouvido.texto);
-        forcarHumano = false;
+        await db
+          .update(waMessages)
+          .set({ body: ouvido.texto })
+          .where(eq(waMessages.id, inseridas[0].id));
       } else {
         console.error("Não transcrevi o áudio, encaminhando para humano:", ouvido.erro);
       }
@@ -269,34 +274,80 @@ async function processarMensagem(
     }
   }
 
-  // O que o cliente disse fica gravado, não só a descrição do anexo. Sem
-  // isto, o painel mostraria "[o cliente enviou um áudio]" e ninguém saberia
-  // o que ele pediu sem reabrir o WhatsApp.
-  if (transcricao) {
-    await db
-      .update(waMessages)
-      .set({ body: transcricao })
-      .where(eq(waMessages.id, inseridas[0].id));
-  }
+  // Regra 1: conversa com humano é do humano. A mensagem fica gravada e
+  // aparece no painel; a agente não fala.
+  if (!agentePodeResponder(conversa.status)) return;
 
-  const linhasAnteriores = await db
-    .select({
-      direction: waMessages.direction,
-      author: waMessages.author,
-      kind: waMessages.kind,
-      body: waMessages.body,
+  // Regra 2: espera a rajada terminar. Só o webhook da mensagem mais recente
+  // responde, pelo grupo inteiro.
+  await esperar(JANELA_AGRUPAMENTO_MS);
+
+  // A situação pode ter mudado durante a espera (o lote anterior escalou, ou
+  // alguém assumiu pelo painel). Relê antes de decidir.
+  const [agora] = await db
+    .select({ status: waConversations.status })
+    .from(waConversations)
+    .where(eq(waConversations.id, conversa.id));
+  if (!agora || !agentePodeResponder(agora.status)) return;
+
+  // Ordem de CHEGADA (createdAt, relógio do banco), não de envio: o horário
+  // da Meta pode ser anterior a um marcador de lote já gravado, e a mensagem
+  // ficaria do lado errado da fronteira — sem ninguém responder.
+  const linhas = (
+    await db
+      .select({
+        id: waMessages.id,
+        providerId: waMessages.providerId,
+        direction: waMessages.direction,
+        author: waMessages.author,
+        kind: waMessages.kind,
+        body: waMessages.body,
+        raw: waMessages.raw,
+      })
+      .from(waMessages)
+      .where(eq(waMessages.conversationId, conversa.id))
+      .orderBy(desc(waMessages.createdAt), desc(waMessages.id))
+      .limit(LINHAS_LIDAS)
+  ).reverse() as LinhaDaConversa[];
+
+  const lote = montarLote(linhas, inseridas[0].id);
+  if (!lote.responder) return;
+
+  // Regra 3: reivindica o lote. Chave única: se outro webhook chegou antes,
+  // a inserção não acontece e este aqui fica calado.
+  const reivindicado = await db
+    .insert(waMessages)
+    .values({
+      conversationId: conversa.id,
+      providerId: chaveDoLote(providerId),
+      direction: "saida",
+      author: "sistema",
+      kind: "lote",
+      body: null,
+      occurredAt: new Date(),
     })
-    .from(waMessages)
-    .where(and(eq(waMessages.conversationId, conversa.id), ne(waMessages.id, inseridas[0].id)))
-    .orderBy(desc(waMessages.occurredAt))
-    .limit(MENSAGENS_DE_MEMORIA);
+    .onConflictDoNothing({ target: waMessages.providerId })
+    .returning({ id: waMessages.id });
+  if (reivindicado.length === 0) return;
+
+  const doLote = new Set(lote.ids);
+  const anteriores = linhas.filter((l) => !doLote.has(l.id)).slice(-MENSAGENS_DE_MEMORIA);
+  const primeiraMensagem = !linhas.some((l) => l.direction === "entrada" && !doLote.has(l.id));
 
   const decisao = await decidirResposta({
-    texto: paraOAgente,
-    historico: historicoDaConversa(linhasAnteriores.reverse()),
-    primeiraMensagem: anteriores <= 1,
-    forcarHumano,
+    texto: lote.texto,
+    historico: historicoDaConversa(anteriores),
+    primeiraMensagem,
+    forcarHumano: lote.forcarHumano,
   });
+
+  // O modelo leva segundos. Se alguém assumiu pelo painel nesse meio-tempo,
+  // a resposta da agente não sai: a conversa já é da pessoa.
+  const [antesDeEnviar] = await db
+    .select({ status: waConversations.status })
+    .from(waConversations)
+    .where(eq(waConversations.id, conversa.id));
+  if (!antesDeEnviar || !agentePodeResponder(antesDeEnviar.status)) return;
   /**
    * Áudio quando cabe, texto sempre que não.
    *
@@ -357,10 +408,23 @@ async function processarMensagem(
 
   await db
     .update(waConversations)
-    .set({
-      status: decisao.escalar ? "aguardando_humano" : "ia",
-      lastMessageAt: new Date(),
-      updatedAt: new Date(),
-    })
+    .set({ lastMessageAt: new Date(), updatedAt: new Date() })
     .where(eq(waConversations.id, conversa.id));
+
+  // Status só muda se ninguém assumiu durante a resposta: uma pessoa que
+  // pegou a conversa pelo painel enquanto o modelo pensava não pode ser
+  // atropelada por um "ia" atrasado.
+  const transicao = await db
+    .update(waConversations)
+    .set({ status: decisao.escalar ? "aguardando_humano" : "ia" })
+    .where(
+      and(eq(waConversations.id, conversa.id), ne(waConversations.status, "aguardando_humano")),
+    )
+    .returning({ id: waConversations.id });
+
+  // Daqui em diante a agente se cala nesta conversa (regra 1), então alguém
+  // PRECISA saber. Aviso só na transição: uma vez por escalonamento.
+  if (decisao.escalar && transicao.length > 0) {
+    await avisarEquipe({ nome: conversa.profileName, waId, motivo: decisao.motivo });
+  }
 }

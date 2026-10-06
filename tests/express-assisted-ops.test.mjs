@@ -134,3 +134,62 @@ test("grafo completo do atendimento assistido nunca alcança leitura ou envio Wh
     assert.ok(!visited.has(`src/lib/${forbidden}.ts`), forbidden);
   }
 });
+
+/* ------------------------------------------- medição do modo assistido */
+
+const { semelhanca, desfechoDaCopia, desfechoPorSemelhanca, resumir } =
+  await import("../src/lib/assistido-metricas.ts");
+
+test("medição: rascunho copiado sem mexer conta como igual, inclusive com espaços extras", () => {
+  const r = "Oi! A caçamba menor para demolição fica R$ 220.";
+  assert.equal(semelhanca(r, r), 1);
+  assert.deepEqual(desfechoDaCopia(r, `  ${r.replace(" ", "   ")}\n`), {
+    desfecho: "copiado_igual",
+    semelhanca: 1,
+  });
+});
+
+test("medição: edição de verdade conta como editado, e o limiar é o mesmo dos dois lados", () => {
+  const copia = desfechoDaCopia(
+    "Oi! A caçamba menor para demolição fica R$ 220.",
+    "Bom dia! Para gesso a caçamba menor sai R$ 280, posso agendar?",
+  );
+  assert.equal(copia.desfecho, "copiado_editado");
+  assert.ok(copia.semelhanca < 0.97);
+  assert.equal(desfechoPorSemelhanca(0.97), "copiado_igual");
+  assert.equal(desfechoPorSemelhanca(0.969), "copiado_editado");
+  assert.equal(semelhanca("", ""), 1);
+  assert.equal(semelhanca("abc", ""), 0);
+});
+
+test("medição: pendente não entra na taxa de aproveitamento", () => {
+  assert.equal(resumir([]).taxaUsoDireto, null);
+  const r = resumir([
+    { desfecho: "copiado_igual", escalou: false },
+    { desfecho: "copiado_igual", escalou: true },
+    { desfecho: "copiado_editado", escalou: false },
+    { desfecho: "descartado", escalou: true },
+    { desfecho: "pendente", escalou: false },
+  ]);
+  assert.equal(r.total, 5);
+  assert.equal(r.pendente, 1);
+  assert.equal(r.escalados, 2);
+  assert.equal(r.taxaUsoDireto, 0.5);
+});
+
+test("medição nunca guarda texto de atendimento nem toca no WhatsApp", () => {
+  const migracao = read("drizzle/0025_assistido_rascunho.sql");
+  assert.doesNotMatch(migracao, /DROP|DELETE|TRUNCATE|ALTER TABLE "Wa/i);
+  assert.doesNotMatch(migracao, /"(mensagem|texto|body|rascunho|resposta|telefone|waId|nome)"/i);
+
+  const servidor = read("src/features/express-ops-b/data/agente.ts");
+  const medicao = servidor.slice(
+    servidor.indexOf("medição do modo assistido"),
+    servidor.indexOf("Sala de teste"),
+  );
+  assert.doesNotMatch(medicao, /texto: decisao\.texto|body:|final:/);
+  assert.doesNotMatch(servidor, /whatsapp-cloud|whatsapp-webhook|sendText|graph\.facebook/);
+
+  const metricas = read("src/lib/assistido-metricas.ts");
+  assert.doesNotMatch(metricas, /fetch\(|getDb|whatsapp-/);
+});
