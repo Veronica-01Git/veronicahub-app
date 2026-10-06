@@ -18,6 +18,7 @@ import {
   lerFeed,
   nomeDoVeiculo,
   textoCombinaComTitulo,
+  tentarOutraPauta,
   type Candidata,
 } from "./wire-apuracao";
 
@@ -940,6 +941,8 @@ async function apurarNoServidor(apiKey: string, beat: Beat, recentes: string[]):
     limite: PAUTAS_POR_RODADA,
   });
 
+  let tentativasEditorial = 0;
+  let ultimaRecusa: DraftAttemptResult | undefined;
   for (const pauta of pautas) {
     const fontes: FonteApurada[] = [];
     for (const candidata of pauta.fontes) {
@@ -951,10 +954,18 @@ async function apurarNoServidor(apiKey: string, beat: Beat, recentes: string[]):
       fontes.push({ candidata, texto });
     }
     if (fontes.length === 0) continue;
-    // Uma chamada ao modelo por rodada, no máximo: se ele recusar, a rodada
-    // termina e a próxima hora tenta outra pauta.
-    return { kind: "rascunho", result: await escreverComFontes(apiKey, beat, fontes) };
+    const result = await escreverComFontes(apiKey, beat, fontes);
+    tentativasEditorial++;
+    // A fonte pode ser legível e ainda não conter um fato dentro da editoria.
+    // Nesse caso, tente uma segunda pauta. Erros de API/qualidade encerram.
+    if (tentarOutraPauta(result, tentativasEditorial)) {
+      ultimaRecusa = result;
+      continue;
+    }
+    return { kind: "rascunho", result };
   }
+
+  if (ultimaRecusa) return { kind: "rascunho", result: ultimaRecusa };
 
   return {
     kind: "sem-pauta",
