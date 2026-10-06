@@ -17,7 +17,11 @@ type Dependencies = {
 /** One bounded attempt per configured provider. No raw provider error leaks. */
 export async function generateText(
   input: Input,
-  deps: Dependencies = { secret: getRuntimeSecret, fetch: globalThis.fetch },
+  deps: Dependencies = {
+    secret: getRuntimeSecret,
+    // Workers' native fetch is receiver-sensitive. Never call it as deps.fetch.
+    fetch: (url, options) => globalThis.fetch(url, options),
+  },
 ): Promise<{ text: string; provider: Provider; model: string }> {
   if (input.system.length + input.messages.reduce((n, m) => n + m.content.length, 0) > 24_000)
     throw new Error("Entrada de IA excede o limite desta operação.");
@@ -103,8 +107,11 @@ export async function generateText(
       )?.trim();
       if (text) return { text, provider, model };
       failures.push(`${provider}: resposta vazia`);
-    } catch {
-      failures.push(`${provider}: falha de rede, timeout ou resposta inválida`);
+    } catch (error) {
+      const kind = error instanceof Error && ["TypeError", "TimeoutError", "AbortError", "SyntaxError"].includes(error.name)
+        ? error.name
+        : "NetworkError";
+      failures.push(`${provider}: ${kind}`);
     }
   }
   throw new Error(`Nenhum provedor de IA respondeu (${failures.join("; ")}).`);

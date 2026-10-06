@@ -17,6 +17,23 @@ const secret = async (name) =>
     ANTHROPIC_API_KEY: "anthropic-test-secret",
   })[name];
 
+test("default transport preserves the native fetch receiver required by Workers", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.GROQ_API_KEY;
+  process.env.GROQ_API_KEY = "test-runtime-key";
+  globalThis.fetch = async function () {
+    assert.equal(this, globalThis);
+    return Response.json({ choices: [{ message: { content: "OK" } }] });
+  };
+  try {
+    assert.equal((await generateText(input)).text, "OK");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = originalKey;
+  }
+});
+
 test("native Worker binding wins over an obsolete process value; missing binding never revives it", async () => {
   process.env.WIRE_TEST_SECRET = "obsolete";
   try {

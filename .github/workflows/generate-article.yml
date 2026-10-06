@@ -60,15 +60,15 @@ jobs:
           # e que ao menos um provedor respondeu. Nenhuma chave sai no log.
           if [ "${{ github.event_name }}" = "push" ]; then
             ready=false
-            for attempt in $(seq 1 12); do
+            for attempt in $(seq 1 32); do
               curl --silent --show-error --max-time 15 \
                 "https://veronicahub.com/api/cron/wire-health" \
                 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" -o readiness.json || true
-              if jq -e '.revision == "wire-recovery-v1"' readiness.json >/dev/null 2>&1; then ready=true; break; fi
+              if jq -e '.revision == "wire-recovery-v2"' readiness.json >/dev/null 2>&1; then ready=true; break; fi
               sleep 15
             done
             if [ "$ready" != "true" ]; then
-              echo "::error::O Worker ainda não publicou a revisão wire-recovery-v1. Confira o build/deploy no Cloudflare."
+              echo "::error::O Worker ainda não publicou a revisão wire-recovery-v2. Confira o build/deploy no Cloudflare."
               exit 1
             fi
             probe_status=$(curl --silent --show-error --max-time 60 \
