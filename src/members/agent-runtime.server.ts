@@ -19,6 +19,7 @@ import {
   validateEditorial,
   validateAgentText,
   needsHumanReview,
+  failureCode,
 } from "./agent-policy";
 
 const MODEL = "openai/gpt-oss-20b";
@@ -230,7 +231,15 @@ export async function runMembersAgent(trigger: ExecutionTrigger = "manual") {
     .orderBy(asc(users.createdAt))
     .limit(1);
   if (!owner) throw new Error("ADMIN_OWNER_REQUIRED");
-  const summary = { ok: true, paused: false, published: 0, replies: 0, review: 0, failed: 0 };
+  const summary = {
+    ok: true,
+    paused: false,
+    published: 0,
+    replies: 0,
+    review: 0,
+    failed: 0,
+    reasons: [] as string[],
+  };
   const day = new Date().toISOString().slice(0, 10),
     key = `editorial:${day}`;
   const editorialId = await claim(key, "editorial", agentId, trigger);
@@ -263,10 +272,13 @@ export async function runMembersAgent(trigger: ExecutionTrigger = "manual") {
       ]);
       if (!result.rows.length) throw new Error("AGENT_PAUSED");
       summary.published++;
-    } catch {
+    } catch (error) {
+      // Só o código do motivo (lista fechada em agent-policy.ts), sem conteúdo.
       await finish(key, editorialId, started, "FAILED", "members.post.publish", {
         kind: "editorial",
+        reason: failureCode(error),
       });
+      summary.reasons.push(failureCode(error));
       summary.failed++;
       summary.ok = false;
     }
@@ -348,11 +360,13 @@ export async function runMembersAgent(trigger: ExecutionTrigger = "manual") {
       ]);
       if (!result.rows.length) throw new Error("COMMENT_UNAVAILABLE");
       summary.replies++;
-    } catch {
+    } catch (error) {
       await finish(replyKey, id, started, "FAILED", "members.comment.reply", {
         kind: "reply",
         commentId: c.id,
+        reason: failureCode(error),
       });
+      summary.reasons.push(failureCode(error));
       summary.failed++;
       summary.ok = false;
     }
@@ -472,9 +486,13 @@ export async function handleMembersAgent(request: Request) {
   try {
     const result = await runMembersAgent("schedule");
     return Response.json(result, { status: result.ok ? 200 : 502, headers });
-  } catch {
+  } catch (error) {
+    // O workflow imprime esta resposta no log: o código diz onde olhar.
     return Response.json(
-      { error: "Confira configuração, pausa e histórico no painel Members." },
+      {
+        error: "Confira configuração, pausa e histórico no painel Members.",
+        code: failureCode(error),
+      },
       { status: 503, headers },
     );
   }

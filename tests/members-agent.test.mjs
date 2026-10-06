@@ -1,6 +1,7 @@
 import { PRODUCTS } from "../src/lib/ecosystem.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   validateEditorial,
   validateAgentText,
@@ -8,6 +9,8 @@ import {
   editorialTopic,
   MEMBERS_AGENT_SKILLS,
   MEMBERS_TOPICS,
+  MEMBERS_FAILURE_CODES,
+  failureCode,
 } from "../src/members/agent-policy.ts";
 import { WORKFORCE } from "../src/lib/ai-workforce.ts";
 import { routesForAgent } from "../src/lib/agent-portfolio.ts";
@@ -92,4 +95,20 @@ test("Editorial não atribui publicação social ao Wire, que é um feed de leit
         "Leia uma notícia e crie uma pergunta sobre sua área de atuação. Compartilhe nos comentários do Members.",
     }),
   );
+});
+
+test("Falha do Members vira código de lista fechada, nunca a mensagem crua", () => {
+  assert.equal(failureCode(new Error("PROVIDER_UNAVAILABLE")), "PROVIDER_UNAVAILABLE");
+  assert.equal(failureCode(new Error("OUTPUT_REVIEW_REQUIRED")), "OUTPUT_REVIEW_REQUIRED");
+  // Mensagem desconhecida pode trazer corpo do provedor ou texto gerado: não sai.
+  assert.equal(failureCode(new Error('401 {"error":"chave gsk_abc inválida"}')), "UNKNOWN");
+  assert.equal(failureCode("texto solto"), "UNKNOWN");
+  assert.equal(failureCode(undefined), "UNKNOWN");
+  // Todo código que o runtime lança está na lista.
+  const runtime = readFileSync(
+    new URL("../src/members/agent-runtime.server.ts", import.meta.url),
+    "utf8",
+  );
+  for (const [, code] of runtime.matchAll(/throw new Error\("([A-Z_]+)"\)/g))
+    assert.ok(MEMBERS_FAILURE_CODES.includes(code), code);
 });

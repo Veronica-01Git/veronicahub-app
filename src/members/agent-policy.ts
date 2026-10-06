@@ -112,6 +112,29 @@ export function validateEditorial(value: unknown) {
     prompt: validateAgentText(v.prompt, 40, 1800),
   };
 }
+// Códigos de falha que o próprio runtime lança. Só eles vão para o log e para a
+// resposta do cron — nunca a mensagem de um erro desconhecido, que pode trazer
+// corpo de resposta do provedor ou texto gerado.
+export const MEMBERS_FAILURE_CODES = [
+  "PROVIDER_UNAVAILABLE",
+  "PROVIDER_NOT_CONFIGURED",
+  "INVALID_OUTPUT",
+  "OUTPUT_REVIEW_REQUIRED",
+  "INPUT_LIMIT",
+  "AGENT_PAUSED",
+  "AGENT_DISABLED",
+  "COMMENT_UNAVAILABLE",
+  "TENANT_FORBIDDEN",
+  "ADMIN_OWNER_REQUIRED",
+  "INVALID_DAY",
+] as const;
+export type MembersFailureCode = (typeof MEMBERS_FAILURE_CODES)[number] | "UNKNOWN";
+export function failureCode(error: unknown): MembersFailureCode {
+  const message = error instanceof Error ? error.message : "";
+  return (MEMBERS_FAILURE_CODES as readonly string[]).includes(message)
+    ? (message as MembersFailureCode)
+    : "UNKNOWN";
+}
 export function needsHumanReview(text: string): boolean {
   return /(?:suic[ií]d|automutil|amea[cç]|abuso|fraude|golpe|senha|cart[aã]o|reembolso|processo judicial|diagn[oó]stico|medicamento|ignore.*instru[cç]|system prompt|instru[cç][oõ]es.*sistema)/i.test(
     text,
