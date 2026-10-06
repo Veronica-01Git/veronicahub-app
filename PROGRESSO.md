@@ -1,3 +1,38 @@
+## Express Entulho: tabela de preços ampliada no cérebro do agente (2026-10-06)
+
+**Pedido do dono:** "móveis, terra, telhas, madeira, mdf, vidro, poda — esses
+itens com caçamba grande e média aumente R$ 50,00 e preencha a tabela e
+coloque essa info no cérebro do agente".
+
+**O que entrou em `src/lib/whatsapp-rules.ts`**, a única fonte comercial,
+que alimenta o prompt, a guarda de preço e a tabela de
+/clientes/express-entulho/operacoes/regras-do-agente:
+
+| Material | Caçamba menor (média) | Caçamba grande |
+|---|---|---|
+| móveis, terra, telhas, madeira, mdf, vidro, poda | R$ 270 (220 + 50) | R$ 500 (450 + 50) |
+
+- **Base:** o preço da demolição em cada caçamba.
+- **Matriz:** passou de 5 para 19 combinações.
+- **Sem preço, de propósito:**
+  - tambor desses materiais, porque não entrou no pedido;
+  - entulho e gesso na grande, porque não foram citados.
+
+**"Média" = caçamba menor.** A Express tem duas caçambas, além do tambor.
+- O rótulo virou "Caçamba menor (média)".
+- O agente passou a reconhecer "média/médio" como a menor
+  (`APELIDOS_PRODUTO` em `whatsapp-agent.ts`, com `\b`, para "imediata" não
+  contar).
+- Há uma observação no prompt dizendo que as duas palavras são a mesma
+  caçamba.
+
+**Testes:** `tests/whatsapp-webhook.test.mjs` foi atualizado. Ele cobre os
+14 preços novos em todas as cidades, o tambor sem preço e a guarda
+aceitando R$ 270/500 e recusando R$ 220 para terra. Resultado: 336/336.
+
+**WhatsApp:** nenhuma mudança em número, envio ou conversa. Só a regra
+comercial do agente mudou.
+
 ## Conector MCP "Veronica" — fase 1, Claude operando o Analytics (2026-10-03)
 
 **Responsável:** Claude Code, nesta sessão com Matheus. Branch
