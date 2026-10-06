@@ -12,6 +12,7 @@ import {
 import { usePainelOps } from "@/features/express-ops-b/data/queries";
 import { EsqueletoLista } from "@/features/express-ops-b/components/esqueleto";
 import { AtendimentoAssistido } from "@/features/express-ops-b/components/assistido";
+import { FilaHumana } from "@/features/express-ops-b/components/fila-humana";
 import {
   AguardandoCadastro,
   ComDado,
@@ -54,6 +55,7 @@ function CentralAtendimento() {
   return (
     <div className="grid gap-4">
       <AtendimentoAssistido />
+      <FilaHumana />
       <p className="text-[12px] text-[var(--ops-ink-muted)]">
         Conversas de exemplo · fictícias. Não são lidas do WhatsApp; rascunhos assistidos não são
         gravados nesta lista.

@@ -164,3 +164,30 @@ test("webhook obedece as regras: pausa, espera, reivindica e avisa", () => {
   }
   assert.match(src, /orderBy\(desc\(waMessages\.createdAt\)/);
 });
+
+test("fila humana: mesma trava do webhook, janela de 24 h e nada é apagado", () => {
+  const src = readFileSync(
+    new URL("../src/features/express-ops-b/data/fila-humana.ts", import.meta.url),
+    "utf8",
+  );
+  const responder = src.slice(src.indexOf("export const responderNaFila"));
+  const ordem = [
+    "temAcesso()",
+    "motivoEnvioBloqueado()",
+    "janela24hAberta(conversa.lastInboundAt)",
+    'status: "aguardando_humano"',
+    "sendText(conversa.waId",
+    'author: "humano"',
+  ];
+  let pos = -1;
+  for (const trecho of ordem) {
+    const achou = responder.indexOf(trecho, pos + 1);
+    assert.ok(achou > pos, `responderNaFila fora de ordem ou sem: ${trecho}`);
+    pos = achou;
+  }
+  // Toda leitura e escrita é filtrada pela Express; nenhuma remove dados.
+  assert.ok((src.match(/temAcesso\(\)/g) ?? []).length >= 5);
+  assert.doesNotMatch(src, /\.delete\(|DELETE|TRUNCATE/);
+  // Marcador de lote não aparece para a equipe.
+  assert.match(src, /ne\(waMessages\.kind, "lote"\)/);
+});
