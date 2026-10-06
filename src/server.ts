@@ -81,11 +81,16 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-function withSecurityHeaders(response: Response): Response {
+function withSecurityHeaders(response: Response, pathname = ""): Response {
   const headers = new Headers(response.headers);
   headers.set("x-content-type-options", "nosniff");
   headers.set("referrer-policy", "strict-origin-when-cross-origin");
-  headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
+  headers.set(
+    "permissions-policy",
+    pathname === "/veronica"
+      ? "camera=(), microphone=(self), geolocation=()"
+      : "camera=(), microphone=(), geolocation=()",
+  );
   headers.set("x-frame-options", "SAMEORIGIN");
   headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
 
@@ -428,6 +433,12 @@ const app = {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
-    return withSecurityHeaders(await app.fetch(request, env, ctx));
+    const pathname = new URL(request.url).pathname;
+    if (pathname === "/api/veronica/live") {
+      const { handleVeronicaLiveSocket } =
+        await import("./veronica/conversation/live-proxy.server");
+      return handleVeronicaLiveSocket(request);
+    }
+    return withSecurityHeaders(await app.fetch(request, env, ctx), pathname);
   },
 };
