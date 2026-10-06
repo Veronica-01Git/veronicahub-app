@@ -368,3 +368,28 @@ export function assuntoRepetido(
   }
   return null;
 }
+
+export const SIGNAL_KEYWORDS: Record<string, RegExp> = {
+  ia: /\b(ai|artificial intelligence|intelig[êe]ncia artificial|openai|chatgpt|gpt|gemini|deepseek|anthropic|claude|llama|qwen|chip|rob[ôo]|software|algoritmo)\b/i,
+  clima:
+    /\b(terras? raras?|rare earths?|minera(l|is|ção|cao)|l[íi]tio|lithium|ni[óo]bio|climate|clima|energy|energia|solar|wind|e[óo]lica|battery|bateria|emiss[õo]|desmatamento|enchente|seca)\b/i,
+  economia:
+    /\b(econ[oô]m(?:ia|y|ic[ao]s?|ics?)|central bank|banco central|currency|moeda|inflation|infla[çc][ãa]o|cbdc|yuan|drex|pix|juros|selic|c[âa]mbio|d[óo]lar|pib)\b/i,
+  geopolitica:
+    /\b(china|chin[êe]s|chinese|brasil|brazil|trade|com[ée]rcio|tariff|tarifa|chip|semiconductor|semicondutor|geopolit|diplomac|acordo|brics|mercosul)\b/i,
+  mercado:
+    /\b(market|mercado|startup|funding|investment|investimento|company|empresa|technology|tecnologia|ai|chip|rodada|aquisi[çc][ãa]o)\b/i,
+  // Os feeds de SC já são recortados por portal e por cidade, e a manchete
+  // local raramente repete o nome da cidade. Qualquer título passa aqui; quem
+  // tira polícia e tragédia é o foraDaPautaSc.
+  sc: /\S/,
+  veronica: /\bveronica\b/i,
+};
+
+
+/** Reject explicitly foreign subjects unless the headline states a Brazil/China link. */
+export function fatoForaDoRecorte(titulo: string): boolean {
+  const vinculo = /brasil|brazil|brasileir|china|chin[êe]s|chinesa|pequim|beijing|xangai|shanghai|hong kong|yuan|renminbi|brics|mercosul/i;
+  const exterior = /\b(eua|estados unidos|wall street|treasur(?:y|ies)|fed|europa|reino unido|inglaterra|fran[çc]a|alemanha|r[úu]ssia|ucr[âa]nia|jap[ãa]o)\b/i;
+  return exterior.test(titulo) && !vinculo.test(titulo);
+}
