@@ -153,8 +153,9 @@ test("combinação que o responsável não soube informar devolve null, não uma
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "demolicao", "itapema"), 220);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "gesso", "navegantes"), 280);
 
-  // Materiais que a agente reconhece mas cujo preço ninguém passou.
-  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "terra", "itajai"), null);
+  // Materiais que a agente reconhece mas cujo preço ninguém passou. (Terra
+  // ganhou preço nas caçambas em 06/10; no tambor continua sem.)
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "terra", "itajai"), null);
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", "entulho", "itajai"), null);
   // Entulho tem preço no TAMBOR (peça oficial da empresa, 14/09), e continuar
   // sem preço na caçamba é o ponto: material com preço num produto não vira
@@ -178,7 +179,45 @@ test("matriz vigente em 02/10 tem cinco combinações confirmadas", () => {
   // suposição nova. Ver o teste do tambor mais abaixo, que é o que segura isso.
   assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", "entulho", "itajai"), 180);
 
-  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 5, "nenhum preço sem fonte entrou");
+  // + 14 combinações de 06/10 (ver o teste seguinte): 5 + 7 materiais × 2 caçambas.
+  assert.equal(REGRAS_EXPRESS_ENTULHO.precos.length, 19, "nenhum preço sem fonte entrou");
+});
+
+test("dono, 06/10: sete materiais custam a demolição + R$ 50 nas duas caçambas", () => {
+  const materiais = ["moveis", "terra", "telhas", "madeira", "mdf", "vidro", "poda"];
+  for (const material of materiais) {
+    for (const cidade of REGRAS_EXPRESS_ENTULHO.cidades) {
+      assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-menor", material, cidade.id), 270);
+      assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", material, cidade.id), 500);
+    }
+    // O tambor não entrou no pedido.
+    assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "tambor", material, "itajai"), null);
+  }
+  // Entulho e gesso na grande continuam sem preço: o pedido não os citou.
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "entulho", "itajai"), null);
+  assert.equal(buscarPreco(REGRAS_EXPRESS_ENTULHO, "cacamba-grande", "gesso", "itajai"), null);
+
+  // A guarda aceita o valor certo e recusa o da demolição para esses materiais.
+  assert.equal(
+    respostaSegura(
+      "Para madeira, a caçamba grande sai R$ 500.",
+      undefined,
+      "Itajaí, madeira, grande",
+    ),
+    true,
+  );
+  assert.equal(
+    respostaSegura(
+      "Para poda, a caçamba média sai R$ 270.",
+      undefined,
+      "poda em Navegantes, média",
+    ),
+    true,
+  );
+  assert.equal(
+    respostaSegura("Para terra, a menor sai R$ 220.", undefined, "terra em Itajaí, menor"),
+    false,
+  );
 });
 
 test("preço padrão confirmado em 02/10 vale nas cidades onde o produto é atendido", () => {

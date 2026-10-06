@@ -11,6 +11,11 @@
  * - no fim de semana, a segunda-feira permanece aberta para até 40 pedidos;
  * - combinação sem preço confirmado continua sendo encaminhada para humano.
  *
+ * Atualização do dono em 06/10/2026: móveis, terra, telhas, madeira, mdf,
+ * vidro e poda passam a ter preço na caçamba média (a `cacamba-menor`) e na
+ * grande — o valor da demolição + R$ 50,00. Tambor e entulho/gesso na grande
+ * continuam sem preço.
+ *
  * A guarda em whatsapp-agent.ts confere valores deterministically. Um número
  * não confirmado não deve entrar na matriz apenas para preencher uma lacuna.
  */
@@ -84,6 +89,9 @@ export const CIDADES: readonly Cidade[] = [
   { id: "penha", rotulo: "Penha" },
 ];
 
+/** Materiais com preço = demolição + R$ 50 nas duas caçambas (dono, 06/10/2026). */
+const MATERIAIS_COM_ACRESCIMO = ["moveis", "terra", "telhas", "madeira", "mdf", "vidro", "poda"];
+
 export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
   empresa: "Express Entulho",
   cidades: CIDADES,
@@ -91,7 +99,7 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
   produtos: [
     {
       id: "cacamba-menor",
-      rotulo: "Caçamba menor",
+      rotulo: "Caçamba menor (média)",
       diasIncluidos: 3,
       cidades: CIDADES.map((c) => c.id),
     },
@@ -141,6 +149,18 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
     { produto: "cacamba-grande", material: "demolicao", cidade: ITAJAI, valorReais: 450 },
     { produto: "cacamba-menor", material: "gesso", cidade: ITAJAI, valorReais: 280 },
     { produto: "tambor", material: "entulho", cidade: ITAJAI, valorReais: 180 },
+
+    /*
+     * DONO, 06/10/2026 (pedido escrito na sessão de desenvolvimento): "móveis,
+     * terra, telhas, madeira, mdf, vidro, poda — esses itens com caçamba grande
+     * e média aumente R$ 50,00". Base: o preço da demolição em cada caçamba
+     * (menor 220, grande 450). "Média" é a caçamba menor: a Express tem duas
+     * caçambas, além do tambor, e o tambor não entrou no pedido.
+     */
+    ...MATERIAIS_COM_ACRESCIMO.flatMap((material) => [
+      { produto: "cacamba-menor" as const, material, cidade: ITAJAI, valorReais: 220 + 50 },
+      { produto: "cacamba-grande" as const, material, cidade: ITAJAI, valorReais: 450 + 50 },
+    ]),
   ],
 
   precoPadraoTodasCidades: true,
@@ -197,6 +217,7 @@ export const REGRAS_EXPRESS_ENTULHO: RegrasNegocio = {
     "O preço muda conforme o material descartado, mas é igual em todas as cidades atendidas.",
     "Distância da central em Itajaí altera apenas prazo/janela de entrega, nunca o preço.",
     "Tambor está disponível APENAS em Itajaí.",
+    "Caçamba média e caçamba menor são a MESMA caçamba: a Express tem duas caçambas (menor/média e grande), além do tambor.",
   ],
 };
 

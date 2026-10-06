@@ -167,7 +167,9 @@ function cidadesDaFalaMaisRecente(conversa: string, regras: RegrasNegocio): read
 const APELIDOS_PRODUTO: Record<ProdutoId, RegExp> = {
   tambor: /tambor/,
   "cacamba-grande": /grande/,
-  "cacamba-menor": /menor|pequena|pequeno/,
+  // "Média" é como o dono chama a menor (06/10/2026). Com \b, para "imediata"
+  // não virar pedido de caçamba.
+  "cacamba-menor": /menor|pequena|pequeno|\bmedi[ao]\b/,
 };
 
 export function produtosCitados(
