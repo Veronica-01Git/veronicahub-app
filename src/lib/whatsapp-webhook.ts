@@ -340,6 +340,14 @@ async function processarMensagem(
     primeiraMensagem,
     forcarHumano: lote.forcarHumano,
   });
+
+  // O modelo leva segundos. Se alguém assumiu pelo painel nesse meio-tempo,
+  // a resposta da agente não sai: a conversa já é da pessoa.
+  const [antesDeEnviar] = await db
+    .select({ status: waConversations.status })
+    .from(waConversations)
+    .where(eq(waConversations.id, conversa.id));
+  if (!antesDeEnviar || !agentePodeResponder(antesDeEnviar.status)) return;
   /**
    * Áudio quando cabe, texto sempre que não.
    *

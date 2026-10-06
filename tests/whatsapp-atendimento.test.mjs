@@ -153,6 +153,8 @@ test("webhook obedece as regras: pausa, espera, reivindica e avisa", () => {
     "montarLote(",
     "chaveDoLote(providerId)",
     "decidirResposta(",
+    "agentePodeResponder(antesDeEnviar.status)",
+    "sendText(waId",
     'ne(waConversations.status, "aguardando_humano")',
     "avisarEquipe(",
   ];
