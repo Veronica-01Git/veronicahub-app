@@ -1,5 +1,6 @@
 import { handleAnalyticsAgent } from "./analytics-agent/runtime.server";
 import { handleMembersAgent } from "./members/agent-runtime.server";
+import { handleWireHealth } from "./lib/wire-health.server";
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
@@ -109,6 +110,7 @@ function extrairWaitUntil(ctx: unknown): ((p: Promise<unknown>) => void) | undef
 const app = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/cron/wire-health") return handleWireHealth(request);
     if (url.pathname === "/api/mercadopago-webhook") {
       try {
         return await handleMercadoPagoWebhook(request);

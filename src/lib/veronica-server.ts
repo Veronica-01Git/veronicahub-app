@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import Groq from "groq-sdk";
+import { generateText } from "./text-generation.server";
 import { VERONICA_SKILLS, getVeronicaStep, type VeronicaSkillId } from "@/veronica/skills";
 
 // Governadores de custo simples — sem rate-limit de verdade ainda (não tem
@@ -55,11 +55,6 @@ const chatValidator = (input: unknown) => {
 export const veronicaChat = createServerFn({ method: "POST" })
   .validator(chatValidator)
   .handler(async ({ data }) => {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      return { ok: false as const, error: "Assistente indisponível no momento." };
-    }
-
     const skill = VERONICA_SKILLS[data.skillId];
     const step = getVeronicaStep(data.skillId, data.stepId);
 
@@ -70,18 +65,13 @@ export const veronicaChat = createServerFn({ method: "POST" })
       : skill.systemPrompt;
 
     try {
-      const groq = new Groq({ apiKey });
-      const response = await groq.chat.completions.create({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...data.history.map((t) => ({ role: t.role, content: t.content })),
-          { role: "user" as const, content: data.message },
-        ],
-        max_completion_tokens: MAX_TOKENS,
+      const response = await generateText({
+        groqModel: MODEL,
+        system: systemPrompt,
+        messages: [...data.history, { role: "user", content: data.message }],
+        maxTokens: MAX_TOKENS,
       });
-
-      const reply = (response.choices[0]?.message?.content ?? "").trim();
+      const reply = response.text;
 
       return {
         ok: true as const,

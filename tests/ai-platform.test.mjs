@@ -689,7 +689,8 @@ test("tetos: todo teto tem procedência e respeita o limite real do runtime", ()
   assert.match(ler("../src/lib/whatsapp-webhook.ts"), /waitUntil\(processamento\)/);
   // O Wire é chamado pelo workflow com corte de 120 s.
   const workflow = ler("../.github/workflows/generate-article.yml");
-  const corte = Number(workflow.match(/--max-time (\d+)/)[1]) * 1_000;
+  const generationRequest = workflow.slice(workflow.indexOf("\n          status=$(curl"));
+  const corte = Number(generationRequest.match(/--max-time (\d+)/)[1]) * 1_000;
   assert.ok(
     registeredAgent("wire-redacao").maxLatencyMs < corte,
     "teto do Wire passa do corte do workflow",

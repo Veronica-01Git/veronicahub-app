@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, asc, count, desc, eq, gte, like, lt, ne, notInArray } from "drizzle-orm";
 import Groq from "groq-sdk";
+import { getRuntimeSecret } from "./runtime-secret.server";
+import { generateText } from "./text-generation.server";
 import { getDb } from "./db";
 import { articles, mediaImages } from "./schema";
 import { requireAdmin } from "./admin-server";
@@ -793,14 +795,18 @@ async function draftArticleContent(
   beat: Beat,
   opcoes: { recentes?: string[]; permitirBusca?: boolean } = {},
 ): Promise<{ ok: true; content: DraftContent } | { ok: false; error: string }> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return { ok: false, error: "GROQ_API_KEY não configurada." };
+  const apiKey = await getRuntimeSecret("GROQ_API_KEY");
+  if (
+    !apiKey &&
+    !(await getRuntimeSecret("GEMINI_API_KEY")) &&
+    !(await getRuntimeSecret("ANTHROPIC_API_KEY"))
+  ) {
+    return { ok: false, error: "Nenhum provedor editorial configurado." };
   }
 
   // Primeiro o caminho barato: o servidor lê os portais e o modelo só
   // escreve (ver wire-apuracao.ts). null = nenhuma pauta com texto legível.
-  const apurada = await apurarNoServidor(apiKey, beat, opcoes.recentes ?? []);
+  const apurada = await apurarNoServidor(apiKey ?? "", beat, opcoes.recentes ?? []);
   if (apurada && apurada.kind === "rascunho") {
     return apurada.result.ok ? apurada.result : { ok: false, error: apurada.result.error };
   }
@@ -817,6 +823,7 @@ async function draftArticleContent(
   // Só uma retentativa, e só quando a resposta veio com formato quebrado
   // (retry=true) — não faz sentido retentar quando o próprio modelo disse
   // que não achou fato verificável, nem quando a chamada à API falhou.
+  if (!apiKey) return { ok: false, error: "Busca editorial manual exige Groq configurada." };
   const signals = await discoverStorySignals(beat);
   const first = await attemptDraft(apiKey, beat, signals);
   if (first.ok || !first.retry) return first;
@@ -918,8 +925,7 @@ function candidataNaPauta(beat: Beat, c: Candidata, recentes: string[]): boolean
 type FonteApurada = { candidata: Candidata; texto: string };
 
 type Apuracao =
-  | { kind: "rascunho"; result: DraftAttemptResult }
-  | { kind: "sem-pauta"; diagnostico: string };
+  { kind: "rascunho"; result: DraftAttemptResult } | { kind: "sem-pauta"; diagnostico: string };
 
 async function apurarNoServidor(apiKey: string, beat: Beat, recentes: string[]): Promise<Apuracao> {
   const feeds = FEEDS_DIRETOS[beat];
@@ -981,33 +987,26 @@ Se o texto não trouxer um fato noticioso dentro da editoria${fontes.length > 1 
     )
     .join("\n\n");
 
-  let response: Groq.Chat.ChatCompletion;
+  let text: string;
   try {
-    const groq = new Groq({ apiKey });
-    response = await groq.chat.completions.create({
-      model: DRAFT_MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: material },
-      ],
-      max_completion_tokens: APURACAO_MAX_TOKENS,
-      reasoning_effort: "low",
+    const generated = await generateText({
+      groqModel: DRAFT_MODEL,
+      system: systemPrompt,
+      messages: [{ role: "user", content: material }],
+      maxTokens: APURACAO_MAX_TOKENS,
+      json: true,
     });
+    text = generated.text;
+    // Only provider/model are logged: no source content, prompt or secret.
+    console.info("wire: provedor editorial", generated.provider, generated.model);
   } catch (error) {
-    const mensagem = error instanceof Error ? error.message : String(error);
-    const status = (error as { status?: unknown } | null)?.status;
-    if (status === 429 || /\b429\b|rate limit/i.test(mensagem)) {
-      // Mesmo texto do caminho antigo: isEditorialSkip casa o "429" do começo.
-      return {
-        ok: false,
-        error: `${mensagem.startsWith("429") ? mensagem : `429 ${mensagem}`} (${DRAFT_RESERVED_MODEL} reservado ao WhatsApp)`,
-        retry: false,
-      };
-    }
-    return { ok: false, error: mensagem.slice(0, 400), retry: false };
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Falha na redação por IA.",
+      retry: false,
+    };
   }
 
-  const text = (response.choices[0]?.message?.content ?? "").trim();
   const inicio = [...text.matchAll(/\{\s*"(?:headline|error)"/g)].at(-1)?.index ?? -1;
   const fim = text.lastIndexOf("}");
   let parsed: Record<string, unknown> | null = null;

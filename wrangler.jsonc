@@ -1,0 +1,7 @@
+{
+  // Nitro fills main, assets and the compatibility settings into its generated
+  // config. Fix the target so code, secrets and domain use the same Worker.
+  "name": "veronicahub-app",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["nodejs_compat"],
+}

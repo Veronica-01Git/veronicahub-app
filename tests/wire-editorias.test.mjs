@@ -124,7 +124,8 @@ test("o Wire não usa o gpt-oss-120b: ele fica livre para a reserva do WhatsApp"
   const chamadas = [...server.matchAll(/chat\.completions\.create\(\{\s*model: (\w+)/g)].map(
     (m) => m[1],
   );
-  assert.deepEqual(chamadas, ["DRAFT_MODEL", "DRAFT_MODEL"]);
+  assert.deepEqual(chamadas, ["DRAFT_MODEL"]);
+  assert.match(server, /groqModel: DRAFT_MODEL/);
   assert.match(server, /const DRAFT_MODEL = "openai\/gpt-oss-20b";/);
 
   // Cota esgotada continua sendo rodada sem publicação, não falha.
