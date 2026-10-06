@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
+import { CampusNavigation } from "@/components/learning/CampusVisuals";
 import { VeronicaDrawer } from "@/components/VeronicaDrawer";
 import "@/styles/escola.css";
 
@@ -389,6 +390,7 @@ function Escola() {
             </div>
           </div>
         </section>
+        <CampusNavigation current="/escola" />
       </main>
       <SiteFooter brand="yo" tagline="A escola de inteligência artificial do YO LAB & CO." />
     </div>

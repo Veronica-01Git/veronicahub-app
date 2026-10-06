@@ -1,0 +1,405 @@
+/* The approved Veronica campus: isolated learning/home visual layer. */
+.yo-learning {
+  --background: oklch(0.13 0.006 200);
+  --surface: oklch(0.165 0.008 200);
+  --foreground: oklch(0.96 0.006 95);
+  --muted-foreground: oklch(0.96 0.006 95 / 0.62);
+  --border: oklch(1 0 0 / 0.12);
+}
+.yo-campus-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: end;
+  min-height: clamp(640px, 86svh, 1000px);
+  padding-block: 7rem 1.5rem;
+}
+.yo-campus-background {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+}
+.yo-campus-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 65% 44%;
+  animation: yo-campus-arrive 1400ms ease-out both;
+}
+.yo-campus-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgb(8 13 14 / 0.52), rgb(8 13 14 / 0.1) 45%, transparent 78%),
+    linear-gradient(0deg, rgb(8 13 14 / 0.94), rgb(8 13 14 / 0.3) 35%, transparent 70%);
+}
+.yo-campus-content {
+  width: 100%;
+}
+.yo-campus-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 9px;
+  color: rgb(255 255 255 / 0.75);
+}
+.yo-campus-title {
+  max-width: 13ch;
+  margin-top: 1rem;
+  font-size: clamp(2.8rem, 4.8vw, 5.25rem);
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.yo-campus-title span {
+  display: block;
+}
+.yo-campus-copy {
+  margin-top: 1rem;
+  font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+  line-height: 1.7;
+  max-width: 31rem;
+  color: rgb(255 255 255 / 0.78);
+}
+.yo-campus-action {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+.yo-campus-action .wf-btn {
+  padding: 0.8rem 1.2rem;
+  font-size: 0.8rem;
+}
+.yo-campus-rail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+  margin-top: clamp(2.5rem, 6vh, 5rem);
+  padding-top: 1rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  color: rgb(255 255 255 / 0.6);
+}
+.yo-campus-rail a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 44px;
+  color: rgb(255 255 255 / 0.9);
+}
+.yo-campus-navigation {
+  padding-block: clamp(3rem, 7vw, 6rem);
+  border-top: 1px solid var(--wf-line);
+  background: var(--wf-ink);
+}
+.yo-campus-nav-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+.yo-campus-nav-note {
+  font-size: 0.85rem;
+  color: var(--wf-dim);
+}
+.yo-campus-rooms {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+.yo-campus-room {
+  display: block;
+  min-width: 0;
+  border: 1px solid var(--wf-line);
+  border-radius: 1.1rem;
+  overflow: hidden;
+  background: var(--wf-ink-2);
+  transition: border-color 220ms ease;
+}
+.yo-campus-room[aria-current="page"] {
+  border-color: var(--wf-signal);
+}
+.yo-campus-room:hover {
+  border-color: rgb(255 255 255 / 0.4);
+}
+.yo-campus-room-image {
+  position: relative;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+}
+.yo-campus-room-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 750ms ease;
+}
+.yo-campus-room:hover img {
+  transform: scale(1.04);
+}
+.yo-campus-room-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgb(8 13 14 / 0.55), transparent 65%);
+}
+.yo-campus-room-image > span {
+  position: absolute;
+  z-index: 1;
+  bottom: 1rem;
+  left: 1rem;
+  font: 9px var(--font-mono);
+  letter-spacing: 0.16em;
+}
+.yo-campus-room-image > svg {
+  position: absolute;
+  z-index: 1;
+  bottom: 0.85rem;
+  right: 1rem;
+}
+.yo-campus-room-copy {
+  padding: 1.3rem;
+}
+.yo-campus-room-copy h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: -0.035em;
+}
+.yo-campus-room-copy p {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--wf-dim);
+}
+.yo-campus-current {
+  display: block;
+  margin-top: 0.8rem;
+  font: 9px var(--font-mono);
+  color: var(--wf-signal);
+}
+.yo-learning .rounded-sm {
+  border-radius: 1rem;
+}
+.yo-learning .shadow-glow-green {
+  box-shadow: none;
+}
+.yo-learning .text-glow-green {
+  text-shadow: none;
+}
+.yo-learning .yo-lesson-player {
+  padding-block: clamp(3rem, 7vw, 6rem);
+  border-bottom: 1px solid var(--wf-line);
+}
+.yo-lesson-player > .wf-wrap {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+}
+.yo-lesson-player video {
+  object-fit: contain;
+}
+.yo-lesson-info {
+  color: var(--wf-dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.75rem;
+  margin-top: 1.5rem;
+}
+.yo-lesson-info span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.yo-course-intro {
+  padding-block: clamp(3rem, 7vw, 6rem);
+  border-bottom: 1px solid var(--wf-line);
+}
+.yo-course-intro .wf-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: end;
+}
+.yo-track-cover {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+.yo-track-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1s ease;
+}
+.yo-track-cover:hover img {
+  transform: scale(1.04);
+}
+.yo-track-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgb(8 13 14 / 0.6), transparent 60%);
+}
+.yo-track-cover > span {
+  position: absolute;
+  z-index: 1;
+  bottom: 1.25rem;
+  left: 1.5rem;
+  font: 10px var(--font-mono);
+  letter-spacing: 0.2em;
+}
+.yo-pack-card {
+  overflow: hidden;
+  border-radius: 1.2rem;
+}
+.yo-pack-cover {
+  margin: -1.5rem -1.5rem 0;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+.yo-pack-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1s ease;
+}
+.yo-pack-card:hover .yo-pack-cover img {
+  transform: scale(1.04);
+}
+.yo-home .wf-hero {
+  min-height: clamp(720px, 94svh, 1100px);
+}
+.yo-home .wf-hero-portrait {
+  inset: 0;
+  width: 100%;
+  z-index: -2;
+}
+.yo-home .wf-hero-portrait img {
+  object-position: 65% 40%;
+  mask-image: none;
+  -webkit-mask-image: none;
+  opacity: 1;
+}
+.yo-home .wf-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgb(8 13 14 / 0.65), rgb(8 13 14 / 0.08) 65%),
+    linear-gradient(0deg, rgb(8 13 14 / 0.98), rgb(8 13 14 / 0.3) 46%, transparent 78%);
+}
+.yo-home .wf-hero-title {
+  font-size: clamp(3.5rem, 7vw, 7.2rem);
+}
+.yo-home .wf-hero-sub {
+  font-size: clamp(1.5rem, 2.5vw, 2.4rem);
+  color: var(--wf-text);
+}
+.yo-home .wf-hero-frame {
+  color: rgb(255 255 255 / 0.65);
+}
+.yo-home .wf-hero .wf-lede {
+  max-width: 33rem;
+  font-size: 0.95rem;
+  color: rgb(255 255 255 / 0.78);
+}
+.yo-home .wf-hero-rail dd {
+  font-size: 0.75rem;
+}
+.yo-home .wf-final-portrait {
+  width: 60%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% 35%;
+  opacity: 0.2;
+}
+@keyframes yo-campus-arrive {
+  from {
+    transform: scale(1.025);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@media (max-width: 960px) {
+  .yo-campus-rooms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .yo-lesson-player > .wf-wrap,
+  .yo-course-intro .wf-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .yo-campus-hero {
+    min-height: max(650px, 86svh);
+  }
+  .yo-campus-background img {
+    object-position: 85% 40%;
+  }
+  .yo-campus-background[data-scene="aula"] img {
+    object-position: 91% 40%;
+  }
+  .yo-campus-title {
+    font-size: clamp(2.6rem, 11vw, 3.6rem);
+  }
+  .yo-campus-hero::after {
+    background: linear-gradient(
+      0deg,
+      rgb(8 13 14 / 0.96),
+      rgb(8 13 14 / 0.58) 35%,
+      rgb(8 13 14 / 0.05) 75%
+    );
+  }
+  .yo-campus-rail > span,
+  .yo-campus-nav-note {
+    display: none;
+  }
+  .yo-campus-room-copy {
+    padding: 1rem;
+  }
+  .yo-campus-room-copy h2 {
+    font-size: 1.2rem;
+  }
+  .yo-campus-room-copy p {
+    font-size: 0.75rem;
+  }
+  .yo-home .wf-hero {
+    min-height: 950px;
+  }
+  .yo-home .wf-hero-portrait img {
+    object-position: 70% 30%;
+  }
+  .yo-home .wf-hero::after {
+    background: linear-gradient(
+      0deg,
+      rgb(8 13 14 / 0.98),
+      rgb(8 13 14 / 0.75) 43%,
+      transparent 80%
+    );
+  }
+  .yo-home .wf-hero-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yo-campus-background img {
+    animation: none;
+  }
+  .yo-campus-room,
+  .yo-campus-room img,
+  .yo-track-cover img,
+  .yo-pack-cover img {
+    transition: none;
+  }
+}

@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CampusNavigation } from "@/components/learning/CampusVisuals";
+import { campusImage, campusSrcSet } from "@/lib/yo-visuals";
 import { useCallback, useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { BuildWorkforce } from "@/components/home/workforce/BuildWorkforce";
@@ -44,16 +46,18 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: DESCRICAO },
       { name: "twitter:title", content: TITULO },
       { name: "twitter:description", content: DESCRICAO },
-      { property: "og:image", content: "https://veronicahub.com/images/brand/yo-lab-logo.webp" },
-      { name: "twitter:image", content: "https://veronicahub.com/images/brand/yo-lab-logo.webp" },
+      { property: "og:image", content: "https://veronicahub.com/images/yo-campus/core-1600.webp" },
+      { name: "twitter:image", content: "https://veronicahub.com/images/yo-campus/core-1600.webp" },
       { name: "theme-color", content: "#1a1d1e" },
     ],
     links: [
-      // Retrato da hero: 53 KB, pedido antes do CSS terminar de chegar.
+      // Campus YO com a identidade canônica da Veronica.
       {
         rel: "preload",
         as: "image",
-        href: "/images/veronica/veronica-hero-static.webp",
+        href: campusImage("core"),
+        imageSrcSet: campusSrcSet("core"),
+        imageSizes: "100vw",
         type: "image/webp",
         fetchPriority: "high",
       },
@@ -93,7 +97,7 @@ function WorkforceHome() {
   }, []);
 
   return (
-    <div className="vh-wf min-h-screen">
+    <div className="vh-wf yo-home min-h-screen">
       <SiteHeader brand="yo" />
       <main>
         <WorkforceHero sinal={sinal} />
@@ -106,6 +110,7 @@ function WorkforceHome() {
         <YoLab />
         <BuildWorkforce selecionados={selecionados} alternar={alternar} />
         <PlatformIndex />
+        <CampusNavigation />
       </main>
       <SiteFooter brand="yo" tagline="O laboratório por trás da Veronica AI Workforce." />
     </div>
