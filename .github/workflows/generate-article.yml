@@ -31,6 +31,9 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/generate-article.yml"
+      - "src/lib/text-generation.server.ts"
+      - "src/lib/runtime-secret.server.ts"
+      - "wrangler.jsonc"
   workflow_dispatch:
     inputs:
       beat:
@@ -53,11 +56,29 @@ jobs:
       - name: Chama o endpoint de geração automática
         id: generate
         run: |
-          # Em pushes deste workflow, dê tempo ao Cloudflare para servir o
-          # código recém-mergeado antes da rodada automática de validação.
+          # A validação só publica após confirmar que o código novo está ativo,
+          # e que ao menos um provedor respondeu. Nenhuma chave sai no log.
           if [ "${{ github.event_name }}" = "push" ]; then
-            echo "Aguardando o deploy do Worker..."
-            sleep 45
+            ready=false
+            for attempt in $(seq 1 12); do
+              curl --silent --show-error --max-time 15 \
+                "https://veronicahub.com/api/cron/wire-health" \
+                -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" -o readiness.json || true
+              if jq -e '.revision == "wire-recovery-v1"' readiness.json >/dev/null 2>&1; then ready=true; break; fi
+              sleep 15
+            done
+            if [ "$ready" != "true" ]; then
+              echo "::error::O Worker ainda não publicou a revisão wire-recovery-v1. Confira o build/deploy no Cloudflare."
+              exit 1
+            fi
+            probe_status=$(curl --silent --show-error --max-time 60 \
+              -X POST "https://veronicahub.com/api/cron/wire-health" \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" -o provider-health.json -w "%{http_code}")
+            cat provider-health.json
+            if [ "$probe_status" != "200" ]; then
+              echo "::error::Nenhum provedor configurado respondeu ao teste real."
+              exit 1
+            fi
           fi
 
           # Rodada manual pode escolher a editoria; o endpoint já aceita ?beat=.
