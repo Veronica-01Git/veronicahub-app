@@ -156,6 +156,7 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/admin/produtos-shopee", // catálogo comercial restrito, acessado pelo painel admin
   "/admin/comissoes-shopee", // conciliação financeira restrita, acessada pelo painel admin
   "/admin/v-iva", // validação interna dos agentes (V-IVA), acessada pelo painel admin
+  "/admin/conector-mcp", // atividade e corte do conector MCP do Claude, acessado pelo painel admin
   // Páginas de detalhe, alcançadas a partir de uma listagem.
   "/blog/$slug",
   "/blog/editoria/$beat",

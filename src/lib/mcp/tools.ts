@@ -58,6 +58,8 @@ export type CatalogPort = {
 export type ExecutionMetadata = Record<string, string | number | boolean | null>;
 
 export type ExecutionPort = {
+  /** Quantas chamadas este admin abriu desde `since` — base do limite por minuto. */
+  countSince(actorId: string, since: Date): Promise<number>;
   /** Abre a linha (RUNNING) e devolve o id. Lança se não conseguir gravar. */
   start(entry: { toolKey: string; toolName: string; actorId: string }): Promise<string>;
   finish(
@@ -316,12 +318,41 @@ function safeHref(value: string): string {
  * Executa uma ferramenta com auditoria. Erro esperado volta como isError com a
  * mensagem do catálogo; erro inesperado volta genérico (sem detalhe interno).
  */
+/**
+ * Teto de chamadas de ferramenta por conta admin, numa janela deslizante de 1
+ * minuto, contado nas próprias linhas de AgentExecution (valem entre isolates
+ * do Worker, ao contrário de um contador em memória). Folga larga para uso
+ * humano pelo Claude; corta laço de agente ou token vazado.
+ */
+export const MAX_CALLS_PER_MINUTE = 60;
+
 export async function runTool(
   spec: ToolSpec,
   input: Record<string, unknown>,
   ctx: { adminId: string; deps: ToolDeps; now?: () => number },
 ): Promise<ToolResult> {
   const clock = ctx.now ?? Date.now;
+  let recent: number;
+  try {
+    recent = await ctx.deps.executions.countSince(ctx.adminId, new Date(clock() - 60_000));
+  } catch {
+    return {
+      isError: true,
+      content: [{ type: "text", text: "Registro de auditoria indisponível; nada foi executado." }],
+    };
+  }
+  if (recent >= MAX_CALLS_PER_MINUTE) {
+    // Sem linha nova: em abuso, gravar cada recusa só aumentaria a carga.
+    return {
+      isError: true,
+      content: [
+        {
+          type: "text",
+          text: `Limite de ${MAX_CALLS_PER_MINUTE} chamadas por minuto atingido. Aguarde um minuto e tente de novo.`,
+        },
+      ],
+    };
+  }
   let executionId: string;
   try {
     executionId = await ctx.deps.executions.start({

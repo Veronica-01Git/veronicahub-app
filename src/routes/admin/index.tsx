@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
+  PlugZap,
   BadgeDollarSign,
   ShieldAlert,
   Newspaper,
@@ -91,6 +92,12 @@ function AdminPanel() {
               className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
             >
               <ShieldCheck className="h-4 w-4" /> V-IVA
+            </Link>
+            <Link
+              to="/admin/conector-mcp"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"
+            >
+              <PlugZap className="h-4 w-4" /> Conector MCP
             </Link>
             <Link
               to="/admin/imagens"

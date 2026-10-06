@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { handleMcpHttp, MCP_INSTRUCTIONS } from "../src/lib/mcp/http.ts";
 import { isMcpPath } from "../src/lib/mcp/paths.ts";
 import { issueClientId, sha256Hex, ACCESS_TTL_S } from "../src/lib/mcp/oauth.ts";
-import { TOOLS } from "../src/lib/mcp/tools.ts";
+import { TOOLS, MAX_CALLS_PER_MINUTE } from "../src/lib/mcp/tools.ts";
 import { registeredAgent, toolDefinition } from "../src/lib/ai/agent-registry.ts";
 
 /**
@@ -43,6 +43,10 @@ function memoryStore() {
     },
     async familyOf(hash) {
       return rows.get(hash)?.familyId ?? null;
+    },
+    async revokeKind(familyId, kind, now) {
+      for (const r of rows.values())
+        if (r.familyId === familyId && r.kind === kind && !r.revokedAt) r.revokedAt = now;
     },
     async revokeFamily(familyId, now) {
       for (const r of rows.values()) if (r.familyId === familyId && !r.revokedAt) r.revokedAt = now;
@@ -130,9 +134,12 @@ function cenario() {
         },
       },
       executions: {
+        async countSince(actorId, since) {
+          return execucoes.filter((e) => e.actorId === actorId && e.queuedAt > since).length;
+        },
         async start(entry) {
           const id = `exec-${execucoes.length + 1}`;
-          execucoes.push({ id, ...entry, status: "RUNNING" });
+          execucoes.push({ id, ...entry, status: "RUNNING", queuedAt: new Date() });
           return id;
         },
         async finish(id, result) {
@@ -609,4 +616,45 @@ test("rota fixa interceptada em src/server.ts, migração 0021 aditiva", () => {
   const sql = ler("../drizzle/0021_mcp_oauth.sql").replace(/--.*$/gm, "");
   assert.ok(!/\bDROP\b|\bTRUNCATE\b|\bDELETE\b|\bALTER\s+TABLE\b|\bRENAME\b/i.test(sql));
   assert.match(sql, /CREATE TABLE IF NOT EXISTS "McpOAuthGrant"/);
+});
+
+/* ======================================================== fase 2: segurança */
+
+test("refresh revoga na hora o token de acesso anterior da mesma conexão", async () => {
+  const c = cenario();
+  const t = await tokenAdmin(c);
+  assert.equal((await rpc(c.deps, t.access_token, "tools/list")).status, 200);
+  const novo = await (
+    await call(
+      c.deps,
+      "/oauth/token",
+      form({ grant_type: "refresh_token", refresh_token: t.refresh_token, client_id: t.client_id }),
+    )
+  ).json();
+  assert.equal((await rpc(c.deps, t.access_token, "tools/list")).status, 401, "antigo ainda vale");
+  assert.equal((await rpc(c.deps, novo.access_token, "tools/list")).status, 200);
+});
+
+test("limite de chamadas por minuto: a 61ª é recusada sem executar nem gravar", async () => {
+  const c = cenario();
+  const { access_token: tk } = await tokenAdmin(c);
+  for (let i = 0; i < MAX_CALLS_PER_MINUTE; i += 1) {
+    assert.equal(
+      (await ferramenta(c, tk, "listar_produtos")).isError,
+      undefined,
+      `chamada ${i + 1}`,
+    );
+  }
+  const antes = c.execucoes.length;
+  const recusada = await ferramenta(c, tk, "ativar_arquivar_produto", {
+    id: "garrafa-termica",
+    active: true,
+  });
+  assert.equal(recusada.isError, true);
+  assert.match(recusada.texto, /Limite de 60 chamadas por minuto/);
+  assert.equal(c.execucoes.length, antes, "recusa por limite não grava linha");
+  assert.equal(c.produtos.get("garrafa-termica").active, false, "nada executado");
+  // Passado o minuto, volta a funcionar.
+  for (const e of c.execucoes) e.queuedAt = new Date(Date.now() - 61_000);
+  assert.equal((await ferramenta(c, tk, "listar_produtos")).isError, undefined);
 });
