@@ -35,6 +35,15 @@ export type Candidata = {
   readonly resumo: string;
 };
 
+/** Only an editorial refusal may advance to a second story. API failures stop. */
+export function tentarOutraPauta(
+  resultado: { ok: boolean; error?: string },
+  tentativas: number,
+): boolean {
+  return !resultado.ok && tentativas < 2 &&
+    /^sem fato verificável no momento(?:\s|\(|$)/i.test(resultado.error ?? "");
+}
+
 const ENTIDADES: Record<string, string> = {
   amp: "&",
   quot: '"',

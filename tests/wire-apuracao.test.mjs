@@ -8,9 +8,19 @@ import {
   lerFeed,
   pareceMateria,
   textoCombinaComTitulo,
+  tentarOutraPauta,
 } from "../src/lib/wire-apuracao.ts";
 
 const AGORA = Date.parse("2026-10-01T15:00:00Z");
+
+test("editorial refusal advances once; authentication, network and quality errors stop", () => {
+  const recusa = { ok: false, error: "sem fato verificável no momento (apuração: portal.com.br)" };
+  assert.equal(tentarOutraPauta(recusa, 1), true);
+  assert.equal(tentarOutraPauta(recusa, 2), false);
+  assert.equal(tentarOutraPauta({ ok: true }, 1), false);
+  for (const error of ["groq: HTTP 401", "TimeoutError", "JSON inválido", "corpo curto", "data fora da janela"])
+    assert.equal(tentarOutraPauta({ ok: false, error }, 1), false);
+});
 const hora = (h) => new Date(AGORA - h * 3_600_000).toUTCString();
 
 const feed = (itens) =>

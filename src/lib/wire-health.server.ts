@@ -12,7 +12,7 @@ export async function handleWireHealth(
   if (request.method !== "GET" && request.method !== "POST")
     return new Response("method not allowed", { status: 405, headers: { Allow: "GET, POST" } });
   const headers = { "content-type": "application/json", "cache-control": "no-store" };
-  if (request.method === "GET") return Response.json({ revision: "wire-recovery-v3" }, { headers });
+  if (request.method === "GET") return Response.json({ revision: "wire-recovery-v4" }, { headers });
   try {
     const result = await deps.generate({
       system: "Responda somente OK.",
@@ -21,7 +21,7 @@ export async function handleWireHealth(
       groqModel: "openai/gpt-oss-20b",
     });
     return Response.json(
-      { ok: true, revision: "wire-recovery-v3", provider: result.provider, model: result.model },
+      { ok: true, revision: "wire-recovery-v4", provider: result.provider, model: result.model },
       { headers },
     );
   } catch (error) {
