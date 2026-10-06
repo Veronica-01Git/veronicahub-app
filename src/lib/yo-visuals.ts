@@ -17,25 +17,37 @@ export function campusSrcSet(name: string) {
   return [640, 1280, 1600].map((width) => `${campusImage(name, width)} ${width}w`).join(", ");
 }
 
-const workforceMedia: Record<string, [string, string]> = {
-  members: [CAMPUS, "members"],
-  agentes: [CAMPUS, "agentes"],
-  wire: [CAMPUS, "wire"],
-  studio: [SCHOOL, "create-v2"],
-  analytics: [SCHOOL, "grow-v2"],
-  school: [CAMPUS, "formacoes"],
-  career: [CAMPUS, "career"],
-  security: [SCHOOL, "secure-v2"],
-  clientes: [CAMPUS, "clientes"],
-  portfolio: [CAMPUS, "portfolio"],
-  fashion: [CAMPUS, "fashion"],
-};
+const WORLDS = "/images/yo-worlds";
 
-export function workforceImage(base: string, width = 1280) {
-  const [root, name] = workforceMedia[base] ?? [CAMPUS, "agentes"];
-  return `${root}/${name}-${width}.webp`;
+export function worldImage(name: string, width = 1280) {
+  return `${WORLDS}/${name}-${width}.webp`;
 }
-
-export function workforceSrcSet(base: string) {
-  return [640, 1280, 1600].map((width) => `${workforceImage(base, width)} ${width}w`).join(", ");
+export function worldSrcSet(name: string) {
+  return [640, 1280, 1600].map((width) => `${worldImage(name, width)} ${width}w`).join(", ");
+}
+function worldScene(base: string, agentId?: string) {
+  return agentId === "lz-fitness" ? "wellness" : base;
+}
+export function workforceImage(base: string, width = 1280, agentId?: string) {
+  return worldImage(worldScene(base, agentId), width);
+}
+export function workforceSrcSet(base: string, agentId?: string) {
+  return worldSrcSet(worldScene(base, agentId));
+}
+const worldDescriptions: Record<string, string> = {
+  members: "Salão de convivência com uma instalação suspensa de conexões luminosas.",
+  wellness: "Veronica acompanha uma atleta em um laboratório de movimento e biomecânica.",
+  agentes: "Humanoide de titânio em um laboratório de robótica e interfaces de voz.",
+  wire: "Observatório editorial com um globo luminoso e sinais orbitais.",
+  studio: "Estúdio cinematográfico com câmera robotizada e uma escultura de luz.",
+  analytics: "Laboratório de inteligência comercial com uma estrutura holográfica de dados.",
+  school: "Anfiteatro de aprendizagem com uma instalação tecnológica suspensa.",
+  career: "Veronica orienta um profissional em um estúdio de marca pessoal.",
+  security: "Anéis cristalinos de proteção em um laboratório de segurança digital.",
+  clientes: "Braço robótico organiza componentes em um laboratório industrial.",
+  portfolio: "Veronica e uma designer em uma galeria de arquitetura digital.",
+  fashion: "Humanoide de alta precisão trabalha em uma peça YO num ateliê têxtil.",
+};
+export function workforceImageAlt(base: string, agentId?: string) {
+  return worldDescriptions[worldScene(base, agentId)] ?? "Ambiente tecnológico da Veronica Hub.";
 }

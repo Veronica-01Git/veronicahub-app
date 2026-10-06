@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { workforceImage, workforceSrcSet } from "@/lib/yo-visuals";
+import { workforceImage, workforceSrcSet, workforceImageAlt } from "@/lib/yo-visuals";
 import { agente as agenteComercial } from "@/lib/agentes";
 import {
   WORKFORCE,
@@ -98,10 +98,10 @@ function Prancha({
     <article id={`agente-${a.id}`} className="wf-plate scroll-mt-24" aria-labelledby={`t-${a.id}`}>
       <div className="wf-plate-media wf-reveal">
         <img
-          src={workforceImage(a.midia.base)}
-          srcSet={workforceSrcSet(a.midia.base)}
+          src={workforceImage(a.midia.base, 1280, a.id)}
+          srcSet={workforceSrcSet(a.midia.base, a.id)}
           sizes="(max-width: 960px) 100vw, 56vw"
-          alt={a.midia.alt}
+          alt={workforceImageAlt(a.midia.base, a.id)}
           width={1280}
           height={720}
           loading="lazy"
@@ -167,13 +167,13 @@ function AgenteCompacto({ agente: a }: { agente: AgenteWorkforce }) {
       <Link to={conhecer.to} hash={conhecer.hash} className="group block wf-focus rounded-xl">
         <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-[color:var(--wf-ink-2)]">
           <img
-            src={workforceImage(a.midia.base)}
-            alt={a.midia.alt}
+            src={workforceImage(a.midia.base, 1280, a.id)}
+            alt={workforceImageAlt(a.midia.base, a.id)}
             width={1280}
             height={720}
             loading="lazy"
             decoding="async"
-            srcSet={workforceSrcSet(a.midia.base)}
+            srcSet={workforceSrcSet(a.midia.base, a.id)}
             sizes="(max-width: 768px) 100vw, 33vw"
             className="h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-100"
           />
