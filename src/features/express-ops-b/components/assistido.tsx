@@ -2,13 +2,30 @@
  * Atendimento Assistido — operador cola a mensagem recebida no WhatsApp,
  * a agente gera um rascunho com as mesmas regras comerciais, e a pessoa copia
  * a resposta de volta. Não lê, envia, apaga ou altera nada no WhatsApp.
+ *
+ * Cada rascunho tem o desfecho medido (copiado igual, editado ou descartado)
+ * para saber, com número, quando a agente estaria pronta para atender sozinha
+ * no número dedicado. A medição nunca grava texto e nunca bloqueia a tela:
+ * se falhar, o atendimento segue igual.
  */
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Bot, Clipboard, RotateCcw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { conversarComAgente } from "@/features/express-ops-b/data/agente";
+import {
+  conversarComAgente,
+  registrarDesfechoRascunho,
+  resumoAssistido,
+} from "@/features/express-ops-b/data/agente";
+import { desfechoDaCopia, type ResumoAssistido } from "@/lib/assistido-metricas";
 import { OpsCard, SectionTitle } from "@/features/express-ops-b/components/primitives";
+
+type Resumo = ResumoAssistido & { readonly dias: number };
+
+/** Medir é acessório: erro aqui não aparece para quem está atendendo. */
+function semEsperar(promessa: Promise<unknown>) {
+  promessa.catch(() => undefined);
+}
 
 type TurnoLocal = {
   readonly role: "user" | "assistant";
@@ -23,11 +40,41 @@ export function AtendimentoAssistido() {
   const [copiado, setCopiado] = useState(false);
   const [erro, setErro] = useState("");
   const [motivo, setMotivo] = useState<string | null>(null);
+  /** Medição do rascunho atual: id no banco, texto original e se já foi usado. */
+  const [medicao, setMedicao] = useState<{
+    id: string;
+    original: string;
+    usado: boolean;
+  } | null>(null);
+  const [resumo, setResumo] = useState<Resumo | null>(null);
+
+  const atualizarResumo = useCallback(() => {
+    resumoAssistido()
+      .then((r) => setResumo(r))
+      .catch(() => setResumo(null));
+  }, []);
+
+  useEffect(() => {
+    atualizarResumo();
+  }, [atualizarResumo]);
+
+  /** Rascunho abandonado sem cópia conta como descartado. */
+  function encerrarRascunhoAtual() {
+    if (medicao && !medicao.usado) {
+      semEsperar(
+        registrarDesfechoRascunho({ data: { id: medicao.id, desfecho: "descartado" } }).then(
+          atualizarResumo,
+        ),
+      );
+    }
+    setMedicao(null);
+  }
 
   async function gerar() {
     const texto = mensagem.trim();
     if (!texto || pensando) return;
 
+    encerrarRascunhoAtual();
     setPensando(true);
     setCopiado(false);
     setErro("");
@@ -47,6 +94,11 @@ export function AtendimentoAssistido() {
           : null,
       );
       setRascunho(resposta.texto);
+      setMedicao(
+        resposta.rascunhoId
+          ? { id: resposta.rascunhoId, original: resposta.texto, usado: false }
+          : null,
+      );
       setHistorico((atual) => [
         ...atual,
         { role: "user", content: texto },
@@ -71,12 +123,27 @@ export function AtendimentoAssistido() {
         ),
       );
       setErro("");
+      if (medicao) {
+        const { semelhanca } = desfechoDaCopia(medicao.original, rascunho);
+        setMedicao({ ...medicao, usado: true });
+        semEsperar(
+          registrarDesfechoRascunho({
+            data: {
+              id: medicao.id,
+              desfecho: "copiado",
+              semelhanca,
+              tamanhoFinal: rascunho.length,
+            },
+          }).then(atualizarResumo),
+        );
+      }
     } catch {
       setErro("Não foi possível copiar. Selecione o rascunho e copie manualmente.");
     }
   }
 
   function novaConversa() {
+    encerrarRascunhoAtual();
     setMensagem("");
     setRascunho("");
     setHistorico([]);
@@ -186,6 +253,19 @@ export function AtendimentoAssistido() {
         texto colado é processado pelo provedor de IA e não substitui o histórico original do
         WhatsApp Business.
       </p>
+
+      {resumo && resumo.total > 0 ? (
+        <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--ops-ink-muted)]">
+          Últimos {resumo.dias} dias: {resumo.total} rascunho{resumo.total === 1 ? "" : "s"} ·{" "}
+          {resumo.copiadoIgual} usado{resumo.copiadoIgual === 1 ? "" : "s"} sem edição ·{" "}
+          {resumo.copiadoEditado} editado{resumo.copiadoEditado === 1 ? "" : "s"} ·{" "}
+          {resumo.descartado} descartado{resumo.descartado === 1 ? "" : "s"}
+          {resumo.taxaUsoDireto !== null
+            ? ` · ${Math.round(resumo.taxaUsoDireto * 100)}% aproveitados como vieram`
+            : ""}
+          . Só contagem; nenhum texto é guardado.
+        </p>
+      ) : null}
     </OpsCard>
   );
 }

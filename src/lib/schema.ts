@@ -448,6 +448,36 @@ export const waMessages = pgTable(
   ],
 );
 
+/**
+ * Um rascunho do Atendimento Assistido e o que a pessoa fez com ele.
+ *
+ * Só métrica: SEM texto do cliente, rascunho, resposta, telefone ou nome —
+ * ver src/lib/assistido-metricas.ts. Não tem relação com WaConversation: o
+ * modo assistido não toca no WhatsApp, então não há conversa nossa a ligar.
+ * Migração 0025, aplicada à mão como as anteriores.
+ */
+export const assistidoRascunhos = pgTable(
+  "AssistidoRascunho",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    tenant: text("tenant").notNull().default("express-entulho"),
+    /** pendente | copiado_igual | copiado_editado | descartado */
+    desfecho: text("desfecho").notNull().default("pendente"),
+    escalou: boolean("escalou").notNull().default(false),
+    /** Motivo interno do escalonamento (frase fixa do núcleo), nunca fala do cliente. */
+    motivo: text("motivo"),
+    tamanhoRascunho: integer("tamanhoRascunho").notNull(),
+    tamanhoFinal: integer("tamanhoFinal"),
+    /** Semelhança rascunho × texto copiado, de 0 a 1000. */
+    semelhancaMil: integer("semelhancaMil"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    decididoEm: timestamp("decididoEm"),
+  },
+  (table) => [index("AssistidoRascunho_tenant_createdAt_idx").on(table.tenant, table.createdAt)],
+);
+
 /* ------------------------------------------------------------------ *
  * Agentes de IA (/agentes) — guiados pela Veronica, desenvolvidos pela
  * Yo Lab & co.
