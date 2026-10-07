@@ -19,6 +19,8 @@ const {
   finalDoNumero,
   mensagemDeAlerta,
   JANELA_AGRUPAMENTO_MS,
+  extrairEcos,
+  CAMPOS_IGNORADOS_COEXISTENCE,
 } = await import("../src/lib/whatsapp-atendimento.ts");
 
 let seq = 0;
@@ -192,4 +194,57 @@ test("fila humana: mesma trava do webhook, janela de 24 h e nada é apagado", ()
   assert.doesNotMatch(src, /\.delete\(|DELETE|TRUNCATE/);
   // Marcador de lote não aparece para a equipe.
   assert.match(src, /ne\(waMessages\.kind, "lote"\)/);
+});
+
+test("Coexistence: resposta da equipe pelo celular vira eco de pessoa", () => {
+  const agora = new Date("2026-10-06T12:00:00Z");
+  const ecos = extrairEcos(
+    {
+      message_echoes: [
+        {
+          from: "5547900000000",
+          to: "5547988887777",
+          id: "wamid.eco1",
+          timestamp: "1790000000",
+          type: "text",
+          text: { body: "Oi, aqui é o Junior. Amanhã cedo levo a caçamba." },
+        },
+        { from: "5547900000000", to: "5547988887777", id: "wamid.eco2", type: "image", image: {} },
+        { from: "5547900000000", id: "sem-destinatario", type: "text", text: { body: "x" } },
+        { to: "5547988887777", type: "text", text: { body: "sem id" } },
+      ],
+    },
+    agora,
+  );
+  assert.equal(ecos.length, 2, "eco sem destinatário ou sem id é descartado");
+  assert.equal(ecos[0].waId, "5547988887777", "a conversa é a do CLIENTE (to), não a do número");
+  assert.equal(ecos[0].providerId, "wamid.eco1");
+  assert.match(ecos[0].texto, /Amanhã cedo/);
+  assert.equal(ecos[0].ocorridoEm.getTime(), 1790000000 * 1000);
+  assert.equal(ecos[1].kind, "image");
+  assert.ok(ecos[1].texto.length > 0, "anexo sem legenda ainda aparece no painel");
+  assert.equal(ecos[1].ocorridoEm, agora);
+  assert.deepEqual(extrairEcos(undefined), []);
+});
+
+test("Coexistence: eco fecha o lote e a agente não responde por cima", () => {
+  const a = texto("tem caçamba pra hoje?");
+  const eco = { ...resposta("Tem sim, já mando.", "humano") };
+  const b = texto("valeu");
+  assert.equal(montarLote([a, eco, b], b.id).texto, "valeu");
+});
+
+test("Coexistence: webhook trata eco, ignora histórico e contatos", () => {
+  assert.ok(CAMPOS_IGNORADOS_COEXISTENCE.has("history"));
+  assert.ok(CAMPOS_IGNORADOS_COEXISTENCE.has("smb_app_state_sync"));
+  assert.ok(!CAMPOS_IGNORADOS_COEXISTENCE.has("messages"));
+  const src = readFileSync(new URL("../src/lib/whatsapp-webhook.ts", import.meta.url), "utf8");
+  const eco = src.slice(src.indexOf("async function registrarEcoDoApp"));
+  assert.match(src, /change\.field === "smb_message_echoes"/);
+  assert.match(eco, /status: "aguardando_humano"/);
+  assert.match(eco, /author: "humano"/);
+  assert.match(eco, /onConflictDoNothing\(\{ target: waMessages\.providerId \}\)/);
+  // Eco nunca chama a agente nem envia nada.
+  const corpoEco = eco.slice(0, eco.indexOf("\n}\n"));
+  assert.doesNotMatch(corpoEco, /decidirResposta|sendText|sendAudio/);
 });

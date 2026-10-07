@@ -21,12 +21,19 @@ import {
   sendText,
   uploadAudio,
   verifyWebhookSignature,
+  CABECALHO_TOKEN_WEBHOOK,
+  provedorWhatsApp,
+  TAMANHO_MINIMO_TOKEN_WEBHOOK,
+  verificarTokenWebhook,
 } from "./whatsapp-cloud";
 import { decidirVoz, sintetizar, transcrever } from "./whatsapp-voz";
 import { extrairFalhasDeEntrega, type FalhaDeEntrega, type StatusMeta } from "./whatsapp-status";
 import {
   agentePodeResponder,
+  CAMPOS_IGNORADOS_COEXISTENCE,
   chaveDoLote,
+  extrairEcos,
+  type EcoDoApp,
   JANELA_AGRUPAMENTO_MS,
   montarLote,
   type LinhaDaConversa,
@@ -49,6 +56,8 @@ type MetaValue = {
   messages?: MensagemMeta[];
   statuses?: StatusMeta[];
   contacts?: { profile?: { name?: string }; wa_id?: string }[];
+  /** Coexistence: mensagens que a equipe mandou pelo app do celular. */
+  message_echoes?: (MensagemMeta & { to?: string })[];
 };
 
 type MetaBody = {
@@ -95,23 +104,40 @@ export async function handleWhatsAppWebhook(
   request: Request,
   waitUntil?: (p: Promise<unknown>) => void,
 ): Promise<Response> {
-  const appSecret = process.env.WHATSAPP_APP_SECRET;
-  if (!appSecret) {
-    console.error("WHATSAPP_APP_SECRET não configurada — recusando webhook");
-    return new Response("not configured", { status: 500 });
-  }
-
-  // Corpo CRU: a assinatura é sobre estes bytes. Reserializar quebra tudo.
+  // Corpo CRU: a assinatura da Meta é sobre estes bytes. Reserializar quebra tudo.
   const rawBody = await request.text();
 
-  const assinaturaOk = await verifyWebhookSignature(
-    rawBody,
-    request.headers.get("x-hub-signature-256"),
-    appSecret,
-  );
-  if (!assinaturaOk) {
-    console.warn("Webhook WhatsApp com assinatura inválida — descartado");
-    return new Response("forbidden", { status: 403 });
+  if (provedorWhatsApp() === "360dialog") {
+    // A 360dialog não assina; manda o nosso segredo num cabeçalho (ver
+    // verificarTokenWebhook). Sem segredo configurado, ninguém entra.
+    const esperado = process.env.WHATSAPP_WEBHOOK_TOKEN ?? "";
+    if (esperado.length < TAMANHO_MINIMO_TOKEN_WEBHOOK) {
+      console.error("WHATSAPP_WEBHOOK_TOKEN ausente ou curto — recusando webhook da 360dialog");
+      return new Response("not configured", { status: 500 });
+    }
+    const tokenOk = await verificarTokenWebhook(
+      request.headers.get(CABECALHO_TOKEN_WEBHOOK),
+      esperado,
+    );
+    if (!tokenOk) {
+      console.warn("Webhook 360dialog sem o segredo correto — descartado");
+      return new Response("forbidden", { status: 403 });
+    }
+  } else {
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    if (!appSecret) {
+      console.error("WHATSAPP_APP_SECRET não configurada — recusando webhook");
+      return new Response("not configured", { status: 500 });
+    }
+    const assinaturaOk = await verifyWebhookSignature(
+      rawBody,
+      request.headers.get("x-hub-signature-256"),
+      appSecret,
+    );
+    if (!assinaturaOk) {
+      console.warn("Webhook WhatsApp com assinatura inválida — descartado");
+      return new Response("forbidden", { status: 403 });
+    }
   }
 
   const processamento = processarPayload(rawBody).catch((error) => {
@@ -140,6 +166,14 @@ async function processarPayload(rawBody: string): Promise<void> {
 
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {
+      if (change.field === "smb_message_echoes") {
+        for (const eco of extrairEcos(change.value)) await registrarEcoDoApp(eco);
+        continue;
+      }
+      if (change.field && CAMPOS_IGNORADOS_COEXISTENCE.has(change.field)) {
+        console.log(`Webhook ${change.field} do Coexistence ignorado de propósito`);
+        continue;
+      }
       if (change.field !== "messages") continue;
       const value = change.value;
       if (!value) continue;
@@ -155,6 +189,47 @@ async function processarPayload(rawBody: string): Promise<void> {
       }
     }
   }
+}
+
+/**
+ * Coexistence: alguém da equipe respondeu o cliente pelo app do celular.
+ *
+ * Grava a resposta como de pessoa (o painel mostra, o lote fecha) e passa a
+ * conversa para `aguardando_humano`: a agente se cala ali até alguém
+ * devolvê-la pelo painel. É a regra 1 de whatsapp-atendimento.ts.
+ *
+ * Mensagem que a própria API enviou não vira eco duplicado: o wamid é único,
+ * e a inserção repetida não acontece.
+ */
+async function registrarEcoDoApp(eco: EcoDoApp): Promise<void> {
+  const db = getDb();
+  const [conversa] = await db
+    .insert(waConversations)
+    .values({
+      tenant: TENANT,
+      waId: eco.waId,
+      status: "aguardando_humano",
+      lastMessageAt: eco.ocorridoEm,
+    })
+    .onConflictDoUpdate({
+      target: [waConversations.tenant, waConversations.waId],
+      set: { status: "aguardando_humano", lastMessageAt: eco.ocorridoEm, updatedAt: new Date() },
+    })
+    .returning({ id: waConversations.id });
+  if (!conversa) return;
+
+  await db
+    .insert(waMessages)
+    .values({
+      conversationId: conversa.id,
+      providerId: eco.providerId,
+      direction: "saida",
+      author: "humano",
+      kind: eco.kind,
+      body: eco.texto || null,
+      occurredAt: eco.ocorridoEm,
+    })
+    .onConflictDoNothing({ target: waMessages.providerId });
 }
 
 /**
