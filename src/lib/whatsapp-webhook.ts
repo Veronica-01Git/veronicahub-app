@@ -22,6 +22,7 @@ import {
   uploadAudio,
   verifyWebhookSignature,
   CABECALHO_TOKEN_WEBHOOK,
+  motivoEnvioBloqueado,
   provedorWhatsApp,
   TAMANHO_MINIMO_TOKEN_WEBHOOK,
   verificarTokenWebhook,
@@ -31,7 +32,10 @@ import { extrairFalhasDeEntrega, type FalhaDeEntrega, type StatusMeta } from "./
 import {
   agentePodeResponder,
   CAMPOS_IGNORADOS_COEXISTENCE,
+  chaveDaSugestao,
   chaveDoLote,
+  emObservacao,
+  KIND_SUGESTAO,
   extrairEcos,
   type EcoDoApp,
   JANELA_AGRUPAMENTO_MS,
@@ -47,6 +51,18 @@ const MENSAGENS_DE_MEMORIA = 30;
 
 /** Quantas linhas se leem para montar lote + memória (com folga para marcadores). */
 const LINHAS_LIDAS = 80;
+
+/**
+ * A agente entra nesta conversa?
+ *
+ * Em produção vale a regra 1: conversa com humano é do humano. Em modo
+ * observação ela SEMPRE sugere — nada é enviado, então não há voz por cima de
+ * ninguém, e é justamente comparando a sugestão com o que a equipe respondeu
+ * pelo celular que se descobre se ela está pronta.
+ */
+function agenteAtua(status: Parameters<typeof agentePodeResponder>[0]): boolean {
+  return emObservacao(motivoEnvioBloqueado()) || agentePodeResponder(status);
+}
 
 function esperar(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -351,7 +367,7 @@ async function processarMensagem(
 
   // Regra 1: conversa com humano é do humano. A mensagem fica gravada e
   // aparece no painel; a agente não fala.
-  if (!agentePodeResponder(conversa.status)) return;
+  if (!agenteAtua(conversa.status)) return;
 
   // Regra 2: espera a rajada terminar. Só o webhook da mensagem mais recente
   // responde, pelo grupo inteiro.
@@ -363,7 +379,7 @@ async function processarMensagem(
     .select({ status: waConversations.status })
     .from(waConversations)
     .where(eq(waConversations.id, conversa.id));
-  if (!agora || !agentePodeResponder(agora.status)) return;
+  if (!agora || !agenteAtua(agora.status)) return;
 
   // Ordem de CHEGADA (createdAt, relógio do banco), não de envio: o horário
   // da Meta pode ser anterior a um marcador de lote já gravado, e a mensagem
@@ -422,7 +438,7 @@ async function processarMensagem(
     .select({ status: waConversations.status })
     .from(waConversations)
     .where(eq(waConversations.id, conversa.id));
-  if (!antesDeEnviar || !agentePodeResponder(antesDeEnviar.status)) return;
+  if (!antesDeEnviar || !agenteAtua(antesDeEnviar.status)) return;
   /**
    * Áudio quando cabe, texto sempre que não.
    *
@@ -439,6 +455,25 @@ async function processarMensagem(
    * histórico não podem depender de alguém ouvir um arquivo para saber o que
    * a agente respondeu.
    */
+  // Modo observação: grava o que a agente responderia e para aqui. Sem voz
+  // (não gasta síntese), sem envio, sem troca de status, sem e-mail.
+  if (emObservacao(motivoEnvioBloqueado())) {
+    await db
+      .insert(waMessages)
+      .values({
+        conversationId: conversa.id,
+        providerId: chaveDaSugestao(providerId),
+        direction: "saida",
+        author: "sistema",
+        kind: KIND_SUGESTAO,
+        body: decisao.texto,
+        raw: JSON.stringify({ escalar: decisao.escalar, motivo: decisao.motivo ?? null }),
+        occurredAt: new Date(),
+      })
+      .onConflictDoNothing({ target: waMessages.providerId });
+    return;
+  }
+
   const voz = decidirVoz(decisao.texto, { escalar: decisao.escalar });
   let envio = null as Awaited<ReturnType<typeof sendText>> | null;
   let enviadoComoAudio = false;

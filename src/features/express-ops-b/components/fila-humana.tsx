@@ -316,6 +316,22 @@ function ConversaAberta({
 }
 
 function Linha({ m }: { m: MensagemFila }) {
+  // Modo observação: o que a agente teria respondido. Nunca foi ao cliente.
+  if (m.autor === "sistema" && m.tipo === "sugestao") {
+    return (
+      <li className="flex justify-end">
+        <div className="max-w-[86%] rounded-[12px] border border-dashed border-[var(--ops-line-strong)] px-3 py-2">
+          <p className="flex items-center gap-1 text-[11px] font-medium text-[var(--ops-ink-muted)]">
+            <Bot aria-hidden className="h-3 w-3" /> Sugestão da agente · não enviada
+          </p>
+          <p className="mt-0.5 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--ops-ink-soft)]">
+            {m.texto}
+          </p>
+          <p className="ops-num mt-0.5 text-[11px] text-[var(--ops-ink-muted)]">{hora(m.quando)}</p>
+        </div>
+      </li>
+    );
+  }
   if (m.autor === "sistema") {
     return (
       <li className="text-center text-[11.5px] text-[var(--ops-danger)]">

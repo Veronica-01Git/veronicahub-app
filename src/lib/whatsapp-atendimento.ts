@@ -269,3 +269,28 @@ export const CAMPOS_IGNORADOS_COEXISTENCE: ReadonlySet<string> = new Set([
   "history",
   "smb_app_state_sync",
 ]);
+
+/* ------------------------------------------------ 5. modo observação */
+
+/**
+ * Credencial configurada, envio ainda travado: a agente OBSERVA.
+ *
+ * É a primeira fase prometida no roteiro do Coexistence ao dono — "ela lê e
+ * sugere, e nós conferimos". Sem isto, a decisão do modelo morria num log de
+ * "envio desarmado" e não havia o que conferir. Agora ela vira uma linha
+ * `sistema`/`sugestao` na conversa: aparece no painel, nunca vai ao cliente,
+ * não entra na memória da agente (historicoDaConversa pula `sistema`) e não
+ * fecha lote (ver fechaLote — quem fecha é o marcador `lote:` já gravado).
+ *
+ * Em observação nada muda de dono: a equipe responde pelo celular como
+ * sempre, então não há status a trocar nem e-mail a mandar.
+ */
+export const KIND_SUGESTAO = "sugestao";
+
+export function chaveDaSugestao(providerIdMaisRecente: string): string {
+  return `sugestao:${providerIdMaisRecente}`;
+}
+
+export function emObservacao(motivoBloqueio: string | null): boolean {
+  return motivoBloqueio === "envio-nao-liberado";
+}
