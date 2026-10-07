@@ -73,14 +73,49 @@ Provider). O código suporta os dois caminhos; a troca é por ambiente.
   360dialog; selo azul (OBA) e verificação clássica não são suportados; um
   número COEX não migra entre WABAs.
 
+## Modelo de contas (decidido em 07/10/2026)
+
+Duas camadas, cada uma com dados 100% coerentes. Nunca misturar.
+
+| Camada                                     | Dono            | Dados                                                                        |
+| ------------------------------------------ | --------------- | ---------------------------------------------------------------------------- |
+| Conta na 360dialog (ferramenta, cobrança)  | Veronica Hub    | e-mail, telefone, nome, endereço, cartão e CPF/CNPJ do Hub                   |
+| Meta Business + número do WhatsApp (ativo) | Express Entulho | razão social, CNPJ e endereço da Receita; dono como admin e o Hub como admin |
+
+Dados oficiais da Express (Receita Federal, consulta de 07/10/2026):
+INOVAÇÃO SERVIÇOS ADMINISTRATIVOS E TRANSPORTE LTDA · CNPJ 48.091.178/0001-11 ·
+Rua Benjamin Franklin Pereira, 365, **Vila Operária**, Itajaí/SC, CEP 88304-070.
+O Google Meu Negócio (São João) está errado e deve ser corrigido. "Express
+Entulho" não consta como nome fantasia na Receita.
+
+Pendente antes de pagar: resposta do suporte da 360dialog confirmando que uma
+conta direta no nome do Hub pode conectar o número de um cliente que fica no
+Meta Business do cliente. O caminho oficial de revenda (Partner-Paid) exige
+o Hub ser Tech Provider da Meta.
+
+## Estado do Meta Business da Express (conferido em 07/10/2026)
+
+- Portfólio "Express Entulho" (business_id 1055200607336250), criado pelo Hub.
+- **Único administrador: o Hub.** O dono entra como 2º administrador na chamada.
+- Autenticação de dois fatores exigida de: **ninguém**. Ligar 2FA na conta do
+  Hub e exigir de administradores.
+- Verificação da empresa: iniciada em 02/10, **envio pendente**, no modo "app
+  exige permissões no Meta for Developers" (do caminho direto antigo). Não
+  mexer agora; não é pré-requisito do Coexistence pela 360dialog.
+- Única conta do WhatsApp: "Test WhatsApp Business Account"
+  (1131873005941228), só com o número de teste da Meta **+1 555-185-0555**.
+  Resto do caminho direto antigo: manter até a 360dialog funcionar, depois
+  apagar junto com o app antigo do Meta for Developers.
+- **O número atual da empresa não está cadastrado na Meta.**
+
 ## Sequência
 
 1. Cliente: backup confirmado (print "Último backup: hoje") e contatos na
    conta Google ou no iCloud.
 2. Cliente: app atualizado, Meta Business com o dono como administrador e
    endereço único (Cartão CNPJ = nota fiscal = Google).
-3. Nós: conta 360dialog da Express criada (pelo dono, com cartão da
-   empresa), webhook configurado com o cabeçalho secreto e campos
+3. Nós: conta 360dialog **do Hub** (ver "Modelo de contas" abaixo), webhook
+   configurado com o cabeçalho secreto e campos
    `messages`, `smb_message_echoes`, `history`, `smb_app_state_sync`,
    `account_update` ativos.
 4. Cliente: **autorização assinada** (última página do PDF).
@@ -109,24 +144,28 @@ Nada aqui começa sem a autorização assinada e o print do backup em mãos.
 
 3. Celular da empresa no Wi-Fi, no carregador, WhatsApp Business atualizado e
    aberto.
-4. No painel da 360dialog: **Continue Onboarding** → Embedded Signup → entrar
-   com o Facebook do dono → escolher o Meta Business da Express → **conectar o
+4. Adicionar o dono como **2º administrador** do Meta Business da Express.
+5. No painel da 360dialog (conta do Hub): **Continue Onboarding** → Embedded
+   Signup → escolher o Meta Business da Express → quando perguntar a conta do
+   WhatsApp, **criar uma nova** ("Express Entulho", fuso America/Sao_Paulo),
+   **nunca** a "Test WhatsApp Business Account": número COEX não muda de conta
+   depois → **conectar o
    WhatsApp Business app existente** → número da empresa → confirmar no
    celular → **compartilhar o histórico**.
-5. Copiar a **API Key** do número no painel da 360dialog direto para a
+6. Copiar a **API Key** do número no painel da 360dialog direto para a
    Cloudflare como Secret `D360_API_KEY`.
-6. Registrar o webhook:
+7. Registrar o webhook:
    `D360_API_KEY=… WHATSAPP_WEBHOOK_TOKEN=… node scripts/webhook-360dialog.mjs`
    (confere) e depois com `--aplicar`. O script não imprime nenhum segredo.
-7. Pedir ao dono que reconecte o WhatsApp Web, se usar (a ligação desconecta
+8. Pedir ao dono que reconecte o WhatsApp Web, se usar (a ligação desconecta
    os aparelhos acompanhantes).
 
 **Logo depois**
 
-8. Mandar uma mensagem de um celular pessoal para o número da empresa e
+9. Mandar uma mensagem de um celular pessoal para o número da empresa e
    conferir em `/clientes/express-entulho/operacoes/atendimento`, na fila
    humana, a mensagem recebida e a **"Sugestão da agente · não enviada"**.
-9. O dono responde pelo celular: a resposta aparece na fila como "Equipe".
+10. O dono responde pelo celular: a resposta aparece na fila como "Equipe".
 
 ## Modo observação (primeira fase)
 
