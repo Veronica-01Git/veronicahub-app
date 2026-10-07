@@ -8,7 +8,7 @@ import {
 } from "../src/veronica/conversation/core.ts";
 import { signLiveTicket, verifyLiveTicket } from "../src/veronica/conversation/ticket.server.ts";
 test("conversation bounds untrusted input and excludes system role/private extra data", () => {
-  assert.throws(() => validateConversation({ message: "x".repeat(1601) }));
+  assert.throws(() => validateConversation({ message: "x".repeat(16001) }));
   const d = validateConversation({
     message: " Olá ",
     history: [
@@ -113,4 +113,18 @@ test("refused Create Live maps to clear messages without exposing provider detai
   assert.match(liveCreateError(401, "{}"), /credencial/);
   assert.match(liveCreateError(429, "not json"), /limitando/);
   assert.match(liveCreateError(500, "<html>"), /não abriu a sessão/);
+});
+
+test("long recorded prompts leave bounded room for recent conversation context", () => {
+  const message = "a".repeat(16000);
+  const history = Array.from({ length: 10 }, (_, i) => ({
+    role: "user",
+    content: String(i).repeat(1600),
+  }));
+  const result = validateConversation({ message, history });
+  assert.equal(result.message, message);
+  assert.ok(
+    result.message.length + result.history.reduce((n, t) => n + t.content.length, 0) <= 22000,
+  );
+  assert.equal(result.history.at(-1).content, history.at(-1).content);
 });

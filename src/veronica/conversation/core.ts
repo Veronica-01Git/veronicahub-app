@@ -1,10 +1,15 @@
+export const MAX_PROMPT_CHARACTERS = 16000;
 export const LIVE_MODELS = ["vidu-s2", "vidu-s1"] as const;
 export type LiveModel = (typeof LIVE_MODELS)[number];
 export type Turn = { role: "user" | "assistant"; content: string };
 export function validateConversation(input: unknown) {
   const d = input as { message?: unknown; history?: unknown };
-  if (typeof d?.message !== "string" || !d.message.trim() || d.message.length > 1600)
-    throw new Error("Escreva uma mensagem de até 1.600 caracteres.");
+  if (
+    typeof d?.message !== "string" ||
+    !d.message.trim() ||
+    d.message.length > MAX_PROMPT_CHARACTERS
+  )
+    throw new Error("Escreva uma mensagem de até 16.000 caracteres.");
   const history: Turn[] = (Array.isArray(d.history) ? d.history : [])
     .filter(
       (t): t is Turn =>
@@ -14,7 +19,15 @@ export function validateConversation(input: unknown) {
         t.content.length <= 1600,
     )
     .slice(-10);
-  return { message: d.message.trim(), history };
+  // Reserve room for the persona and the latest long prompt in the router's 24k-character budget.
+  let remaining = 22000 - d.message.length;
+  const bounded: Turn[] = [];
+  for (const turn of history.slice().reverse()) {
+    if (turn.content.length > remaining) break;
+    bounded.unshift(turn);
+    remaining -= turn.content.length;
+  }
+  return { message: d.message.trim(), history: bounded };
 }
 export function validateLive(input: unknown) {
   const d = input as { model?: unknown; mode?: unknown };

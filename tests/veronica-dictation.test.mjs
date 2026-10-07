@@ -15,7 +15,7 @@ test("dictation rejects empty, oversized, non-audio and unbounded recordings", (
   for (const input of [
     null,
     form("text/html"),
-    form("audio/webm", "121"),
+    form("audio/webm", "601"),
     form("audio/webm", "NaN"),
     form("audio/webm", "0"),
     form("audio/webm", "3", 0),
@@ -28,7 +28,7 @@ test("dictation rejects empty, oversized, non-audio and unbounded recordings", (
 test("dictation preserves the typed draft and refuses silent truncation", () => {
   assert.equal(mergeDictation("Minha ideia:", "criar um site"), "Minha ideia: criar um site");
   assert.equal(mergeDictation("", " oi "), "oi");
-  assert.equal(mergeDictation("a".repeat(1599), "b"), null);
+  assert.equal(mergeDictation("a".repeat(15999), "b"), null);
 });
 
 import {
@@ -56,7 +56,7 @@ test("provider failures expose only safe errors and never pretend to transcribe"
   for (const response of [
     new Response("private provider body", { status: 429 }),
     Response.json({ text: "" }),
-    Response.json({ text: "a".repeat(1601) }),
+    Response.json({ text: "a".repeat(16001) }),
   ]) {
     const r = await transcribeDictation(form(), {
       secret: async () => "test-secret",
@@ -110,4 +110,37 @@ test("Gemini fallback transcribes when Groq refuses without exposing either cred
   });
   assert.deepEqual(result, { ok: true, text: "quero criar um site" });
   assert.equal(calls, 2);
+});
+
+test("five and seven minute recordings preserve transcripts longer than the old composer limit", async () => {
+  const transcript = "Uma ideia completa para a Veronica. ".repeat(200);
+  for (const seconds of [300, 420, 600]) {
+    const audio = form("audio/webm", String(seconds));
+    assert.equal(validateDictation(audio).type, "audio/webm");
+    const result = await transcribeDictation(audio, {
+      secret: async () => "test-key",
+      fetch: async () => Response.json({ text: transcript }),
+    });
+    assert.deepEqual(result, { ok: true, text: transcript.trim() });
+    const merged = mergeDictation("Contexto:", result.text);
+    const { validateConversation } = await import("../src/veronica/conversation/core.ts");
+    assert.equal(validateConversation({ message: merged }).message, merged);
+  }
+});
+
+test("Gemini token exhaustion never sends a partial transcription as a complete prompt", async () => {
+  const result = await transcribeDictation(form("audio/webm", "420"), {
+    secret: async (name) => (name === "GEMINI_API_KEY" ? "test-key" : undefined),
+    fetch: async () =>
+      Response.json({
+        candidates: [
+          {
+            finishReason: "MAX_TOKENS",
+            content: { parts: [{ text: "transcrição parcial" }] },
+          },
+        ],
+      }),
+  });
+  assert.equal(result.ok, false);
+  assert.match(result.error, /incompleta/);
 });

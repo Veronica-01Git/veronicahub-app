@@ -1,3 +1,4 @@
+import { MAX_PROMPT_CHARACTERS } from "./core.ts";
 import { getRuntimeSecret } from "../../lib/runtime-secret.server.ts";
 import { validateDictation } from "./dictation-core.ts";
 const attempts = new Map<string, { count: number; since: number }>();
@@ -33,7 +34,7 @@ export async function transcribeDictation(
         method: "POST",
         headers: { Authorization: `Bearer ${groqKey}` },
         body,
-        signal: AbortSignal.timeout(20_000),
+        signal: AbortSignal.timeout(60_000),
       });
       if (response.ok) {
         const result = (await response.json()) as { text?: unknown };
@@ -63,7 +64,7 @@ export async function transcribeDictation(
         {
           method: "POST",
           headers: { "content-type": "application/json", "x-goog-api-key": key },
-          signal: AbortSignal.timeout(30_000),
+          signal: AbortSignal.timeout(90_000),
           body: JSON.stringify({
             systemInstruction: {
               parts: [
@@ -85,7 +86,7 @@ export async function transcribeDictation(
                 ],
               },
             ],
-            generationConfig: { temperature: 0, maxOutputTokens: 1000 },
+            generationConfig: { temperature: 0, maxOutputTokens: 8192 },
           }),
         },
       );
@@ -96,8 +97,17 @@ export async function transcribeDictation(
             "Não consegui transcrever agora. Sua gravação continua disponível para tentar novamente.",
         };
       const result = (await response.json()) as {
-        candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[];
+        candidates?: {
+          finishReason?: string;
+          content?: { parts?: { text?: string; thought?: boolean }[] };
+        }[];
       };
+      if (result.candidates?.[0]?.finishReason === "MAX_TOKENS")
+        return {
+          ok: false as const,
+          error:
+            "A transcrição ficou incompleta. Sua gravação foi preservada; tente novamente ou grave um trecho menor.",
+        };
       text =
         result.candidates?.[0]?.content?.parts
           ?.filter((p) => !p.thought)
@@ -116,10 +126,10 @@ export async function transcribeDictation(
       ok: false as const,
       error: "Não identifiquei fala. Grave novamente em um local silencioso.",
     };
-  if (text.length > 1600)
+  if (text.length > MAX_PROMPT_CHARACTERS)
     return {
       ok: false as const,
-      error: "A transcrição excedeu 1.600 caracteres. Grave um trecho menor.",
+      error: "A transcrição excedeu 16.000 caracteres. Grave um trecho menor.",
     };
   return { ok: true as const, text };
 }

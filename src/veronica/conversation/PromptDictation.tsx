@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Loader2, Mic, Square, X } from "lucide-react";
+import { ArrowUp, Loader2, Mic, X } from "lucide-react";
 import { transcribePrompt } from "./functions";
 import { MAX_AUDIO_BYTES, MAX_AUDIO_SECONDS } from "./dictation-core";
 
 type Props = {
   disabled: boolean;
   onBusyChange: (busy: boolean) => void;
-  onTranscript: (text: string) => boolean;
+  onTranscript: (text: string, autoSend: boolean) => boolean;
   onError: (error: string) => void;
 };
-type Phase = "idle" | "permission" | "recording" | "preview" | "transcribing";
+type Phase = "idle" | "permission" | "recording" | "preview" | "stopping" | "transcribing";
 export function PromptDictation({ disabled, onBusyChange, onTranscript, onError }: Props) {
   const [phase, setPhase] = useState<Phase>("idle"),
     [seconds, setSeconds] = useState(0),
@@ -20,7 +20,11 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
     stream = useRef<MediaStream | null>(null),
     timer = useRef<ReturnType<typeof setInterval> | null>(null),
     duration = useRef(0),
-    mounted = useRef(true);
+    mounted = useRef(true),
+    startedAt = useRef(0),
+    sendOnStop = useRef(false),
+    transcribing = useRef(false),
+    keyboard = useRef<(event: KeyboardEvent) => void>(() => {});
   const release = () => {
     if (timer.current) clearInterval(timer.current);
     timer.current = null;
@@ -48,8 +52,15 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
     setUrl(u);
     return () => URL.revokeObjectURL(u);
   }, [recording]);
+  useEffect(() => {
+    const handle = (event: KeyboardEvent) => keyboard.current(event);
+    document.addEventListener("keydown", handle, true);
+    return () => document.removeEventListener("keydown", handle, true);
+  }, []);
   const cancel = () => {
     session.current++;
+    transcribing.current = false;
+    sendOnStop.current = false;
     if (recorder.current?.state === "recording") recorder.current.stop();
     release();
     setRecording(null);
@@ -57,9 +68,34 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
     setPhase("idle");
     setSeconds(0);
   };
-  const finish = () => {
-    if (recorder.current?.state === "recording") recorder.current.stop();
+  const finish = (autoSend = true) => {
+    if (recorder.current?.state !== "recording") return;
+    sendOnStop.current = autoSend;
+    duration.current = Math.min(
+      MAX_AUDIO_SECONDS,
+      Math.max(1, Math.floor((Date.now() - startedAt.current) / 1000)),
+    );
+    setSeconds(duration.current);
+    setPhase("stopping");
+    recorder.current.stop();
     release();
+  };
+  keyboard.current = (event) => {
+    if (event.isComposing || event.repeat) return;
+    if (event.key === "Escape" && phase !== "idle") {
+      event.preventDefault();
+      event.stopPropagation();
+      cancel();
+    } else if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      (phase === "recording" || phase === "preview")
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (phase === "recording") finish();
+      else if (recording) void transcribe(recording, true);
+    }
   };
   async function start() {
     if (disabled || phase !== "idle") return;
@@ -71,6 +107,7 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
     onError("");
     setPhase("permission");
     duration.current = 0;
+    sendOnStop.current = false;
     setSeconds(0);
     window.speechSynthesis?.cancel();
     try {
@@ -108,19 +145,23 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
         release();
         if (!chunks.length || duration.current < 1 || bytes > MAX_AUDIO_BYTES) {
           setPhase("idle");
-          onError("Grave entre 1 segundo e 2 minutos, até 4 MB.");
+          onError("Grave entre 1 segundo e 10 minutos, até 8 MB.");
           return;
         }
-        setRecording(new Blob(chunks, { type: r.mimeType || mimeType || "audio/webm" }));
-        setPhase("preview");
+        const audio = new Blob(chunks, { type: r.mimeType || mimeType || "audio/webm" });
+        setRecording(audio);
+        void transcribe(audio, sendOnStop.current);
       };
       r.start(250);
       setPhase("recording");
-      const started = Date.now();
+      startedAt.current = Date.now();
       timer.current = setInterval(() => {
-        duration.current = Math.min(MAX_AUDIO_SECONDS, Math.floor((Date.now() - started) / 1000));
+        duration.current = Math.min(
+          MAX_AUDIO_SECONDS,
+          Math.floor((Date.now() - startedAt.current) / 1000),
+        );
         setSeconds(duration.current);
-        if (duration.current >= MAX_AUDIO_SECONDS) finish();
+        if (duration.current >= MAX_AUDIO_SECONDS) finish(false);
       }, 250);
     } catch (e) {
       if (mounted.current && session.current === attempt) {
@@ -134,18 +175,19 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
       }
     }
   }
-  async function transcribe() {
-    if (!recording || phase !== "preview") return;
+  async function transcribe(audio: Blob, autoSend: boolean) {
+    if (transcribing.current) return;
+    transcribing.current = true;
     const attempt = session.current;
     setPhase("transcribing");
     onError("");
     const data = new FormData();
-    data.set("audio", recording, "prompt");
+    data.set("audio", audio, "prompt");
     data.set("seconds", String(duration.current));
     try {
       const result = await transcribePrompt({ data });
       if (!mounted.current || session.current !== attempt) return;
-      if (result.ok && onTranscript(result.text)) {
+      if (result.ok && onTranscript(result.text, autoSend)) {
         setRecording(null);
         setUrl("");
         setPhase("idle");
@@ -158,6 +200,8 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
         setPhase("preview");
         onError("A conexão falhou. Tente transcrever novamente.");
       }
+    } finally {
+      if (session.current === attempt) transcribing.current = false;
     }
   }
   if (phase === "idle")
@@ -200,15 +244,15 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
             <Loader2 size={17} className="vc-dict-spinner" />
             Aguardando microfone…
           </>
-        ) : phase === "transcribing" ? (
+        ) : phase === "transcribing" || phase === "stopping" ? (
           <>
             <Loader2 size={17} className="vc-dict-spinner" />
-            Transcrevendo…
+            Transcrevendo seu áudio…
           </>
         ) : (
           <>
             <audio src={url || undefined} controls aria-label="Ouvir gravação do prompt" />
-            <span>Revise o áudio · {seconds}s</span>
+            <span>Áudio preservado · {seconds}s</span>
           </>
         )}
       </div>
@@ -216,26 +260,29 @@ export function PromptDictation({ disabled, onBusyChange, onTranscript, onError 
         <button
           type="button"
           className="vc-dict-confirm"
-          aria-label="Concluir gravação"
-          onClick={finish}
+          aria-label="Enviar áudio"
+          title="Concluir e enviar · Enter"
+          onClick={() => finish()}
         >
-          <Square size={16} />
+          <ArrowUp size={19} />
         </button>
       )}
       {phase === "preview" && (
         <button
           type="button"
           className="vc-dict-confirm"
-          aria-label="Transcrever gravação"
-          onClick={() => void transcribe()}
+          aria-label="Tentar enviar áudio novamente"
+          onClick={() => recording && void transcribe(recording, true)}
         >
-          <Check size={19} />
+          <ArrowUp size={19} />
         </button>
       )}
       <small>
         {phase === "preview"
-          ? "Confirmar envia o áudio para transcrição. Depois, revise o texto."
-          : "Até 2 minutos · cancelar descarta o áudio"}
+          ? "Tentar novamente · Enter envia · X cancela"
+          : phase === "transcribing" || phase === "stopping"
+            ? "Preparando seu prompt · X cancela o envio"
+            : "Até 10 minutos · ↑ ou Enter transcreve e envia · X cancela"}
       </small>
     </div>
   );
