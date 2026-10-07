@@ -92,3 +92,22 @@ test("dictation burst governor resets after its window", () => {
   assert.equal(allowDictation(key, now), false);
   assert.equal(allowDictation(key, now + 60001), true);
 });
+
+test("Gemini fallback transcribes when Groq refuses without exposing either credential", async () => {
+  let calls = 0;
+  const result = await transcribeDictation(form("audio/wav"), {
+    secret: async (name) => (name === "GROQ_API_KEY" ? "groq-test" : "gemini-test"),
+    fetch: async (url, options) => {
+      calls++;
+      if (url.includes("groq.com")) return new Response("", { status: 403 });
+      const body = JSON.parse(options.body);
+      assert.equal(options.headers["x-goog-api-key"], "gemini-test");
+      assert.equal(body.contents[0].parts[0].inlineData.mimeType, "audio/wav");
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: "quero criar um site" }] } }],
+      });
+    },
+  });
+  assert.deepEqual(result, { ok: true, text: "quero criar um site" });
+  assert.equal(calls, 2);
+});
