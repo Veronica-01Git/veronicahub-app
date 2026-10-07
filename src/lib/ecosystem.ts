@@ -44,6 +44,16 @@ export type Product = {
 };
 export const PRODUCTS: Product[] = [
   {
+    id: "veronica-chat",
+    name: "Converse com Veronica",
+    category: "Ferramentas",
+    to: "/veronica",
+    status: "Parcial",
+    description: "Seu espaço de conversa com a inteligência central",
+    external: false,
+    public: true,
+  },
+  {
     id: "human-agents",
     name: "Agentes Humanos",
     category: "Ferramentas",
@@ -295,7 +305,11 @@ export const PRIMARY_NAV = ["formations", "fashion", "packs", "wire", "members",
 // editorial próprio, fora dos menus de produtos.
 export const HEADER_NAV_GROUPS = [
   { id: "learn", label: "Aprender", items: ["school", "zero", "formations", "packs"].map(product) },
-  { id: "create", label: "Criar", items: ["studio", "portfolio", "fashion"].map(product) },
+  {
+    id: "create",
+    label: "Criar",
+    items: ["veronica-chat", "studio", "portfolio", "fashion"].map(product),
+  },
   {
     id: "business",
     label: "Soluções",

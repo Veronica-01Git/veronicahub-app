@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CampusNavigation } from "@/components/learning/CampusVisuals";
 import { useCallback, useState } from "react";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { BuildWorkforce } from "@/components/home/workforce/BuildWorkforce";
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/")({
       { name: "theme-color", content: "#1a1d1e" },
     ],
     links: [
-      // Retrato da hero: 53 KB, pedido antes do CSS terminar de chegar.
+      // Campus YO com a identidade canônica da Veronica.
       {
         rel: "preload",
         as: "image",
@@ -93,7 +94,7 @@ function WorkforceHome() {
   }, []);
 
   return (
-    <div className="vh-wf min-h-screen">
+    <div className="vh-wf yo-home min-h-screen">
       <SiteHeader brand="yo" />
       <main>
         <WorkforceHero sinal={sinal} />
@@ -106,6 +107,7 @@ function WorkforceHome() {
         <YoLab />
         <BuildWorkforce selecionados={selecionados} alternar={alternar} />
         <PlatformIndex />
+        <CampusNavigation />
       </main>
       <SiteFooter brand="yo" tagline="O laboratório por trás da Veronica AI Workforce." />
     </div>
