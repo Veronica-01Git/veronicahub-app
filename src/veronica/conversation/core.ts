@@ -1,10 +1,15 @@
+export const MAX_PROMPT_CHARACTERS = 16000;
 export const LIVE_MODELS = ["vidu-s2", "vidu-s1"] as const;
 export type LiveModel = (typeof LIVE_MODELS)[number];
 export type Turn = { role: "user" | "assistant"; content: string };
 export function validateConversation(input: unknown) {
   const d = input as { message?: unknown; history?: unknown };
-  if (typeof d?.message !== "string" || !d.message.trim() || d.message.length > 1600)
-    throw new Error("Escreva uma mensagem de até 1.600 caracteres.");
+  if (
+    typeof d?.message !== "string" ||
+    !d.message.trim() ||
+    d.message.length > MAX_PROMPT_CHARACTERS
+  )
+    throw new Error("Escreva uma mensagem de até 16.000 caracteres.");
   const history: Turn[] = (Array.isArray(d.history) ? d.history : [])
     .filter(
       (t): t is Turn =>

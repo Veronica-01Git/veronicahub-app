@@ -8,7 +8,7 @@ import {
 } from "../src/veronica/conversation/core.ts";
 import { signLiveTicket, verifyLiveTicket } from "../src/veronica/conversation/ticket.server.ts";
 test("conversation bounds untrusted input and excludes system role/private extra data", () => {
-  assert.throws(() => validateConversation({ message: "x".repeat(1601) }));
+  assert.throws(() => validateConversation({ message: "x".repeat(16001) }));
   const d = validateConversation({
     message: " Olá ",
     history: [

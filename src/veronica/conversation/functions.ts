@@ -115,7 +115,7 @@ export const transcribePrompt = createServerFn({ method: "POST" })
     } catch {
       return {
         ok: false as const,
-        error: "Gravação inválida. Grave novamente por até dois minutos.",
+        error: "Gravação inválida. Grave novamente por até dez minutos.",
       };
     }
   });

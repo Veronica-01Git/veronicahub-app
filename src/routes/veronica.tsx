@@ -26,6 +26,7 @@ import {
   startVeronicaLive,
 } from "@/veronica/conversation/functions";
 import { connectLive, loadLiveSdk } from "@/veronica/conversation/live-client";
+import { MAX_PROMPT_CHARACTERS } from "@/veronica/conversation/core";
 import type { LiveModel, Turn } from "@/veronica/conversation/core";
 import "@/veronica/conversation/conversation.css";
 import { PromptDictation } from "@/veronica/conversation/PromptDictation";
@@ -86,7 +87,8 @@ function VeronicaConversation() {
     bottom = useRef<HTMLDivElement>(null),
     composer = useRef<HTMLTextAreaElement>(null),
     generation = useRef(0),
-    speaking = useRef(false);
+    speaking = useRef(false),
+    sending = useRef(false);
   const thread = threads.find((t) => t.id === active)!;
   const append = (threadId: string, message: Message) =>
     setThreads((current) =>
@@ -146,9 +148,16 @@ function VeronicaConversation() {
     setError("");
     setDrawer(false);
   };
-  async function send(event?: FormEvent, text = input) {
+  async function send(event?: FormEvent, text = input, fromDictation = false) {
     event?.preventDefault();
-    if (busy || dictationBusy || liveState === "connecting" || !text.trim()) return;
+    if (
+      sending.current ||
+      busy ||
+      (dictationBusy && !fromDictation) ||
+      liveState === "connecting" ||
+      !text.trim()
+    )
+      return;
     const id = active,
       content = text.trim();
     setError("");
@@ -163,6 +172,7 @@ function VeronicaConversation() {
       }
       return;
     }
+    sending.current = true;
     append(id, { id: crypto.randomUUID(), role: "user", content });
     setBusy(true);
     try {
@@ -183,6 +193,7 @@ function VeronicaConversation() {
       setError("A conexão falhou. Tente novamente quando estiver disponível.");
       setInput(content);
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   }
@@ -430,7 +441,7 @@ function VeronicaConversation() {
                       id="vc-input"
                       ref={composer}
                       value={input}
-                      maxLength={1600}
+                      maxLength={MAX_PROMPT_CHARACTERS}
                       disabled={dictationBusy}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Pergunte, imagine ou comece uma ideia…"
@@ -448,15 +459,21 @@ function VeronicaConversation() {
                           disabled={busy || liveState === "connecting" || liveActive}
                           onBusyChange={setDictationBusy}
                           onError={setError}
-                          onTranscript={(text) => {
+                          onTranscript={(text, autoSend) => {
                             const draft = mergeDictation(input, text);
                             if (draft === null) {
                               setError(
-                                "Seu texto e a transcrição ultrapassam 1.600 caracteres. Cancele e grave um trecho menor.",
+                                "Seu texto e a transcrição ultrapassam 16.000 caracteres. Cancele e grave um trecho menor.",
                               );
                               return false;
                             }
-                            setInput(draft);
+                            if (autoSend) void send(undefined, draft, true);
+                            else {
+                              setInput(draft);
+                              setError(
+                                "Gravação encerrada automaticamente. O texto está na caixa para revisar e enviar.",
+                              );
+                            }
                             requestAnimationFrame(() => composer.current?.focus());
                             return true;
                           }}
@@ -464,7 +481,9 @@ function VeronicaConversation() {
                         {!dictationBusy && (
                           <span className="vc-compose-meta">
                             {liveActive ? "Ao vivo · Vidu" : "Prompt"}
-                            <small>{input.length}/1600</small>
+                            <small>
+                              {input.length}/{MAX_PROMPT_CHARACTERS}
+                            </small>
                           </span>
                         )}
                       </div>

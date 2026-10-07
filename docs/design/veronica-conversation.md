@@ -33,3 +33,11 @@ Production /veronica alone allows microphone=(self); camera and geolocation rema
 - https://platform.vidu.com/vidu-stream/doc/s2-avatar/component/parameters
 - https://platform.vidu.com/docs/model-map
 - RTC SDK version pinned to the official quickstart: https://g.alicdn.com/apsara-media-box/imp-web-rtc/7.1.9/aliyun-rtc-sdk.js
+
+## Recorded prompt flow (2026-10-07)
+
+The composer microphone records a prompt independently of Vidu. The arrow button or Enter explicitly stops recording, releases the microphone, transcribes and submits the merged draft exactly once. Escape or X cancels; canceled/unmounted sessions ignore late provider callbacks. Provider failures retain the local audio and offer playback and retry.
+
+Recordings accept 1–600 seconds and at most 8 MiB. Prompts accept up to 16,000 characters end to end; over-limit text and Gemini MAX_TOKENS results are rejected rather than silently truncated. The automatic ten-minute stop transcribes into an editable draft and does not submit without confirmation. No microphone request on load, no voice detection or silence-triggered sends.
+
+Validation: 384 repository tests, TypeScript, scoped lint and production build; component behavior with mocked media verifies seven-minute duration, arrow/Enter, no duplicate submission, microphone release, cancellation and retained audio after failures. Physical microphone/browser device acceptance remains separate from those simulations.
