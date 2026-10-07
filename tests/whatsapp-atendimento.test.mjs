@@ -21,6 +21,9 @@ const {
   JANELA_AGRUPAMENTO_MS,
   extrairEcos,
   CAMPOS_IGNORADOS_COEXISTENCE,
+  emObservacao,
+  chaveDaSugestao,
+  KIND_SUGESTAO,
 } = await import("../src/lib/whatsapp-atendimento.ts");
 
 let seq = 0;
@@ -149,13 +152,13 @@ test("aviso por e-mail identifica sem expor número nem conversa", () => {
 test("webhook obedece as regras: pausa, espera, reivindica e avisa", () => {
   const src = readFileSync(new URL("../src/lib/whatsapp-webhook.ts", import.meta.url), "utf8");
   const ordem = [
-    "agentePodeResponder(conversa.status)",
+    "agenteAtua(conversa.status)",
     "esperar(JANELA_AGRUPAMENTO_MS)",
-    "agentePodeResponder(agora.status)",
+    "agenteAtua(agora.status)",
     "montarLote(",
     "chaveDoLote(providerId)",
     "decidirResposta(",
-    "agentePodeResponder(antesDeEnviar.status)",
+    "agenteAtua(antesDeEnviar.status)",
     "sendText(waId",
     'ne(waConversations.status, "aguardando_humano")',
     "avisarEquipe(",
@@ -247,4 +250,38 @@ test("Coexistence: webhook trata eco, ignora histórico e contatos", () => {
   // Eco nunca chama a agente nem envia nada.
   const corpoEco = eco.slice(0, eco.indexOf("\n}\n"));
   assert.doesNotMatch(corpoEco, /decidirResposta|sendText|sendAudio/);
+});
+
+test("modo observação: só com credencial e trava fechada", () => {
+  assert.equal(emObservacao("envio-nao-liberado"), true);
+  assert.equal(emObservacao("sem-credenciais"), false, "sem credencial não há webhook a observar");
+  assert.equal(emObservacao(null), false, "liberado é produção, não observação");
+  assert.equal(chaveDaSugestao("wamid.9"), "sugestao:wamid.9");
+});
+
+test("modo observação: sugestão não fecha lote e não vira memória da agente", () => {
+  const a = texto("quanto custa a grande?");
+  const sugestao = {
+    ...resposta("Para demolição, R$ 450."),
+    author: "sistema",
+    kind: KIND_SUGESTAO,
+  };
+  const b = texto("e pra gesso?");
+  // Sem marcador de lote, a sugestão sozinha não fecha: o pedido segue junto.
+  assert.equal(montarLote([a, sugestao, b], b.id).texto, "quanto custa a grande?\ne pra gesso?");
+  assert.equal(montarLote([a, marcador(a), sugestao, b], b.id).texto, "e pra gesso?");
+});
+
+test("modo observação: grava a sugestão e para antes de voz, envio, status e e-mail", () => {
+  const src = readFileSync(new URL("../src/lib/whatsapp-webhook.ts", import.meta.url), "utf8");
+  const inicio = src.indexOf("if (emObservacao(motivoEnvioBloqueado()))");
+  assert.ok(inicio > src.indexOf("decidirResposta("), "observa depois de decidir");
+  assert.ok(inicio < src.indexOf("decidirVoz("), "e antes de sintetizar voz");
+  const bloco = src.slice(inicio, src.indexOf("return;", inicio));
+  assert.match(bloco, /author: "sistema"/);
+  assert.match(bloco, /kind: KIND_SUGESTAO/);
+  assert.match(bloco, /chaveDaSugestao\(providerId\)/);
+  assert.doesNotMatch(bloco, /sendText|sendAudio|avisarEquipe|waConversations/);
+  // Em observação a agente sugere em toda conversa; em produção vale a regra 1.
+  assert.match(src, /emObservacao\(motivoEnvioBloqueado\(\)\) \|\| agentePodeResponder\(status\)/);
 });

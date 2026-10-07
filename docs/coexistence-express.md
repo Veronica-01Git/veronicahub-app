@@ -91,3 +91,61 @@ Provider). O código suporta os dois caminhos; a troca é por ambiente.
 6. Fase observação: trava fechada; conferir no painel o que chega e os
    rascunhos.
 7. Fase acompanhada e depois normal: cada uma com um novo sim do dono.
+
+## Dia da ligação — checklist de execução
+
+Nada aqui começa sem a autorização assinada e o print do backup em mãos.
+
+**Antes (com a conta 360dialog já criada e parada antes do Embedded Signup)**
+
+1. Gerar o segredo do webhook: `openssl rand -hex 32`. Ele vai direto para a
+   Cloudflare e nunca passa por chat ou commit.
+2. Na Cloudflare (Worker `veronicahub-app` → Settings → Variables and
+   Secrets), como **Secret**: `WHATSAPP_WEBHOOK_TOKEN`. Como variável:
+   `WHATSAPP_PROVEDOR=360dialog`. **Não** mexer em `WHATSAPP_ENVIO_LIBERADO`:
+   ela fica vazia, e é isso que mantém a agente em observação.
+
+**Na chamada com o dono (30–40 min)**
+
+3. Celular da empresa no Wi-Fi, no carregador, WhatsApp Business atualizado e
+   aberto.
+4. No painel da 360dialog: **Continue Onboarding** → Embedded Signup → entrar
+   com o Facebook do dono → escolher o Meta Business da Express → **conectar o
+   WhatsApp Business app existente** → número da empresa → confirmar no
+   celular → **compartilhar o histórico**.
+5. Copiar a **API Key** do número no painel da 360dialog direto para a
+   Cloudflare como Secret `D360_API_KEY`.
+6. Registrar o webhook:
+   `D360_API_KEY=… WHATSAPP_WEBHOOK_TOKEN=… node scripts/webhook-360dialog.mjs`
+   (confere) e depois com `--aplicar`. O script não imprime nenhum segredo.
+7. Pedir ao dono que reconecte o WhatsApp Web, se usar (a ligação desconecta
+   os aparelhos acompanhantes).
+
+**Logo depois**
+
+8. Mandar uma mensagem de um celular pessoal para o número da empresa e
+   conferir em `/clientes/express-entulho/operacoes/atendimento`, na fila
+   humana, a mensagem recebida e a **"Sugestão da agente · não enviada"**.
+9. O dono responde pelo celular: a resposta aparece na fila como "Equipe".
+
+## Modo observação (primeira fase)
+
+Com credenciais configuradas e `WHATSAPP_ENVIO_LIBERADO` vazia, a agente:
+
+- recebe as mensagens e gera a resposta que daria, gravada como
+  `sistema`/`sugestao` e mostrada no painel como "não enviada";
+- sugere em **toda** conversa, mesmo nas que a equipe já respondeu, porque
+  comparar a sugestão com a resposta real é o objetivo da fase;
+- **não** envia, não marca como lida, não sintetiza voz, não troca status e
+  não manda e-mail.
+
+Sair da observação é escrever `sim-o-dono-aprovou` em
+`WHATSAPP_ENVIO_LIBERADO`, com novo sim do dono.
+
+## Decisão a levar ao dono antes de sair da observação
+
+Em produção, quando a equipe responde pelo celular, a conversa vira
+`aguardando_humano` e a agente fica quieta **até alguém devolvê-la** pelo
+painel. Se o cliente voltar dias depois, ela continua quieta. Opções: manter
+assim (mais seguro) ou devolver automaticamente à agente depois de N horas sem
+resposta da equipe. Isso não está implementado: é decisão do dono.
