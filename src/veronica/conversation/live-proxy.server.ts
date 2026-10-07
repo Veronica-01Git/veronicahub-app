@@ -25,7 +25,9 @@ export async function handleVeronicaLiveSocket(request: Request): Promise<Respon
   try {
     const connId = crypto.randomUUID();
     const upstreamResponse = await fetch(
-      `https://api.vidu.com/live/ws/live/connect?live_id=${liveId}&conn_id=${connId}`,
+      // Official quick start authenticates the App WebSocket with an `authorization` query
+      // parameter; the header is kept as well. This URL never leaves the Worker.
+      `https://api.vidu.com/live/ws/live/connect?live_id=${liveId}&conn_id=${connId}&authorization=${encodeURIComponent(apiKey)}`,
       { headers: { Upgrade: "websocket", Authorization: `Token ${apiKey}` }, redirect: "manual" },
     );
     const upstream = (upstreamResponse as Response & { webSocket?: WorkerSocket }).webSocket;

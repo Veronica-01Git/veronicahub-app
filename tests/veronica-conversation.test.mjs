@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { validateConversation, validateLive, liveBody } from "../src/veronica/conversation/core.ts";
+import {
+  validateConversation,
+  validateLive,
+  liveBody,
+  liveCreateError,
+} from "../src/veronica/conversation/core.ts";
 import { signLiveTicket, verifyLiveTicket } from "../src/veronica/conversation/ticket.server.ts";
 test("conversation bounds untrusted input and excludes system role/private extra data", () => {
   assert.throws(() => validateConversation({ message: "x".repeat(1601) }));
@@ -96,4 +101,16 @@ test("live proxy never connects a forged ticket even with credentials configured
       else process.env[n] = saved[n];
     }
   }
+});
+
+test("refused Create Live maps to clear messages without exposing provider detail", () => {
+  const credit = liveCreateError(
+    400,
+    '{"code":400,"reason":"CreditInsufficient","message":"insufficient credits","metadata":{"trace_id":"abc"}}',
+  );
+  assert.match(credit, /créditos/);
+  assert.doesNotMatch(credit, /trace|abc|CreditInsufficient/);
+  assert.match(liveCreateError(401, "{}"), /credencial/);
+  assert.match(liveCreateError(429, "not json"), /limitando/);
+  assert.match(liveCreateError(500, "<html>"), /não abriu a sessão/);
 });
