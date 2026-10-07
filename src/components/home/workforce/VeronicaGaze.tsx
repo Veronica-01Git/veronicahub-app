@@ -26,7 +26,10 @@ export function VeronicaGaze() {
     if (!image || !canvas) return;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const fine = matchMedia("(hover: hover) and (pointer: fine)");
-    if (reduced.matches || !fine.matches) return;
+    if (reduced.matches || !fine.matches) {
+      canvas.dataset.gaze = reduced.matches ? "static-reduced-motion" : "static-touch";
+      return;
+    }
     let disposed = false;
     let stop = () => {};
     const init = () => {
@@ -37,7 +40,10 @@ export function VeronicaGaze() {
         depth: false,
         powerPreference: "low-power",
       });
-      if (!gl) return;
+      if (!gl) {
+        canvas.dataset.gaze = "static-no-webgl";
+        return;
+      }
       const shaders: WebGLShader[] = [];
       const compile = (kind: number, source: string) => {
         const shader = gl.createShader(kind);
@@ -77,6 +83,7 @@ export function VeronicaGaze() {
         shaders.forEach((s) => gl.deleteShader(s));
       };
       if (!vertex || !fragment || !program || !buffer || !texture) {
+        canvas.dataset.gaze = "static-shader-unavailable";
         release();
         return;
       }
@@ -84,6 +91,7 @@ export function VeronicaGaze() {
       gl.attachShader(program, fragment);
       gl.linkProgram(program);
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        canvas.dataset.gaze = "static-link-unavailable";
         release();
         return;
       }
@@ -105,6 +113,7 @@ export function VeronicaGaze() {
       try {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
       } catch {
+        canvas.dataset.gaze = "static-texture-unavailable";
         release();
         return;
       }
@@ -139,6 +148,7 @@ export function VeronicaGaze() {
         canvas.style.opacity = css.opacity;
         draw();
         image.style.visibility = "hidden";
+        canvas.dataset.gaze = "tracking";
       };
       let last = 0;
       const tick = (now: number) => {
@@ -192,6 +202,7 @@ export function VeronicaGaze() {
         else resize();
       };
       const lost = () => {
+        canvas.dataset.gaze = "static-context-lost";
         active = false;
         cancelAnimationFrame(frame);
         frame = 0;
