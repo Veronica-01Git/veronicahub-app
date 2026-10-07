@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import "./veronica-gaze.css";
 
 // Source-space calibration for the canonical 768 × 1366 portrait.
 // The displacement fades to zero inside the iris: eyelids and face stay fixed.
@@ -133,6 +132,8 @@ export function VeronicaGaze() {
         const ratio = Math.min(devicePixelRatio || 1, 2);
         canvas.width = Math.max(1, Math.round(width * ratio));
         canvas.height = Math.max(1, Math.round(height * ratio));
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
         gl.viewport(0, 0, canvas.width, canvas.height);
         canvas.style.maskImage = css.maskImage;
         canvas.style.opacity = css.opacity;
@@ -258,7 +259,7 @@ export function VeronicaGaze() {
       <canvas
         ref={canvasRef}
         aria-hidden="true"
-        className="wf-pupil-layer"
+        style={{ position: "absolute", inset: 0, opacity: 0, pointerEvents: "none" }}
       />
     </>
   );
