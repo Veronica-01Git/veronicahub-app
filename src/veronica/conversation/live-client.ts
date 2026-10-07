@@ -100,7 +100,7 @@ export async function connectLive(input: {
     await engine.setDefaultSubscribeAllRemoteAudioStreams(true);
     await engine.setDefaultSubscribeAllRemoteVideoStreams(true);
     await new Promise<void>((resolve, reject) => {
-      timer = setTimeout(() => reject(new Error("O Vidu demorou para iniciar.")), 25000);
+      timer = setTimeout(() => reject(new Error("O Vidu demorou para iniciar.")), 45000);
       socket.onopen = () => send(1, { conn_init: { version: 1 } });
       socket.onmessage = (event) => {
         try {
@@ -110,8 +110,9 @@ export async function connectLive(input: {
               clearTimeout(timer);
               ready = true;
               resolve();
-            } else if (data.payload?.conn_init_ack?.error_code === "NOT_READY" && ++retries <= 6)
-              retryTimer = setTimeout(() => send(1, { conn_init: { version: 1 } }), 1000);
+            } else if (data.payload?.conn_init_ack?.error_code === "NOT_READY" && ++retries <= 20)
+              // Same session, no new billing: the official demo re-sends conn_init every 2 s.
+              retryTimer = setTimeout(() => send(1, { conn_init: { version: 1 } }), 2000);
             else reject(new Error("O avatar não ficou disponível. Tente mais tarde."));
           }
           if (data.type === 6) stop();

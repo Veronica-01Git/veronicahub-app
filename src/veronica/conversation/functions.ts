@@ -1,5 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { validateConversation, validateLive, VERONICA_PERSONA, liveBody } from "./core";
+import {
+  validateConversation,
+  validateLive,
+  VERONICA_PERSONA,
+  liveBody,
+  liveCreateError,
+} from "./core";
 export const conversationReply = createServerFn({ method: "POST" })
   .validator(validateConversation)
   .handler(async ({ data }) => {
@@ -65,14 +71,11 @@ export const startVeronicaLive = createServerFn({ method: "POST" })
         body: JSON.stringify(liveBody(data.model, data.mode, image, voice)),
         signal: AbortSignal.timeout(20_000),
       });
-      if (!response.ok) {
-        await response.body?.cancel();
+      if (!response.ok)
         return {
           ok: false as const,
-          error:
-            "O Vidu não abriu a sessão. Confira acesso, créditos e modelo no painel do provedor.",
+          error: liveCreateError(response.status, (await response.text()).slice(0, 2000)),
         };
-      }
       const result = (await response.json()) as {
         live?: { id?: string };
         rtc?: { token?: string; user_id?: string };

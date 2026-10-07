@@ -41,3 +41,19 @@ export function liveBody(model: LiveModel, mode: "audio" | "video", image: strin
     knowledge_retrieval: { enabled: false },
   };
 }
+/** Maps a refused Create Live response to a user-facing message. No body detail reaches the browser. */
+export function liveCreateError(status: number, body: string) {
+  let reason = "";
+  try {
+    reason = String((JSON.parse(body) as { reason?: unknown }).reason ?? "");
+  } catch {
+    /* non-JSON error body */
+  }
+  if (/credit/i.test(reason))
+    return "O Vidu recusou a sessão por falta de créditos de Avatar. Nenhuma sessão foi aberta; continue por texto.";
+  if (status === 401 || status === 403)
+    return "O Vidu recusou a credencial ou o acesso ao Avatar em tempo real. Continue por texto.";
+  if (status === 429)
+    return "O Vidu está limitando novas sessões agora. Aguarde um pouco e continue por texto.";
+  return "O Vidu não abriu a sessão. Confira acesso, créditos e modelo no painel do provedor.";
+}
