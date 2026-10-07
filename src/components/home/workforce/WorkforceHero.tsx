@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { WORKFORCE, WORKFORCE_OPERANDO } from "@/lib/ai-workforce";
 import { haQuantoTempo, type SinalDoWire } from "./useWireSignal";
+import { VeronicaGaze } from "./VeronicaGaze";
 
 /**
  * 01 — HERO · VERONICA CORE.
@@ -18,14 +19,7 @@ export function WorkforceHero({ sinal }: { sinal: SinalDoWire | null }) {
   return (
     <section className="wf-hero" aria-labelledby="wf-hero-title">
       <div className="wf-hero-portrait" aria-hidden="true">
-        <img
-          src="/images/veronica/veronica-hero-static.webp"
-          alt=""
-          width={768}
-          height={1366}
-          fetchPriority="high"
-          decoding="async"
-        />
+        <VeronicaGaze />
       </div>
 
       <div className="wf-hero-frame" aria-hidden="true">
