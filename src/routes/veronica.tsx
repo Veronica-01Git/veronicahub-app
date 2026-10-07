@@ -7,6 +7,9 @@ import {
   Check,
   Copy,
   Menu,
+  MessageSquare,
+  Lightbulb,
+  Sparkles,
   Mic,
   MicOff,
   Plus,
@@ -15,6 +18,7 @@ import {
   Volume2,
   X,
 } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { SiteHeader } from "@/components/SiteChrome";
 import {
   conversationCapabilities,
@@ -42,17 +46,17 @@ type Thread = { id: string; title: string; messages: Message[] };
 const newThread = (): Thread => ({ id: crypto.randomUUID(), title: "Nova conversa", messages: [] });
 const ideas = [
   {
-    title: "Uma ideia que merece existir",
+    title: "Tirar uma ideia do papel",
     text: "Me ajude a transformar uma ideia em um projeto claro.",
     tag: "CRIAR",
   },
   {
-    title: "Meu próximo passo com IA",
+    title: "Aprender algo novo",
     text: "Quero aprender IA. Me ajude a escolher um primeiro passo prático.",
     tag: "APRENDER",
   },
   {
-    title: "Um negócio mais inteligente",
+    title: "Evoluir meu negócio",
     text: "Como posso identificar processos da minha empresa que podem ser automatizados?",
     tag: "EVOLUIR",
   },
@@ -72,10 +76,12 @@ function VeronicaConversation() {
     [videoVisible, setVideoVisible] = useState(false),
     [mic, setMic] = useState(false),
     [capabilities, setCapabilities] = useState({ liveConfigured: false, liveEnabled: false }),
-    [copied, setCopied] = useState("");
+    [copied, setCopied] = useState(""),
+    [reading, setReading] = useState(false);
   const live = useRef<Awaited<ReturnType<typeof connectLive>> | null>(null),
     video = useRef<HTMLVideoElement>(null),
     bottom = useRef<HTMLDivElement>(null),
+    composer = useRef<HTMLTextAreaElement>(null),
     generation = useRef(0),
     speaking = useRef(false);
   const thread = threads.find((t) => t.id === active)!;
@@ -116,6 +122,7 @@ function VeronicaConversation() {
     live.current = null;
     window.speechSynthesis?.cancel();
     speaking.current = false;
+    setReading(false);
     setMic(false);
     setLiveState("idle");
     setVideoVisible(false);
@@ -244,8 +251,10 @@ function VeronicaConversation() {
     utterance.lang = "pt-BR";
     utterance.rate = 1;
     speaking.current = true;
-    utterance.onend = () => {
+    setReading(true);
+    utterance.onend = utterance.onerror = () => {
       speaking.current = false;
+      setReading(false);
     };
     window.speechSynthesis.speak(utterance);
   }
@@ -258,297 +267,316 @@ function VeronicaConversation() {
     }
   }
   const liveActive = liveState === "connected" || liveState === "playback";
-  return (
-    <div className="vc-app">
-      <SiteHeader brand="yo" />
-      <div className="vc-shell">
-        <aside className={`vc-sidebar ${drawer ? "is-open" : ""}`} aria-label="Suas conversas">
-          <div className="vc-side-brand">
-            <img src="/images/brand/yo-lab-logo.webp" alt="YO LAB & CO." />
-            <span>
-              VERONICA<span>Inteligência central</span>
-            </span>
-            <button
-              className="vc-icon vc-mobile"
-              aria-label="Fechar conversas"
-              onClick={() => setDrawer(false)}
-            >
-              <X size={18} />
-            </button>
-          </div>
-          <button className="vc-new" onClick={create} disabled={busy || liveState === "connecting"}>
-            <Plus size={17} /> Nova conversa
+  const sidebarContent = (
+    <>
+      <div className="vc-side-brand">
+        <img src="/images/brand/yo-lab-logo.webp" alt="YO LAB & CO." />
+        <span>
+          Veronica<span>Inteligência central</span>
+        </span>
+        <button
+          className="vc-icon vc-mobile"
+          aria-label="Fechar conversas"
+          onClick={() => setDrawer(false)}
+        >
+          <X size={18} />
+        </button>
+      </div>
+      <button className="vc-new" onClick={create} disabled={busy || liveState === "connecting"}>
+        <Plus size={17} /> Nova conversa
+      </button>
+      <p className="vc-label">Nesta sessão</p>
+      <nav className="vc-threads">
+        {threads.map((t) => (
+          <button
+            key={t.id}
+            aria-current={t.id === active ? "page" : undefined}
+            disabled={busy || liveState === "connecting"}
+            onClick={() => changeThread(t.id)}
+          >
+            <MessageSquare size={15} aria-hidden="true" />
+            <span>{t.title}</span>
           </button>
-          <p className="vc-label">Nesta sessão</p>
-          <nav className="vc-threads">
-            {threads.map((t) => (
-              <button
-                key={t.id}
-                aria-current={t.id === active ? "page" : undefined}
-                disabled={busy || liveState === "connecting"}
-                onClick={() => changeThread(t.id)}
-              >
-                {t.title}
-              </button>
-            ))}
-          </nav>
-          <div className="vc-side-bottom">
-            <p>
-              Um espaço para pensar.
-              <br />
-              Uma inteligência para criar.
-            </p>
-            <Link to="/" className="vc-back">
-              Explorar a Hub <ArrowUpRight size={16} />
-            </Link>
-            <small>Conversas ficam apenas nesta página. Recarregar encerra a sessão.</small>
-          </div>
-        </aside>
-        <main className="vc-main">
-          <header className="vc-top">
-            <div>
-              <button
-                className="vc-icon vc-mobile"
-                aria-label="Abrir conversas"
-                onClick={() => setDrawer(true)}
-              >
-                <Menu size={20} />
-              </button>
-              <span className="vc-dot" />
-              <strong>Veronica</strong>
-              <span className="vc-top-sub">Seu espaço de conversa</span>
-            </div>
-            <div className="vc-modes" aria-label="Formato da conversa">
-              {(["text", "audio", "video"] as const).map((m) => (
-                <button
-                  key={m}
-                  aria-pressed={mode === m}
-                  disabled={liveState === "connecting"}
-                  onClick={() => {
-                    stop();
-                    setMode(m);
-                  }}
-                >
-                  {m === "text" ? (
-                    "Texto"
-                  ) : m === "audio" ? (
-                    <>
-                      <AudioLines size={15} /> Áudio
-                    </>
-                  ) : (
-                    <>
-                      <Video size={15} /> Vídeo
-                    </>
-                  )}
-                </button>
-              ))}
-            </div>
-          </header>
-          <div className={`vc-body ${mode !== "text" ? "has-stage" : ""}`}>
-            <div className="vc-chat-area">
-              {thread.messages.length === 0 ? (
-                <section className="vc-welcome">
-                  <div className="vc-orb" aria-hidden="true">
-                    <i />
-                    <i />
-                    <span>V</span>
+        ))}
+      </nav>
+      <div className="vc-side-bottom">
+        <p>Pensar. Criar. Evoluir.</p>
+        <Link to="/" className="vc-back">
+          Explorar a Hub <ArrowUpRight size={16} />
+        </Link>
+        <small>Conversas ficam apenas nesta página. Recarregar encerra a sessão.</small>
+      </div>
+    </>
+  );
+  return (
+    <Dialog.Root open={drawer} onOpenChange={setDrawer}>
+      <div className="vc-app">
+        <SiteHeader brand="yo" />
+        <div className="vc-shell">
+          <aside className="vc-sidebar" aria-label="Suas conversas">
+            {sidebarContent}
+          </aside>
+          <main className="vc-main">
+            <header className="vc-top">
+              <div>
+                <Dialog.Trigger asChild>
+                  <button className="vc-icon vc-mobile" aria-label="Abrir conversas">
+                    <Menu size={20} />
+                  </button>
+                </Dialog.Trigger>
+                <span className="vc-dot" />
+                <strong>Veronica</strong>
+                <span className="vc-top-sub">Seu espaço de conversa</span>
+              </div>
+              <div className="vc-modes" aria-label="Formato da conversa">
+                {(["text", "audio", "video"] as const).map((m) => (
+                  <button
+                    key={m}
+                    aria-pressed={mode === m}
+                    disabled={liveState === "connecting"}
+                    onClick={() => {
+                      stop();
+                      setMode(m);
+                    }}
+                  >
+                    {m === "text" ? (
+                      "Texto"
+                    ) : m === "audio" ? (
+                      <>
+                        <AudioLines size={15} /> Áudio
+                      </>
+                    ) : (
+                      <>
+                        <Video size={15} /> Vídeo
+                      </>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </header>
+            <div className={`vc-body ${mode !== "text" ? "has-stage" : ""}`}>
+              <div className={`vc-chat-area ${thread.messages.length ? "has-conversation" : ""}`}>
+                {thread.messages.length === 0 ? (
+                  <section className="vc-welcome">
+                    <div className="vc-orb" aria-hidden="true">
+                      <img src="/images/brand/yo-lab-logo.webp" alt="" />
+                    </div>
+                    <p className="vc-label">Sua inteligência. Novas possibilidades.</p>
+                    <h1>
+                      Veronica<span>.</span>
+                    </h1>
+                    <p className="vc-intro">O que vamos criar hoje?</p>
+                  </section>
+                ) : (
+                  <div
+                    className="vc-messages"
+                    role="log"
+                    aria-label="Conversa com Veronica"
+                    aria-live="polite"
+                  >
+                    {thread.messages.map((message) => (
+                      <article key={message.id} className={`vc-message ${message.role}`}>
+                        <div className="vc-message-name">
+                          {message.role === "user" ? "Você" : "Veronica"}
+                        </div>
+                        <div className="vc-message-content">{message.content}</div>
+                        {message.role === "assistant" && (
+                          <div className="vc-message-actions">
+                            <button
+                              onClick={() => listen(message.content)}
+                              title="Leitura com a voz disponível no dispositivo"
+                            >
+                              <Volume2 size={14} /> Ouvir no dispositivo
+                            </button>
+                            <button onClick={() => void copy(message)}>
+                              {copied === message.id ? <Check size={14} /> : <Copy size={14} />}{" "}
+                              {copied === message.id ? "Copiado" : "Copiar"}
+                            </button>
+                          </div>
+                        )}
+                      </article>
+                    ))}
+                    {busy && (
+                      <p className="vc-thinking" role="status">
+                        <span />
+                        <span />
+                        <span /> Veronica está preparando a resposta
+                      </p>
+                    )}
+                    <div ref={bottom} />
                   </div>
-                  <p className="vc-label">YO LAB & CO. / VERONICA</p>
-                  <h1>
-                    O que vamos
-                    <br />
-                    <em>criar hoje?</em>
-                  </h1>
-                  <p className="vc-intro">
-                    Ideias ganham direção. Perguntas abrem caminhos.
-                    <br />
-                    Comece uma conversa com a Veronica.
+                )}
+                <div className="vc-composer-wrap">
+                  {error && (
+                    <div className="vc-error" role="alert">
+                      {error}
+                      <button aria-label="Fechar aviso" onClick={() => setError("")}>
+                        <X size={15} />
+                      </button>
+                    </div>
+                  )}
+                  <form className="vc-composer" onSubmit={(event) => void send(event)}>
+                    <label className="sr-only" htmlFor="vc-input">
+                      Mensagem para Veronica
+                    </label>
+                    <textarea
+                      id="vc-input"
+                      ref={composer}
+                      value={input}
+                      maxLength={1600}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Pergunte, imagine ou comece uma ideia…"
+                      rows={2}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                          e.preventDefault();
+                          void send();
+                        }
+                      }}
+                    />
+                    <div className="vc-compose-bottom">
+                      <span>
+                        {liveActive ? "Ao vivo · Vidu" : "Texto · Veronica"}
+                        <small>{input.length}/1600</small>
+                      </span>
+                      <button
+                        aria-label="Enviar mensagem"
+                        disabled={busy || !input.trim() || liveState === "connecting"}
+                      >
+                        <ArrowUp size={19} />
+                      </button>
+                    </div>
+                  </form>
+                  <p className="vc-note">
+                    Confira informações importantes. Enter envia · Shift + Enter cria uma linha.
                   </p>
+                  {reading && (
+                    <button
+                      className="vc-stop-reading"
+                      onClick={() => {
+                        window.speechSynthesis?.cancel();
+                        speaking.current = false;
+                        setReading(false);
+                      }}
+                    >
+                      Parar leitura em voz alta
+                    </button>
+                  )}
+                </div>
+                {thread.messages.length === 0 && (
                   <div className="vc-ideas">
                     {ideas.map((idea) => (
                       <button
                         key={idea.tag}
                         disabled={busy}
-                        onClick={() => void send(undefined, idea.text)}
+                        onClick={() => {
+                          setInput(idea.text);
+                          composer.current?.focus();
+                        }}
                       >
-                        <small>{idea.tag}</small>
+                        <span className="vc-idea-icon" aria-hidden="true">
+                          {idea.tag === "CRIAR" ? (
+                            <Sparkles size={17} />
+                          ) : idea.tag === "APRENDER" ? (
+                            <Lightbulb size={17} />
+                          ) : (
+                            <ArrowUpRight size={17} />
+                          )}
+                        </span>
                         <span>{idea.title}</span>
-                        <ArrowUpRight size={16} />
                       </button>
                     ))}
                   </div>
-                </section>
-              ) : (
-                <div
-                  className="vc-messages"
-                  role="log"
-                  aria-label="Conversa com Veronica"
-                  aria-live="polite"
-                >
-                  {thread.messages.map((message) => (
-                    <article key={message.id} className={`vc-message ${message.role}`}>
-                      <div className="vc-message-name">
-                        {message.role === "user" ? "Você" : "Veronica"}
-                      </div>
-                      <div className="vc-message-content">{message.content}</div>
-                      {message.role === "assistant" && (
-                        <div className="vc-message-actions">
-                          <button
-                            onClick={() => listen(message.content)}
-                            title="Leitura com a voz disponível no dispositivo"
-                          >
-                            <Volume2 size={14} /> Ouvir no dispositivo
+                )}
+              </div>
+              {mode !== "text" && (
+                <aside className="vc-presence" aria-label="Conversa ao vivo">
+                  <div className={`vc-avatar-stage ${videoVisible ? "has-video" : ""}`}>
+                    <img
+                      src="/images/yo-campus/core-1280.webp"
+                      alt="Veronica de cabelo curto no laboratório YO"
+                    />
+                    <video
+                      ref={video}
+                      autoPlay
+                      playsInline
+                      controls
+                      aria-label="Vídeo ao vivo da Veronica"
+                    />
+                    <div className="vc-stage-caption">
+                      <span>VERONICA</span>
+                      <small>
+                        {liveActive ? "Sessão conectada" : "Presença digital · referência visual"}
+                      </small>
+                    </div>
+                  </div>
+                  <div className="vc-stage-controls">
+                    <div className="vc-models" aria-label="Modelo Vidu">
+                      {(["vidu-s2", "vidu-s1"] as const).map((m) => (
+                        <button
+                          key={m}
+                          aria-pressed={model === m}
+                          disabled={liveActive || liveState === "connecting"}
+                          onClick={() => setModel(m)}
+                        >
+                          {m === "vidu-s2" ? "S2 · Expressivo" : "S1 · Alternativo"}
+                        </button>
+                      ))}
+                    </div>
+                    <h2>
+                      {mode === "audio" ? "Uma conversa com voz." : "Inteligência com presença."}
+                    </h2>
+                    <p>
+                      {capabilities.liveEnabled
+                        ? "Integração em validação pela equipe. Sessões de até cinco minutos; o microfone só é ligado por você."
+                        : "Estamos ativando o áudio e o avatar ao vivo. Enquanto isso, converse por texto e ouça as respostas no seu dispositivo."}
+                    </p>
+                    {liveActive ? (
+                      <>
+                        <button className="vc-live-button" onClick={stop}>
+                          <Square size={14} /> Encerrar sessão
+                        </button>
+                        <div className="vc-call-actions">
+                          <button onClick={() => void toggleMic()}>
+                            {mic ? <MicOff size={16} /> : <Mic size={16} />}{" "}
+                            {mic ? "Desligar microfone" : "Ligar microfone"}
                           </button>
-                          <button onClick={() => void copy(message)}>
-                            {copied === message.id ? <Check size={14} /> : <Copy size={14} />}{" "}
-                            {copied === message.id ? "Copiado" : "Copiar"}
+                          <button onClick={() => live.current?.interrupt()}>
+                            Interromper resposta
                           </button>
                         </div>
-                      )}
-                    </article>
-                  ))}
-                  {busy && (
-                    <p className="vc-thinking" role="status">
-                      <span />
-                      <span />
-                      <span /> Veronica está preparando a resposta
-                    </p>
-                  )}
-                  <div ref={bottom} />
-                </div>
+                      </>
+                    ) : (
+                      <button
+                        className="vc-live-button"
+                        disabled={!capabilities.liveEnabled || liveState === "connecting" || busy}
+                        onClick={() => void start()}
+                      >
+                        {liveState === "connecting"
+                          ? "Conectando…"
+                          : capabilities.liveEnabled
+                            ? "Iniciar teste ao vivo"
+                            : "Ao vivo em ativação"}
+                      </button>
+                    )}
+                    <small>Vidu S1 / S2 · câmera desligada · sem gravação na Hub</small>
+                  </div>
+                </aside>
               )}
             </div>
-            {mode !== "text" && (
-              <aside className="vc-presence" aria-label="Conversa ao vivo">
-                <div className={`vc-avatar-stage ${videoVisible ? "has-video" : ""}`}>
-                  <img
-                    src="/images/yo-campus/core-1280.webp"
-                    alt="Veronica de cabelo curto no laboratório YO"
-                  />
-                  <video
-                    ref={video}
-                    autoPlay
-                    playsInline
-                    controls
-                    aria-label="Vídeo ao vivo da Veronica"
-                  />
-                  <div className="vc-stage-caption">
-                    <span>VERONICA</span>
-                    <small>
-                      {liveActive ? "Sessão conectada" : "Presença digital · referência visual"}
-                    </small>
-                  </div>
-                </div>
-                <div className="vc-stage-controls">
-                  <div className="vc-models" aria-label="Modelo Vidu">
-                    {(["vidu-s2", "vidu-s1"] as const).map((m) => (
-                      <button
-                        key={m}
-                        aria-pressed={model === m}
-                        disabled={liveActive || liveState === "connecting"}
-                        onClick={() => setModel(m)}
-                      >
-                        {m === "vidu-s2" ? "S2 · Expressivo" : "S1 · Alternativo"}
-                      </button>
-                    ))}
-                  </div>
-                  <h2>
-                    {mode === "audio" ? "Uma conversa com voz." : "Inteligência com presença."}
-                  </h2>
-                  <p>
-                    {capabilities.liveEnabled
-                      ? "Integração em validação pela equipe. Sessões de até cinco minutos; o microfone só é ligado por você."
-                      : "Estamos ativando o áudio e o avatar ao vivo. Enquanto isso, converse por texto e ouça as respostas no seu dispositivo."}
-                  </p>
-                  {liveActive ? (
-                    <>
-                      <button className="vc-live-button" onClick={stop}>
-                        <Square size={14} /> Encerrar sessão
-                      </button>
-                      <div className="vc-call-actions">
-                        <button onClick={() => void toggleMic()}>
-                          {mic ? <MicOff size={16} /> : <Mic size={16} />}{" "}
-                          {mic ? "Desligar microfone" : "Ligar microfone"}
-                        </button>
-                        <button onClick={() => live.current?.interrupt()}>
-                          Interromper resposta
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <button
-                      className="vc-live-button"
-                      disabled={!capabilities.liveEnabled || liveState === "connecting" || busy}
-                      onClick={() => void start()}
-                    >
-                      {liveState === "connecting"
-                        ? "Conectando…"
-                        : capabilities.liveEnabled
-                          ? "Iniciar teste ao vivo"
-                          : "Ao vivo em ativação"}
-                    </button>
-                  )}
-                  <small>Vidu S1 / S2 · câmera desligada · sem gravação na Hub</small>
-                </div>
-              </aside>
-            )}
-          </div>
-          <div className="vc-composer-wrap">
-            {error && (
-              <div className="vc-error" role="alert">
-                {error}
-                <button aria-label="Fechar aviso" onClick={() => setError("")}>
-                  <X size={15} />
-                </button>
-              </div>
-            )}
-            <form className="vc-composer" onSubmit={(event) => void send(event)}>
-              <label className="sr-only" htmlFor="vc-input">
-                Mensagem para Veronica
-              </label>
-              <textarea
-                id="vc-input"
-                value={input}
-                maxLength={1600}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Converse com a Veronica…"
-                rows={2}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                    e.preventDefault();
-                    void send();
-                  }
-                }}
-              />
-              <div className="vc-compose-bottom">
-                <span>
-                  {liveActive ? "Ao vivo · Vidu" : "Texto · Veronica"}
-                  <small>{input.length}/1600</small>
-                </span>
-                <button
-                  aria-label="Enviar mensagem"
-                  disabled={busy || !input.trim() || liveState === "connecting"}
-                >
-                  <ArrowUp size={19} />
-                </button>
-              </div>
-            </form>
-            <p className="vc-note">
-              A Veronica pode errar. Confira informações importantes. Enter envia · Shift + Enter
-              cria uma linha.
-            </p>
-            <button
-              className="vc-stop-reading"
-              onClick={() => {
-                window.speechSynthesis?.cancel();
-                speaking.current = false;
-              }}
-            >
-              Parar leitura em voz alta
-            </button>
-          </div>
-        </main>
+          </main>
+        </div>
+        <Dialog.Portal>
+          <Dialog.Overlay className="vc-drawer-overlay" />
+          <Dialog.Content className="vc-sidebar vc-drawer">
+            <Dialog.Title className="sr-only">Suas conversas</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              Crie uma conversa ou retome uma conversa desta sessão.
+            </Dialog.Description>
+            {sidebarContent}
+          </Dialog.Content>
+        </Dialog.Portal>
       </div>
-    </div>
+    </Dialog.Root>
   );
 }
