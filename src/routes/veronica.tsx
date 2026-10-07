@@ -28,6 +28,8 @@ import {
 import { connectLive, loadLiveSdk } from "@/veronica/conversation/live-client";
 import type { LiveModel, Turn } from "@/veronica/conversation/core";
 import "@/veronica/conversation/conversation.css";
+import { PromptDictation } from "@/veronica/conversation/PromptDictation";
+import { mergeDictation } from "@/veronica/conversation/dictation-core";
 export const Route = createFileRoute("/veronica")({
   component: VeronicaConversation,
   head: () => ({
@@ -69,7 +71,8 @@ function VeronicaConversation() {
     [input, setInput] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [drawer, setDrawer] = useState(false);
+    [drawer, setDrawer] = useState(false),
+    [dictationBusy, setDictationBusy] = useState(false);
   const [mode, setMode] = useState<"text" | "audio" | "video">("text"),
     [model, setModel] = useState<LiveModel>("vidu-s2"),
     [liveState, setLiveState] = useState("idle"),
@@ -145,7 +148,7 @@ function VeronicaConversation() {
   };
   async function send(event?: FormEvent, text = input) {
     event?.preventDefault();
-    if (busy || liveState === "connecting" || !text.trim()) return;
+    if (busy || dictationBusy || liveState === "connecting" || !text.trim()) return;
     const id = active,
       content = text.trim();
     setError("");
@@ -282,7 +285,11 @@ function VeronicaConversation() {
           <X size={18} />
         </button>
       </div>
-      <button className="vc-new" onClick={create} disabled={busy || liveState === "connecting"}>
+      <button
+        className="vc-new"
+        onClick={create}
+        disabled={busy || dictationBusy || liveState === "connecting"}
+      >
         <Plus size={17} /> Nova conversa
       </button>
       <p className="vc-label">Nesta sessão</p>
@@ -291,7 +298,7 @@ function VeronicaConversation() {
           <button
             key={t.id}
             aria-current={t.id === active ? "page" : undefined}
-            disabled={busy || liveState === "connecting"}
+            disabled={busy || dictationBusy || liveState === "connecting"}
             onClick={() => changeThread(t.id)}
           >
             <MessageSquare size={15} aria-hidden="true" />
@@ -333,7 +340,7 @@ function VeronicaConversation() {
                   <button
                     key={m}
                     aria-pressed={mode === m}
-                    disabled={liveState === "connecting"}
+                    disabled={dictationBusy || liveState === "connecting"}
                     onClick={() => {
                       stop();
                       setMode(m);
@@ -424,6 +431,7 @@ function VeronicaConversation() {
                       ref={composer}
                       value={input}
                       maxLength={1600}
+                      disabled={dictationBusy}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Pergunte, imagine ou comece uma ideia…"
                       rows={2}
@@ -435,13 +443,37 @@ function VeronicaConversation() {
                       }}
                     />
                     <div className="vc-compose-bottom">
-                      <span>
-                        {liveActive ? "Ao vivo · Vidu" : "Texto · Veronica"}
-                        <small>{input.length}/1600</small>
-                      </span>
+                      <div className="vc-compose-tools">
+                        <PromptDictation
+                          disabled={busy || liveState === "connecting" || liveActive}
+                          onBusyChange={setDictationBusy}
+                          onError={setError}
+                          onTranscript={(text) => {
+                            const draft = mergeDictation(input, text);
+                            if (draft === null) {
+                              setError(
+                                "Seu texto e a transcrição ultrapassam 1.600 caracteres. Cancele e grave um trecho menor.",
+                              );
+                              return false;
+                            }
+                            setInput(draft);
+                            requestAnimationFrame(() => composer.current?.focus());
+                            return true;
+                          }}
+                        />
+                        {!dictationBusy && (
+                          <span className="vc-compose-meta">
+                            {liveActive ? "Ao vivo · Vidu" : "Prompt"}
+                            <small>{input.length}/1600</small>
+                          </span>
+                        )}
+                      </div>
                       <button
                         aria-label="Enviar mensagem"
-                        disabled={busy || !input.trim() || liveState === "connecting"}
+                        disabled={
+                          busy || dictationBusy || !input.trim() || liveState === "connecting"
+                        }
+                        className={dictationBusy ? "vc-send-hidden" : ""}
                       >
                         <ArrowUp size={19} />
                       </button>
@@ -468,7 +500,7 @@ function VeronicaConversation() {
                     {ideas.map((idea) => (
                       <button
                         key={idea.tag}
-                        disabled={busy}
+                        disabled={busy || dictationBusy}
                         onClick={() => {
                           setInput(idea.text);
                           composer.current?.focus();
@@ -549,7 +581,12 @@ function VeronicaConversation() {
                     ) : (
                       <button
                         className="vc-live-button"
-                        disabled={!capabilities.liveEnabled || liveState === "connecting" || busy}
+                        disabled={
+                          !capabilities.liveEnabled ||
+                          liveState === "connecting" ||
+                          busy ||
+                          dictationBusy
+                        }
                         onClick={() => void start()}
                       >
                         {liveState === "connecting"
