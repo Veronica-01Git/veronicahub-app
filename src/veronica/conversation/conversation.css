@@ -787,3 +787,101 @@
     transition: none !important;
   }
 }
+
+/* Dictation lives in the prompt composer, independent of the live call. */
+.vc-compose-tools {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.vc-compose-meta {
+  display: flex;
+  gap: 14px;
+  font-size: 10px;
+  color: var(--vc-muted);
+}
+.vc-compose-bottom .vc-dictate,
+.vc-compose-bottom .vc-dict-cancel {
+  background: transparent;
+  color: var(--vc-text);
+  border: 1px solid var(--vc-line);
+}
+.vc-compose-bottom .vc-dictate:hover {
+  background: #ffffff0c;
+  border-color: #c2d4bb50;
+}
+.vc-compose-bottom .vc-send-hidden {
+  display: none;
+}
+.vc-dictation {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+.vc-dict-status {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--vc-text);
+}
+.vc-dict-status audio {
+  width: 100%;
+  max-width: 300px;
+  height: 36px;
+}
+.vc-dictation > small {
+  flex-basis: 100%;
+  color: var(--vc-muted);
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.vc-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  gap: 3px;
+}
+.vc-wave i {
+  display: block;
+  width: 3px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--vc-signal);
+  animation: vc-wave 700ms ease-in-out infinite alternate;
+}
+.vc-dict-spinner {
+  animation: vc-spin 1s linear infinite;
+}
+.vc-composer textarea:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@keyframes vc-wave {
+  to {
+    height: 25px;
+    opacity: 0.5;
+  }
+}
+@keyframes vc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vc-wave i,
+  .vc-dict-spinner {
+    animation: none;
+  }
+}

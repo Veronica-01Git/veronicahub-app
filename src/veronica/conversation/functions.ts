@@ -98,3 +98,24 @@ export const startVeronicaLive = createServerFn({ method: "POST" })
       };
     }
   });
+
+export const transcribePrompt = createServerFn({ method: "POST" })
+  .validator((data: FormData) => data)
+  .handler(async ({ data }) => {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const request = getRequest();
+    const origin = request.headers.get("origin");
+    if (!origin || origin !== new URL(request.url).origin)
+      return { ok: false as const, error: "Abra o chat da Veronica para gravar seu prompt." };
+    const { allowDictation, transcribeDictation } = await import("./dictation.server");
+    if (!allowDictation(request.headers.get("cf-connecting-ip") ?? "local"))
+      return { ok: false as const, error: "Muitas transcrições seguidas. Aguarde um minuto." };
+    try {
+      return await transcribeDictation(data);
+    } catch {
+      return {
+        ok: false as const,
+        error: "Gravação inválida. Grave novamente por até dois minutos.",
+      };
+    }
+  });
