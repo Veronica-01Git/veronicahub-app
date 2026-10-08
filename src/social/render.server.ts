@@ -224,7 +224,7 @@ export async function handleRender(request: Request) {
           tenantId: HOUSE_TENANT,
           executionId: String(job.id),
         },
-        maxCostMicros: 9000,
+        maxCostMicros: 6000,
         unknownCostPolicy: "block",
         attemptTimeoutMs: 20000,
         deadlineMs: 22000,

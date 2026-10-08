@@ -382,7 +382,7 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
   },
   {
     id: "social-shorts",
-    nome: "Agente Social Shorts",
+    nome: "Veronica Shorts",
     curto: "Shorts",
     etiqueta: "SOCIAL CONTENT OPERATIONS",
     problema: "Os vídeos escolhidos ficam espalhados e cada rede exige um novo criativo.",
@@ -398,10 +398,10 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
     produtoId: "studio",
     estado: "parcial",
     prova:
-      "Fila persistente e preparação editorial em /admin/shorts; estado agregado verificável em /api/agents/social-shorts/status. Edição automática e publicação ainda não estão conectadas.",
+      "Fila e preparação editorial em /admin/shorts, com motor próprio de cortes e legendas implementado e MP4 verificado em teste offline. Processador, armazenamento e publicação ainda precisam ser conectados.",
     painel: {
       to: "/admin/shorts",
-      rotulo: "Banco de Shorts",
+      rotulo: "Veronica Shorts",
       acesso: "interno",
       administra: [
         "Fontes escolhidas",
@@ -411,7 +411,8 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
       ],
     },
     pendencias: [
-      "Aquisição autorizada e edição automática de vídeo",
+      "Conectar processador e armazenamento do motor próprio",
+      "Validar aquisição e transcrição de um vídeo autorizado",
       "Conector de publicação e confirmação por rede",
       "Cadência ainda será definida pelo dono",
     ],
