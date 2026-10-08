@@ -1,3 +1,5 @@
-faster-whisper>=1.2.1,<2
-yt-dlp>=2026.1.31,<2027
-boto3>=1.40,<2
+faster-whisper==1.2.1
+ctranslate2==4.8.2
+# yt-dlp acompanha as mudanças do YouTube: atualizar, reconstruir e retestar.
+yt-dlp==2026.8.19
+boto3==1.43.110
