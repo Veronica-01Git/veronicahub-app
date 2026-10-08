@@ -7,6 +7,7 @@ import {
 } from "./policy.ts";
 import { checkTenantAccess } from "../lib/ai/tenant-guard.ts";
 import { HOUSE_TENANT } from "../lib/ai/platform-types.ts";
+import { groqFailure } from "../lib/ai/adapters/groq-json.ts";
 export type AgentTools = {
   catalog: () => Promise<AgentOffer[]>;
   houseClicks: () => Promise<{ productId: string; clicks: number }[]>;
@@ -22,6 +23,7 @@ export type AgentResult = {
   modelAttempted: boolean;
   modelAccepted: boolean;
   modelIssue: boolean;
+  modelFailure: string | null;
 };
 /** No user-supplied prompt, tenant, tool name or affiliate code can reach the executor. */
 export async function executeAnalyticsAgent(
@@ -48,12 +50,17 @@ export async function executeAnalyticsAgent(
   let creative = fallbackCreative(),
     modelAccepted = false,
     modelIssue = false;
+  let modelFailure: string | null = null;
   if (tools.creative && ranked.length) {
     try {
       creative = validateCreative(await tools.creative());
       modelAccepted = true;
-    } catch {
+    } catch (error) {
       modelIssue = true;
+      modelFailure =
+        error instanceof Error && error.message === "OUTPUT_REVIEW_REQUIRED"
+          ? "OUTPUT_REVIEW_REQUIRED"
+          : groqFailure(error);
     }
   }
   const result: AgentResult = {
@@ -63,6 +70,7 @@ export async function executeAnalyticsAgent(
     modelAttempted: !!tools.creative && !!ranked.length,
     modelAccepted,
     modelIssue,
+    modelFailure,
     briefings: ranked.slice(0, 3).map(({ offer, clicks }) => ({
       productId: offer.id,
       reason:

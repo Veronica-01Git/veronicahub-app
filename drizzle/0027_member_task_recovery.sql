@@ -1,0 +1,1 @@
+ALTER TABLE "MemberAgentTask" ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 1 CHECK(attempts BETWEEN 1 AND 3);

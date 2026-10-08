@@ -62,6 +62,7 @@ export const memberAgentTasks = pgTable(
   "MemberAgentTask",
   {
     key: text("key").primaryKey(),
+    attempts: integer("attempts").notNull().default(1),
     executionId: text("executionId")
       .notNull()
       .references(() => agentExecutions.id),
@@ -73,6 +74,7 @@ export const memberAgentTasks = pgTable(
   },
   (t) => [
     index("MemberAgentTask_created_idx").on(t.createdAt),
+    check("MemberAgentTask_attempts_check", sql`attempts BETWEEN 1 AND 3`),
     check("MemberAgentTask_kind_check", sql`kind IN ('editorial','reply')`),
     check("MemberAgentTask_status_check", sql`status IN ('RUNNING','SUCCEEDED','FAILED','REVIEW')`),
   ],

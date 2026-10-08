@@ -117,6 +117,10 @@ export function validateEditorial(value: unknown) {
 // corpo de resposta do provedor ou texto gerado.
 export const MEMBERS_FAILURE_CODES = [
   "PROVIDER_UNAVAILABLE",
+  "PROVIDER_AUTH",
+  "PROVIDER_RATE_LIMIT",
+  "PROVIDER_TIMEOUT",
+  "OUTPUT_TRUNCATED",
   "PROVIDER_NOT_CONFIGURED",
   "INVALID_OUTPUT",
   "OUTPUT_REVIEW_REQUIRED",

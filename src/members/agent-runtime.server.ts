@@ -1,10 +1,12 @@
 import { and, asc, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { getDb } from "../lib/db";
+import { getRuntimeSecret } from "../lib/runtime-secret.server";
+import { createGroqJsonAdapter, routeFailure } from "../lib/ai/adapters/groq-json";
 import { users } from "../lib/schema";
 import { agents, agentSkills, agentTools, agentExecutions, modelProviders } from "../lib/ai/schema";
 import { MEMBERS_COMMUNITY as spec, agentName, agentDescription } from "../lib/ai/agent-registry";
 import { checkTenantAccess } from "../lib/ai/tenant-guard";
-import { ModelRouter, type ProviderAdapter } from "../lib/ai/model-router";
+import { ModelRouter } from "../lib/ai/model-router";
 import { HOUSE_TENANT, type ExecutionTrigger } from "../lib/ai/platform-types";
 import {
   memberPosts,
@@ -25,55 +27,17 @@ import {
 const MODEL = "openai/gpt-oss-20b";
 // Reserva conservadora: até 4 bytes UTF-8 por caractere e 1 token por byte.
 const RESERVE_MICROS = Math.ceil(48_000 * 0.075 + 2_400 * 0.3);
-const adapter: ProviderAdapter<string, unknown> = {
-  provider: "groq",
-  model: MODEL,
-  type: "LLM",
-  isConfigured: () => !!process.env.GROQ_API_KEY,
-  estimateCostMicros: () => RESERVE_MICROS,
-  async invoke({ input }, signal) {
-    if (input.length + MEMBERS_SYSTEM.length > 12_000) throw new Error("INPUT_LIMIT");
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      signal,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        temperature: 0.4,
-        max_completion_tokens: 2400,
-        reasoning_effort: "low",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: MEMBERS_SYSTEM },
-          { role: "user", content: input },
-        ],
-      }),
-    });
-    if (!response.ok) throw new Error("PROVIDER_UNAVAILABLE");
-    const data = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-      usage?: { prompt_tokens?: number; completion_tokens?: number };
-    };
-    const content = data.choices?.[0]?.message?.content;
-    if (!content || content.length > 18_000) throw new Error("INVALID_OUTPUT");
-    // Groq informa tokens, não a cobrança: actualCostMicros permanece null.
-    const u = data.usage;
-    const estimated =
-      u && Number.isFinite(u.prompt_tokens) && Number.isFinite(u.completion_tokens)
-        ? Math.ceil(u.prompt_tokens! * 0.075 + u.completion_tokens! * 0.3)
-        : RESERVE_MICROS;
-    return {
-      output: JSON.parse(content),
-      costMicros: null,
-      metadata: { estimatedCostMicros: estimated },
-    };
-  },
-  describeError: () => "Provedor indisponível ou saída inválida; encaminhar à supervisão.",
-};
-const router = new ModelRouter().register(adapter).setRoute("LLM", [`groq/${MODEL}`]);
+async function membersRouter() {
+  const adapter = createGroqJsonAdapter({
+    key: await getRuntimeSecret("GROQ_API_KEY"),
+    system: MEMBERS_SYSTEM,
+    maxTokens: 2400,
+    maxInputChars: 12000,
+    maxOutputChars: 18000,
+    reserveMicros: RESERVE_MICROS,
+  });
+  return new ModelRouter().register(adapter).setRoute("LLM", [`groq/${MODEL}`]);
+}
 
 async function ensureAgent() {
   const db = getDb();
@@ -100,6 +64,7 @@ async function ensureAgent() {
   const [a] = await db.select().from(agents).where(eq(agents.slug, spec.slug)).limit(1);
   if (!a?.enabled) throw new Error("AGENT_DISABLED");
   await db.batch([
+    db.update(agents).set({ version: spec.version }).where(eq(agents.id, a.id)),
     db
       .insert(agentSkills)
       .values({ id: `${a.id}:${spec.skills[0]}`, agentId: a.id, skillKey: spec.skills[0] })
@@ -135,7 +100,8 @@ async function claim(
     day = new Date().toISOString().slice(0, 10);
   // Um statement: orçamento e tarefa disputados atomicamente, sem chamada duplicada.
   const result = await getDb().execute(sql`WITH candidate AS (
-    SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM "MemberAgentTask" WHERE "key"=${key})
+    SELECT 1 WHERE (NOT EXISTS (SELECT 1 FROM "MemberAgentTask" WHERE "key"=${key})
+      OR EXISTS (SELECT 1 FROM "MemberAgentTask" WHERE "key"=${key} AND status='FAILED' AND attempts<3 AND "finishedAt" < now()-interval '15 minutes'))
       AND EXISTS (SELECT 1 FROM "MemberAgentSettings" WHERE id=${spec.slug} AND enabled=true)
   ), budget AS (
     INSERT INTO "MemberAgentBudget" (day,calls) SELECT ${day},1 FROM candidate
@@ -143,7 +109,8 @@ async function claim(
     WHERE "MemberAgentBudget".calls<18 RETURNING day
   ), claimed AS (
     INSERT INTO "MemberAgentTask" ("key","executionId",kind,status)
-    SELECT ${key},${id},${kind},'RUNNING' FROM budget ON CONFLICT ("key") DO NOTHING RETURNING "executionId"
+    SELECT ${key},${id},${kind},'RUNNING' FROM budget ON CONFLICT ("key") DO UPDATE SET "executionId"=EXCLUDED."executionId",status='RUNNING',"finishedAt"=NULL,attempts="MemberAgentTask".attempts+1
+      WHERE "MemberAgentTask".status='FAILED' AND "MemberAgentTask".attempts<3 AND "MemberAgentTask"."finishedAt" < now()-interval '15 minutes' RETURNING "executionId"
   ) INSERT INTO "AgentExecution" (id,"agentId","agentVersion","tenantId",trigger,status,model,"providerId","estimatedCostMicros","startedAt")
     SELECT "executionId",${agentId},${spec.version},${HOUSE_TENANT},${trigger},'RUNNING',${MODEL},'groq',${RESERVE_MICROS},now()
     FROM claimed RETURNING id`);
@@ -186,7 +153,11 @@ function finishWrites(
         estimatedCostMicros: estimated,
         actualCostMicros: null,
         errorCode:
-          status === "SUCCEEDED" ? null : status === "REVIEW" ? "HUMAN_REVIEW" : "TASK_FAILED",
+          status === "SUCCEEDED"
+            ? null
+            : status === "REVIEW"
+              ? "HUMAN_REVIEW"
+              : (metadata.reason ?? "TASK_FAILED"),
         errorMessage:
           status === "SUCCEEDED"
             ? null
@@ -199,6 +170,7 @@ async function finish(...args: Parameters<typeof finishWrites>) {
   await getDb().batch(finishWrites(...args));
 }
 async function generate(input: string, executionId: string) {
+  const router = await membersRouter();
   const result = await router.route<string, unknown>({
     capability: "LLM",
     input,
@@ -208,14 +180,14 @@ async function generate(input: string, executionId: string) {
     attemptTimeoutMs: 28_000,
     deadlineMs: 30_000,
   });
-  if (!result.ok) throw new Error("PROVIDER_UNAVAILABLE");
+  if (!result.ok) throw new Error(routeFailure(result));
   const estimated = result.attempts[0]?.estimatedCostMicros ?? RESERVE_MICROS;
   return { output: result.output, estimated };
 }
 
 export async function runMembersAgent(trigger: ExecutionTrigger = "manual") {
   if (!checkTenantAccess(spec, HOUSE_TENANT).ok) throw new Error("TENANT_FORBIDDEN");
-  if (!adapter.isConfigured()) throw new Error("PROVIDER_NOT_CONFIGURED");
+  if (!(await getRuntimeSecret("GROQ_API_KEY"))) throw new Error("PROVIDER_NOT_CONFIGURED");
   const db = getDb();
   const [settings] = await db
     .select()
@@ -410,7 +382,7 @@ export async function membersAgentStatus() {
     .orderBy(desc(agentExecutions.queuedAt))
     .limit(1);
   const enabled = (settings?.enabled ?? false) && (agent?.enabled ?? true);
-  const providerConfigured = adapter.isConfigured();
+  const providerConfigured = !!(await getRuntimeSecret("GROQ_API_KEY"));
   const latest = recent[0]?.publishedAt?.getTime();
   const health = !enabled
     ? "paused"
@@ -425,6 +397,7 @@ export async function membersAgentStatus() {
             : "active";
   return {
     name: "Agente Members",
+    version: spec.version,
     enabled,
     providerConfigured,
     health,
@@ -480,7 +453,7 @@ export async function handleMembersAgent(request: Request) {
   }
   if (request.method !== "POST")
     return new Response(null, { status: 405, headers: { Allow: "POST" } });
-  const secret = process.env.CRON_SECRET;
+  const secret = await getRuntimeSecret("CRON_SECRET");
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`)
     return new Response("unauthorized", { status: 401 });
   try {
