@@ -1,6 +1,6 @@
 export const ANALYTICS_AGENT = {
   slug: "analytics-commerce",
-  version: "1.0.0",
+  version: "1.0.1",
   name: "Agente de Analytics",
   mission:
     "Transformar o catálogo habilitado em divulgações verificáveis e orientar a operação da Hub com dados reais.",

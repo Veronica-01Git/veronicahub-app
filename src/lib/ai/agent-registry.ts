@@ -436,7 +436,7 @@ const V_IVA: RegisteredAgent = {
 export const MEMBERS_COMMUNITY: RegisteredAgent = {
   slug: "members-community",
   workforceId: "members",
-  version: "1.0.0",
+  version: "1.0.1",
   status: "INTERNAL",
   statusBasis:
     "Runtime editorial e respostas oficiais na comunidade, com agendamento, histórico e supervisão em /admin/membros. Moderação humana permanece necessária.",
@@ -527,7 +527,7 @@ const VERONICA_MCP: RegisteredAgent = {
 export const ANALYTICS_COMMERCE: RegisteredAgent = {
   slug: "analytics-commerce",
   workforceId: "analytics",
-  version: "1.0.0",
+  version: "1.0.1",
   status: "INTERNAL",
   statusBasis:
     "Piloto de curadoria: execução horária persistida, catálogo real e contagens da Hub. Evidência pública em /api/agents/analytics/status; não executa vendas ou conciliação financeira.",

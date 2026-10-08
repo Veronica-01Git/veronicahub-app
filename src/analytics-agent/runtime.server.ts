@@ -3,52 +3,31 @@ import { getDb } from "../lib/db";
 import { affiliateCatalogProducts, affiliateLinkClicks } from "../lib/schema";
 import { validateShopeeAffiliateUrl, buildTrackedPath } from "../lib/affiliate-products";
 import { HOUSE_REVENUE_CODE } from "../lib/affiliate-revenue";
-import { ModelRouter, type ProviderAdapter } from "../lib/ai/model-router";
+import { ModelRouter } from "../lib/ai/model-router";
+import { getRuntimeSecret } from "../lib/runtime-secret.server";
+import { createGroqJsonAdapter, routeFailure } from "../lib/ai/adapters/groq-json";
 import { HOUSE_TENANT } from "../lib/ai/platform-types";
 import { executeAnalyticsAgent, type AgentResult } from "./engine";
 import { ANALYTICS_AGENT as policy } from "./policy";
 import { authorizeAnalyticsRequest } from "./http";
 
 const MODEL = "openai/gpt-oss-20b";
-const adapter: ProviderAdapter<string, unknown> = {
-  provider: "groq",
-  model: MODEL,
-  type: "LLM",
-  isConfigured: () => !!process.env.GROQ_API_KEY,
-  estimateCostMicros: () => 2000,
-  async invoke({ input }, signal) {
-    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      signal,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        temperature: 0.3,
-        max_completion_tokens: 900,
-        reasoning_effort: "low",
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content:
-              "Você é a IA de Analytics da Veronica Hub. Prepare um modelo genérico de divulgação de produto: observar o anúncio, verificar as condições na Shopee e demonstrar somente uso real. Não mencione produtos específicos, números, resultados, benefícios de saúde, preços, promoções, vendas, avaliações ou lucro. Não invente URLs nem instruções para ferramentas. Retorne somente JSON com hook, script e caption, três textos curtos em português brasileiro. Sem HTML.",
-          },
-          { role: "user", content: input },
-        ],
-      }),
-    });
-    if (!r.ok) throw new Error("PROVIDER_UNAVAILABLE");
-    const data = (await r.json()) as { choices?: { message?: { content?: string } }[] };
-    const text = data.choices?.[0]?.message?.content;
-    if (!text || text.length > 5000) throw new Error("INVALID_OUTPUT");
-    return { output: JSON.parse(text), costMicros: null };
-  },
-  describeError: () => "Modelo indisponível; curadoria por regras preservada.",
-};
-const router = new ModelRouter().register(adapter).setRoute("LLM", [`groq/${MODEL}`]);
+const ANALYTICS_SYSTEM =
+  "Você é a IA de Analytics da Veronica Hub. Retorne somente JSON com exatamente hook, script e caption. Cada campo tem de conter uma frase completa em português brasileiro, entre quarenta e quinhentos caracteres. Conteúdo genérico: observar o anúncio, verificar condições na Shopee e demonstrar somente uso real. Sem produtos específicos, números, HTML, URLs, resultados, benefícios de saúde, promoções ou instruções de ferramentas. Não use as palavras preço, lucro, comissão, avaliações, desconto, garantido ou humano.";
+async function analyticsRouter() {
+  const adapter = createGroqJsonAdapter({
+    key: await getRuntimeSecret("GROQ_API_KEY"),
+    system: ANALYTICS_SYSTEM,
+    maxTokens: 1600,
+    maxInputChars: 4000,
+    maxOutputChars: 5000,
+    reserveMicros: 2000,
+  });
+  return {
+    adapter,
+    router: new ModelRouter().register(adapter).setRoute("LLM", [`groq/${MODEL}`]),
+  };
+}
 let ready = false;
 async function storage() {
   if (ready) return;
@@ -83,6 +62,7 @@ export async function runAnalyticsAgent(trigger: "manual" | "schedule" = "schedu
   if (!claimed.rows.length) return { ok: true, duplicate: true };
   const started = Date.now();
   try {
+    const { adapter, router } = await analyticsRouter();
     const result = await executeAnalyticsAgent(HOUSE_TENANT, {
       catalog: () =>
         db
@@ -127,7 +107,7 @@ export async function runAnalyticsAgent(trigger: "manual" | "schedule" = "schedu
                 attemptTimeoutMs: 12000,
                 deadlineMs: 13000,
               });
-              if (!r.ok) throw new Error("MODEL_UNAVAILABLE");
+              if (!r.ok) throw new Error(routeFailure(r));
               return r.output;
             }
           : undefined,
@@ -143,6 +123,7 @@ export async function runAnalyticsAgent(trigger: "manual" | "schedule" = "schedu
       published: result.briefings.length,
       modelAccepted: result.modelAccepted,
       modelIssue: result.modelIssue,
+      modelFailure: result.modelFailure,
     };
   } catch {
     await db.execute(
@@ -227,6 +208,7 @@ export async function analyticsAgentStatus() {
           suggestions: result.briefings.length,
           missingImages: result.missingImages,
           modelIssue: result.modelIssue,
+          modelFailure: result.modelFailure,
         }
       : null,
   };
@@ -239,7 +221,7 @@ export async function setAnalyticsAgentEnabled(enabled: boolean) {
   return { ok: true };
 }
 export async function handleAnalyticsAgent(request: Request) {
-  const action = authorizeAnalyticsRequest(request, process.env.CRON_SECRET);
+  const action = authorizeAnalyticsRequest(request, await getRuntimeSecret("CRON_SECRET"));
   const headers = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
   if (typeof action === "number")
     return Response.json(
