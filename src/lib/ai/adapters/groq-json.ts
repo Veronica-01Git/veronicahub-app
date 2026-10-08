@@ -8,12 +8,14 @@ export const GROQ_FAILURE_CODES = [
   "OUTPUT_TRUNCATED",
   "INPUT_LIMIT",
   "PROVIDER_TIMEOUT",
+  "MODEL_BUDGET_EXHAUSTED",
 ] as const;
 export function groqFailure(error: unknown): string {
   const code = error instanceof Error ? error.message : "";
   return (GROQ_FAILURE_CODES as readonly string[]).includes(code) ? code : "PROVIDER_UNAVAILABLE";
 }
 export function routeFailure(result: RouteResult<unknown>): string {
+  if (!result.ok && result.code === "COST_GUARD_TRIGGERED") return "MODEL_BUDGET_EXHAUSTED";
   if (result.attempts.some((a) => a.outcome === "timeout")) return "PROVIDER_TIMEOUT";
   return result.attempts.find((a) => a.outcome === "error")?.error ?? "PROVIDER_UNAVAILABLE";
 }

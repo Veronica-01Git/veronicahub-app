@@ -436,7 +436,7 @@ const V_IVA: RegisteredAgent = {
 export const MEMBERS_COMMUNITY: RegisteredAgent = {
   slug: "members-community",
   workforceId: "members",
-  version: "1.0.1",
+  version: "1.0.2",
   status: "INTERNAL",
   statusBasis:
     "Runtime editorial e respostas oficiais na comunidade, com agendamento, histórico e supervisão em /admin/membros. Moderação humana permanece necessária.",
@@ -453,7 +453,7 @@ export const MEMBERS_COMMUNITY: RegisteredAgent = {
   costCurrency: "USD",
   maxLatencyMs: 30_000,
   ceilingsBasis:
-    "Definido em 03/10/2026 sob delegação do dono: US$ 0,01 por tarefa e 30 s. Groq gpt-oss-20b: US$ 0,075/M input e 0,30/M output (console.groq.com/docs/models). Entrada limitada a 12.000 caracteres e saída a 2.400 tokens: reserva conservadora de 4.320 micros (até 48.000 bytes de entrada); máximo 18 chamadas/dia. Custo observado é estimativa por tokens, não cobrança real.",
+    "Definido em 03/10/2026 sob delegação do dono: US$ 0,01 por tarefa e 30 s. Groq gpt-oss-20b: US$ 0,075/M input e 0,30/M output (console.groq.com/docs/models). Entrada limitada a 12.000 caracteres e saída a 2.400 tokens: reserva conservadora de 4.320 micros (até 48.000 bytes de entrada); máximo 18 reservas/dia. Gemini 3.5 Flash-Lite é preferido quando configurado; reserva por bytes UTF-8 com margem de 1.024 tokens, a US$ 0,30/M input e 2,50/M output; entradas que excedem o teto são recusadas antes da chamada. Um provedor por reserva. Custo observado é estimativa por tokens, não cobrança real.",
   approval: {
     requiresApproval: false,
     handoffTriggers: ["conteúdo sensível", "saída inválida", "falha de provedor"],
@@ -527,7 +527,7 @@ const VERONICA_MCP: RegisteredAgent = {
 export const ANALYTICS_COMMERCE: RegisteredAgent = {
   slug: "analytics-commerce",
   workforceId: "analytics",
-  version: "1.0.1",
+  version: "1.0.2",
   status: "INTERNAL",
   statusBasis:
     "Piloto de curadoria: execução horária persistida, catálogo real e contagens da Hub. Evidência pública em /api/agents/analytics/status; não executa vendas ou conciliação financeira.",
@@ -549,7 +549,7 @@ export const ANALYTICS_COMMERCE: RegisteredAgent = {
   costCurrency: "USD",
   maxLatencyMs: 60000,
   ceilingsBasis:
-    "Limite de uma tentativa de modelo por hora. Entrada fixa inferior a 2.000 tokens, saída limitada a 900 tokens; reserva conservadora de 2.000 micros. Teto 5.000 micros e timeout do modelo de 13 segundos; sem envio de dados pessoais ao provedor.",
+    "Limite de uma tentativa de modelo por hora. Entrada incluindo sistema limitada a 4.000 caracteres e saída a 1.400 tokens. Gemini 3.5 Flash-Lite é preferido quando configurado: reserva por bytes UTF-8 + margem de 1.024 tokens, a US$ 0,30/M input e 2,50/M output (ai.google.dev/gemini-api/docs/pricing). Groq usa reserva de 2.000 micros. Teto 5.000 micros e timeout do modelo de 13 segundos; entradas acima do teto são recusadas antes da chamada. Sem envio de dados pessoais ao provedor.",
   approval: {
     requiresApproval: false,
     handoffTriggers: ["catálogo indisponível", "links recusados", "modelo ou saída inválida"],

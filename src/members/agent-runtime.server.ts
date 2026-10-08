@@ -1,12 +1,13 @@
 import { and, asc, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { getDb } from "../lib/db";
 import { getRuntimeSecret } from "../lib/runtime-secret.server";
-import { createGroqJsonAdapter, routeFailure } from "../lib/ai/adapters/groq-json";
+import { routeFailure } from "../lib/ai/adapters/groq-json";
+import { jsonRoute } from "../lib/ai/adapters/route-json.server";
 import { users } from "../lib/schema";
 import { agents, agentSkills, agentTools, agentExecutions, modelProviders } from "../lib/ai/schema";
 import { MEMBERS_COMMUNITY as spec, agentName, agentDescription } from "../lib/ai/agent-registry";
 import { checkTenantAccess } from "../lib/ai/tenant-guard";
-import { ModelRouter } from "../lib/ai/model-router";
+
 import { HOUSE_TENANT, type ExecutionTrigger } from "../lib/ai/platform-types";
 import {
   memberPosts,
@@ -28,15 +29,13 @@ const MODEL = "openai/gpt-oss-20b";
 // Reserva conservadora: até 4 bytes UTF-8 por caractere e 1 token por byte.
 const RESERVE_MICROS = Math.ceil(48_000 * 0.075 + 2_400 * 0.3);
 async function membersRouter() {
-  const adapter = createGroqJsonAdapter({
-    key: await getRuntimeSecret("GROQ_API_KEY"),
+  return jsonRoute({
     system: MEMBERS_SYSTEM,
     maxTokens: 2400,
     maxInputChars: 12000,
     maxOutputChars: 18000,
     reserveMicros: RESERVE_MICROS,
   });
-  return new ModelRouter().register(adapter).setRoute("LLM", [`groq/${MODEL}`]);
 }
 
 async function ensureAgent() {
@@ -59,7 +58,13 @@ async function ensureAgent() {
         requiresApproval: false,
       })
       .onConflictDoNothing(),
-    db.insert(modelProviders).values({ id: "groq", displayName: "Groq" }).onConflictDoNothing(),
+    db
+      .insert(modelProviders)
+      .values([
+        { id: "groq", displayName: "Groq" },
+        { id: "gemini", displayName: "Gemini" },
+      ])
+      .onConflictDoNothing(),
   ]);
   const [a] = await db.select().from(agents).where(eq(agents.slug, spec.slug)).limit(1);
   if (!a?.enabled) throw new Error("AGENT_DISABLED");
@@ -101,7 +106,7 @@ async function claim(
   // Um statement: orçamento e tarefa disputados atomicamente, sem chamada duplicada.
   const result = await getDb().execute(sql`WITH candidate AS (
     SELECT 1 WHERE (NOT EXISTS (SELECT 1 FROM "MemberAgentTask" WHERE "key"=${key})
-      OR EXISTS (SELECT 1 FROM "MemberAgentTask" WHERE "key"=${key} AND status='FAILED' AND attempts<3 AND "finishedAt" < now()-interval '15 minutes'))
+      OR EXISTS (SELECT 1 FROM "MemberAgentTask" t WHERE t."key"=${key} AND t.status='FAILED' AND t.attempts<3 AND (t."finishedAt" < now()-interval '15 minutes' OR EXISTS (SELECT 1 FROM "AgentExecution" e WHERE e.id=t."executionId" AND e."agentVersion"<>${spec.version}))))
       AND EXISTS (SELECT 1 FROM "MemberAgentSettings" WHERE id=${spec.slug} AND enabled=true)
   ), budget AS (
     INSERT INTO "MemberAgentBudget" (day,calls) SELECT ${day},1 FROM candidate
@@ -110,7 +115,7 @@ async function claim(
   ), claimed AS (
     INSERT INTO "MemberAgentTask" ("key","executionId",kind,status)
     SELECT ${key},${id},${kind},'RUNNING' FROM budget ON CONFLICT ("key") DO UPDATE SET "executionId"=EXCLUDED."executionId",status='RUNNING',"finishedAt"=NULL,attempts="MemberAgentTask".attempts+1
-      WHERE "MemberAgentTask".status='FAILED' AND "MemberAgentTask".attempts<3 AND "MemberAgentTask"."finishedAt" < now()-interval '15 minutes' RETURNING "executionId"
+      WHERE "MemberAgentTask".status='FAILED' AND "MemberAgentTask".attempts<3 AND ("MemberAgentTask"."finishedAt" < now()-interval '15 minutes' OR EXISTS (SELECT 1 FROM "AgentExecution" e WHERE e.id="MemberAgentTask"."executionId" AND e."agentVersion"<>${spec.version})) RETURNING "executionId"
   ) INSERT INTO "AgentExecution" (id,"agentId","agentVersion","tenantId",trigger,status,model,"providerId","estimatedCostMicros","startedAt")
     SELECT "executionId",${agentId},${spec.version},${HOUSE_TENANT},${trigger},'RUNNING',${MODEL},'groq',${RESERVE_MICROS},now()
     FROM claimed RETURNING id`);
@@ -150,7 +155,7 @@ function finishWrites(
         durationMs: Date.now() - started,
         toolsUsed: JSON.stringify(status === "SUCCEEDED" ? [tool] : []),
         resultMetadata: JSON.stringify(metadata),
-        estimatedCostMicros: estimated,
+        ...(status === "SUCCEEDED" ? { estimatedCostMicros: estimated } : {}),
         actualCostMicros: null,
         errorCode:
           status === "SUCCEEDED"
@@ -170,7 +175,12 @@ async function finish(...args: Parameters<typeof finishWrites>) {
   await getDb().batch(finishWrites(...args));
 }
 async function generate(input: string, executionId: string) {
-  const router = await membersRouter();
+  const { adapter, router } = await membersRouter();
+  const estimate = adapter.estimateCostMicros({ capability: "LLM", input });
+  await getDb()
+    .update(agentExecutions)
+    .set({ providerId: adapter.provider, model: adapter.model, estimatedCostMicros: estimate })
+    .where(and(eq(agentExecutions.id, executionId), eq(agentExecutions.status, "RUNNING")));
   const result = await router.route<string, unknown>({
     capability: "LLM",
     input,
@@ -187,7 +197,8 @@ async function generate(input: string, executionId: string) {
 
 export async function runMembersAgent(trigger: ExecutionTrigger = "manual") {
   if (!checkTenantAccess(spec, HOUSE_TENANT).ok) throw new Error("TENANT_FORBIDDEN");
-  if (!(await getRuntimeSecret("GROQ_API_KEY"))) throw new Error("PROVIDER_NOT_CONFIGURED");
+  if (!(await getRuntimeSecret("GEMINI_API_KEY")) && !(await getRuntimeSecret("GROQ_API_KEY")))
+    throw new Error("PROVIDER_NOT_CONFIGURED");
   const db = getDb();
   const [settings] = await db
     .select()
@@ -382,7 +393,9 @@ export async function membersAgentStatus() {
     .orderBy(desc(agentExecutions.queuedAt))
     .limit(1);
   const enabled = (settings?.enabled ?? false) && (agent?.enabled ?? true);
-  const providerConfigured = !!(await getRuntimeSecret("GROQ_API_KEY"));
+  const providerConfigured = !!(
+    (await getRuntimeSecret("GEMINI_API_KEY")) || (await getRuntimeSecret("GROQ_API_KEY"))
+  );
   const latest = recent[0]?.publishedAt?.getTime();
   const health = !enabled
     ? "paused"
