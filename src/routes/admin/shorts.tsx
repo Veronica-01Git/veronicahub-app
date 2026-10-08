@@ -2,11 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getSocialQueue, socialCommand, type Command } from "@/social/server";
-import { coverSvg, GOALS, type SourceInput } from "@/social/policy";
+import { coverSvg, GOALS, youtubeUrl, type SourceInput } from "@/social/policy";
 import type { SourceRow } from "@/social/runtime.server";
 
 export const Route = createFileRoute("/admin/shorts")({
   component: ShortsPanel,
+  validateSearch: (search: Record<string, unknown>): { source?: string } => {
+    if (typeof search.source !== "string" || search.source.length > 1000) return {};
+    try {
+      return { source: youtubeUrl(search.source).url };
+    } catch {
+      return {};
+    }
+  },
   head: () => ({
     meta: [
       { title: "Veronica Shorts · Veronica Hub" },
@@ -59,7 +67,8 @@ function ShortsPanel() {
   const [state, setState] = useState<
     Awaited<ReturnType<typeof getSocialQueue>> | { ok: false; error: string } | null
   >(null);
-  const [form, setForm] = useState<SourceInput>(empty);
+  const { source: prefill } = Route.useSearch();
+  const [form, setForm] = useState<SourceInput>(() => ({ ...empty, url: prefill ?? "" }));
   const [editing, setEditing] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

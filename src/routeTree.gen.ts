@@ -27,6 +27,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PromptPacksRouteImport } from './routes/prompt-packs'
 import { Route as SeloDemoRouteImport } from './routes/selo-demo'
 import { Route as SelosRouteImport } from './routes/selos'
+import { Route as ShortsRouteImport } from './routes/shorts'
 import { Route as StudioVeronicaRouteImport } from './routes/studio-veronica'
 import { Route as VeronicaRouteImport } from './routes/veronica'
 import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analytics'
@@ -173,6 +174,11 @@ const SeloDemoRoute = SeloDemoRouteImport.update({
 const SelosRoute = SelosRouteImport.update({
   id: '/selos',
   path: '/selos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShortsRoute = ShortsRouteImport.update({
+  id: '/shorts',
+  path: '/shorts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioVeronicaRoute = StudioVeronicaRouteImport.update({
@@ -503,6 +509,7 @@ export interface FileRoutesByFullPath {
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
+  '/shorts': typeof ShortsRoute
   '/studio-veronica': typeof StudioVeronicaRoute
   '/veronica': typeof VeronicaRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
@@ -580,6 +587,7 @@ export interface FileRoutesByTo {
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
+  '/shorts': typeof ShortsRoute
   '/studio-veronica': typeof StudioVeronicaRoute
   '/veronica': typeof VeronicaRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
@@ -657,6 +665,7 @@ export interface FileRoutesById {
   '/prompt-packs': typeof PromptPacksRoute
   '/selo-demo': typeof SeloDemoRoute
   '/selos': typeof SelosRoute
+  '/shorts': typeof ShortsRoute
   '/studio-veronica': typeof StudioVeronicaRoute
   '/veronica': typeof VeronicaRoute
   '/veronica-analytics': typeof VeronicaAnalyticsRoute
@@ -736,6 +745,7 @@ export interface FileRouteTypes {
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
+    | '/shorts'
     | '/studio-veronica'
     | '/veronica'
     | '/veronica-analytics'
@@ -813,6 +823,7 @@ export interface FileRouteTypes {
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
+    | '/shorts'
     | '/studio-veronica'
     | '/veronica'
     | '/veronica-analytics'
@@ -889,6 +900,7 @@ export interface FileRouteTypes {
     | '/prompt-packs'
     | '/selo-demo'
     | '/selos'
+    | '/shorts'
     | '/studio-veronica'
     | '/veronica'
     | '/veronica-analytics'
@@ -967,6 +979,7 @@ export interface RootRouteChildren {
   PromptPacksRoute: typeof PromptPacksRoute
   SeloDemoRoute: typeof SeloDemoRoute
   SelosRoute: typeof SelosRoute
+  ShortsRoute: typeof ShortsRoute
   StudioVeronicaRoute: typeof StudioVeronicaRoute
   VeronicaRoute: typeof VeronicaRoute
   VeronicaAnalyticsRoute: typeof VeronicaAnalyticsRoute
@@ -1139,6 +1152,13 @@ declare module '@tanstack/react-router' {
       path: '/selos'
       fullPath: '/selos'
       preLoaderRoute: typeof SelosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shorts': {
+      id: '/shorts'
+      path: '/shorts'
+      fullPath: '/shorts'
+      preLoaderRoute: typeof ShortsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio-veronica': {
@@ -1641,6 +1661,7 @@ const rootRouteChildren: RootRouteChildren = {
   PromptPacksRoute: PromptPacksRoute,
   SeloDemoRoute: SeloDemoRoute,
   SelosRoute: SelosRoute,
+  ShortsRoute: ShortsRoute,
   StudioVeronicaRoute: StudioVeronicaRoute,
   VeronicaRoute: VeronicaRoute,
   VeronicaAnalyticsRoute: VeronicaAnalyticsRoute,
