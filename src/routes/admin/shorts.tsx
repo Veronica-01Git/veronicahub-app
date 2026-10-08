@@ -470,6 +470,18 @@ function ShortsPanel() {
                               >
                                 Baixar kit das 4 redes
                               </button>
+                              <button
+                                className={`${button} mt-3`}
+                                onClick={() =>
+                                  download(
+                                    `capa-${job.id}-${index}.svg`,
+                                    coverSvg(clip.creative.coverTitle),
+                                    "image/svg+xml",
+                                  )
+                                }
+                              >
+                                Baixar capa vertical
+                              </button>
                               <p className="mt-3 whitespace-pre-wrap text-sm">
                                 {clip.creative.caption}
                               </p>
@@ -602,16 +614,17 @@ function ShortsPanel() {
                   </div>
                 ) : (
                   <p className="mt-5 text-sm text-zinc-600">
-                    Adicione a transcrição e confirme a autorização em Revisar. Depois prepare o
-                    próximo item da fila.
+                    O motor próprio transcreve o vídeo ao gerar os cortes. Para preparar apenas um
+                    rascunho editorial, adicione uma transcrição opcional e use Preparar próximo da
+                    fila.
                   </p>
                 )}
               </section>
             )}
             <section className="mt-7 rounded-3xl border border-zinc-200 bg-white p-6">
-              <h2 className="text-xl font-semibold">Execuções reais</h2>
+              <h2 className="text-xl font-semibold">Histórico de rascunhos</h2>
               {!state.runs.length ? (
-                <p className="mt-3 text-sm text-zinc-500">Nenhuma execução ainda.</p>
+                <p className="mt-3 text-sm text-zinc-500">Nenhum rascunho preparado ainda.</p>
               ) : (
                 <ul className="mt-4 space-y-2 text-sm">
                   {state.runs.map((run) => (
