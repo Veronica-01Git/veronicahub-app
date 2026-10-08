@@ -1,4 +1,5 @@
 import { handleCommercialOperations } from "./commercial/cron.server";
+import { handleSocial } from "./social/runtime.server";
 import { handleAnalyticsAgent } from "./analytics-agent/runtime.server";
 import { handleMembersAgent } from "./members/agent-runtime.server";
 import { handleWireHealth } from "./lib/wire-health.server";
@@ -116,6 +117,12 @@ function extrairWaitUntil(ctx: unknown): ((p: Promise<unknown>) => void) | undef
 const app = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
+    if (
+      url.pathname === "/api/cron/social-shorts" ||
+      url.pathname === "/api/agents/social-shorts/status" ||
+      url.pathname.startsWith("/api/social/go/")
+    )
+      return handleSocial(request);
     if (url.pathname === "/api/cron/wire-health") return handleWireHealth(request);
     if (url.pathname === "/api/mercadopago-webhook") {
       try {

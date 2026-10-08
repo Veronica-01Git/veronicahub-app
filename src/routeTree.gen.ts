@@ -44,6 +44,7 @@ import { Route as AdminConectorMcpRouteImport } from './routes/admin/conector-mc
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
 import { Route as AdminMembrosRouteImport } from './routes/admin/membros'
 import { Route as AdminProdutosShopeeRouteImport } from './routes/admin/produtos-shopee'
+import { Route as AdminShortsRouteImport } from './routes/admin/shorts'
 import { Route as AdminVIvaRouteImport } from './routes/admin/v-iva'
 import { Route as AdminVeronicaUniverseRouteImport } from './routes/admin/veronica-universe'
 import { Route as AdminWireRouteImport } from './routes/admin/wire'
@@ -258,6 +259,11 @@ const AdminMembrosRoute = AdminMembrosRouteImport.update({
 const AdminProdutosShopeeRoute = AdminProdutosShopeeRouteImport.update({
   id: '/admin/produtos-shopee',
   path: '/admin/produtos-shopee',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminShortsRoute = AdminShortsRouteImport.update({
+  id: '/admin/shorts',
+  path: '/admin/shorts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminVIvaRoute = AdminVIvaRouteImport.update({
@@ -513,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
+  '/admin/shorts': typeof AdminShortsRoute
   '/admin/v-iva': typeof AdminVIvaRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
@@ -589,6 +596,7 @@ export interface FileRoutesByTo {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
+  '/admin/shorts': typeof AdminShortsRoute
   '/admin/v-iva': typeof AdminVIvaRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
@@ -665,6 +673,7 @@ export interface FileRoutesById {
   '/admin/imagens': typeof AdminImagensRoute
   '/admin/membros': typeof AdminMembrosRoute
   '/admin/produtos-shopee': typeof AdminProdutosShopeeRoute
+  '/admin/shorts': typeof AdminShortsRoute
   '/admin/v-iva': typeof AdminVIvaRoute
   '/admin/veronica-universe': typeof AdminVeronicaUniverseRoute
   '/admin/wire': typeof AdminWireRoute
@@ -743,6 +752,7 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/membros'
     | '/admin/produtos-shopee'
+    | '/admin/shorts'
     | '/admin/v-iva'
     | '/admin/veronica-universe'
     | '/admin/wire'
@@ -819,6 +829,7 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/membros'
     | '/admin/produtos-shopee'
+    | '/admin/shorts'
     | '/admin/v-iva'
     | '/admin/veronica-universe'
     | '/admin/wire'
@@ -894,6 +905,7 @@ export interface FileRouteTypes {
     | '/admin/imagens'
     | '/admin/membros'
     | '/admin/produtos-shopee'
+    | '/admin/shorts'
     | '/admin/v-iva'
     | '/admin/veronica-universe'
     | '/admin/wire'
@@ -971,6 +983,7 @@ export interface RootRouteChildren {
   AdminImagensRoute: typeof AdminImagensRoute
   AdminMembrosRoute: typeof AdminMembrosRoute
   AdminProdutosShopeeRoute: typeof AdminProdutosShopeeRoute
+  AdminShortsRoute: typeof AdminShortsRoute
   AdminVIvaRoute: typeof AdminVIvaRoute
   AdminVeronicaUniverseRoute: typeof AdminVeronicaUniverseRoute
   AdminWireRoute: typeof AdminWireRoute
@@ -1245,6 +1258,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/produtos-shopee'
       fullPath: '/admin/produtos-shopee'
       preLoaderRoute: typeof AdminProdutosShopeeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/shorts': {
+      id: '/admin/shorts'
+      path: '/admin/shorts'
+      fullPath: '/admin/shorts'
+      preLoaderRoute: typeof AdminShortsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/v-iva': {
@@ -1637,6 +1657,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminImagensRoute: AdminImagensRoute,
   AdminMembrosRoute: AdminMembrosRoute,
   AdminProdutosShopeeRoute: AdminProdutosShopeeRoute,
+  AdminShortsRoute: AdminShortsRoute,
   AdminVIvaRoute: AdminVIvaRoute,
   AdminVeronicaUniverseRoute: AdminVeronicaUniverseRoute,
   AdminWireRoute: AdminWireRoute,

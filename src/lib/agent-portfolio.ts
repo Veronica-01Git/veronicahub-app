@@ -12,6 +12,8 @@ export function routesForAgent(a: AgenteWorkforce) {
     routes.push({ href: "/api/agents/analytics/status", label: "Histórico público" });
   if (a.id === "members")
     routes.push({ href: "/api/agents/members/status", label: "Histórico público" });
+  if (a.id === "social-shorts")
+    routes.push({ href: "/api/agents/social-shorts/status", label: "Estado da operação" });
   if (a.id === "lz-fitness") {
     routes.push({ href: "/agentes-humanos", label: "Verônica · Agentes Humanos" });
     routes.push({ href: "/clientes/lz-team", label: "LZ Training Club · Lucas Tomaz" });

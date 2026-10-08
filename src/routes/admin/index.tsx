@@ -52,6 +52,12 @@ function AdminPanel() {
           </div>
           <div className="flex flex-wrap gap-2">
             <a
+              href="/admin/shorts"
+              className="inline-flex items-center rounded-sm border border-border/60 px-3 py-1.5 text-sm"
+            >
+              Banco de Shorts
+            </a>
+            <a
               href="/admin/membros"
               className="inline-flex items-center rounded-sm border border-border/60 px-3 py-1.5 text-sm"
             >
