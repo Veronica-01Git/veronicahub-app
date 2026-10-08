@@ -231,9 +231,8 @@ function CommercialPage() {
                       </h3>
                       <p className="mt-3 whitespace-pre-wrap">{a.summary}</p>
                       <p className="mt-3 text-xs text-black/60">
-                        Organização:{" "}
-                        {a.mode === "model" ? "IA com contrato validado" : "regras do serviço"} ·
-                        revisão da equipe necessária
+                        Organização: {a.mode === "model" ? "IA" : "regras do serviço"} · revisão da
+                        equipe necessária
                       </p>
                       {b.scope && (
                         <div className="mt-5 border-t pt-5">
