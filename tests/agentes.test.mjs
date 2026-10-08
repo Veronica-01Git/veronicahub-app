@@ -144,6 +144,8 @@ test("a rota é alcançável clicando, não só digitando a URL", () => {
  * Mexer nesta lista é um ato consciente. É exatamente esse o ponto.
  */
 const SEM_LINK_DE_PROPOSITO = new Set([
+  // Painel privado alcançado pelo dashboard /admin; fora da navegação pública.
+  "/admin/comercial",
   "/", // a própria raiz
   // Painel interno: fora da navegação pública por decisão, e o teste de
   // arquitetura já proíbe /admin de aparecer nela.

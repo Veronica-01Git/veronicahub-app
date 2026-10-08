@@ -55,6 +55,30 @@ export type ToolDefinition = {
  */
 export const TOOL_REGISTRY: readonly ToolDefinition[] = [
   {
+    key: "commercial.brief.save",
+    description: "Salva briefing da conta autenticada, com limite diário e análise delimitada",
+    sideEffect: "write",
+    implementedBy: "src/commercial/server.ts",
+  },
+  {
+    key: "commercial.proposal.review",
+    description: "Registra decisão administrativa de escopo e valores",
+    sideEffect: "write",
+    implementedBy: "src/commercial/server.ts",
+  },
+  {
+    key: "guardian.health.read",
+    description: "Consulta sinais operacionais agregados sem ler conversas de clientes",
+    sideEffect: "read",
+    implementedBy: "src/commercial/server.ts",
+  },
+  {
+    key: "guardian.snapshot.save",
+    description: "Registra diagnóstico operacional por hora, sem envio externo",
+    sideEffect: "write",
+    implementedBy: "src/commercial/cron.server.ts",
+  },
+  {
     key: "analytics.catalog.read",
     description: "Lê somente produtos habilitados da Hub",
     sideEffect: "read",
@@ -545,7 +569,75 @@ export const ANALYTICS_COMMERCE: RegisteredAgent = {
     },
   ],
 };
+const COMMERCIAL: RegisteredAgent = {
+  slug: "veronica-comercial",
+  workforceId: "comercial",
+  version: "1.0.0",
+  status: "INTERNAL",
+  statusBasis:
+    "Diagnóstico autenticado com reserva diária persistente, fila administrativa e aprovação de propostas. Ainda não validado como operador comercial externo.",
+  autonomyLevel: "LEVEL_2",
+  tenantScope: "internal",
+  allowedTenants: [HOUSE_TENANT],
+  skills: ["cap:commercial-briefing", "cap:commercial-contract"],
+  tools: [
+    { key: "commercial.brief.save", requiresApproval: false },
+    { key: "commercial.proposal.review", requiresApproval: true },
+  ],
+  maxCostPerTaskMicros: null,
+  costCurrency: "USD",
+  maxLatencyMs: null,
+  approval: {
+    requiresApproval: false,
+    handoffTriggers: ["proposta", "preço", "contratação", "dados insuficientes"],
+  },
+  businessRules: [
+    {
+      id: "approval-required",
+      description:
+        "Preço, escopo e avanço comercial somente por administrador com histórico auditado",
+      enforcedBy: "src/commercial/server.ts",
+      forbiddenOutputPatterns: ["lucro garantido"],
+    },
+  ],
+};
+const GUARDIAN: RegisteredAgent = {
+  slug: "veronica-guardian",
+  workforceId: null,
+  ownName: "Veronica Guardian",
+  ownDescription:
+    "Supervisiona sinais reais de Wire, Members, Analytics e fila comercial; registra atenção sem modificar as operações.",
+  version: "1.0.0",
+  status: "INTERNAL",
+  statusBasis:
+    "Consultas agregadas e snapshots horários autenticados; falha de leitura é desconhecido, nunca prova de saúde.",
+  autonomyLevel: "LEVEL_2",
+  tenantScope: "internal",
+  allowedTenants: [HOUSE_TENANT],
+  skills: ["cap:guardian-observation"],
+  tools: [
+    { key: "guardian.health.read", requiresApproval: false },
+    { key: "guardian.snapshot.save", requiresApproval: false },
+  ],
+  maxCostPerTaskMicros: 0,
+  costCurrency: "USD",
+  maxLatencyMs: 60000,
+  ceilingsBasis:
+    "Não chama modelo; custo de geração IA zero. Limite de execução do HTTP/workflow de 60 segundos; custos de infraestrutura não são tratados como zero.",
+  approval: { requiresApproval: false, handoffTriggers: ["fonte indisponível", "tarefa atrasada"] },
+  businessRules: [
+    {
+      id: "no-repair",
+      description:
+        "Não modifica clientes, números WhatsApp, provedores, pagamentos ou regras de negócio",
+      enforcedBy: "src/commercial/server.ts",
+      forbiddenOutputPatterns: [],
+    },
+  ],
+};
 export const AGENT_REGISTRY: readonly RegisteredAgent[] = [
+  COMMERCIAL,
+  GUARDIAN,
   ANALYTICS_COMMERCE,
   MEMBERS_COMMUNITY,
   WIRE_REDACAO,

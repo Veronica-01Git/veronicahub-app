@@ -4,6 +4,8 @@ import { rotaDoAgente, type AgenteWorkforce } from "./ai-workforce.ts";
 export function routesForAgent(a: AgenteWorkforce) {
   const main = rotaDoAgente(a);
   const routes = [{ href: main.to, label: main.name }];
+  if (a.id === "comercial")
+    routes.push({ href: "/api/agents/commercial/status", label: "Evidência pública" });
   if (a.id === "redacao")
     routes.push({ href: "/api/wire/feed.json", label: "Feed de publicações" });
   if (a.id === "analytics")
