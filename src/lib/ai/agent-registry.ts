@@ -572,7 +572,7 @@ export const ANALYTICS_COMMERCE: RegisteredAgent = {
 const COMMERCIAL: RegisteredAgent = {
   slug: "veronica-comercial",
   workforceId: "comercial",
-  version: "1.0.0",
+  version: "1.1.0",
   status: "INTERNAL",
   statusBasis:
     "Diagnóstico autenticado com reserva diária persistente, fila administrativa e aprovação de propostas. Ainda não validado como operador comercial externo.",
@@ -584,9 +584,11 @@ const COMMERCIAL: RegisteredAgent = {
     { key: "commercial.brief.save", requiresApproval: false },
     { key: "commercial.proposal.review", requiresApproval: true },
   ],
-  maxCostPerTaskMicros: null,
+  maxCostPerTaskMicros: 5000,
   costCurrency: "USD",
-  maxLatencyMs: null,
+  maxLatencyMs: 13000,
+  ceilingsBasis:
+    "src/commercial/analysis.ts: guarda prévia de estimativa US$0,005, timeout de 12s/deadline de 13s apenas da rota LLM, um provedor por pedido. Custo da fatura não conciliado; consultas ao banco fora desse prazo.",
   approval: {
     requiresApproval: false,
     handoffTriggers: ["proposta", "preço", "contratação", "dados insuficientes"],
