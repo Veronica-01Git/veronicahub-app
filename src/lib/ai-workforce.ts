@@ -342,7 +342,91 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
       acesso: "interno",
       administra: [
         "Matérias publicadas, editoria e procedência das fontes",
-        …923 tokens truncated…ics",
+        "Banco de capas, troca automática e capa escolhida à mão",
+        "Guardião que avisa quando a redação para de publicar",
+      ],
+    },
+    pendencias: [
+      "Ligar a redação ao site de um veículo é implantação feita por pessoa, ainda não é autosserviço",
+      "Postar no Instagram do veículo depende do token da Meta da própria empresa",
+    ],
+    impacto: {
+      eixo: "Eficiência",
+      texto:
+        "Pode reduzir o custo de manter publicação contínua: pauta, apuração, foto e card saem da mesma esteira.",
+    },
+    midia: {
+      base: "wire",
+      alt: "Equipe editorial trabalhando em uma redação durante a madrugada",
+    },
+  },
+  {
+    id: "estudio",
+    nome: "Agente de Criação",
+    curto: "Criação",
+    etiqueta: "CREATIVE OPERATIONS",
+    problema: "Campanha trava esperando imagem, e imagem trava esperando briefing.",
+    funcao:
+      "Conduz o briefing junto com quem pede e devolve a imagem pronta, dentro da conta e do saldo do Hub.",
+    capacidades: ["Entrevista", "Dirige", "Gera imagem", "Versiona"],
+    produtoId: "studio",
+    estado: "parcial",
+    prova:
+      "A geração de imagem funciona hoje em /studio-veronica, com a assistente conduzindo o briefing passo a passo.",
+    painel: null,
+    pendencias: [
+      "Vídeo, voz e avatar ainda em desenvolvimento — a própria página declara",
+      "Sem painel administrativo próprio: o histórico fica na conta de quem gerou",
+    ],
+    midia: { base: "studio", alt: "Direção criativa dentro de um estúdio cinematográfico" },
+  },
+  {
+    id: "social-shorts",
+    nome: "Veronica Shorts",
+    curto: "Shorts",
+    etiqueta: "SOCIAL CONTENT OPERATIONS",
+    problema: "Os vídeos escolhidos ficam espalhados e cada rede exige um novo criativo.",
+    funcao:
+      "Organiza fontes autorizadas e prepara gancho, capa, legenda, hashtags e convite para a Hub em quatro redes.",
+    capacidades: [
+      "Organiza fila",
+      "Prepara rascunho",
+      "Monta capa",
+      "Adapta convite",
+      "Registra visitas",
+    ],
+    produtoId: "shorts",
+    estado: "parcial",
+    prova:
+      "Fila e preparação editorial em /admin/shorts, com motor próprio de cortes e legendas implementado e MP4 verificado em teste offline. Processador, armazenamento e publicação ainda precisam ser conectados.",
+    painel: {
+      to: "/admin/shorts",
+      rotulo: "Veronica Shorts",
+      acesso: "interno",
+      administra: [
+        "Fontes escolhidas",
+        "Objetivos e prioridade",
+        "Kits das quatro redes",
+        "Histórico de preparação",
+      ],
+    },
+    pendencias: [
+      "Conectar processador e armazenamento do motor próprio",
+      "Validar aquisição e transcrição de um vídeo autorizado",
+      "Conector de publicação e confirmação por rede",
+      "Cadência ainda será definida pelo dono",
+    ],
+    impacto: {
+      eixo: "Conversão",
+      texto:
+        "Prepara convites para a Hub e mede visitas aos links; conversão e receita dependem de eventos reais.",
+    },
+    midia: { base: "studio", alt: "Operação de shorts dentro do estúdio criativo da Veronica Hub" },
+  },
+  {
+    id: "analytics",
+    nome: "Agente de Analytics",
+    curto: "Analytics",
     etiqueta: "COMMERCE INTELLIGENCE",
     problema: "Escolher o que divulgar no escuro custa mais caro do que divulgar errado.",
     funcao:
