@@ -13,6 +13,7 @@ import { usePainelOps } from "@/features/express-ops-b/data/queries";
 import { EsqueletoLista } from "@/features/express-ops-b/components/esqueleto";
 import { AtendimentoAssistido } from "@/features/express-ops-b/components/assistido";
 import { FilaHumana } from "@/features/express-ops-b/components/fila-humana";
+import { ConexaoWhatsApp } from "@/features/express-ops-b/components/conexao-whatsapp";
 import {
   AguardandoCadastro,
   ComDado,
@@ -54,6 +55,7 @@ function CentralAtendimento() {
 
   return (
     <div className="grid gap-4">
+      <ConexaoWhatsApp />
       <AtendimentoAssistido />
       <FilaHumana />
       <p className="text-[12px] text-[var(--ops-ink-muted)]">

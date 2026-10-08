@@ -176,3 +176,25 @@ test("webhook 360dialog: sem o segredo é 403; sem segredo configurado é 500; c
     assert.equal(r.status, 403);
   });
 });
+
+test("painel de conexão: só administradora, e nenhum segredo volta na resposta", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync(
+    new URL("../src/features/express-ops-b/data/conexao-whatsapp.ts", import.meta.url),
+    "utf8",
+  );
+  // As duas funções começam exigindo workspace da Express E admin do Hub.
+  assert.match(src, /avaliarAcessoAoWorkspace\(SLUG_EXPRESS\)/);
+  assert.match(src, /requireAdminCore\(\)/);
+  for (const fn of ["estadoConexaoWhatsApp", "registrarWebhook360"]) {
+    const corpo = src.slice(src.indexOf(`export const ${fn}`));
+    assert.match(corpo.slice(0, 400), /eAdministradora\(\)/, `${fn} sem checar administradora`);
+  }
+  // O que volta ao navegador são booleanos e mensagens — nunca a chave ou o segredo.
+  assert.doesNotMatch(src, /return \{[^}]*\b(chave|segredo)\b\s*[,}]/);
+  assert.doesNotMatch(src, /erro:[^\n]*\$\{(chave|segredo)/);
+  // Registra a URL de produção com o cabeçalho que o webhook confere.
+  assert.match(src, /"x-veronica-webhook-token": segredo/);
+  assert.match(src, /URL_WEBHOOK_PRODUCAO = "https:\/\/veronicahub\.com\/api\/whatsapp\/webhook"/);
+  assert.equal(cloud.CABECALHO_TOKEN_WEBHOOK, "x-veronica-webhook-token");
+});
