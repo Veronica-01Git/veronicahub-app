@@ -1,0 +1,34 @@
+name: Guardian · supervisão da Hub
+on:
+  schedule:
+    - cron: "51 * * * *"
+  push:
+    branches: [main]
+    paths: [".github/workflows/guardian.yml"]
+  workflow_dispatch:
+concurrency:
+  group: veronica-guardian
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  supervise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Conferir sinais reais de operação
+        env:
+          GUARDIAN_CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$GUARDIAN_CRON_SECRET" ]; then echo "::error::Credencial indisponível."; exit 1; fi
+          if [ "${{ github.event_name }}" = "push" ]; then
+            ready=false
+            for attempt in $(seq 1 24); do
+              if curl --silent --show-error --fail --max-time 10 "https://veronicahub.com/api/agents/commercial/status" -o status.json && jq -e '.version == "1.0.0"' status.json >/dev/null; then ready=true; break; fi
+              sleep 10
+            done
+            if [ "$ready" != "true" ]; then echo "::error::Deploy não disponível."; exit 1; fi
+          fi
+          curl --silent --show-error --fail --max-time 60 -X POST "https://veronicahub.com/api/cron/guardian" -H "Authorization: Bearer $GUARDIAN_CRON_SECRET" -o guardian.json
+          jq . guardian.json >> "$GITHUB_STEP_SUMMARY"
+          if jq -e '.requiresAttention == true' guardian.json >/dev/null; then echo "::warning::Guardian identificou sinais que precisam de revisão."; fi

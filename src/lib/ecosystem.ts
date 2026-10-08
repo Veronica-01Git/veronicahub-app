@@ -44,6 +44,16 @@ export type Product = {
 };
 export const PRODUCTS: Product[] = [
   {
+    id: "commercial",
+    name: "Operação Comercial",
+    category: "Ferramentas",
+    to: "/implementar",
+    status: "Parcial",
+    description: "Diagnóstico de implantação e propostas supervisionadas",
+    external: false,
+    public: true,
+  },
+  {
     id: "veronica-chat",
     name: "Converse com Veronica",
     category: "Ferramentas",
@@ -313,9 +323,16 @@ export const HEADER_NAV_GROUPS = [
   {
     id: "business",
     label: "Soluções",
-    items: ["agentes", "human-agents", "foguete", "analytics", "security", "career", "rh"].map(
-      product,
-    ),
+    items: [
+      "commercial",
+      "agentes",
+      "human-agents",
+      "foguete",
+      "analytics",
+      "security",
+      "career",
+      "rh",
+    ].map(product),
   },
   { id: "explore", label: "Explorar", items: ["members", "clientes", "lee-ricardo"].map(product) },
 ] as const;

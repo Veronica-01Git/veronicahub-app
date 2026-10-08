@@ -19,6 +19,7 @@ import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as ExpressEntulhoRouteImport } from './routes/express-entulho'
 import { Route as FogueteAmareloRouteImport } from './routes/foguete-amarelo'
 import { Route as FormacoesRouteImport } from './routes/formacoes'
+import { Route as ImplementarRouteImport } from './routes/implementar'
 import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as NoticiasRouteImport } from './routes/noticias'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -37,6 +38,7 @@ import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security
 import { Route as VideoIaRouteImport } from './routes/video-ia'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminArtigosRouteImport } from './routes/admin/artigos'
+import { Route as AdminComercialRouteImport } from './routes/admin/comercial'
 import { Route as AdminComissoesShopeeRouteImport } from './routes/admin/comissoes-shopee'
 import { Route as AdminConectorMcpRouteImport } from './routes/admin/conector-mcp'
 import { Route as AdminImagensRouteImport } from './routes/admin/imagens'
@@ -132,6 +134,11 @@ const FormacoesRoute = FormacoesRouteImport.update({
   path: '/formacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImplementarRoute = ImplementarRouteImport.update({
+  id: '/implementar',
+  path: '/implementar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MembrosRoute = MembrosRouteImport.update({
   id: '/membros',
   path: '/membros',
@@ -221,6 +228,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminArtigosRoute = AdminArtigosRouteImport.update({
   id: '/admin/artigos',
   path: '/admin/artigos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminComercialRoute = AdminComercialRouteImport.update({
+  id: '/admin/comercial',
+  path: '/admin/comercial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminComissoesShopeeRoute = AdminComissoesShopeeRouteImport.update({
@@ -477,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/express-entulho': typeof ExpressEntulhoRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
   '/formacoes': typeof FormacoesRouteWithChildren
+  '/implementar': typeof ImplementarRoute
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
@@ -494,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/comercial': typeof AdminComercialRoute
   '/admin/comissoes-shopee': typeof AdminComissoesShopeeRoute
   '/admin/conector-mcp': typeof AdminConectorMcpRoute
   '/admin/imagens': typeof AdminImagensRoute
@@ -551,6 +565,7 @@ export interface FileRoutesByTo {
   '/express-entulho': typeof ExpressEntulhoRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
   '/formacoes': typeof FormacoesRouteWithChildren
+  '/implementar': typeof ImplementarRoute
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
@@ -568,6 +583,7 @@ export interface FileRoutesByTo {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/comercial': typeof AdminComercialRoute
   '/admin/comissoes-shopee': typeof AdminComissoesShopeeRoute
   '/admin/conector-mcp': typeof AdminConectorMcpRoute
   '/admin/imagens': typeof AdminImagensRoute
@@ -625,6 +641,7 @@ export interface FileRoutesById {
   '/express-entulho': typeof ExpressEntulhoRoute
   '/foguete-amarelo': typeof FogueteAmareloRoute
   '/formacoes': typeof FormacoesRouteWithChildren
+  '/implementar': typeof ImplementarRoute
   '/membros': typeof MembrosRoute
   '/noticias': typeof NoticiasRoute
   '/portfolio': typeof PortfolioRoute
@@ -642,6 +659,7 @@ export interface FileRoutesById {
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
   '/admin/artigos': typeof AdminArtigosRoute
+  '/admin/comercial': typeof AdminComercialRoute
   '/admin/comissoes-shopee': typeof AdminComissoesShopeeRoute
   '/admin/conector-mcp': typeof AdminConectorMcpRoute
   '/admin/imagens': typeof AdminImagensRoute
@@ -701,6 +719,7 @@ export interface FileRouteTypes {
     | '/express-entulho'
     | '/foguete-amarelo'
     | '/formacoes'
+    | '/implementar'
     | '/membros'
     | '/noticias'
     | '/portfolio'
@@ -718,6 +737,7 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/comercial'
     | '/admin/comissoes-shopee'
     | '/admin/conector-mcp'
     | '/admin/imagens'
@@ -775,6 +795,7 @@ export interface FileRouteTypes {
     | '/express-entulho'
     | '/foguete-amarelo'
     | '/formacoes'
+    | '/implementar'
     | '/membros'
     | '/noticias'
     | '/portfolio'
@@ -792,6 +813,7 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/comercial'
     | '/admin/comissoes-shopee'
     | '/admin/conector-mcp'
     | '/admin/imagens'
@@ -848,6 +870,7 @@ export interface FileRouteTypes {
     | '/express-entulho'
     | '/foguete-amarelo'
     | '/formacoes'
+    | '/implementar'
     | '/membros'
     | '/noticias'
     | '/portfolio'
@@ -865,6 +888,7 @@ export interface FileRouteTypes {
     | '/veronica-security'
     | '/video-ia'
     | '/admin/artigos'
+    | '/admin/comercial'
     | '/admin/comissoes-shopee'
     | '/admin/conector-mcp'
     | '/admin/imagens'
@@ -923,6 +947,7 @@ export interface RootRouteChildren {
   ExpressEntulhoRoute: typeof ExpressEntulhoRoute
   FogueteAmareloRoute: typeof FogueteAmareloRoute
   FormacoesRoute: typeof FormacoesRouteWithChildren
+  ImplementarRoute: typeof ImplementarRoute
   MembrosRoute: typeof MembrosRoute
   NoticiasRoute: typeof NoticiasRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -940,6 +965,7 @@ export interface RootRouteChildren {
   VeronicaSecurityRoute: typeof VeronicaSecurityRoute
   VideoIaRoute: typeof VideoIaRoute
   AdminArtigosRoute: typeof AdminArtigosRoute
+  AdminComercialRoute: typeof AdminComercialRoute
   AdminComissoesShopeeRoute: typeof AdminComissoesShopeeRoute
   AdminConectorMcpRoute: typeof AdminConectorMcpRoute
   AdminImagensRoute: typeof AdminImagensRoute
@@ -1044,6 +1070,13 @@ declare module '@tanstack/react-router' {
       path: '/formacoes'
       fullPath: '/formacoes'
       preLoaderRoute: typeof FormacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/implementar': {
+      id: '/implementar'
+      path: '/implementar'
+      fullPath: '/implementar'
+      preLoaderRoute: typeof ImplementarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/membros': {
@@ -1170,6 +1203,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/artigos'
       fullPath: '/admin/artigos'
       preLoaderRoute: typeof AdminArtigosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/comercial': {
+      id: '/admin/comercial'
+      path: '/admin/comercial'
+      fullPath: '/admin/comercial'
+      preLoaderRoute: typeof AdminComercialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/comissoes-shopee': {
@@ -1573,6 +1613,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExpressEntulhoRoute: ExpressEntulhoRoute,
   FogueteAmareloRoute: FogueteAmareloRoute,
   FormacoesRoute: FormacoesRouteWithChildren,
+  ImplementarRoute: ImplementarRoute,
   MembrosRoute: MembrosRoute,
   NoticiasRoute: NoticiasRoute,
   PortfolioRoute: PortfolioRoute,
@@ -1590,6 +1631,7 @@ const rootRouteChildren: RootRouteChildren = {
   VeronicaSecurityRoute: VeronicaSecurityRoute,
   VideoIaRoute: VideoIaRoute,
   AdminArtigosRoute: AdminArtigosRoute,
+  AdminComercialRoute: AdminComercialRoute,
   AdminComissoesShopeeRoute: AdminComissoesShopeeRoute,
   AdminConectorMcpRoute: AdminConectorMcpRoute,
   AdminImagensRoute: AdminImagensRoute,

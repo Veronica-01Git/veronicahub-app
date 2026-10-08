@@ -115,6 +115,7 @@ export type Painel = {
 /* -------------------------------------------------------------- agentes */
 
 export type AgenteWorkforceId =
+  | "comercial"
   | "atendimento"
   | "redacao"
   | "estudio"
@@ -174,6 +175,40 @@ export type AgenteWorkforce = {
 };
 
 export const WORKFORCE: readonly AgenteWorkforce[] = [
+  {
+    id: "comercial",
+    nome: "Veronica Comercial",
+    curto: "Comercial",
+    etiqueta: "COMMERCIAL OPERATIONS",
+    problema: "Um interessado precisa de direção e uma proposta com escopo claro.",
+    funcao:
+      "Organiza o diagnóstico do visitante e entrega um briefing persistente para revisão da equipe.",
+    capacidades: [
+      "Qualifica briefing",
+      "Organiza perguntas",
+      "Registra pedido",
+      "Acompanha proposta",
+    ],
+    produtoId: "commercial",
+    estado: "parcial",
+    prova:
+      "Diagnósticos persistem em /implementar. A fila e as decisões ficam em /admin/comercial; /api/agents/commercial/status mostra contagem real agregada.",
+    painel: {
+      to: "/admin/comercial",
+      rotulo: "Operação Comercial",
+      acesso: "interno",
+      administra: ["Briefings recebidos", "Escopo e valores", "Decisões auditadas", "Guardian"],
+    },
+    pendencias: [
+      "Proposta e contratação dependem da equipe",
+      "Sem envio automático externo ou confirmação de pagamento",
+      "Implantação em empresas exige integração e piloto próprios",
+    ],
+    midia: {
+      base: "portfolio",
+      alt: "Ambiente de arquitetura digital para planejar uma operação comercial",
+    },
+  },
   {
     id: "members",
     nome: "Agente Members",

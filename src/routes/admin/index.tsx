@@ -99,6 +99,12 @@ function AdminPanel() {
             >
               <PlugZap className="h-4 w-4" /> Conector MCP
             </Link>
+            <a
+              href="/admin/comercial"
+              className="rounded-sm border border-border px-3 py-1.5 text-sm"
+            >
+              Comercial & Guardian
+            </a>
             <Link
               to="/admin/imagens"
               className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-neon-green/50 hover:text-foreground"

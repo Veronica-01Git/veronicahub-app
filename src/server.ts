@@ -1,3 +1,4 @@
+import { handleCommercialOperations } from "./commercial/cron.server";
 import { handleAnalyticsAgent } from "./analytics-agent/runtime.server";
 import { handleMembersAgent } from "./members/agent-runtime.server";
 import { handleWireHealth } from "./lib/wire-health.server";
@@ -280,6 +281,14 @@ const app = {
       } catch (error) {
         console.error("Erro ao encaminhar produto de afiliado:", error);
         return new Response("produto indisponível", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/agents/commercial/status" || url.pathname === "/api/cron/guardian") {
+      try {
+        return await handleCommercialOperations(request);
+      } catch {
+        return new Response("Operação indisponível", { status: 503 });
       }
     }
 

@@ -9,9 +9,9 @@ import { DEPARTAMENTOS, WORKFORCE, type AgenteWorkforceId } from "@/lib/ai-workf
  *
  * Fechamento Enterprise SEM pagamento e SEM preço: a pessoa marca o que quer
  * resolver e a mensagem de proposta sai montada para o WhatsApp ou o e-mail
- * da casa — os mesmos canais de SOCIAL_LINKS que o rodapé já usa. Nada é
- * enviado a servidor nenhum daqui; não existe endpoint de proposta, e esta
- * seção não finge que existe.
+ * da casa — os mesmos canais de SOCIAL_LINKS que o rodapé já usa. O diagnóstico
+ * persistente tem entrada própria em /implementar; o visitante escolhe salvar
+ * ali o briefing na sua conta. Preço e proposta dependem de revisão humana.
  *
  * O botão "Implementar" das pranchas da vitrine chega aqui com o agente já
  * marcado (`selecionados` vem do estado da Home).
@@ -162,6 +162,9 @@ export function BuildWorkforce({
               {mensagem}
             </pre>
             <div className="mt-6 grid gap-3">
+              <a href="/implementar" className="wf-btn wf-btn-primary justify-center">
+                Criar meu diagnóstico
+              </a>
               <a
                 href={whatsapp}
                 target="_blank"
