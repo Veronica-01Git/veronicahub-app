@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shorts-runner",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Sem rota pública: só o cron fala com o container. O site (Worker gerado
+  // pela Lovable) não ganha binding nenhum e não muda de configuração.
+  "workers_dev": false,
+  // A cada 5 minutos pergunta à Hub se há trabalho. Sem fila, não liga nada:
+  // o container dorme e a cobrança para.
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "containers": [
+    {
+      "class_name": "ShortsEngine",
+      "image": "../shorts-engine/Dockerfile",
+      "image_build_context": "../shorts-engine",
+      // 4 vCPU / 12 GiB / 20 GB — orçamento aprovado em 08/10/2026 (teto US$ 15/mês).
+      "instance_type": "standard-4",
+      // Um processo por vez: um vídeo de cada vez, custo previsível.
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "SHORTS_ENGINE", "class_name": "ShortsEngine" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ShortsEngine"] }],
+  // Não secretos. Segredos (wrangler secret put): SOCIAL_RENDER_SECRET,
+  // SHORTS_S3_ENDPOINT, SHORTS_S3_ACCESS_KEY_ID, SHORTS_S3_SECRET_ACCESS_KEY.
+  "vars": {
+    "HUB_BASE_URL": "https://veronicahub.com",
+    "SHORTS_S3_BUCKET": "veronicahub-shorts",
+    "SHORTS_S3_PREFIX": "shorts",
+    "WHISPER_MODEL": "small"
+  }
+}

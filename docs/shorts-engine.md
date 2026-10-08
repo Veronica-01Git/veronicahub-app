@@ -23,33 +23,69 @@ O roteador de IA existente escolhe candidatos reais e prepara textos por corte.
   rosto nesta versão. Legendas sincronizadas por palavra em blocos curtos.
 - Verificação da saída com ffprobe antes de enviar ao armazenamento.
 
-## Conectar em produção
+## Conectar em produção (Cloudflare Containers + R2)
 
+Infraestrutura aprovada pelo proprietário em 08/10/2026, teto US$ 15/mês.
 O código web pode ser publicado sem ativar o processamento. O botão fica
 desabilitado enquanto a configuração falta. Presença de configuração não
 equivale a um processador online; as etapas do trabalho mostram atividade real.
 
-1. Preparar um bucket S3/R2 dedicado para estes MP4s e domínio HTTPS próprio.
-   Os arquivos desta versão administrativa ficam acessíveis por URLs com UUID;
-   **não abrir para clientes antes de implantar acesso privado/signed URLs**.
-2. Criar um segredo aleatório `SOCIAL_RENDER_SECRET`, igual no Worker web e no
-   processador, exclusivo desta API. Nunca reutilizar senha de usuário.
-3. Definir `SHORTS_MEDIA_BASE_URL` no Worker web, por exemplo
-   `https://media.veronicahub.com/shorts`. Se usar prefixo `/shorts`, configurar
-   `SHORTS_S3_PREFIX=shorts` no processador.
-4. Subir `workers/shorts-engine/Dockerfile` em um host Linux com pelo menos 4
-   vCPUs, 8 GB RAM e disco temporário de 5 GB por processo. Começar com apenas
-   um processo e medir uso; nenhum provedor pago é contratado pelo código.
-5. No processador, definir `HUB_BASE_URL`, `SOCIAL_RENDER_SECRET`,
-   `SHORTS_S3_ENDPOINT`, `SHORTS_S3_ACCESS_KEY_ID`,
-   `SHORTS_S3_SECRET_ACCESS_KEY`, `SHORTS_S3_BUCKET` e opcionalmente
-   `SHORTS_S3_PREFIX`, `WHISPER_MODEL=small`. Credenciais S3 limitadas ao bucket.
-6. O primeiro uso de Whisper baixa o modelo. Fixar versões/imagem testadas no
-   host de produção e reservar cache persistente; yt-dlp exige manutenção pois
-   o YouTube muda seus mecanismos. Falha de aquisição aparece como erro, sem
-   afirmar que o corte foi criado. Não há garantia de acesso a todo link.
-7. Testar com vídeo autorizado escolhido pelo operador: entrada, aquisição,
-   transcrição real, seleção, MP4 armazenado e prévia. Só depois ativar uso.
+Peças:
+
+- **Bucket R2 `veronicahub-shorts`** (criado em 08/10/2026), servido por
+  domínio próprio `media.veronicahub.com`. Chaves `shorts/<fonte>/<job>/<n>.mp4`.
+  Os arquivos desta versão administrativa ficam acessíveis por URLs com UUID;
+  **não abrir para clientes antes de implantar acesso privado/signed URLs**.
+- **Worker `shorts-runner`** (`workers/shorts-runner`), separado do Worker do
+  site — este é gerado pela Lovable e não ganha binding. Um Cron a cada 5 min
+  consulta `POST /api/social/render/pending` (só leitura, exige o segredo). Sem
+  fila, não liga nada. Com fila, acorda o Container (`standard-4`: 4 vCPU,
+  12 GiB, 20 GB; `max_instances: 1`), que roda `runner.py` e processa até a
+  fila esvaziar. Sem novos ticks por 15 min, o Container dorme e a cobrança para.
+- **Imagem** `workers/shorts-engine/Dockerfile`, versões fixadas em
+  `requirements.txt` e modelo Whisper `small` embutido (sem download a cada
+  partida). Em host Docker sempre ligado, o mesmo Dockerfile roda `worker.py`
+  (laço contínuo).
+
+Custo estimado (preços oficiais de 05/10/2026): Workers Paid US$ 5/mês inclui
+25 GiB-h de memória, 375 vCPU-min e 200 GB-h de disco. Um vídeo de ~30 min leva
+~20 min no `standard-4`: ~US$ 0,12 por vídeo além da franquia (~5 vídeos/mês
+dentro dela). R2: 10 GB grátis, depois US$ 0,015/GB-mês, sem custo de banda.
+
+Passos no painel do Cloudflare (dono da conta; nenhum segredo passa pelo chat):
+
+1. **Plano.** Workers & Pages → Plans: confirmar Workers Paid (requisito de
+   Containers).
+2. **Entrega.** R2 → `veronicahub-shorts` → Settings → Custom Domains →
+   Connect Domain → `media.veronicahub.com`. Não ativar o `r2.dev` público.
+3. **Chave do bucket.** R2 → Manage API tokens → Create Account API token →
+   permissão **Object Read & Write**, aplicada **somente** ao bucket
+   `veronicahub-shorts`. Guardar Access Key ID, Secret Access Key e o endpoint
+   S3 (`https://<account-id>.r2.cloudflarestorage.com`).
+4. **Segredo da API.** Gerar um valor aleatório longo (gerenciador de senhas
+   ou `openssl rand -hex 32`), exclusivo desta API. Nunca reutilizar senha.
+5. **Worker do site** (`veronicahub-app` → Settings → Variables and Secrets):
+   - `SOCIAL_RENDER_SECRET` (Secret) = valor do passo 4;
+   - `SHORTS_MEDIA_BASE_URL` (Text) = `https://media.veronicahub.com/shorts`.
+6. **Worker `shorts-runner`.** Workers & Pages → Create → Import a repository →
+   `Veronica-01Git/veronicahub-app`, branch `main`, nome `shorts-runner`.
+   Build: root directory `/workers`, build command
+   `cd shorts-runner && bun install --frozen-lockfile`, deploy command
+   `cd shorts-runner && npx wrangler deploy`. Watch paths:
+   `workers/shorts-runner/*` e `workers/shorts-engine/*`. Após o primeiro
+   deploy, em Settings → Variables and Secrets adicionar (Secret):
+   `SOCIAL_RENDER_SECRET` (mesmo valor do passo 5), `SHORTS_S3_ENDPOINT`,
+   `SHORTS_S3_ACCESS_KEY_ID`, `SHORTS_S3_SECRET_ACCESS_KEY` (passo 3).
+   As variáveis não secretas já estão em `wrangler.jsonc`.
+7. **Teste** com vídeo autorizado já cadastrado no painel: solicitar o corte em
+   `/admin/shorts`; em até 5 min o cron acorda o Container. Acompanhar etapas
+   (download → transcribe → select → render → upload → ready) e os logs do
+   Worker `shorts-runner` (Observability). Só depois ativar uso recorrente.
+
+Risco conhecido: o YouTube pode recusar downloads vindos de IPs de datacenter
+("confirme que não é um robô"). O motor não usa cookies nem contorna isso; a
+falha aparece como `DOWNLOAD_FAILED`, sem corte falso. yt-dlp exige atualização
+periódica (`requirements.txt` → rebuild → reteste).
 
 ## Validação e limites de lançamento
 

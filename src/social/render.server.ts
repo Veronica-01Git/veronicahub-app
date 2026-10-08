@@ -125,6 +125,19 @@ export async function handleRender(request: Request) {
   const action = new URL(request.url).pathname.split("/").pop();
   await renderStorage();
   const db = getDb();
+  if (action === "pending") {
+    // Read-only count so the runner starts paid compute only when work exists.
+    const counts = (
+      await db.execute(sql`SELECT
+        count(*) FILTER (WHERE j.status='queued' AND s.status='render_queued' AND s."rightsConfirmed"=true) AS queued,
+        count(*) FILTER (WHERE j.status='running') AS running
+        FROM "SocialRenderJob" j JOIN "SocialSource" s ON s.id=j."sourceId"`)
+    ).rows[0];
+    return Response.json(
+      { ok: true, queued: Number(counts?.queued ?? 0), running: Number(counts?.running ?? 0) },
+      { headers },
+    );
+  }
   if (action === "claim") {
     // Expired jobs stop for manual retry rather than silently spending more compute.
     await db.execute(sql`WITH expired AS (UPDATE "SocialRenderJob" SET status='attention',issue='LEASE_EXPIRED',lease=NULL
