@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { commercialAdmin, decideCommercialBrief, guardianAdmin } from "@/commercial/server";
+import { qualification, readAnalysis } from "@/commercial/qualification";
 import { STATE_LABEL, type BriefState } from "@/commercial/core";
 export const Route = createFileRoute("/admin/comercial")({
   component: CommercialAdmin,
@@ -35,6 +36,8 @@ function CommercialAdmin() {
     void refresh();
   }, []);
   const brief = data?.ok ? data.briefs.find((b) => String(b.id) === selected) : undefined;
+  const analysis = brief ? readAnalysis(brief.analysis) : null;
+  const coverage = brief ? qualification(brief) : null;
   async function decide(state: BriefState) {
     if (!brief) return;
     setBusy(true);
@@ -81,6 +84,30 @@ function CommercialAdmin() {
           <p className="mt-8">{data.error} Entre com sua conta administrativa.</p>
         ) : (
           <>
+            <section
+              className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+              aria-label="Métricas comerciais reais"
+            >
+              {[
+                ["Diagnósticos recebidos", String(data.metrics.total)],
+                ["Sem revisão há 48h", String(data.metrics.overdue)],
+                ["Análises aceitas por IA", String(data.metrics.modeled)],
+                ["Análises por regras", String(data.metrics.fallback)],
+              ].map(([label, value]) => (
+                <article className="rounded-xl border border-border p-5" key={label}>
+                  <p className="text-sm text-muted-foreground">{label}</p>
+                  <p className="mt-3 font-display text-3xl">{value}</p>
+                </article>
+              ))}
+            </section>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Dados de toda a fila · {data.metrics.pending} análises pendentes · Tempo médio até a
+              primeira revisão:{" "}
+              {data.metrics.averageReviewHours === null
+                ? "sem revisões registradas"
+                : `${data.metrics.averageReviewHours.toFixed(1)}h (${data.metrics.reviewedCount} pedidos)`}
+              . Contratações abaixo são registros manuais; receita depende de pagamento conciliado.
+            </p>
             <section className="mt-8 grid gap-3 sm:grid-cols-4" aria-label="Guardian">
               {health?.ok ? (
                 health.checks.map((c) => (
@@ -142,6 +169,32 @@ function CommercialAdmin() {
                     Análise: {String(brief.modelState)} · {String(brief.provider ?? "regras")} ·{" "}
                     {String(brief.model ?? "sem modelo")}
                   </p>
+                  <div className="mt-5 rounded-xl border border-border p-4">
+                    <h3 className="text-sm font-medium">
+                      Qualificação · {coverage?.supplied}/{coverage?.total} informações
+                    </h3>
+                    <p className="mt-3 text-sm">{analysis?.summary}</p>
+                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                      {analysis?.questions.map((q, i) => (
+                        <li key={i}>— {q}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-sm text-muted-foreground">{coverage?.next}</p>
+                    {analysis?.runtime && (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Versão {analysis.runtime.version} · {analysis.runtime.durationMs}ms ·
+                        Estimativa reservada de IA:{" "}
+                        {analysis.runtime.estimatedCostMicros == null
+                          ? "sem chamada estimada"
+                          : `US$ ${(analysis.runtime.estimatedCostMicros / 1000000).toFixed(6)}`}{" "}
+                        ·{" "}
+                        {analysis.runtime.failure
+                          ? `Falha: ${analysis.runtime.failure}; briefing por regras preservado`
+                          : "Resposta aceita"}
+                        . Custo estimado, sem conciliação da fatura.
+                      </p>
+                    )}
+                  </div>
                   <div className="mt-6 grid gap-4">
                     <label className="grid gap-2">
                       Escopo
@@ -206,6 +259,18 @@ function CommercialAdmin() {
                 </section>
               )}
             </div>
+            <section
+              className="mt-10 rounded-2xl border border-border p-6"
+              aria-label="Critérios do piloto"
+            >
+              <h2 className="font-display text-2xl">Piloto antes da expansão</h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Defina uma empresa, base autorizada e responsável. Teste pedidos normais, dados
+                ausentes, exceções e tentativa de obter informação de outra conta. Compare
+                encaminhamentos, tempo de revisão, falhas e consumo. Aprovar proposta exige escopo e
+                motivo; lançar receita exige conferência de pagamento.
+              </p>
+            </section>
             <section className="mt-10">
               <h2 className="font-display text-2xl">Histórico de decisões</h2>
               {data.history.map((h, i) => (

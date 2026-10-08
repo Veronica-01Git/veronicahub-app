@@ -105,8 +105,8 @@ export function validateBrief(v: unknown): Brief {
 export function qualify(b: Brief) {
   const service = SERVICES.find((s) => s.id === b.service)!;
   const missing = [
-    !b.volume && "Informe o volume aproximado de solicitações.",
-    !b.systems && "Confirme quais sistemas precisam ser integrados.",
+    !b.volume.trim() && "Informe o volume aproximado de solicitações.",
+    !b.systems.trim() && "Confirme quais sistemas precisam ser integrados.",
   ].filter(Boolean) as string[];
   return {
     service: service.id,
@@ -122,9 +122,10 @@ export function validateAnalysis(raw: string, b: Brief) {
   if (
     typeof d.summary !== "string" ||
     d.summary.length > 900 ||
+    !d.summary.trim() ||
     !Array.isArray(d.questions) ||
     d.questions.length > 3 ||
-    d.questions.some((q) => typeof q !== "string" || q.length > 220)
+    d.questions.some((q) => typeof q !== "string" || q.length > 220 || !q.trim())
   )
     throw new Error("Análise fora do contrato.");
   if (/R\$|garantid|\d+\s*%|https?:\/\//i.test(d.summary + " " + d.questions.join(" ")))

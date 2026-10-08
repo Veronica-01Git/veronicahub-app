@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, AuthWidget } from "@/components/SiteChrome";
 import { SERVICES, STATE_LABEL, type Brief, type BriefState, qualify } from "@/commercial/core";
+import { CommercialDemo } from "@/commercial/Demo";
+import { qualification, readAnalysis } from "@/commercial/qualification";
 import { submitCommercialBrief, myCommercialBriefs } from "@/commercial/server";
 export const Route = createFileRoute("/implementar")({
   component: CommercialPage,
@@ -19,7 +21,8 @@ export const Route = createFileRoute("/implementar")({
 function CommercialPage() {
   const [step, setStep] = useState(0),
     [busy, setBusy] = useState(false),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [saved, setSaved] = useState(false);
   const [brief, setBrief] = useState<Brief>({
     requestId: "",
     company: "",
@@ -32,6 +35,7 @@ function CommercialPage() {
   });
   const [mine, setMine] = useState<Awaited<ReturnType<typeof myCommercialBriefs>> | null>(null);
   const service = SERVICES.find((s) => s.id === brief.service)!;
+  const coverage = qualification(brief);
   const refresh = () =>
     myCommercialBriefs()
       .then(setMine)
@@ -48,6 +52,7 @@ function CommercialPage() {
     try {
       const result = await submitCommercialBrief({ data: brief });
       if (result.ok) {
+        setSaved(true);
         setMessage("Diagnóstico salvo. A equipe revisará escopo e valores; acompanhe abaixo.");
         await refresh();
       } else setMessage(result.error);
@@ -70,6 +75,7 @@ function CommercialPage() {
           className="min-h-28 rounded-xl border border-black/15 bg-white p-4 text-[#18201d] focus:outline-2 focus:outline-emerald-700"
           value={brief[key]}
           maxLength={max}
+          disabled={busy || saved}
           onChange={(e) => setBrief({ ...brief, [key]: e.target.value })}
         />
       ) : (
@@ -77,6 +83,7 @@ function CommercialPage() {
           className="rounded-xl border border-black/15 bg-white p-4 text-[#18201d] focus:outline-2 focus:outline-emerald-700"
           value={brief[key]}
           maxLength={max}
+          disabled={busy || saved}
           onChange={(e) => setBrief({ ...brief, [key]: e.target.value })}
         />
       )}
@@ -99,12 +106,46 @@ function CommercialPage() {
             Conte o que precisa funcionar. Organizamos o diagnóstico, as integrações e os próximos
             passos para uma proposta feita para o seu negócio.
           </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="#demonstracao" className="rounded-full bg-[#18201d] px-6 py-3 text-white">
+              Experimentar atendimento
+            </a>
+            <a href="#diagnostico" className="rounded-full border border-black/20 px-6 py-3">
+              Criar meu diagnóstico
+            </a>
+          </div>
+          <CommercialDemo />
+          <section
+            className="mt-12 grid gap-6 rounded-3xl border border-black/10 p-6 sm:p-10 md:grid-cols-3"
+            aria-label="Como contratar"
+          >
+            {[
+              [
+                "01 · Implantação",
+                "Escopo, base de conhecimento e integrações definidos conforme a complexidade do seu negócio.",
+              ],
+              [
+                "02 · Operação mensal",
+                "Manutenção, acompanhamento e suporte com responsabilidades e limites acordados.",
+              ],
+              [
+                "03 · Consumo de IA",
+                "Franquia e excedentes descritos na proposta. O diagnóstico não inicia cobrança.",
+              ],
+            ].map(([title, description]) => (
+              <div key={title}>
+                <h2 className="font-display text-xl">{title}</h2>
+                <p className="mt-3 text-sm leading-relaxed text-black/60">{description}</p>
+              </div>
+            ))}
+          </section>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
             {SERVICES.map((s) => (
               <button
                 type="button"
                 key={s.id}
                 aria-pressed={brief.service === s.id}
+                disabled={busy || saved}
                 onClick={() => setBrief({ ...brief, service: s.id })}
                 className={`rounded-2xl border p-6 text-left transition ${brief.service === s.id ? "border-emerald-800 bg-white shadow-sm" : "border-black/10 hover:bg-white"}`}
               >
@@ -115,7 +156,8 @@ function CommercialPage() {
             ))}
           </div>
           <section
-            className="mt-12 grid gap-10 rounded-3xl bg-white p-6 sm:p-10 lg:grid-cols-[1fr_1.2fr]"
+            id="diagnostico"
+            className="mt-12 scroll-mt-24 grid gap-10 rounded-3xl bg-white p-6 sm:p-10 lg:grid-cols-[1fr_1.2fr]"
             aria-label="Diagnóstico comercial"
           >
             <div>
@@ -126,6 +168,25 @@ function CommercialPage() {
               <p className="mt-4 text-black/60">
                 Etapa {step + 1} de 3 · {service.name}
               </p>
+              <p className="mt-5 text-sm">
+                {coverage.supplied} de {coverage.total} informações preenchidas
+              </p>
+              <div className="mt-3 grid grid-cols-4 gap-2" aria-hidden="true">
+                {coverage.checks.map((c) => (
+                  <span
+                    key={c.label}
+                    className={`h-1 rounded-full ${c.supplied ? "bg-emerald-700" : "bg-black/10"}`}
+                  />
+                ))}
+              </div>
+              <ul className="mt-4 space-y-2 text-xs text-black/60">
+                {coverage.checks.map((c) => (
+                  <li key={c.label}>
+                    {c.supplied ? "✓" : "○"} {c.label}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-5 text-sm text-black/60">{coverage.next}</p>
               <ul className="mt-8 space-y-3 text-sm">
                 {service.needs.map((n) => (
                   <li key={n}>— {n}</li>
@@ -153,11 +214,25 @@ function CommercialPage() {
                   <h3 className="font-display text-2xl">Confira antes de enviar</h3>
                   <p className="whitespace-pre-wrap text-sm">{brief.challenge}</p>
                   <p className="text-sm">Objetivo: {brief.goal}</p>
+                  <p className="text-sm">
+                    Volume: {brief.volume || "A confirmar"} · Sistemas:{" "}
+                    {brief.systems || "A confirmar"}
+                  </p>
+                  {mine && !mine.ok && (
+                    <div className="rounded-xl border border-black/10 p-4">
+                      <p className="mb-3 text-sm">
+                        Entre para salvar na sua conta. Seu formulário permanece nesta página
+                        enquanto você entra.
+                      </p>
+                      <AuthWidget />
+                    </div>
+                  )}
                   <p className="text-sm text-black/60">{qualify(brief).questions.join(" ")}</p>
                   <label className="flex items-start gap-3 text-sm">
                     <input
                       type="checkbox"
                       checked={brief.consent}
+                      disabled={busy || saved}
                       onChange={(e) => setBrief({ ...brief, consent: e.target.checked })}
                     />
                     Autorizo salvar este diagnóstico na minha conta e usar IA para organizar o
@@ -188,11 +263,11 @@ function CommercialPage() {
                 ) : (
                   <button
                     type="button"
-                    disabled={busy || !brief.consent || !brief.requestId}
+                    disabled={busy || saved || !brief.consent || !brief.requestId}
                     onClick={submit}
                     className="rounded-full bg-emerald-900 px-6 py-3 text-white disabled:opacity-40"
                   >
-                    {busy ? "Organizando…" : "Salvar diagnóstico"}
+                    {saved ? "Diagnóstico salvo" : busy ? "Organizando…" : "Salvar diagnóstico"}
                   </button>
                 )}
               </div>
@@ -214,10 +289,7 @@ function CommercialPage() {
             ) : (
               <div className="mt-6 grid gap-4">
                 {mine.briefs.map((b) => {
-                  const a = JSON.parse(String(b.analysis)) as {
-                    summary: string;
-                    mode: "rules" | "model";
-                  };
+                  const a = readAnalysis(b.analysis);
                   return (
                     <article
                       className="rounded-2xl border border-black/10 bg-white p-6"
@@ -230,6 +302,16 @@ function CommercialPage() {
                         {SERVICES.find((s) => s.id === b.service)?.name}
                       </h3>
                       <p className="mt-3 whitespace-pre-wrap">{a.summary}</p>
+                      {a.questions.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium">Pontos para a revisão</p>
+                          <ul className="mt-2 space-y-2 text-sm text-black/60">
+                            {a.questions.map((q, i) => (
+                              <li key={i}>— {q}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       <p className="mt-3 text-xs text-black/60">
                         Organização: {a.mode === "model" ? "IA" : "regras do serviço"} · revisão da
                         equipe necessária
