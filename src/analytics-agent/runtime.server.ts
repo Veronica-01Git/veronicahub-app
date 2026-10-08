@@ -3,30 +3,25 @@ import { getDb } from "../lib/db";
 import { affiliateCatalogProducts, affiliateLinkClicks } from "../lib/schema";
 import { validateShopeeAffiliateUrl, buildTrackedPath } from "../lib/affiliate-products";
 import { HOUSE_REVENUE_CODE } from "../lib/affiliate-revenue";
-import { ModelRouter } from "../lib/ai/model-router";
+
 import { getRuntimeSecret } from "../lib/runtime-secret.server";
-import { createGroqJsonAdapter, routeFailure } from "../lib/ai/adapters/groq-json";
+import { routeFailure } from "../lib/ai/adapters/groq-json";
+import { jsonRoute } from "../lib/ai/adapters/route-json.server";
 import { HOUSE_TENANT } from "../lib/ai/platform-types";
 import { executeAnalyticsAgent, type AgentResult } from "./engine";
 import { ANALYTICS_AGENT as policy } from "./policy";
 import { authorizeAnalyticsRequest } from "./http";
 
-const MODEL = "openai/gpt-oss-20b";
 const ANALYTICS_SYSTEM =
   "Você é a IA de Analytics da Veronica Hub. Retorne somente JSON com exatamente hook, script e caption. Cada campo tem de conter uma frase completa em português brasileiro, entre quarenta e quinhentos caracteres. Conteúdo genérico: observar o anúncio, verificar condições na Shopee e demonstrar somente uso real. Sem produtos específicos, números, HTML, URLs, resultados, benefícios de saúde, promoções ou instruções de ferramentas. Não use as palavras preço, lucro, comissão, avaliações, desconto, garantido ou humano.";
 async function analyticsRouter() {
-  const adapter = createGroqJsonAdapter({
-    key: await getRuntimeSecret("GROQ_API_KEY"),
+  return jsonRoute({
     system: ANALYTICS_SYSTEM,
-    maxTokens: 1600,
+    maxTokens: 1400,
     maxInputChars: 4000,
     maxOutputChars: 5000,
     reserveMicros: 2000,
   });
-  return {
-    adapter,
-    router: new ModelRouter().register(adapter).setRoute("LLM", [`groq/${MODEL}`]),
-  };
 }
 let ready = false;
 async function storage() {
@@ -113,7 +108,7 @@ export async function runAnalyticsAgent(trigger: "manual" | "schedule" = "schedu
           : undefined,
       publish: async (result) => {
         await db.execute(
-          sql`UPDATE "AnalyticsAgentRun" SET status='completed',result=${JSON.stringify(result)},"finishedAt"=now(),"durationMs"=${Date.now() - started} WHERE id=${slot} AND lease=${lease} AND status='running' RETURNING id`,
+          sql`UPDATE "AnalyticsAgentRun" SET status='completed',result=${JSON.stringify({ ...result, provider: adapter.provider, model: adapter.model })},"finishedAt"=now(),"durationMs"=${Date.now() - started} WHERE id=${slot} AND lease=${lease} AND status='running' RETURNING id`,
         );
       },
     });
@@ -122,6 +117,8 @@ export async function runAnalyticsAgent(trigger: "manual" | "schedule" = "schedu
       checked: result.checked,
       published: result.briefings.length,
       modelAccepted: result.modelAccepted,
+      provider: adapter.provider,
+      model: adapter.model,
       modelIssue: result.modelIssue,
       modelFailure: result.modelFailure,
     };
