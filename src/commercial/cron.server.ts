@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { COMMERCIAL_VERSION } from "./analysis";
 import { getDb } from "../lib/db";
 import { getRuntimeSecret } from "../lib/runtime-secret.server";
 import { authorizeCommercialRequest } from "./http";
@@ -10,7 +11,7 @@ export async function handleCommercialOperations(request: Request) {
   if (action === "status") {
     const r = await db.execute(sql`SELECT count(*)::int AS total FROM "CommercialBrief"`);
     return Response.json({
-      version: "1.0.0",
+      version: COMMERCIAL_VERSION,
       name: "Veronica Comercial",
       stage: "internal",
       briefsReceived: Number(r.rows[0]?.total ?? 0),
