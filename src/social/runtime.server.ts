@@ -4,6 +4,7 @@ import { getRuntimeSecret } from "../lib/runtime-secret.server";
 import { jsonRoute } from "../lib/ai/adapters/route-json.server";
 import { routeFailure } from "../lib/ai/adapters/groq-json";
 import { HOUSE_TENANT } from "../lib/ai/platform-types";
+import { renderSnapshot, handleRender } from "./render.server";
 import { prepareSource } from "./engine";
 import { NETWORKS, sourceInput, type SourceInput, type Creative } from "./policy";
 
@@ -77,6 +78,7 @@ export async function queueSnapshot() {
       (await db.execute(sql`SELECT count(*)::int AS total FROM "SocialSource"`)).rows[0]?.total ??
         0,
     ),
+    render: await renderSnapshot(),
     readiness: {
       preparation: !!(
         (await getRuntimeSecret("GEMINI_API_KEY")) || (await getRuntimeSecret("GROQ_API_KEY"))
@@ -107,14 +109,14 @@ export async function reviseSource(id: string, value: unknown) {
     .execute(sql`UPDATE "SocialSource" SET title=${input.title},transcript=${input.transcript},
     goal=${input.goal},destination=${input.destination},priority=${input.priority},"rightsConfirmed"=${input.rightsConfirmed},
     status='queued',creative=NULL,packages=NULL,"mediaUrl"=NULL,"desiredAt"=NULL,issue=NULL,"updatedAt"=now()
-    WHERE id=${id} AND "videoId"=${input.videoId} AND status NOT IN ('preparing','archived') RETURNING id`);
+    WHERE id=${id} AND "videoId"=${input.videoId} AND status NOT IN ('preparing','archived','render_queued','rendering') RETURNING id`);
   return { ok: !!result.rows.length };
 }
 export async function archiveSource(id: string) {
   await storage();
   const result = await getDb()
     .execute(sql`UPDATE "SocialSource" SET status='archived',"updatedAt"=now()
-    WHERE id=${id} AND status<>'preparing' RETURNING id`);
+    WHERE id=${id} AND status NOT IN ('preparing','render_queued','rendering') RETURNING id`);
   return { ok: !!result.rows.length };
 }
 export async function restoreSource(id: string) {
@@ -213,6 +215,7 @@ export async function runSocialPreparation() {
 }
 export async function handleSocial(request: Request) {
   const url = new URL(request.url);
+  if (url.pathname.startsWith("/api/social/render/")) return handleRender(request);
   const headers = { "content-type": "application/json", "cache-control": "no-store" };
   if (url.pathname === "/api/agents/social-shorts/status") {
     if (request.method !== "GET") return new Response(null, { status: 405 });

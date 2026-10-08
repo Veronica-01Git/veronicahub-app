@@ -9,12 +9,16 @@ export const Route = createFileRoute("/admin/shorts")({
   component: ShortsPanel,
   head: () => ({
     meta: [
-      { title: "Banco de Shorts · Veronica Hub" },
+      { title: "Veronica Shorts · Veronica Hub" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
 });
 const labels: Record<string, string> = {
+  render_queued: "Aguardando processador",
+  rendering: "Gerando cortes",
+  clips_ready: "Cortes prontos",
+  render_failed: "Processamento interrompido · revisar",
   queued: "Na fila",
   preparing: "Preparando",
   awaiting_rights: "Confirmar autorização",
@@ -123,7 +127,7 @@ function ShortsPanel() {
         <div className="my-7 flex flex-wrap items-end justify-between gap-5">
           <div>
             <p className="text-xs tracking-[.18em] text-zinc-500">YO LAB & CO. · SOCIAL</p>
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight">Banco de Shorts</h1>
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight">Veronica Shorts</h1>
             <p className="mt-3 max-w-2xl text-zinc-600">
               Você escolhe as fontes. A operação organiza o criativo e acompanha cada etapa até a
               publicação.
@@ -161,9 +165,12 @@ function ShortsPanel() {
             <div className="mb-7 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-relaxed">
               Preparação editorial:{" "}
               {state.readiness.preparation ? "provedor configurado" : "aguardando provedor"}. Edição
-              automática e publicação: aguardando integração. Nenhum horário automático está ativo.
-              A data registrada abaixo é uma intenção de publicação, não uma confirmação da
-              Metricool.
+              própria:{" "}
+              {state.render.configured && state.render.storageConfigured
+                ? "conexão configurada; confira o andamento abaixo"
+                : "processador e armazenamento pendentes"}
+              . Publicação: aguardando conector. Nenhum horário automático está ativo. A data
+              registrada abaixo é uma intenção de publicação, não uma confirmação da Metricool.
             </div>
             {message && (
               <p role="status" className="mb-5 rounded-xl bg-white p-4 text-sm">
@@ -247,12 +254,12 @@ function ShortsPanel() {
                   />
                 </label>
                 <label className="block text-sm">
-                  Transcrição do trecho ou vídeo
+                  Transcrição opcional para rascunho
                   <textarea
                     className={`${field} mt-2 min-h-36`}
                     maxLength={14000}
                     value={form.transcript}
-                    placeholder="Pode guardar só o link agora e adicionar a transcrição depois. A preparação usa somente este texto."
+                    placeholder="O motor próprio transcreve o vídeo. Este campo serve para preparar um rascunho separado."
                     onChange={(e) => setForm({ ...form, transcript: e.target.value })}
                   />
                 </label>
@@ -342,7 +349,12 @@ function ShortsPanel() {
                             Abrir original
                           </a>
                           <button
-                            disabled={busy || ["preparing", "archived"].includes(source.status)}
+                            disabled={
+                              busy ||
+                              ["preparing", "archived", "render_queued", "rendering"].includes(
+                                source.status,
+                              )
+                            }
                             className="underline disabled:opacity-40"
                             onClick={() => {
                               setEditing(source.id);
@@ -362,7 +374,10 @@ function ShortsPanel() {
                           )}
                           {source.status !== "archived" && (
                             <button
-                              disabled={busy || source.status === "preparing"}
+                              disabled={
+                                busy ||
+                                ["preparing", "render_queued", "rendering"].includes(source.status)
+                              }
                               className="underline disabled:opacity-40"
                               onClick={() => void run({ action: "archive", id: source.id })}
                             >
@@ -382,6 +397,100 @@ function ShortsPanel() {
                 <p className="mt-2 text-sm text-zinc-500">
                   {labels[item.status]} · {item.issue ?? "Sem alertas"}
                 </p>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button
+                    className={`${button} !bg-zinc-900 !text-white`}
+                    disabled={
+                      busy ||
+                      !item.rightsConfirmed ||
+                      ["archived", "preparing", "render_queued", "rendering"].includes(
+                        item.status,
+                      ) ||
+                      !state.render.configured ||
+                      !state.render.storageConfigured
+                    }
+                    onClick={() => void run({ action: "render", id: item.id })}
+                  >
+                    Gerar cortes do YouTube
+                  </button>
+                  <button className={button} disabled={busy} onClick={() => void load()}>
+                    Atualizar andamento
+                  </button>
+                  <p className="text-xs text-zinc-500">
+                    Até 3 cortes de 20–60 segundos por vídeo. Prévia antes da publicação.
+                  </p>
+                </div>
+                <div className="mt-5 space-y-5">
+                  {state.render.jobs
+                    .filter((j) => j.sourceId === item.id)
+                    .map((job) => (
+                      <div key={job.id} className="rounded-2xl border p-4">
+                        <p className="text-sm">
+                          {job.status === "completed"
+                            ? "Cortes renderizados"
+                            : job.status === "attention"
+                              ? "Revisar processamento"
+                              : job.status === "running"
+                                ? "Processando vídeo"
+                                : "Na fila do motor"}{" "}
+                          · {job.stage ?? "aguardando"}
+                        </p>
+                        {job.issue && <p className="mt-2 text-sm text-amber-700">{job.issue}</p>}
+                        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                          {job.clips.map((clip, index) => (
+                            <article key={index} className="min-w-0">
+                              <video
+                                className="aspect-[9/16] w-full rounded-xl bg-zinc-950"
+                                controls
+                                playsInline
+                                preload="none"
+                                src={clip.url}
+                              />
+                              <h3 className="mt-3 font-semibold">{clip.creative.coverTitle}</h3>
+                              <p className="mt-1 text-xs text-zinc-500">
+                                {clip.start.toFixed(1)}s–{clip.end.toFixed(1)}s do original
+                              </p>
+                              <a
+                                className="mt-2 block text-sm underline"
+                                href={clip.url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Abrir MP4
+                              </a>
+                              <button
+                                className={`${button} mt-3`}
+                                onClick={() =>
+                                  download(
+                                    `short-${job.id}-${index}.json`,
+                                    JSON.stringify(clip, null, 2),
+                                    "application/json",
+                                  )
+                                }
+                              >
+                                Baixar kit das 4 redes
+                              </button>
+                              <button
+                                className={`${button} mt-3`}
+                                onClick={() =>
+                                  download(
+                                    `capa-${job.id}-${index}.svg`,
+                                    coverSvg(clip.creative.coverTitle),
+                                    "image/svg+xml",
+                                  )
+                                }
+                              >
+                                Baixar capa vertical
+                              </button>
+                              <p className="mt-3 whitespace-pre-wrap text-sm">
+                                {clip.creative.caption}
+                              </p>
+                            </article>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
                 {item.creative && item.packages ? (
                   <div className="mt-6 grid gap-7 lg:grid-cols-[260px_1fr]">
                     <div>
@@ -505,16 +614,17 @@ function ShortsPanel() {
                   </div>
                 ) : (
                   <p className="mt-5 text-sm text-zinc-600">
-                    Adicione a transcrição e confirme a autorização em Revisar. Depois prepare o
-                    próximo item da fila.
+                    O motor próprio transcreve o vídeo ao gerar os cortes. Para preparar apenas um
+                    rascunho editorial, adicione uma transcrição opcional e use Preparar próximo da
+                    fila.
                   </p>
                 )}
               </section>
             )}
             <section className="mt-7 rounded-3xl border border-zinc-200 bg-white p-6">
-              <h2 className="text-xl font-semibold">Execuções reais</h2>
+              <h2 className="text-xl font-semibold">Histórico de rascunhos</h2>
               {!state.runs.length ? (
-                <p className="mt-3 text-sm text-zinc-500">Nenhuma execução ainda.</p>
+                <p className="mt-3 text-sm text-zinc-500">Nenhum rascunho preparado ainda.</p>
               ) : (
                 <ul className="mt-4 space-y-2 text-sm">
                   {state.runs.map((run) => (

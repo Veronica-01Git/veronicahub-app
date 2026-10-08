@@ -656,7 +656,7 @@ export const AGENT_REGISTRY: readonly RegisteredAgent[] = [
     version: "1.0.0",
     status: "INTERNAL",
     statusBasis:
-      "Banco privado e preparação editorial implementados. Edição e publicação externas ainda não conectadas; cadência inativa.",
+      "Banco privado, preparação editorial e motor próprio de cortes implementados. Processador e armazenamento ainda não conectados; publicação e cadência inativas.",
     autonomyLevel: "LEVEL_2",
     tenantScope: "internal",
     allowedTenants: [HOUSE_TENANT],
@@ -674,7 +674,7 @@ export const AGENT_REGISTRY: readonly RegisteredAgent[] = [
     costCurrency: "USD",
     maxLatencyMs: 60000,
     ceilingsBasis:
-      "Uma tentativa de modelo por claim. Entrada limitada a 16.000 caracteres, saída a 1.400 tokens, deadline de 16 segundos e Model Router bloqueando estimativa acima de 6.000 micros USD. Cadência ainda não habilitada; acionamento manual administrativo.",
+      "Texto editorial: entrada até 16.000 caracteres, saída de 1.400 tokens e deadline de 16 segundos; seleção de cortes: até 2.000 tokens e deadline de 22 segundos. Model Router bloqueia estimativa acima de 6.000 micros USD por chamada. Renderização assíncrona em processador separado; consumo de CPU e armazenamento não integra o teto de texto. Acionamento administrativo; cadência inativa.",
     approval: {
       requiresApproval: false,
       handoffTriggers: [

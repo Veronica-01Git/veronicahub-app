@@ -17,3 +17,12 @@ Próxima integração deve manter outbox por rede, identificador remoto, chave i
 Medidas atuais: visitas ao redirecionamento (inclui bots, testes e previews), não pessoas únicas ou vendas. UTMs são gravados no destino. Seguidores, retenção, cliques de bio, cadastro e receita precisam de telemetria real das redes e eventos da Hub; não são atribuídos por suposição. Venda via TikTok Shop exige integração separada do catálogo/afiliado e elegibilidade da conta.
 
 Verificação: testes de URL/destino, autorização/transcrição antes do modelo, validação de saída e pacote das quatro redes. Typecheck e build obrigatórios antes do merge. Nenhum vídeo ou post fictício é inserido.
+
+
+## Motor próprio (Veronica Shorts)
+
+A edição agora tem implementação própria em `workers/shorts-engine`, com fila de
+renderização, transcrição automática e exportação FFmpeg. Confira
+[shorts-engine.md](./shorts-engine.md) para implantação e limites. Não está
+operacional na produção até conectar host de processamento, armazenamento e
+segredo dedicado. A publicação social continua pendente e a cadência desligada.
