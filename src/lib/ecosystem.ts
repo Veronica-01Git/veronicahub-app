@@ -144,6 +144,17 @@ export const PRODUCTS: Product[] = [
     public: true,
   },
   {
+    id: "shorts",
+    name: "Veronica Shorts",
+    category: "Ferramentas",
+    to: "/shorts",
+    status: "Em produção",
+    description:
+      "Motor próprio de cortes, legendas e kits para redes; operação administrativa em implantação",
+    external: false,
+    public: true,
+  },
+  {
     id: "portfolio",
     name: "Veronica Portfolio",
     category: "Ferramentas",
@@ -318,7 +329,7 @@ export const HEADER_NAV_GROUPS = [
   {
     id: "create",
     label: "Criar",
-    items: ["veronica-chat", "studio", "portfolio", "fashion"].map(product),
+    items: ["veronica-chat", "studio", "shorts", "portfolio", "fashion"].map(product),
   },
   {
     id: "business",

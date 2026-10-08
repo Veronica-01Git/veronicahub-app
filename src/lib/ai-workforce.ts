@@ -395,7 +395,7 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
       "Adapta convite",
       "Registra visitas",
     ],
-    produtoId: "studio",
+    produtoId: "shorts",
     estado: "parcial",
     prova:
       "Fila e preparação editorial em /admin/shorts, com motor próprio de cortes e legendas implementado e MP4 verificado em teste offline. Processador, armazenamento e publicação ainda precisam ser conectados.",
