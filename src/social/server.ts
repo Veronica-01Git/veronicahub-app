@@ -7,7 +7,7 @@ export const getSocialQueue = createServerFn({ method: "GET" }).handler(async ()
   return { ok: true as const, ...(await queueSnapshot()) };
 });
 export type Command = {
-  action: "add" | "revise" | "archive" | "restore" | "prepare" | "attach";
+  action: "add" | "revise" | "archive" | "restore" | "prepare" | "attach" | "render";
   id?: string;
   value?: unknown;
   mediaUrl?: string;
@@ -16,7 +16,10 @@ export type Command = {
 export const socialCommand = createServerFn({ method: "POST" })
   .validator((v: unknown): Command => {
     const c = v as Command;
-    if (!c || !["add", "revise", "archive", "restore", "prepare", "attach"].includes(c.action))
+    if (
+      !c ||
+      !["add", "revise", "archive", "restore", "prepare", "attach", "render"].includes(c.action)
+    )
       throw new Error("Ação inválida.");
     if (
       !["add", "prepare"].includes(c.action) &&
@@ -35,6 +38,10 @@ export const socialCommand = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (!(await requireAdmin())) return { ok: false as const, error: "Acesso restrito." };
     const r = await import("./runtime.server");
+    if (data.action === "render") {
+      const { enqueueRender } = await import("./render.server");
+      return enqueueRender(data.id!);
+    }
     if (data.action === "add") return r.saveSource(data.value);
     if (data.action === "revise") return r.reviseSource(data.id!, data.value);
     if (data.action === "archive") return r.archiveSource(data.id!);

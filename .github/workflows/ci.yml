@@ -38,6 +38,9 @@ jobs:
       - name: Roda os testes
         run: bun run test
 
+      - name: Testa seleção e legendas do motor próprio
+        run: python3 -m unittest discover -s workers/shorts-engine -p 'test_*.py'
+
       # Último de propósito: é o passo caro, e não vale pagá-lo quando os
       # tipos ou os testes já reprovaram.
       - name: Roda o build

@@ -120,7 +120,8 @@ const app = {
     if (
       url.pathname === "/api/cron/social-shorts" ||
       url.pathname === "/api/agents/social-shorts/status" ||
-      url.pathname.startsWith("/api/social/go/")
+      url.pathname.startsWith("/api/social/go/") ||
+      url.pathname.startsWith("/api/social/render/")
     )
       return handleSocial(request);
     if (url.pathname === "/api/cron/wire-health") return handleWireHealth(request);
