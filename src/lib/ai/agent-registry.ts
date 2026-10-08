@@ -55,6 +55,18 @@ export type ToolDefinition = {
  */
 export const TOOL_REGISTRY: readonly ToolDefinition[] = [
   {
+    key: "social.queue.read",
+    description: "Lê apenas fontes escolhidas no banco privado da Hub",
+    sideEffect: "read",
+    implementedBy: "src/social/runtime.server.ts",
+  },
+  {
+    key: "social.creative.prepare",
+    description: "Prepara e registra rascunhos para quatro redes; não renderiza nem publica",
+    sideEffect: "write",
+    implementedBy: "src/social/runtime.server.ts",
+  },
+  {
     key: "commercial.brief.save",
     description: "Salva briefing da conta autenticada, com limite diário e análise delimitada",
     sideEffect: "write",
@@ -638,6 +650,50 @@ const GUARDIAN: RegisteredAgent = {
   ],
 };
 export const AGENT_REGISTRY: readonly RegisteredAgent[] = [
+  {
+    slug: "social-shorts",
+    workforceId: "social-shorts",
+    version: "1.0.0",
+    status: "INTERNAL",
+    statusBasis:
+      "Banco privado e preparação editorial implementados. Edição e publicação externas ainda não conectadas; cadência inativa.",
+    autonomyLevel: "LEVEL_2",
+    tenantScope: "internal",
+    allowedTenants: [HOUSE_TENANT],
+    skills: [
+      "cap:source-curation",
+      "cap:short-form-editorial",
+      "cap:platform-captions",
+      "cap:conversion-invitation",
+    ],
+    tools: [
+      { key: "social.queue.read", requiresApproval: false },
+      { key: "social.creative.prepare", requiresApproval: false },
+    ],
+    maxCostPerTaskMicros: 6000,
+    costCurrency: "USD",
+    maxLatencyMs: 60000,
+    ceilingsBasis:
+      "Uma tentativa de modelo por claim. Entrada limitada a 16.000 caracteres, saída a 1.400 tokens, deadline de 16 segundos e Model Router bloqueando estimativa acima de 6.000 micros USD. Cadência ainda não habilitada; acionamento manual administrativo.",
+    approval: {
+      requiresApproval: false,
+      handoffTriggers: [
+        "autorização de uso ausente",
+        "transcrição ausente",
+        "modelo inválido",
+        "integração de edição/publicação ausente",
+      ],
+    },
+    businessRules: [
+      {
+        id: "sem-publicacao-simulada",
+        description:
+          "Rascunho editorial não é vídeo editado nem publicação; visitas não são vendas",
+        enforcedBy: "src/social/runtime.server.ts",
+        forbiddenOutputPatterns: ["lucro garantido"],
+      },
+    ],
+  },
   COMMERCIAL,
   GUARDIAN,
   ANALYTICS_COMMERCE,

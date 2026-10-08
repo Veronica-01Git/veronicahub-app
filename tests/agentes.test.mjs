@@ -154,6 +154,7 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/admin/imagens",
   "/admin/veronica-universe",
   "/admin/wire",
+  "/admin/shorts", // banco de fontes privado, acessado pelo painel admin
   "/admin/membros", // editorial restrito, acessado pelo painel admin
   "/admin/produtos-shopee", // catálogo comercial restrito, acessado pelo painel admin
   "/admin/comissoes-shopee", // conciliação financeira restrita, acessada pelo painel admin

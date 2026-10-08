@@ -119,6 +119,7 @@ export type AgenteWorkforceId =
   | "atendimento"
   | "redacao"
   | "estudio"
+  | "social-shorts"
   | "analytics"
   | "tutor"
   | "carreira"
@@ -378,6 +379,48 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
       "Sem painel administrativo próprio: o histórico fica na conta de quem gerou",
     ],
     midia: { base: "studio", alt: "Direção criativa dentro de um estúdio cinematográfico" },
+  },
+  {
+    id: "social-shorts",
+    nome: "Agente Social Shorts",
+    curto: "Shorts",
+    etiqueta: "SOCIAL CONTENT OPERATIONS",
+    problema: "Os vídeos escolhidos ficam espalhados e cada rede exige um novo criativo.",
+    funcao:
+      "Organiza fontes autorizadas e prepara gancho, capa, legenda, hashtags e convite para a Hub em quatro redes.",
+    capacidades: [
+      "Organiza fila",
+      "Prepara rascunho",
+      "Monta capa",
+      "Adapta convite",
+      "Registra visitas",
+    ],
+    produtoId: "studio",
+    estado: "parcial",
+    prova:
+      "Fila persistente e preparação editorial em /admin/shorts; estado agregado verificável em /api/agents/social-shorts/status. Edição automática e publicação ainda não estão conectadas.",
+    painel: {
+      to: "/admin/shorts",
+      rotulo: "Banco de Shorts",
+      acesso: "interno",
+      administra: [
+        "Fontes escolhidas",
+        "Objetivos e prioridade",
+        "Kits das quatro redes",
+        "Histórico de preparação",
+      ],
+    },
+    pendencias: [
+      "Aquisição autorizada e edição automática de vídeo",
+      "Conector de publicação e confirmação por rede",
+      "Cadência ainda será definida pelo dono",
+    ],
+    impacto: {
+      eixo: "Conversão",
+      texto:
+        "Prepara convites para a Hub e mede visitas aos links; conversão e receita dependem de eventos reais.",
+    },
+    midia: { base: "studio", alt: "Operação de shorts dentro do estúdio criativo da Veronica Hub" },
   },
   {
     id: "analytics",
