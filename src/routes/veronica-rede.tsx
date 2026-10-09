@@ -5,6 +5,7 @@ import {
   Copy,
   Download,
   ExternalLink,
+  MessageSquareText,
   Link2,
   MousePointerClick,
   Package,
@@ -14,6 +15,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getMyAffiliate, getMyAffiliateStats } from "@/lib/affiliate-account-server";
 import { getPublicAffiliateCatalog } from "@/lib/affiliate-catalog-server";
 import { getMyAffiliateCommissions } from "@/lib/affiliate-commission-server";
+import { buildAffiliateCaption } from "@/lib/affiliate-captions";
 import { buildTrackedPath } from "@/lib/affiliate-products";
 
 export const Route = createFileRoute("/veronica-rede")({
@@ -66,13 +68,18 @@ function VeronicaRede() {
     [stats],
   );
 
-  async function copyLink(productId: string) {
+  // `kind` separa link e legenda no estado "copiado" e no placement do
+  // Sub_id, para o relatório mostrar de onde veio cada clique.
+  async function copyForProduct(productId: string, kind: "link" | "legenda") {
     if (!account?.ok) return;
     const product = products.find((item) => item.id === productId);
     if (!product) return;
-    const path = buildTrackedPath(product, { handle: account.code, placement: "link_divulgador" });
-    await navigator.clipboard.writeText(`${window.location.origin}${path}`);
-    setCopied(productId);
+    const placement = kind === "link" ? "link_divulgador" : "legenda_divulgador";
+    const url = `${window.location.origin}${buildTrackedPath(product, { handle: account.code, placement })}`;
+    await navigator.clipboard.writeText(
+      kind === "link" ? url : buildAffiliateCaption(product, url),
+    );
+    setCopied(`${kind}:${productId}`);
     window.setTimeout(() => setCopied(null), 1800);
   }
 
@@ -205,15 +212,28 @@ function VeronicaRede() {
                     <button
                       type="button"
                       disabled={!authenticated}
-                      onClick={() => copyLink(product.id)}
+                      onClick={() => copyForProduct(product.id, "link")}
                       className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-[11px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-35"
                     >
-                      {copied === product.id ? (
+                      {copied === `link:${product.id}` ? (
                         <Check className="h-4 w-4" />
                       ) : (
                         <Copy className="h-4 w-4" />
                       )}
-                      {copied === product.id ? "Link copiado" : "Copiar meu link"}
+                      {copied === `link:${product.id}` ? "Link copiado" : "Copiar meu link"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!authenticated}
+                      onClick={() => copyForProduct(product.id, "legenda")}
+                      className="inline-flex items-center gap-2 rounded-full border border-black/10 px-4 py-3 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-35"
+                    >
+                      {copied === `legenda:${product.id}` ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <MessageSquareText className="h-4 w-4" />
+                      )}
+                      {copied === `legenda:${product.id}` ? "Legenda copiada" : "Copiar legenda"}
                     </button>
                     {product.videoUrl && (
                       <a
