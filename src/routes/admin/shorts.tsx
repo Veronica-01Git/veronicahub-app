@@ -4,6 +4,7 @@ import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getSocialQueue, socialCommand, type Command } from "@/social/server";
 import { coverSvg, GOALS, youtubeUrl, type SourceInput } from "@/social/policy";
 import type { SourceRow } from "@/social/runtime.server";
+import { CutFlow } from "@/components/shorts/CutFlow";
 
 export const Route = createFileRoute("/admin/shorts")({
   component: ShortsPanel,
@@ -90,6 +91,13 @@ function ShortsPanel() {
   useEffect(() => {
     void load();
   }, []);
+  const processing =
+    !!state?.ok && state.render.jobs.some((j) => j.status === "queued" || j.status === "running");
+  useEffect(() => {
+    if (!processing) return;
+    const timer = setInterval(() => void load(), 20_000);
+    return () => clearInterval(timer);
+  }, [processing]);
   const run = async (data: Command) => {
     setBusy(true);
     setMessage("");
@@ -470,135 +478,16 @@ function ShortsPanel() {
                 <p className="mt-2 text-sm text-zinc-500">
                   {labels[item.status]} · {item.issue ?? "Sem alertas"}
                 </p>
-                {state.render.sourceUploads && (
-                  <div className="mt-5 rounded-2xl border border-zinc-200 p-4">
-                    <p className="text-sm font-medium">Arquivo original do vídeo</p>
-                    <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                      {state.render.uploads.includes(item.videoId)
-                        ? "Enviado. O motor usa este arquivo em vez de baixar do YouTube."
-                        : "Ainda não enviado. O YouTube recusa downloads vindos de servidores; envie o MP4 (até 1 GB) baixado no YouTube Studio ou cedido pelo autor."}
-                    </p>
-                    <input
-                      type="file"
-                      accept="video/mp4"
-                      aria-label="Enviar arquivo original em MP4"
-                      className="mt-3 block w-full text-sm"
-                      disabled={busy || !item.rightsConfirmed}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        e.target.value = "";
-                        if (file) void uploadOriginal(item, file);
-                      }}
-                    />
-                    {upload?.id === item.id && (
-                      <p role="status" className="mt-2 text-xs text-zinc-600">
-                        Enviando… {upload.pct}%
-                      </p>
-                    )}
-                  </div>
-                )}
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button
-                    className={`${button} !bg-zinc-900 !text-white`}
-                    disabled={
-                      busy ||
-                      !item.rightsConfirmed ||
-                      ["archived", "preparing", "render_queued", "rendering"].includes(
-                        item.status,
-                      ) ||
-                      !state.render.configured ||
-                      !state.render.storageConfigured
-                    }
-                    onClick={() => void run({ action: "render", id: item.id })}
-                  >
-                    Gerar cortes
-                  </button>
-                  <button className={button} disabled={busy} onClick={() => void load()}>
-                    Atualizar andamento
-                  </button>
-                  <p className="text-xs text-zinc-500">
-                    Até 3 cortes de 20–60 segundos por vídeo. Prévia antes da publicação.
-                  </p>
-                </div>
-                <div className="mt-5 space-y-5">
-                  {state.render.jobs
-                    .filter((j) => j.sourceId === item.id)
-                    .map((job) => (
-                      <div key={job.id} className="rounded-2xl border p-4">
-                        <p className="text-sm">
-                          {job.status === "completed"
-                            ? "Cortes renderizados"
-                            : job.status === "attention"
-                              ? "Revisar processamento"
-                              : job.status === "running"
-                                ? "Processando vídeo"
-                                : "Na fila do motor"}{" "}
-                          · {job.stage ?? "aguardando"}
-                        </p>
-                        {job.issue && <p className="mt-2 text-sm text-amber-700">{job.issue}</p>}
-                        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                          {job.clips.map((clip, index) => (
-                            <article key={index} className="min-w-0">
-                              <video
-                                className="aspect-[9/16] w-full rounded-xl bg-zinc-950"
-                                controls
-                                playsInline
-                                preload="none"
-                                src={clip.url}
-                              />
-                              <h3 className="mt-3 font-semibold">{clip.creative.coverTitle}</h3>
-                              <p className="mt-1 text-xs text-zinc-500">
-                                {clip.start.toFixed(1)}s–{clip.end.toFixed(1)}s do original
-                              </p>
-                              <a
-                                className="mt-2 block text-sm underline"
-                                href={clip.url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                Abrir MP4
-                              </a>
-                              {clip.url.startsWith("/api/social/media/") && (
-                                <a
-                                  className="mt-1 block text-sm underline"
-                                  href={`${clip.url}&download=1`}
-                                >
-                                  Baixar MP4
-                                </a>
-                              )}
-                              <button
-                                className={`${button} mt-3`}
-                                onClick={() =>
-                                  download(
-                                    `short-${job.id}-${index}.json`,
-                                    JSON.stringify(clip, null, 2),
-                                    "application/json",
-                                  )
-                                }
-                              >
-                                Baixar kit das 4 redes
-                              </button>
-                              <button
-                                className={`${button} mt-3`}
-                                onClick={() =>
-                                  download(
-                                    `capa-${job.id}-${index}.svg`,
-                                    coverSvg(clip.creative.coverTitle),
-                                    "image/svg+xml",
-                                  )
-                                }
-                              >
-                                Baixar capa vertical
-                              </button>
-                              <p className="mt-3 whitespace-pre-wrap text-sm">
-                                {clip.creative.caption}
-                              </p>
-                            </article>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                </div>
+                <CutFlow
+                  item={item}
+                  render={state.render}
+                  busy={busy}
+                  uploadPct={upload?.id === item.id ? upload.pct : null}
+                  onUpload={(file) => void uploadOriginal(item, file)}
+                  onRender={() => void run({ action: "render", id: item.id })}
+                  onRefresh={() => void load()}
+                  onDownload={download}
+                />
                 {item.creative && item.packages ? (
                   <div className="mt-6 grid gap-7 lg:grid-cols-[260px_1fr]">
                     <div>

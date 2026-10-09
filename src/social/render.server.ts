@@ -101,6 +101,19 @@ export async function enqueueRender(id: string) {
       ok: false as const,
       error: "Motor próprio criado. Falta conectar o processador e o armazenamento de vídeos.",
     };
+  // The YouTube download from datacenters is refused ("confirm you're not a bot"),
+  // so with Hub storage the operator's original file is required up front.
+  const sources = await sourcesBucket();
+  if (sources) {
+    const row = (await getDb().execute(sql`SELECT "videoId" FROM "SocialSource" WHERE id=${id}`))
+      .rows[0];
+    if (!row || !(await sources.head(sourceKey(String(row.videoId)))))
+      return {
+        ok: false as const,
+        error:
+          "Envie o arquivo original do vídeo (MP4) antes de gerar os cortes. O YouTube bloqueia downloads feitos por servidores.",
+      };
+  }
   await renderStorage();
   // One statement creates the job and locks the source. Concurrent clicks cannot create duplicate work.
   const result = await getDb().execute(sql`WITH claimed AS (
