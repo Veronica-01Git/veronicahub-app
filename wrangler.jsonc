@@ -4,6 +4,13 @@
   "name": "veronicahub-app",
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat"],
+  // Workers Logs: guarda console.log, exceções e o motivo de cada falha
+  // (ex.: Error 1102, limite de CPU/memória) no painel da Cloudflare, por
+  // Ray ID. Sem isso, um erro intermitente some sem deixar rastro.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
   // Veronica Shorts: buckets privados (sem domínio público). Cortes e originais
   // só saem por links assinados emitidos para a sessão de admin.
   "r2_buckets": [
