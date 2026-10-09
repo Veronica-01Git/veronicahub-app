@@ -145,7 +145,7 @@ export function PrivateClientAccountGate({
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="responsavel@empresa.com"
+              placeholder={context === "wellness" ? "voce@email.com" : "responsavel@empresa.com"}
               className="w-full bg-transparent text-sm outline-none placeholder:text-black/25"
             />
           </div>
