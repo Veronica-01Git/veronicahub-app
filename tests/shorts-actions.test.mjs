@@ -40,6 +40,15 @@ test("arquivo original enviado pela operadora vem de bucket privado", () => {
   assert.doesNotMatch(workflow, /SHORTS_SOURCE_BUCKET: veronicahub-shorts\n/);
 });
 
+test("processador usa o segredo já existente e dispensa chaves S3", () => {
+  assert.match(
+    workflow,
+    /SOCIAL_RENDER_SECRET: \$\{\{ secrets\.SOCIAL_RENDER_SECRET \|\| secrets\.CRON_SECRET \}\}/,
+  );
+  assert.match(workflow, /for name in SOCIAL_RENDER_SECRET; do/);
+  assert.match(worker, /if not os\.getenv\("SHORTS_S3_ENDPOINT"\):\n\s+return None, None/);
+});
+
 test("download do YouTube inclui o runtime JavaScript exigido", () => {
   assert.match(requirements, /^deno==/m);
   assert.match(requirements, /^yt-dlp-ejs==/m);

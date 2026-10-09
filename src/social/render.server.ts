@@ -11,6 +11,22 @@ import {
   type RenderPlan,
 } from "./render-policy";
 import type { Goal } from "./policy";
+import { HUB_MEDIA_BASE, MAX_PART_BYTES, sourceKey } from "./media-policy";
+import { mediaBucket, signClipUrls, sourcesBucket, uploadedVideoIds } from "./media.server";
+
+// The processor authenticates with a dedicated secret when one exists. Otherwise
+// it uses the Hub's automation secret, which the GitHub Actions scheduler already
+// holds for the other agents (same trust boundary: Hub ↔ this repository's Actions).
+async function renderSecret() {
+  return (
+    (await getRuntimeSecret("SOCIAL_RENDER_SECRET")) ?? (await getRuntimeSecret("CRON_SECRET"))
+  );
+}
+/** Private R2 binding on the Hub when present; otherwise an external S3/R2 domain. */
+async function currentMediaBase() {
+  if (await mediaBucket()) return HUB_MEDIA_BASE;
+  return mediaBase(await getRuntimeSecret("SHORTS_MEDIA_BASE_URL"));
+}
 
 let initialized: Promise<void> | undefined;
 export async function renderStorage() {
@@ -34,30 +50,47 @@ export async function renderStorage() {
   await initialized;
 }
 export async function renderReadiness() {
-  const configured = !!(await getRuntimeSecret("SOCIAL_RENDER_SECRET"));
-  let storageConfigured = false;
+  const configured = !!(await renderSecret());
+  const hubStorage = !!(await mediaBucket());
+  let storageConfigured = hubStorage;
   try {
-    mediaBase(await getRuntimeSecret("SHORTS_MEDIA_BASE_URL"));
-    storageConfigured = true;
+    if (!hubStorage) {
+      mediaBase(await getRuntimeSecret("SHORTS_MEDIA_BASE_URL"));
+      storageConfigured = true;
+    }
   } catch {
     // Missing or invalid storage is reported as pending configuration.
   }
-  return { configured, storageConfigured, engine: "veronica-shorts-v1", scheduleActive: false };
+  return {
+    configured,
+    storageConfigured,
+    hubStorage,
+    sourceUploads: !!(await sourcesBucket()),
+    engine: "veronica-shorts-v1",
+    scheduleActive: false,
+  };
 }
 export async function renderSnapshot() {
   await renderStorage();
   const rows = await getDb().execute(sql`SELECT id,"sourceId",status,stage,clips,issue,"updatedAt"
     FROM "SocialRenderJob" ORDER BY "createdAt" DESC LIMIT 200`);
-  return {
-    jobs: rows.rows.map((v) => ({
+  const jobs = await Promise.all(
+    rows.rows.map(async (v) => ({
       id: String(v.id),
       sourceId: String(v.sourceId),
       status: String(v.status),
       stage: v.stage ? String(v.stage) : null,
-      clips: (v.clips ?? []) as (RenderPlan[number] & { url: string; duration: number })[],
+      // Private clips become short-lived signed links for this admin view only.
+      clips: await signClipUrls(
+        (v.clips ?? []) as (RenderPlan[number] & { url: string; duration: number })[],
+      ),
       issue: v.issue ? String(v.issue) : null,
       updatedAt: String(v.updatedAt),
     })),
+  );
+  return {
+    jobs,
+    uploads: await uploadedVideoIds().catch(() => [] as string[]),
     ...(await renderReadiness()),
   };
 }
@@ -84,12 +117,56 @@ Não invente fatos, falas ou benefícios. Retorne apenas JSON {"clips":[{"candid
 "editNotes":"contexto preservado e legendas legíveis","hashtags":["#Tema"]}}]}.
 Use somente IDs fornecidos. Português brasileiro. Sem URLs, menções ou promessas de viralização ou lucro.
 Inclua uma pergunta sobre o assunto. O sistema acrescenta o convite para a Hub.`;
+async function leasedJob(id: unknown, lease: unknown) {
+  if (typeof id !== "string" || typeof lease !== "string") return null;
+  if (!/^[\w-]{36}$/.test(id) || !/^[\w-]{36}$/.test(lease)) return null;
+  return (
+    await getDb()
+      .execute(sql`SELECT j.*,s.goal,s."videoId" FROM "SocialRenderJob" j JOIN "SocialSource" s ON s.id=j."sourceId"
+    WHERE j.id=${id} AND j.lease=${lease} AND j.status='running' AND j."leaseUntil">now() AND s.status='rendering'`)
+  ).rows[0];
+}
+/** Binary steps for Hub-stored media: original file download and clip upload. */
+async function handleRenderMedia(request: Request, action: string) {
+  const headers = { "cache-control": "no-store" };
+  const url = new URL(request.url);
+  await renderStorage();
+  const job = await leasedJob(url.searchParams.get("id"), url.searchParams.get("lease"));
+  if (!job) return new Response(null, { status: 409, headers });
+  if (action === "source") {
+    if (request.method !== "GET") return new Response(null, { status: 405, headers });
+    const bucket = await sourcesBucket();
+    const object = bucket ? await bucket.get(sourceKey(String(job.videoId))) : null;
+    if (!object) return new Response(null, { status: 404, headers });
+    return new Response(object.body, {
+      headers: { ...headers, "content-type": "video/mp4", "content-length": String(object.size) },
+    });
+  }
+  if (request.method !== "PUT") return new Response(null, { status: 405, headers });
+  const index = Number(url.searchParams.get("index"));
+  const plan = (job.plan ?? []) as RenderPlan;
+  const size = Number(request.headers.get("content-length"));
+  if (!Number.isInteger(index) || index < 0 || index >= plan.length)
+    return new Response(null, { status: 400, headers });
+  if (!request.body || !Number.isFinite(size) || size < 1 || size > MAX_PART_BYTES)
+    return new Response(null, { status: 413, headers });
+  const bucket = await mediaBucket();
+  if (!bucket) return new Response(null, { status: 503, headers });
+  const key = `shorts/${job.sourceId}/${job.id}/${index}.mp4`;
+  const stored = await bucket.put(key, request.body, {
+    httpMetadata: { contentType: "video/mp4" },
+  });
+  if (!stored || stored.size !== size) return new Response(null, { status: 422, headers });
+  return Response.json({ ok: true, size: stored.size }, { headers });
+}
 export async function handleRender(request: Request) {
   const headers = { "cache-control": "no-store" };
-  if (request.method !== "POST") return new Response(null, { status: 405, headers });
-  const secret = await getRuntimeSecret("SOCIAL_RENDER_SECRET");
+  const secret = await renderSecret();
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`)
     return new Response(null, { status: 401, headers });
+  const step = new URL(request.url).pathname.split("/").pop() ?? "";
+  if (step === "source" || step === "upload") return handleRenderMedia(request, step);
+  if (request.method !== "POST") return new Response(null, { status: 405, headers });
   // Bound both declared and actual bytes. Never log transcripts, access keys or signed URLs.
   if (Number(request.headers.get("content-length")) > 60000)
     return new Response(null, { status: 413, headers });
@@ -166,7 +243,8 @@ export async function handleRender(request: Request) {
           lease,
           url: source.url,
           title: source.title,
-          mediaBase: mediaBase(await getRuntimeSecret("SHORTS_MEDIA_BASE_URL")),
+          mediaBase: await currentMediaBase(),
+          storage: (await mediaBucket()) ? "hub" : "s3",
           maxMinutes: 60,
           maxClips: 3,
         },
@@ -181,10 +259,7 @@ export async function handleRender(request: Request) {
     !/^[\w-]{36}$/.test(data.lease)
   )
     return new Response(null, { status: 400, headers });
-  const job = (
-    await db.execute(sql`SELECT j.*,s.goal FROM "SocialRenderJob" j JOIN "SocialSource" s ON s.id=j."sourceId"
-    WHERE j.id=${data.id} AND j.lease=${data.lease} AND j.status='running' AND j."leaseUntil">now() AND s.status='rendering'`)
-  ).rows[0];
+  const job = await leasedJob(data.id, data.lease);
   if (!job) return new Response(null, { status: 409, headers });
   if (action === "heartbeat") {
     const stage = ["download", "transcribe", "select", "render", "upload"].includes(
@@ -259,7 +334,7 @@ export async function handleRender(request: Request) {
       if (!job.plan) throw new Error("MISSING_PLAN");
       const clips = validateArtifacts(
         data.clips,
-        mediaBase(await getRuntimeSecret("SHORTS_MEDIA_BASE_URL")),
+        await currentMediaBase(),
         String(job.sourceId),
         String(job.id),
         job.plan as RenderPlan,

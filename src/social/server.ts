@@ -7,7 +7,7 @@ export const getSocialQueue = createServerFn({ method: "GET" }).handler(async ()
   return { ok: true as const, ...(await queueSnapshot()) };
 });
 export type Command = {
-  action: "add" | "revise" | "archive" | "restore" | "prepare" | "attach" | "render";
+  action: "add" | "revise" | "archive" | "restore" | "prepare" | "attach" | "render" | "upload";
   id?: string;
   value?: unknown;
   mediaUrl?: string;
@@ -18,7 +18,9 @@ export const socialCommand = createServerFn({ method: "POST" })
     const c = v as Command;
     if (
       !c ||
-      !["add", "revise", "archive", "restore", "prepare", "attach", "render"].includes(c.action)
+      !["add", "revise", "archive", "restore", "prepare", "attach", "render", "upload"].includes(
+        c.action,
+      )
     )
       throw new Error("Ação inválida.");
     if (
@@ -38,6 +40,10 @@ export const socialCommand = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (!(await requireAdmin())) return { ok: false as const, error: "Acesso restrito." };
     const r = await import("./runtime.server");
+    if (data.action === "upload") {
+      const { sourceUploadLink } = await import("./media.server");
+      return sourceUploadLink(data.id!);
+    }
     if (data.action === "render") {
       const { enqueueRender } = await import("./render.server");
       return enqueueRender(data.id!);

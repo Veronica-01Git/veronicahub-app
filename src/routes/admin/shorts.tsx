@@ -76,6 +76,7 @@ function ShortsPanel() {
   const [filter, setFilter] = useState("active");
   const [media, setMedia] = useState("");
   const [date, setDate] = useState("");
+  const [upload, setUpload] = useState<{ id: string; pct: number } | null>(null);
   const load = async () => {
     try {
       setState(await getSocialQueue());
@@ -112,6 +113,69 @@ function ShortsPanel() {
       setMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
       setBusy(false);
+    }
+  };
+  // Original file → private bucket, in parts below the Workers request limit.
+  const uploadOriginal = async (source: SourceRow, file: File) => {
+    if (file.type !== "video/mp4" && !/\.mp4$/i.test(file.name)) {
+      setMessage("Envie o vídeo em MP4.");
+      return;
+    }
+    if (file.size > 1024 ** 3) {
+      setMessage("O arquivo passa de 1 GB. Exporte em 720p e envie de novo.");
+      return;
+    }
+    setBusy(true);
+    setMessage("");
+    setUpload({ id: source.id, pct: 0 });
+    let base = "";
+    let uploadId = "";
+    try {
+      const link = (await socialCommand({ data: { action: "upload", id: source.id } })) as {
+        ok: boolean;
+        url?: string;
+        partBytes?: number;
+        error?: string;
+      };
+      if (!link.ok || !link.url || !link.partBytes)
+        throw new Error(link.error ?? "Envio indisponível.");
+      const partBytes = link.partBytes;
+      base = link.url;
+      const step = async (query: string, init: RequestInit) => {
+        const res = await fetch(`${base}&${query}`, init);
+        const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+        if (!res.ok || !body.ok) throw new Error("O envio foi interrompido. Tente novamente.");
+        return body;
+      };
+      uploadId = String((await step("action=create", { method: "POST" })).uploadId);
+      const id = encodeURIComponent(uploadId);
+      const total = Math.ceil(file.size / partBytes);
+      const parts: unknown[] = [];
+      for (let i = 0; i < total; i++) {
+        const chunk = file.slice(i * partBytes, (i + 1) * partBytes);
+        parts.push(
+          (await step(`action=part&uploadId=${id}&part=${i + 1}`, { method: "PUT", body: chunk }))
+            .part,
+        );
+        setUpload({ id: source.id, pct: Math.round(((i + 1) / total) * 100) });
+      }
+      await step(`action=complete&uploadId=${id}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ parts }),
+      });
+      uploadId = "";
+      setMessage("Arquivo original enviado. Agora é só gerar os cortes.");
+      await load();
+    } catch (error) {
+      if (base && uploadId)
+        void fetch(`${base}&action=abort&uploadId=${encodeURIComponent(uploadId)}`, {
+          method: "POST",
+        });
+      setMessage(error instanceof Error ? error.message : "Não foi possível enviar o arquivo.");
+    } finally {
+      setBusy(false);
+      setUpload(null);
     }
   };
   const sources = state?.ok ? state.sources : [];
@@ -406,6 +470,33 @@ function ShortsPanel() {
                 <p className="mt-2 text-sm text-zinc-500">
                   {labels[item.status]} · {item.issue ?? "Sem alertas"}
                 </p>
+                {state.render.sourceUploads && (
+                  <div className="mt-5 rounded-2xl border border-zinc-200 p-4">
+                    <p className="text-sm font-medium">Arquivo original do vídeo</p>
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                      {state.render.uploads.includes(item.videoId)
+                        ? "Enviado. O motor usa este arquivo em vez de baixar do YouTube."
+                        : "Ainda não enviado. O YouTube recusa downloads vindos de servidores; envie o MP4 (até 1 GB) baixado no YouTube Studio ou cedido pelo autor."}
+                    </p>
+                    <input
+                      type="file"
+                      accept="video/mp4"
+                      aria-label="Enviar arquivo original em MP4"
+                      className="mt-3 block w-full text-sm"
+                      disabled={busy || !item.rightsConfirmed}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (file) void uploadOriginal(item, file);
+                      }}
+                    />
+                    {upload?.id === item.id && (
+                      <p role="status" className="mt-2 text-xs text-zinc-600">
+                        Enviando… {upload.pct}%
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <button
                     className={`${button} !bg-zinc-900 !text-white`}
@@ -420,7 +511,7 @@ function ShortsPanel() {
                     }
                     onClick={() => void run({ action: "render", id: item.id })}
                   >
-                    Gerar cortes do YouTube
+                    Gerar cortes
                   </button>
                   <button className={button} disabled={busy} onClick={() => void load()}>
                     Atualizar andamento
@@ -467,6 +558,14 @@ function ShortsPanel() {
                               >
                                 Abrir MP4
                               </a>
+                              {clip.url.startsWith("/api/social/media/") && (
+                                <a
+                                  className="mt-1 block text-sm underline"
+                                  href={`${clip.url}&download=1`}
+                                >
+                                  Baixar MP4
+                                </a>
+                              )}
                               <button
                                 className={`${button} mt-3`}
                                 onClick={() =>

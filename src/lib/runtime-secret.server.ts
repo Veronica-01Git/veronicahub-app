@@ -19,3 +19,15 @@ export async function getRuntimeSecret(
   const value = bindings === null ? process.env[name] : bindings[name];
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
+
+/** A deployed Worker binding object (R2 bucket, KV…); null outside workerd. */
+export async function getRuntimeBinding<T = unknown>(name: string): Promise<T | null> {
+  try {
+    const nativeModule = "cloudflare:workers";
+    const { env } = await import(/* @vite-ignore */ nativeModule);
+    const value = (env as Record<string, unknown>)[name];
+    return value && typeof value === "object" ? (value as T) : null;
+  } catch {
+    return null;
+  }
+}

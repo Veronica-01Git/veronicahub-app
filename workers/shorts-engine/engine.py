@@ -141,13 +141,20 @@ def fetch_uploaded(storage, bucket, url, folder):
         raise ValueError("SOURCE_TOO_LARGE")
     target = Path(folder) / "source.mp4"
     storage.download_file(bucket, key, str(target))
+    return validate_source(target)
+
+
+def validate_source(target):
+    """Same limits as YouTube acquisition: real video stream, 1–60 minutes, ≤ 1 GiB."""
+    if Path(target).stat().st_size > 1024 * 1024 * 1024:
+        raise ValueError("SOURCE_TOO_LARGE")
     try:
         meta = probe(target)
     except Exception:
         raise ValueError("SOURCE_NOT_VIDEO")
     if not 60 <= meta["duration"] <= 3600:
         raise ValueError("SOURCE_DURATION_OR_LIVE")
-    return target
+    return Path(target)
 
 
 def acquire(url, folder):

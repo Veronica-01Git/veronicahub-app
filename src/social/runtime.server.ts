@@ -216,6 +216,14 @@ export async function runSocialPreparation() {
 export async function handleSocial(request: Request) {
   const url = new URL(request.url);
   if (url.pathname.startsWith("/api/social/render/")) return handleRender(request);
+  if (url.pathname.startsWith("/api/social/media/")) {
+    const { handleMedia } = await import("./media.server");
+    return handleMedia(request);
+  }
+  if (url.pathname === "/api/social/source-upload") {
+    const { handleSourceUpload } = await import("./media.server");
+    return handleSourceUpload(request);
+  }
   const headers = { "content-type": "application/json", "cache-control": "no-store" };
   if (url.pathname === "/api/agents/social-shorts/status") {
     if (request.method !== "GET") return new Response(null, { status: 405 });

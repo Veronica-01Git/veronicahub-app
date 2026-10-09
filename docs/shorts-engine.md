@@ -23,72 +23,51 @@ O roteador de IA existente escolhe candidatos reais e prepara textos por corte.
   rosto nesta versão. Legendas sincronizadas por palavra em blocos curtos.
 - Verificação da saída com ffprobe antes de enviar ao armazenamento.
 
-## Conectar em produção — caminho atual, gratuito (GitHub Actions + R2)
+## Conectar em produção — caminho atual, gratuito e sem configuração manual
 
-Decisão da proprietária em 09/10/2026: sem gasto agora. O processador roda no
-workflow `.github/workflows/shorts-render.yml`. Como o repositório é público,
-os minutos do GitHub Actions são gratuitos (máquina de 4 vCPU / 16 GB, limite de
-150 min por execução). R2 fica na franquia grátis (10 GB, sem custo de banda).
-O código web pode ser publicado sem ativar o processamento. O botão fica
-desabilitado enquanto a configuração falta. Presença de configuração não
-equivale a um processador online; as etapas do trabalho mostram atividade real.
+Decisões da proprietária (09/10/2026): sem gasto agora e sem passos manuais no
+Cloudflare/GitHub. O processamento roda no GitHub Actions (repositório público:
+minutos gratuitos, 4 vCPU / 16 GB) e os vídeos ficam **privados** no R2 da própria
+Hub (franquia grátis de 10 GB, sem custo de banda).
 
-Como funciona: a cada 15 min (ou ao clicar em **Run workflow**) o primeiro passo
-consulta `POST /api/social/render/pending` com o segredo, sem instalar nada.
-Sem fila, encerra em segundos. Com fila, instala FFmpeg e dependências fixadas,
-usa o modelo Whisper em cache e roda `python worker.py --drain`: processa até 10
-trabalhos, um por vez (`concurrency`), e termina. Trabalho com falha deixa a
-execução vermelha e aparece como `attention` no painel, sem repetição automática.
-**Logs do Actions são públicos**: o motor não imprime transcrição, URL de mídia
-nem credenciais (os segredos ainda são mascarados pelo GitHub).
+Como funciona:
 
-Peças:
+- **Armazenamento privado.** O Worker do site declara em `wrangler.jsonc` os
+  bindings `SHORTS_MEDIA` (bucket `veronicahub-shorts`, cortes) e
+  `SHORTS_SOURCES` (bucket `veronicahub-shorts-sources`, originais). Nenhum
+  bucket tem domínio público nem `r2.dev`.
+- **Entrega por link assinado.** O painel (sessão de admin) recebe links
+  `/api/social/media/...?exp&sig` com HMAC derivado do `SESSION_SECRET` e
+  validade de 6 h (máximo aceito: 24 h). Suporta `Range` para o player.
+- **Arquivo original.** O YouTube recusa downloads vindos de datacenter (HTTP
+  403 sem "PO Token", medido em 09/10/2026 com o vídeo autorizado de teste; o
+  motor não contorna essa proteção). Em `/admin/shorts` → item → "Arquivo
+  original do vídeo", a operadora envia o MP4 (até 1 GB, em partes de 50 MB por
+  link assinado de 2 h). Sem original, o motor ainda tenta o YouTube.
+- **Autenticação do processador.** `SOCIAL_RENDER_SECRET` se existir; senão o
+  `CRON_SECRET` que a Hub e o GitHub já compartilham com os outros agentes
+  (mesma fronteira de confiança). Não há segredo novo para cadastrar.
+- **Processador.** `.github/workflows/shorts-render.yml`, manual ou a cada
+  15 min. Consulta `/api/social/render/pending` antes de instalar qualquer
+  coisa; com fila, roda `python worker.py --drain`: baixa o original por
+  `/api/social/render/source`, transcreve, seleciona, renderiza e envia cada
+  corte por `/api/social/render/upload` (limitado ao trabalho e ao lease, com
+  confirmação do tamanho gravado). Um por vez, teto de 150 min, execução
+  vermelha quando um trabalho falha. **Logs públicos**: sem transcrição, URLs
+  de mídia ou credenciais; IDs mascarados nas mensagens de erro.
 
-- **Bucket R2 `veronicahub-shorts`** (criado em 08/10/2026), servido por
-  domínio próprio `media.veronicahub.com`. Chaves `shorts/<fonte>/<job>/<n>.mp4`.
-  Os arquivos desta versão administrativa ficam acessíveis por URLs com UUID;
-  **não abrir para clientes antes de implantar acesso privado/signed URLs**.
-- **Bucket R2 privado `veronicahub-shorts-sources`** (criado em 09/10/2026), sem
-  domínio público. Recebe o arquivo original do vídeo autorizado, nomeado pelo ID
-  do YouTube (`V1Fq4psulqU.mp4` para `watch?v=V1Fq4psulqU`). Se existir, o motor
-  usa esse arquivo; senão tenta o YouTube. Mesmos limites: até 1 GiB, 1–60 min.
-- **Workflow** `.github/workflows/shorts-render.yml` com `workers/shorts-engine`.
+Uso:
 
-**Por que o arquivo original.** Medido em 09/10/2026 com o vídeo autorizado de
-teste: o YouTube recusa o download (HTTP 403) a partir de IPs de datacenter sem
-um "PO Token" anti-robô, mesmo com o runtime JavaScript (deno + yt-dlp-ejs)
-instalado. Gerar esse atestado automaticamente seria contornar a proteção do
-YouTube; o motor não faz isso. O caminho legítimo é a operadora enviar o arquivo
-original (YouTube Studio → Conteúdo → ⋮ → Baixar, para vídeos do próprio canal,
-ou o arquivo cedido pelo autor).
+1. Em `/admin/shorts`, abrir o item e enviar o MP4 original em "Arquivo
+   original do vídeo" (YouTube Studio → Conteúdo → ⋮ → Baixar, para vídeos do
+   próprio canal, ou o arquivo cedido pelo autor).
+2. Clicar em **Gerar cortes**.
+3. Actions → "Veronica Shorts · processador" → Run workflow (ou aguardar até
+   15 min). As etapas aparecem no painel; os cortes ficam com prévia, "Abrir
+   MP4", "Baixar MP4" e kit das 4 redes.
 
-Passos (dona da conta; nenhum segredo passa pelo chat):
-
-1. **Segredo da API.** Gerar um valor aleatório longo (gerenciador de senhas,
-   `openssl rand -hex 32` ou, no PowerShell,
-   `[guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N")`).
-   Exclusivo desta API; nunca reutilizar senha.
-2. **Entrega.** Cloudflare → R2 → `veronicahub-shorts` → Settings → Custom
-   Domains → Add → `media.veronicahub.com`. Manter o `r2.dev` desativado.
-3. **Chave dos buckets.** R2 → Manage API tokens → Create Account API token →
-   **Object Read & Write** só nos buckets `veronicahub-shorts` e
-   `veronicahub-shorts-sources`. Guardar Access Key
-   ID, Secret Access Key e endpoint S3 (`https://<account-id>.r2.cloudflarestorage.com`).
-4. **Worker do site** (`veronicahub-app` → Settings → Variables and Secrets),
-   ambos do tipo **Secret** (variáveis "Text" do painel podem ser apagadas a cada
-   publicação da Lovable; segredos permanecem):
-   `SOCIAL_RENDER_SECRET` = passo 1; `SHORTS_MEDIA_BASE_URL` =
-   `https://media.veronicahub.com/shorts`.
-5. **GitHub** → repositório → Settings → Secrets and variables → Actions →
-   New repository secret: `SOCIAL_RENDER_SECRET` (mesmo valor do passo 4),
-   `SHORTS_S3_ENDPOINT`, `SHORTS_S3_ACCESS_KEY_ID`, `SHORTS_S3_SECRET_ACCESS_KEY`.
-6. **Arquivo original.** R2 → `veronicahub-shorts-sources` → Upload → arquivo
-   MP4 renomeado para `<ID do YouTube>.mp4`. Pelo painel, arquivos até ~300 MB
-   (exportar em 720p se maior).
-7. **Teste** com vídeo autorizado já cadastrado: solicitar o corte em
-   `/admin/shorts`, depois Actions → "Veronica Shorts · processador" → Run
-   workflow (ou aguardar até 15 min). Acompanhar as etapas no painel
-   (download → transcribe → select → render → upload → ready) e o log da execução.
+Alternativa: armazenamento S3/R2 externo (`SHORTS_S3_*` no GitHub e
+`SHORTS_MEDIA_BASE_URL` na Hub) continua suportado quando o binding não existe.
 
 ## Caminho futuro, pago (Cloudflare Containers)
 
