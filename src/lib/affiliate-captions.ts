@@ -127,7 +127,14 @@ export function buildAffiliateCaption(product: CaptionProduct, link: string): st
   const curated = CURATED[product.id];
   const hook = curated?.hook ?? product.name;
   const body = curated?.body ?? product.angle;
-  const tags = ["#achadinhosshopee", "#shopee", curated?.tags ?? `#${product.category}`].join(" ");
+  // #publi primeiro: é divulgação paga por comissão, e o CONAR pede que a
+  // publicidade seja identificável como tal.
+  const tags = [
+    "#publi",
+    "#achadinhosshopee",
+    "#shopee",
+    curated?.tags ?? `#${product.category}`,
+  ].join(" ");
   return [hook, "", body, "", `💰 ${product.priceLabel} na Shopee`, `👉 ${link}`, "", tags].join(
     "\n",
   );

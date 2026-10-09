@@ -18,7 +18,7 @@ test("legenda curada leva preço do cadastro e o link de quem copiou", () => {
   assert.match(caption, /^Pisar em nuvem existe/);
   assert.match(caption, /💰 R\$ 19,99 na Shopee/);
   assert.ok(caption.includes(`👉 ${link}`));
-  assert.match(caption, /#achadinhosshopee #shopee #chinelonuvem/);
+  assert.match(caption, /#publi #achadinhosshopee #shopee #chinelonuvem/);
   assert.ok(!caption.includes("ângulo do card"));
 });
 
@@ -44,7 +44,7 @@ test("produto sem legenda curada usa nome e ângulo, sem texto vazio", () => {
       "💰 R$ 10,00 na Shopee",
       `👉 ${link}`,
       "",
-      "#achadinhosshopee #shopee #casa",
+      "#publi #achadinhosshopee #shopee #casa",
     ].join("\n"),
   );
   assert.ok(!/undefined|null/.test(caption));
