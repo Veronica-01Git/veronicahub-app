@@ -35,6 +35,7 @@
     "HUB_BASE_URL": "https://veronicahub.com",
     "SHORTS_S3_BUCKET": "veronicahub-shorts",
     "SHORTS_S3_PREFIX": "shorts",
+    "SHORTS_SOURCE_BUCKET": "veronicahub-shorts-sources",
     "WHISPER_MODEL": "small"
   }
 }
