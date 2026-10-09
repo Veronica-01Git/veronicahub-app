@@ -121,7 +121,9 @@ const app = {
       url.pathname === "/api/cron/social-shorts" ||
       url.pathname === "/api/agents/social-shorts/status" ||
       url.pathname.startsWith("/api/social/go/") ||
-      url.pathname.startsWith("/api/social/render/")
+      url.pathname.startsWith("/api/social/render/") ||
+      url.pathname.startsWith("/api/social/media/") ||
+      url.pathname === "/api/social/source-upload"
     )
       return handleSocial(request);
     if (url.pathname === "/api/cron/wire-health") return handleWireHealth(request);

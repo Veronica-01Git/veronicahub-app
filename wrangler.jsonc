@@ -4,4 +4,10 @@
   "name": "veronicahub-app",
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat"],
+  // Veronica Shorts: buckets privados (sem domínio público). Cortes e originais
+  // só saem por links assinados emitidos para a sessão de admin.
+  "r2_buckets": [
+    { "binding": "SHORTS_MEDIA", "bucket_name": "veronicahub-shorts" },
+    { "binding": "SHORTS_SOURCES", "bucket_name": "veronicahub-shorts-sources" },
+  ],
 }

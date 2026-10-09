@@ -5,9 +5,11 @@ import re
 import tempfile
 import threading
 import time
+import urllib.error
 import urllib.request
-from urllib.parse import urlparse
-from engine import acquire, fetch_uploaded, transcribe, candidates, render
+from pathlib import Path
+from urllib.parse import urlencode, urlparse
+from engine import acquire, fetch_uploaded, transcribe, candidates, render, validate_source
 
 
 UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
@@ -35,7 +37,52 @@ def hub_client():
     return call
 
 
+class HubStorage:
+    """Clips and originals kept by the Hub in its private R2 buckets: no S3 keys here."""
+    LIMIT = 1024 * 1024 * 1024
+
+    def __init__(self):
+        self.base = os.environ["HUB_BASE_URL"].rstrip("/")
+        self.headers = {"Authorization": "Bearer " + os.environ["SOCIAL_RENDER_SECRET"],
+                        "User-Agent": "veronica-shorts-engine/1"}
+
+    def url(self, action, job, **extra):
+        query = urlencode({"id": job["id"], "lease": job["lease"], **extra})
+        return f"{self.base}/api/social/render/{action}?{query}"
+
+    def fetch_source(self, job, folder):
+        """Operator-uploaded original, or None when there is none (YouTube fallback)."""
+        request = urllib.request.Request(self.url("source", job), headers=self.headers)
+        target = Path(folder) / "source.mp4"
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response, open(target, "wb") as out:
+                total = 0
+                while chunk := response.read(1024 * 1024):
+                    total += len(chunk)
+                    if total > self.LIMIT:
+                        raise ValueError("SOURCE_TOO_LARGE")
+                    out.write(chunk)
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                return None
+            raise
+        return validate_source(target)
+
+    def upload(self, job, index, path):
+        size = Path(path).stat().st_size
+        with open(path, "rb") as body:
+            request = urllib.request.Request(self.url("upload", job, index=index), data=body, method="PUT",
+                headers={**self.headers, "Content-Type": "video/mp4", "Content-Length": str(size)})
+            with urllib.request.urlopen(request, timeout=300) as response:
+                result = json.load(response)
+        if not result.get("ok") or result.get("size") != size:
+            raise RuntimeError("MEDIA_UPLOAD_UNCONFIRMED")
+
+
 def storage_client():
+    # Hub-stored media needs no S3 credentials; the Hub picks the mode per job.
+    if not os.getenv("SHORTS_S3_ENDPOINT"):
+        return None, None
     # Validate credentials/storage before claiming any paid/expensive work.
     import boto3
     storage = boto3.client("s3", endpoint_url=os.environ["SHORTS_S3_ENDPOINT"],
@@ -65,8 +112,14 @@ def process(call, storage, bucket, job):
     try:
         with tempfile.TemporaryDirectory(prefix="vh-shorts-") as folder:
             print("Job claimed; stage download", flush=True)
+            hub = HubStorage() if job.get("storage") == "hub" else None
+            if not hub and storage is None:
+                raise RuntimeError("S3_STORAGE_NOT_CONFIGURED")
             sources = os.getenv("SHORTS_SOURCE_BUCKET")
-            source = fetch_uploaded(storage, sources, job["url"], folder) if sources else None
+            if hub:
+                source = hub.fetch_source(job, folder)
+            else:
+                source = fetch_uploaded(storage, sources, job["url"], folder) if sources else None
             if source:
                 print("Source: uploaded original file", flush=True)
             else:
@@ -91,15 +144,19 @@ def process(call, storage, bucket, job):
                 key = f"{job['sourceId']}/{job['id']}/{index}.mp4"
                 if lost.is_set():
                     raise RuntimeError("LEASE_LOST")
-                prefix = os.getenv("SHORTS_S3_PREFIX", urlparse(job["mediaBase"]).path.strip("/")).strip("/")
-                storage_key = f"{prefix}/{key}" if prefix else key
-                storage.upload_file(str(output), bucket, storage_key, ExtraArgs={"ContentType":"video/mp4"})
-                # Confirm delivery is reachable before declaring this clip ready.
-                check = urllib.request.Request(job["mediaBase"]+"/"+key, method="HEAD",
-                                               headers={"User-Agent": "veronica-shorts-engine/1"})
-                with urllib.request.urlopen(check, timeout=20) as delivered:
-                    if delivered.status != 200:
-                        raise RuntimeError("MEDIA_DELIVERY_FAILED")
+                if hub:
+                    # The Hub confirms the stored size; delivery is via signed admin links.
+                    hub.upload(job, index, output)
+                else:
+                    prefix = os.getenv("SHORTS_S3_PREFIX", urlparse(job["mediaBase"]).path.strip("/")).strip("/")
+                    storage_key = f"{prefix}/{key}" if prefix else key
+                    storage.upload_file(str(output), bucket, storage_key, ExtraArgs={"ContentType":"video/mp4"})
+                    # Confirm delivery is reachable before declaring this clip ready.
+                    check = urllib.request.Request(job["mediaBase"]+"/"+key, method="HEAD",
+                                                   headers={"User-Agent": "veronica-shorts-engine/1"})
+                    with urllib.request.urlopen(check, timeout=20) as delivered:
+                        if delivered.status != 200:
+                            raise RuntimeError("MEDIA_DELIVERY_FAILED")
                 artifacts.append({**meta,"url":job["mediaBase"]+"/"+key})
             call("complete", {**auth,"clips":artifacts})
             print(f"Render completed ({len(artifacts)} clips)", flush=True)

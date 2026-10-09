@@ -20,7 +20,9 @@ jobs:
     timeout-minutes: 150
     env:
       HUB_BASE_URL: https://veronicahub.com
-      SOCIAL_RENDER_SECRET: ${{ secrets.SOCIAL_RENDER_SECRET }}
+      # Segredo dedicado se existir; senão o CRON_SECRET que os outros agentes já usam
+      # (a Hub aceita o mesmo fallback). Sem S3: a Hub guarda os vídeos no R2 privado dela.
+      SOCIAL_RENDER_SECRET: ${{ secrets.SOCIAL_RENDER_SECRET || secrets.CRON_SECRET }}
       SHORTS_S3_ENDPOINT: ${{ secrets.SHORTS_S3_ENDPOINT }}
       SHORTS_S3_ACCESS_KEY_ID: ${{ secrets.SHORTS_S3_ACCESS_KEY_ID }}
       SHORTS_S3_SECRET_ACCESS_KEY: ${{ secrets.SHORTS_S3_SECRET_ACCESS_KEY }}
@@ -34,7 +36,7 @@ jobs:
         id: pending
         run: |
           missing=""
-          for name in SOCIAL_RENDER_SECRET SHORTS_S3_ENDPOINT SHORTS_S3_ACCESS_KEY_ID SHORTS_S3_SECRET_ACCESS_KEY; do
+          for name in SOCIAL_RENDER_SECRET; do
             [ -n "${!name}" ] || missing="$missing $name"
           done
           if [ -n "$missing" ]; then
@@ -42,13 +44,13 @@ jobs:
               echo "Processador ainda não configurado; nada a fazer." >> "$GITHUB_STEP_SUMMARY"
               echo "work=false" >> "$GITHUB_OUTPUT"; exit 0
             fi
-            echo "::error::Segredos ausentes em Settings → Secrets and variables → Actions:$missing"; exit 1
+            echo "::error::Segredo ausente em Settings → Secrets and variables → Actions:$missing (ou CRON_SECRET)"; exit 1
           fi
           status=$(curl --silent --show-error --max-time 30 -o pending.json -w "%{http_code}" -X POST \
             "$HUB_BASE_URL/api/social/render/pending" -H "Authorization: Bearer $SOCIAL_RENDER_SECRET" \
             -H "Content-Type: application/json" -d '{}') || status=000
           if [ "$status" != "200" ]; then
-            echo "::error::A Hub recusou a consulta da fila (HTTP $status). Confira se SOCIAL_RENDER_SECRET é igual no GitHub e no Worker veronicahub-app."; exit 1
+            echo "::error::A Hub recusou a consulta da fila (HTTP $status). O segredo do GitHub (SOCIAL_RENDER_SECRET ou CRON_SECRET) precisa ser igual ao do Worker veronicahub-app."; exit 1
           fi
           queued=$(jq -r '.queued // 0' pending.json); running=$(jq -r '.running // 0' pending.json)
           echo "Fila: $queued aguardando, $running em andamento." >> "$GITHUB_STEP_SUMMARY"
