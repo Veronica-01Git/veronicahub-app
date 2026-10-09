@@ -133,3 +133,16 @@ test("Worker do site declara os buckets privados, sem domínio público", () => 
   assert.match(config, /"binding": "SHORTS_MEDIA", "bucket_name": "veronicahub-shorts"/);
   assert.match(config, /"binding": "SHORTS_SOURCES", "bucket_name": "veronicahub-shorts-sources"/);
 });
+
+test("pedido de cortes exige o arquivo original quando a Hub guarda os vídeos", () => {
+  const api = read("src/social/render.server.ts");
+  const enqueue = api.slice(api.indexOf("export async function enqueueRender"));
+  assert.ok(enqueue.indexOf("sources.head(sourceKey(") > 0);
+  assert.ok(
+    enqueue.indexOf("sources.head(sourceKey(") < enqueue.indexOf('INSERT INTO "SocialRenderJob"'),
+  );
+  const flow = read("src/components/shorts/CutFlow.tsx");
+  assert.match(flow, /render\.uploads\.includes\(item\.videoId\)/);
+  assert.match(flow, /!uploaded\s*\?\s*"Envie o arquivo original no passo 1\."/);
+  assert.match(flow, /disabled=\{busy \|\| !!blocked\}/);
+});
