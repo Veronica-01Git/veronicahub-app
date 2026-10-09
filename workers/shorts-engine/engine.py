@@ -115,10 +115,44 @@ def render(source, clip, words, folder, index):
     return output, meta
 
 
+def video_id(url):
+    match = re.fullmatch(r"https://www\.youtube\.com/watch\?v=([\w-]{11})", url)
+    if not match:
+        raise ValueError("YOUTUBE_ONLY")
+    return match.group(1)
+
+
+def fetch_uploaded(storage, bucket, url, folder):
+    """Operator-supplied original file in the private sources bucket, keyed by video ID.
+
+    Returns None when no file was uploaded, so acquisition falls back to YouTube.
+    The same limits apply: up to 1 GiB, 1–60 minutes, real video stream.
+    """
+    key = f"{video_id(url)}.mp4"
+    try:
+        head = storage.head_object(Bucket=bucket, Key=key)
+    except Exception as error:
+        # botocore ClientError carries the S3 status; anything else is a real failure.
+        code = (getattr(error, "response", None) or {}).get("Error", {}).get("Code")
+        if code in ("404", "NoSuchKey", "NotFound"):
+            return None
+        raise
+    if head["ContentLength"] > 1024 * 1024 * 1024:
+        raise ValueError("SOURCE_TOO_LARGE")
+    target = Path(folder) / "source.mp4"
+    storage.download_file(bucket, key, str(target))
+    try:
+        meta = probe(target)
+    except Exception:
+        raise ValueError("SOURCE_NOT_VIDEO")
+    if not 60 <= meta["duration"] <= 3600:
+        raise ValueError("SOURCE_DURATION_OR_LIVE")
+    return target
+
+
 def acquire(url, folder):
     from yt_dlp import YoutubeDL
-    if not re.fullmatch(r"https://www\.youtube\.com/watch\?v=[\w-]{11}", url):
-        raise ValueError("YOUTUBE_ONLY")
+    video_id(url)
     limit = 1024 * 1024 * 1024
     def guard(progress):
         if (progress.get("downloaded_bytes") or 0) > limit:

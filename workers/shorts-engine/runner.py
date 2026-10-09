@@ -8,7 +8,7 @@ and stops ticking once idle so the instance sleeps and billing stops.
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from worker import drain
+from worker import drain, safe
 
 state = {"busy": False, "passes": 0, "lastError": None}
 lock = threading.Lock()
@@ -21,7 +21,7 @@ def run_pass():
     except Exception as error:
         # Startup/queue problems only; per-job failures are reported to the Hub by process().
         state["lastError"] = type(error).__name__
-        print("Drain pass stopped:", type(error).__name__, str(error)[:300], flush=True)
+        print("Drain pass stopped:", safe(error), flush=True)
     finally:
         with lock:
             state["busy"] = False

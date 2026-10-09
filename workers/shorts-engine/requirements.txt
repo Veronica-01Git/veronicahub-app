@@ -1,5 +1,11 @@
 faster-whisper==1.2.1
 ctranslate2==4.8.2
+# PyAV 19 removeu um parâmetro que o faster-whisper 1.2.1 usa (falha medida em 09/10/2026).
+av==18.1.0
 # yt-dlp acompanha as mudanças do YouTube: atualizar, reconstruir e retestar.
-yt-dlp==2026.8.19
+# O YouTube exige resolver desafios em JavaScript: sem deno + yt-dlp-ejs o
+# download do vídeo falha com HTTP 403 (medido em 09/10/2026).
+yt-dlp[default]==2026.8.19
+yt-dlp-ejs==0.8.0
+deno==2.9.7
 boto3==1.43.110

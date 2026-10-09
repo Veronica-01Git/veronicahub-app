@@ -9,6 +9,7 @@ interface Env {
   SHORTS_S3_SECRET_ACCESS_KEY: string;
   SHORTS_S3_BUCKET: string;
   SHORTS_S3_PREFIX: string;
+  SHORTS_SOURCE_BUCKET: string;
   WHISPER_MODEL: string;
 }
 
@@ -29,6 +30,7 @@ export class ShortsEngine extends Container<Env> {
       SHORTS_S3_SECRET_ACCESS_KEY: env.SHORTS_S3_SECRET_ACCESS_KEY,
       SHORTS_S3_BUCKET: env.SHORTS_S3_BUCKET,
       SHORTS_S3_PREFIX: env.SHORTS_S3_PREFIX,
+      SHORTS_SOURCE_BUCKET: env.SHORTS_SOURCE_BUCKET,
       WHISPER_MODEL: env.WHISPER_MODEL,
     };
   }

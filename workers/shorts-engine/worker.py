@@ -1,12 +1,21 @@
 """Pull-only worker. No public ingestion server and no social posting permission."""
 import json
 import os
+import re
 import tempfile
 import threading
 import time
 import urllib.request
 from urllib.parse import urlparse
-from engine import acquire, transcribe, candidates, render
+from engine import acquire, fetch_uploaded, transcribe, candidates, render
+
+
+UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
+
+
+def safe(error):
+    """Short error text for public logs: job/source IDs form media URLs, so mask them."""
+    return UUID.sub("<id>", f"{type(error).__name__} {error}")[:300]
 
 
 def hub_client():
@@ -33,6 +42,10 @@ def storage_client():
         aws_access_key_id=os.environ["SHORTS_S3_ACCESS_KEY_ID"], aws_secret_access_key=os.environ["SHORTS_S3_SECRET_ACCESS_KEY"], region_name="auto")
     bucket = os.environ["SHORTS_S3_BUCKET"]
     storage.head_bucket(Bucket=bucket)
+    sources = os.getenv("SHORTS_SOURCE_BUCKET")
+    if sources:
+        # Fail before claiming work if the key cannot read the private sources bucket.
+        storage.head_bucket(Bucket=sources)
     return storage, bucket
 
 
@@ -52,7 +65,13 @@ def process(call, storage, bucket, job):
     try:
         with tempfile.TemporaryDirectory(prefix="vh-shorts-") as folder:
             print("Job claimed; stage download", flush=True)
-            source = acquire(job["url"], folder)
+            sources = os.getenv("SHORTS_SOURCE_BUCKET")
+            source = fetch_uploaded(storage, sources, job["url"], folder) if sources else None
+            if source:
+                print("Source: uploaded original file", flush=True)
+            else:
+                print("Source: YouTube", flush=True)
+                source = acquire(job["url"], folder)
             stage[0] = "transcribe"
             print("Stage transcribe", flush=True)
             segments, words = transcribe(source, os.getenv("WHISPER_MODEL", "small"))
@@ -83,7 +102,8 @@ def process(call, storage, bucket, job):
                         raise RuntimeError("MEDIA_DELIVERY_FAILED")
                 artifacts.append({**meta,"url":job["mediaBase"]+"/"+key})
             call("complete", {**auth,"clips":artifacts})
-            print("Render completed", flush=True)
+            print(f"Render completed ({len(artifacts)} clips)", flush=True)
+            return True
     except Exception as error:
         issue = {"download":"DOWNLOAD_FAILED","transcribe":"TRANSCRIPTION_FAILED","select":"SELECTION_FAILED",
                  "render":"RENDER_FAILED","upload":"STORAGE_FAILED"}.get(stage[0],"PROCESSING_FAILED")
@@ -92,21 +112,24 @@ def process(call, storage, bucket, job):
         except Exception:
             pass
         # Error class and short message only: never transcripts, URLs with credentials or keys.
-        print(issue, type(error).__name__, str(error)[:300], flush=True)
+        print(issue, safe(error), flush=True)
+        return False
     finally:
         stopped.set()
         pulse_thread.join(timeout=2)
 
 
-def drain():
+def drain(max_jobs=10):
     """Process queued jobs until the queue is empty, then return (scale-to-zero hosts)."""
     call = hub_client()
     storage, bucket = storage_client()
-    while True:
+    summary = {"completed": 0, "failed": 0}
+    for _ in range(max_jobs):
         job = call("claim", {}).get("job")
         if not job:
-            return
-        process(call, storage, bucket, job)
+            break
+        summary["completed" if process(call, storage, bucket, job) else "failed"] += 1
+    return summary
 
 
 def main():
@@ -127,4 +150,10 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
+    if "--drain" in sys.argv:
+        # One-shot hosts (GitHub Actions): a failed job turns the run red.
+        result = drain()
+        print(f"Drain finished: {result['completed']} completed, {result['failed']} failed", flush=True)
+        sys.exit(1 if result["failed"] else 0)
     main()
