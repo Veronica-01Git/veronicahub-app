@@ -182,6 +182,12 @@ function VeronicaRede() {
                 Abrir inteligência completa <ExternalLink className="h-4 w-4" />
               </Link>
             </div>
+            <p className="mt-6 rounded-2xl border border-black/10 bg-white px-5 py-4 text-xs leading-6 text-[#4b4e53]">
+              <strong className="font-semibold text-[#111214]">Vídeo feito com IA?</strong> Ative o
+              selo de IA da rede ao postar (TikTok: “Conteúdo gerado por IA”; Instagram: “Rótulo de
+              IA”; YouTube: “Conteúdo alterado”) e escreva “Dramatização feita com IA” na legenda.
+              Sem o selo, o vídeo pode ser removido e a conta perder alcance.
+            </p>
             <div className="mt-8 grid gap-4 lg:grid-cols-2">
               {products.map((product) => (
                 <article
