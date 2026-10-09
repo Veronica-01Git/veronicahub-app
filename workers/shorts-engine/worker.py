@@ -29,8 +29,16 @@ def hub_client():
         request = urllib.request.Request(base+"/api/social/render/"+action,
             data=json.dumps(data).encode(), headers={"Authorization": "Bearer "+secret, "Content-Type":"application/json",
             "User-Agent": "veronica-shorts-engine/1"})
-        with urllib.request.urlopen(request, timeout=40) as response:
-            result = json.load(response)
+        try:
+            with urllib.request.urlopen(request, timeout=40) as response:
+                result = json.load(response)
+        except urllib.error.HTTPError as error:
+            # The Hub answers refusals with a short code (never transcript text).
+            try:
+                detail = str(json.loads(error.read().decode("utf-8")).get("error", ""))
+            except Exception:
+                detail = ""
+            raise RuntimeError(f"HUB_{action.upper()}_{error.code} {detail}"[:200]) from None
         if not result.get("ok"):
             raise RuntimeError("JOB_STEP_REJECTED")
         return result
