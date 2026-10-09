@@ -1,0 +1,518 @@
+/* /agentes-humanos — usa os tokens de .wellness (claro/escuro) e não altera
+   as páginas dos profissionais, que seguem com as classes w-*. */
+.ha {
+  --ha-gutter: 16px;
+  --ha-radius: 28px;
+  --ha-tint: color-mix(in srgb, var(--w-accent) 10%, transparent);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  overflow-wrap: break-word;
+}
+.ha-wrap {
+  width: min(1192px, calc(100% - var(--ha-gutter) * 2));
+  margin-inline: auto;
+}
+.ha h1,
+.ha h2,
+.ha h3 {
+  text-wrap: balance;
+}
+.ha em {
+  font-family: Newsreader, Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--w-accent);
+  letter-spacing: -0.02em;
+}
+.ha-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--w-accent);
+}
+
+/* Botões e links */
+.ha-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  margin-top: 28px;
+}
+.ha-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--w-text);
+  color: var(--w-bg);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+.ha-btn:hover {
+  opacity: 0.88;
+}
+.ha-btn:active {
+  transform: scale(0.98);
+}
+.ha-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--w-text);
+  text-underline-offset: 4px;
+}
+.ha-link:hover {
+  text-decoration: underline;
+}
+.ha-btn svg,
+.ha-link svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.ha-btn:hover svg,
+.ha-link:hover svg {
+  transform: translateX(2px);
+}
+
+/* Hero */
+.ha-hero {
+  padding-top: 48px;
+}
+.ha-hero-head {
+  display: grid;
+  gap: 24px;
+}
+.ha-hero h1 {
+  margin-top: 20px;
+  font-size: clamp(40px, 10.5vw, 88px);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.042em;
+}
+.ha-lead {
+  max-width: 34rem;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--w-muted);
+}
+.ha-note {
+  margin-top: 20px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--w-muted);
+}
+.ha-hero-figure {
+  margin-top: 40px;
+}
+.ha-hero-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: 52% center;
+  border-radius: var(--ha-radius);
+  background: var(--w-card);
+}
+.ha-hero-figure figcaption {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--w-muted);
+}
+
+/* Seções */
+.ha-section {
+  padding-block: clamp(72px, 11vw, 136px);
+  border-top: 1px solid var(--w-line);
+}
+.ha-hero + .ha-section {
+  margin-top: clamp(72px, 11vw, 136px);
+}
+.ha-h2 {
+  margin-top: 16px;
+  font-size: clamp(34px, 6.4vw, 60px);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+}
+.ha-sub {
+  max-width: 36rem;
+  margin-top: 20px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--w-muted);
+}
+
+/* Quem faz o quê */
+.ha-roles {
+  display: grid;
+  margin-top: 48px;
+  border-top: 1px solid var(--w-line);
+}
+.ha-role {
+  padding-block: 32px;
+}
+.ha-role + .ha-role {
+  border-top: 1px solid var(--w-line);
+}
+.ha-role-who {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--w-accent);
+}
+.ha-role h3 {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.ha-role ul {
+  margin-top: 20px;
+}
+.ha-role li {
+  padding-block: 14px;
+  border-top: 1px solid var(--w-line);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--w-muted);
+}
+
+/* Profissionais */
+.ha-person {
+  display: grid;
+  gap: 28px;
+  margin-top: 56px;
+}
+.ha-person + .ha-person {
+  margin-top: 72px;
+}
+.ha-person-media img,
+.ha-person-type {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  border-radius: 24px;
+}
+.ha-person-media img {
+  object-fit: cover;
+  object-position: center 15%;
+  background: var(--w-card);
+}
+.ha-person-type {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px;
+  background: #241c14;
+  color: #f1e6d6;
+  border: 1px solid var(--w-line);
+}
+.wellness[data-theme="light"] .ha-person-type {
+  background: #ece2d3;
+  color: #3b2b1a;
+}
+.ha-type-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.ha-type-quote {
+  font-family: Newsreader, Georgia, serif;
+  font-style: italic;
+  font-size: clamp(40px, 11vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.ha-person-body h3 {
+  margin-top: 12px;
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+.ha-person-body > p:not(.ha-eyebrow) {
+  max-width: 32rem;
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--w-muted);
+}
+.ha-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+.ha-chips li {
+  padding: 6px 12px;
+  border: 1px solid var(--w-line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--w-text);
+}
+
+/* Passos */
+.ha-steps {
+  display: grid;
+  gap: 32px;
+  margin-top: 48px;
+}
+.ha-steps li {
+  padding-top: 20px;
+  border-top: 1px solid var(--w-line);
+}
+.ha-step-n {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--w-accent);
+}
+.ha-steps h3 {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.ha-steps p {
+  margin-top: 8px;
+  max-width: 22rem;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--w-muted);
+}
+
+/* Avaliação: reaproveita a jornada existente e só ajusta o ritmo */
+.ha-journey {
+  border-top: 1px solid var(--w-line);
+}
+.ha-journey .w-section {
+  border-top: 0;
+  padding-block: clamp(72px, 11vw, 136px);
+  scroll-margin-top: 72px;
+}
+.ha-journey .w-section > h2 {
+  font-size: clamp(34px, 6.4vw, 60px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  margin-bottom: 0;
+}
+.ha-journey .w-section > h2 + * {
+  margin-top: 32px;
+}
+.ha-choice {
+  margin-bottom: 32px;
+  min-width: 0;
+}
+.ha-choice legend {
+  margin-bottom: 14px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ha-choice-options {
+  display: grid;
+  gap: 10px;
+}
+.ha-choice-option {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 16px 18px;
+  border: 1px solid var(--w-line);
+  border-radius: 18px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.ha-choice-option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.ha-choice-option:hover {
+  border-color: color-mix(in srgb, var(--w-accent) 50%, var(--w-line));
+}
+.ha-choice-option:has(input:checked) {
+  border-color: var(--w-accent);
+  background: var(--ha-tint);
+}
+.ha-choice-option:has(input:focus-visible) {
+  outline: 2px solid var(--w-accent);
+  outline-offset: 3px;
+}
+.ha-choice-area {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--w-accent);
+}
+.ha-choice-name {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.ha-choice-short {
+  font-size: 13px;
+  color: var(--w-muted);
+}
+.ha-choice-hint {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--w-muted);
+}
+
+/* Confiança */
+.ha-trust {
+  display: grid;
+  gap: 40px;
+}
+.ha-facts > div {
+  padding-block: 22px;
+  border-top: 1px solid var(--w-line);
+}
+.ha-facts > div:last-child {
+  border-bottom: 1px solid var(--w-line);
+}
+.ha-facts dt {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.ha-facts dd {
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--w-muted);
+}
+
+/* Entrada discreta do topo */
+@keyframes ha-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.ha-hero-head,
+.ha-hero-figure {
+  animation: ha-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.ha-hero-figure {
+  animation-delay: 0.08s;
+}
+
+@media (min-width: 560px) {
+  .ha-choice-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 768px) {
+  .ha {
+    --ha-gutter: 32px;
+  }
+  .ha-hero {
+    padding-top: 72px;
+  }
+  .ha-hero-figure img {
+    aspect-ratio: 16 / 9;
+  }
+  .ha-roles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 0;
+  }
+  .ha-role {
+    padding: 0 40px 0 0;
+  }
+  .ha-role + .ha-role {
+    border-top: 0;
+    border-left: 1px solid var(--w-line);
+    padding: 0 0 0 40px;
+  }
+  .ha-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+  }
+}
+@media (min-width: 900px) {
+  .ha-person {
+    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+    align-items: center;
+    gap: 72px;
+  }
+  .ha-person-alt {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+  }
+  .ha-person-alt .ha-person-media {
+    order: 2;
+  }
+  .ha-person + .ha-person {
+    margin-top: 96px;
+  }
+}
+@media (min-width: 1024px) {
+  .ha-hero {
+    padding-top: 96px;
+  }
+  .ha-hero-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 48px;
+    padding-top: 16px;
+  }
+  .ha-hero-side .ha-lead {
+    grid-row: span 2;
+    align-self: start;
+  }
+  .ha-hero-side .ha-actions {
+    margin-top: 0;
+    justify-content: flex-end;
+  }
+  .ha-hero-side .ha-note {
+    grid-column: 2;
+    justify-self: end;
+    margin-top: 0;
+    max-width: 22rem;
+    text-align: right;
+  }
+  .ha-hero-figure {
+    margin-top: 64px;
+  }
+  .ha-trust {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 96px;
+    align-items: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ha *,
+  .ha *::before,
+  .ha *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Download, HeartPulse, Plus, Trash2 } from "lucide-react";
 import { PrivateClientAccountGate } from "@/features/private-clients/components/account-gate";
@@ -15,9 +15,12 @@ type Snapshot = Awaited<ReturnType<typeof getWellnessJourney>>;
 export function WellnessJourney({
   professional = "lz-team",
   management = false,
+  lead,
 }: {
   professional?: Professional;
   management?: boolean;
+  /** Conteúdo exibido entre o título e a avaliação, como a escolha do profissional. */
+  lead?: ReactNode;
 }) {
   const read = useServerFn(getWellnessJourney);
   const save = useServerFn(saveWellnessAssessment);
@@ -83,6 +86,7 @@ export function WellnessJourney({
           ? "Conheça a pessoa. Oriente o próximo passo."
           : "Um primeiro passo feito para você."}
       </h2>
+      {lead}
       {!snapshot ? (
         <div className="w-card">
           <p role="status">{notice || "Verificando sua conta…"}</p>
