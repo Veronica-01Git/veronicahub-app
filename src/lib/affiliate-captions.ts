@@ -32,7 +32,7 @@ const CURATED: Record<string, CuratedCaption> = {
   },
   "mini-power-bank-10000mah-com-cabo-tipo-c-lightning-22499247158": {
     hook: "Nunca mais fique sem bateria na rua 🔋",
-    body: "Mini power bank de 10000mAh que encaixa direto no celular: sem cabo pendurado e cabe no bolso. Tem versão Tipo-C e Lightning. Mais de 10 mil vendidos.",
+    body: "Mini power bank com cabo embutido que vira alça: nada de caçar cabo na bolsa. Tem versão Tipo-C e Lightning, e o modelo YC-01 é o de 10000mAh. Mais de 10 mil vendidos.",
     tags: "#powerbank #tecnologia",
   },
   "espelho-de-maquiagem-com-luz-led-dobravel-18699185302": {
