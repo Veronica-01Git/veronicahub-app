@@ -124,7 +124,7 @@ export function PrivateClientAccountGate({
     <div className="rounded-[18px] border border-black/[.08] bg-white/90 p-5 text-black shadow-[0_18px_50px_rgba(0,0,0,.06)]">
       <div className="flex items-center gap-2 text-sm font-semibold text-black/80">
         <KeyRound className="h-4 w-4 text-cyan-600" aria-hidden />
-        {context === "wellness" ? "Sua conta Verônica" : "Segunda confirmação"}
+        {context === "wellness" ? "Sua conta Veronica" : "Segunda confirmação"}
       </div>
       <p className="mt-2 text-sm leading-6 text-black/50">
         {context === "wellness"

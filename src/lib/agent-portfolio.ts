@@ -15,7 +15,7 @@ export function routesForAgent(a: AgenteWorkforce) {
   if (a.id === "social-shorts")
     routes.push({ href: "/api/agents/social-shorts/status", label: "Estado da operação" });
   if (a.id === "lz-fitness") {
-    routes.push({ href: "/agentes-humanos", label: "Verônica · Agentes Humanos" });
+    routes.push({ href: "/agentes-humanos", label: "Veronica · Agentes Humanos" });
     routes.push({ href: "/clientes/lz-team", label: "LZ Training Club · Lucas Tomaz" });
   }
   if (a.id === "carreira") routes.push({ href: product("rh").to, label: product("rh").name });

@@ -27,7 +27,7 @@ const PROFESSIONALS: Record<
 
 const ROLES = [
   {
-    who: "Verônica",
+    who: "Veronica",
     title: "Organiza o começo.",
     items: [
       "Conduz a avaliação inicial: objetivo, rotina e cuidados.",
@@ -84,7 +84,7 @@ export function HumanAgentsPage() {
         <section className="ha-hero" aria-labelledby="ha-title">
           <div className="ha-wrap ha-hero-head">
             <div>
-              <p className="ha-eyebrow">Verônica · Agentes Humanos</p>
+              <p className="ha-eyebrow">Veronica · Agentes Humanos</p>
               <h1 id="ha-title">
                 Tecnologia aproxima.
                 <br />
@@ -94,7 +94,7 @@ export function HumanAgentsPage() {
             <div className="ha-hero-side">
               <p className="ha-lead">
                 Profissionais de treino e nutrição, cada um com sua identidade e seu método. A
-                Verônica organiza o começo da conversa. Quem orienta você é o especialista.
+                Veronica organiza o começo da conversa. Quem orienta você é o especialista.
               </p>
               <div className="ha-actions">
                 <a className="ha-btn" href="#avaliacao">
@@ -133,7 +133,7 @@ export function HumanAgentsPage() {
           <div className="ha-wrap">
             <p className="ha-eyebrow">Quem faz o quê</p>
             <h2 id="ha-roles" className="ha-h2">
-              A Verônica organiza.
+              A Veronica organiza.
               <br />
               <em>O especialista decide.</em>
             </h2>
@@ -301,7 +301,7 @@ export function HumanAgentsPage() {
                 O cuidado tem autoria.
               </h2>
               <p className="ha-sub">
-                Você sempre sabe o que foi organizado pela Verônica e o que foi revisado por uma
+                Você sempre sabe o que foi organizado pela Veronica e o que foi revisado por uma
                 pessoa.
               </p>
               <div className="ha-actions">
@@ -336,7 +336,7 @@ export function HumanAgentsPage() {
           </div>
         </section>
       </main>
-      <SiteFooter tagline="Profissionais com identidade própria. Jornadas conectadas pela Verônica." />
+      <SiteFooter tagline="Profissionais com identidade própria. Jornadas conectadas pela Veronica." />
     </WellnessTheme>
   );
 }

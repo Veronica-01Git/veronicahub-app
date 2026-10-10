@@ -79,7 +79,7 @@ export function WellnessJourney({
   return (
     <section id="avaliacao" className="w-section">
       <p className="w-eyebrow">
-        Verônica Wellness · {management ? "Revisão profissional" : "Sua jornada"}
+        Veronica Wellness · {management ? "Revisão profissional" : "Sua jornada"}
       </p>
       <h2>
         {management
@@ -101,7 +101,7 @@ export function WellnessJourney({
             <h3>Seu guia gratuito, salvo na sua conta.</h3>
             <p>
               Confirme seu e-mail para responder à avaliação inicial e acessar seu guia. A mesma
-              conta acompanha você nos ambientes da Verônica.
+              conta acompanha você nos ambientes da Veronica.
             </p>
           </div>
           <PrivateClientAccountGate
@@ -345,7 +345,7 @@ export function WellnessJourney({
                       onChange={(e) => patch("consent", e.target.checked)}
                     />
                     <span>
-                      Autorizo a Verônica a usar estas respostas para gerar meu guia e
+                      Autorizo a Veronica a usar estas respostas para gerar meu guia e
                       disponibilizá-las à equipe autorizada de{" "}
                       {professional === "lz-team" ? "Lucas Tomaz / LZ Team" : "Lee Ricardo"} para
                       este atendimento. Posso excluir esta avaliação na minha jornada. Este aceite

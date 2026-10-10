@@ -36,7 +36,7 @@ export function ProfessionalHome({ identity }: { identity: Identity }) {
             </h1>
             <p className="w-copy">
               {lucas
-                ? "Treinamento com identidade, técnica e acompanhamento. Conte seu objetivo e comece uma jornada organizada para sua rotina, com a tecnologia da Verônica e a orientação de Lucas Tomaz."
+                ? "Treinamento com identidade, técnica e acompanhamento. Conte seu objetivo e comece uma jornada organizada para sua rotina, com a tecnologia da Veronica e a orientação de Lucas Tomaz."
                 : "Conheça o espaço de Lee Ricardo. Conte sobre sua rotina e seus objetivos para preparar a primeira conversa sobre acompanhamento nutricional."}
             </p>
             <div className="w-actions">
@@ -142,7 +142,7 @@ export function ProfessionalHome({ identity }: { identity: Identity }) {
           <p className="w-copy">
             Seu guia inicial é educativo. As orientações individuais dependem da avaliação do
             profissional responsável. Você acompanha as revisões no seu espaço, com acesso à mesma
-            conta da Verônica.
+            conta da Veronica.
           </p>
           <div className="w-actions">
             <a
@@ -163,7 +163,7 @@ export function ProfessionalHome({ identity }: { identity: Identity }) {
         </section>
         <footer className="w-foot">
           <span>{lucas ? "LZ Training Club · Lucas Tomaz" : "Lee Ricardo · Nutrição"}</span>
-          <a href="/agentes-humanos">Tecnologia Verônica · YO LAB & CO.</a>
+          <a href="/agentes-humanos">Tecnologia Veronica · YO LAB & CO.</a>
         </footer>
       </main>
     </WellnessTheme>
@@ -178,7 +178,7 @@ export function ProfessionalNavigation({ identity }: { identity: Identity }) {
       <div className="flex flex-wrap items-center gap-5">
         <a href={`/clientes/${identity}/membros`}>Minha jornada</a>
         <a href={`/clientes/${identity}/painel`}>Gestão</a>
-        <a href="/agentes-humanos">Verônica ↗</a>
+        <a href="/agentes-humanos">Veronica ↗</a>
       </div>
     </nav>
   );
@@ -195,7 +195,7 @@ export function ProfessionalWorkspace({
       <main className="w-shell">
         <ProfessionalNavigation identity={identity} />
         <WellnessJourney professional={identity} management={management} />
-        <footer className="w-foot">Lee Ricardo · Tecnologia Verônica</footer>
+        <footer className="w-foot">Lee Ricardo · Tecnologia Veronica</footer>
       </main>
     </WellnessTheme>
   );

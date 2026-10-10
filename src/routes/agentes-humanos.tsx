@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HumanAgentsPage } from "@/features/wellness/human-agents-page";
 
-const TITLE = "Agentes Humanos · Treino e nutrição com a Verônica | Veronica Hub";
+const TITLE = "Agentes Humanos · Treino e nutrição com a Veronica | Veronica Hub";
 const DESCRIPTION =
   "Profissionais de treino e nutrição com identidade própria. Responda à avaliação, receba um guia educativo gratuito e tenha seu plano revisado pelo especialista.";
 const URL = "https://veronicahub.com/agentes-humanos";

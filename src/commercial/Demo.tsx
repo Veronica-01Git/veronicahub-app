@@ -60,7 +60,7 @@ export function CommercialDemo() {
             </div>
             {stage >= 1 && (
               <div className="mr-6 rounded-2xl bg-emerald-300/10 p-4">
-                <p className="mb-2 text-xs text-emerald-300">Verônica · resposta do roteiro</p>
+                <p className="mb-2 text-xs text-emerald-300">Veronica · resposta do roteiro</p>
                 <p>{d.response}</p>
               </div>
             )}

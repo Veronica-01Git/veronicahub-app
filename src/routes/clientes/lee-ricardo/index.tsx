@@ -4,7 +4,7 @@ export const Route = createFileRoute("/clientes/lee-ricardo/")({
   component: () => <ProfessionalHome identity="lee-ricardo" />,
   head: () => ({
     meta: [
-      { title: "Lee Ricardo · Nutrição | Verônica" },
+      { title: "Lee Ricardo · Nutrição | Veronica" },
       {
         name: "description",
         content:

@@ -1,4 +1,4 @@
-# Verônica · Agentes Humanos
+# Veronica · Agentes Humanos
 
 A vitrine é `/agentes-humanos`. O LZ Training Club permanece a identidade de Lucas Tomaz em `/clientes/lz-team`; Lee Ricardo tem `/clientes/lee-ricardo`. Cada profissional tem home, membros e painel. O tema escuro é o padrão e a preferência é salva por identidade.
 

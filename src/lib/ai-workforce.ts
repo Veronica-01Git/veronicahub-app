@@ -247,7 +247,7 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
   },
   {
     id: "lz-fitness",
-    nome: "Verônica Wellness",
+    nome: "Veronica Wellness",
     curto: "Wellness",
     etiqueta: "FITNESS LAB",
     problema:
