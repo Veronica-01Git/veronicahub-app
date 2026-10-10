@@ -418,6 +418,37 @@ jobs:
             exit 1
           fi
 
+      # Mesmo card, mesma legenda (.txt ao lado do .jpg) e a mesma trava dupla
+      # do Instagram: o Worker só posta na Página com
+      # META_FACEBOOK_AUTOPUBLISH=true e procura o link da matéria nos posts
+      # da Página antes de criar outro. continue-on-error: falha no Facebook
+      # não derruba a matéria nem o passo do Instagram.
+      - name: Publica a matéria no Facebook da Wire TV
+        if: steps.set_cover.outcome == 'success' && steps.instagram_card.outcome == 'success'
+        continue-on-error: true
+        env:
+          COVER_SLUG: ${{ steps.generate.outputs.slug }}
+        run: |
+          image_url="https://veronicahub.com/images/instagram/wire-tv-${COVER_SLUG}.jpg"
+          body=$(jq -n \
+            --arg slug "$COVER_SLUG" \
+            --arg imageUrl "$image_url" \
+            '{slug: $slug, imageUrl: $imageUrl}')
+          status=$(curl --silent --show-error \
+            --max-time 60 \
+            --retry 2 \
+            --retry-all-errors \
+            -o facebook-response.json -w "%{http_code}" \
+            -X POST "https://veronicahub.com/api/cron/publish-facebook" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "$body")
+          echo "HTTP status: $status"
+          cat facebook-response.json
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi
+
       - name: Sincroniza capas publicadas com a biblioteca Admin
         if: steps.generate.outputs.generated == 'true'
         continue-on-error: true
