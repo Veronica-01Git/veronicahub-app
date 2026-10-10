@@ -143,6 +143,8 @@ const LIGHT_THEME_ROUTES = [
   "/veronica-nautica",
   "/blog",
   "/express-entulho",
+  // Material de apresentação para dono de rede, em branco e grafite.
+  "/veronica-pharma",
 ];
 
 // Mesma regra, com endereço EXATO: a Home da AI Workforce (01/10/2026) tem

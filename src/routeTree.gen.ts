@@ -34,6 +34,7 @@ import { Route as VeronicaAnalyticsRouteImport } from './routes/veronica-analyti
 import { Route as VeronicaCurriculoCertoRouteImport } from './routes/veronica-curriculo-certo'
 import { Route as VeronicaCurriculoCertoRhRouteImport } from './routes/veronica-curriculo-certo-rh'
 import { Route as VeronicaNauticaRouteImport } from './routes/veronica-nautica'
+import { Route as VeronicaPharmaRouteImport } from './routes/veronica-pharma'
 import { Route as VeronicaRedeRouteImport } from './routes/veronica-rede'
 import { Route as VeronicaSecurityRouteImport } from './routes/veronica-security'
 import { Route as VideoIaRouteImport } from './routes/video-ia'
@@ -210,6 +211,11 @@ const VeronicaCurriculoCertoRhRoute =
 const VeronicaNauticaRoute = VeronicaNauticaRouteImport.update({
   id: '/veronica-nautica',
   path: '/veronica-nautica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeronicaPharmaRoute = VeronicaPharmaRouteImport.update({
+  id: '/veronica-pharma',
+  path: '/veronica-pharma',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VeronicaRedeRoute = VeronicaRedeRouteImport.update({
@@ -516,6 +522,7 @@ export interface FileRoutesByFullPath {
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
   '/veronica-nautica': typeof VeronicaNauticaRoute
+  '/veronica-pharma': typeof VeronicaPharmaRoute
   '/veronica-rede': typeof VeronicaRedeRoute
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
@@ -594,6 +601,7 @@ export interface FileRoutesByTo {
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
   '/veronica-nautica': typeof VeronicaNauticaRoute
+  '/veronica-pharma': typeof VeronicaPharmaRoute
   '/veronica-rede': typeof VeronicaRedeRoute
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
@@ -672,6 +680,7 @@ export interface FileRoutesById {
   '/veronica-curriculo-certo': typeof VeronicaCurriculoCertoRoute
   '/veronica-curriculo-certo-rh': typeof VeronicaCurriculoCertoRhRoute
   '/veronica-nautica': typeof VeronicaNauticaRoute
+  '/veronica-pharma': typeof VeronicaPharmaRoute
   '/veronica-rede': typeof VeronicaRedeRoute
   '/veronica-security': typeof VeronicaSecurityRoute
   '/video-ia': typeof VideoIaRoute
@@ -752,6 +761,7 @@ export interface FileRouteTypes {
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
     | '/veronica-nautica'
+    | '/veronica-pharma'
     | '/veronica-rede'
     | '/veronica-security'
     | '/video-ia'
@@ -830,6 +840,7 @@ export interface FileRouteTypes {
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
     | '/veronica-nautica'
+    | '/veronica-pharma'
     | '/veronica-rede'
     | '/veronica-security'
     | '/video-ia'
@@ -907,6 +918,7 @@ export interface FileRouteTypes {
     | '/veronica-curriculo-certo'
     | '/veronica-curriculo-certo-rh'
     | '/veronica-nautica'
+    | '/veronica-pharma'
     | '/veronica-rede'
     | '/veronica-security'
     | '/video-ia'
@@ -986,6 +998,7 @@ export interface RootRouteChildren {
   VeronicaCurriculoCertoRoute: typeof VeronicaCurriculoCertoRoute
   VeronicaCurriculoCertoRhRoute: typeof VeronicaCurriculoCertoRhRoute
   VeronicaNauticaRoute: typeof VeronicaNauticaRoute
+  VeronicaPharmaRoute: typeof VeronicaPharmaRoute
   VeronicaRedeRoute: typeof VeronicaRedeRoute
   VeronicaSecurityRoute: typeof VeronicaSecurityRoute
   VideoIaRoute: typeof VideoIaRoute
@@ -1201,6 +1214,13 @@ declare module '@tanstack/react-router' {
       path: '/veronica-nautica'
       fullPath: '/veronica-nautica'
       preLoaderRoute: typeof VeronicaNauticaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veronica-pharma': {
+      id: '/veronica-pharma'
+      path: '/veronica-pharma'
+      fullPath: '/veronica-pharma'
+      preLoaderRoute: typeof VeronicaPharmaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/veronica-rede': {
@@ -1668,6 +1688,7 @@ const rootRouteChildren: RootRouteChildren = {
   VeronicaCurriculoCertoRoute: VeronicaCurriculoCertoRoute,
   VeronicaCurriculoCertoRhRoute: VeronicaCurriculoCertoRhRoute,
   VeronicaNauticaRoute: VeronicaNauticaRoute,
+  VeronicaPharmaRoute: VeronicaPharmaRoute,
   VeronicaRedeRoute: VeronicaRedeRoute,
   VeronicaSecurityRoute: VeronicaSecurityRoute,
   VideoIaRoute: VideoIaRoute,

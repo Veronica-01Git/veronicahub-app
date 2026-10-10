@@ -790,7 +790,7 @@ do código, não do briefing:
 | Tutor | `/escola` | Parcial | `VeronicaDrawer skillId="school"` montado na Escola | não existe |
 | Carreira | `/veronica-curriculo-certo` (+ `-rh`) | Parcial | avaliação e triagem abertas | não existe |
 | Segurança | `/veronica-security` | Parcial | autoavaliação pública; análise segue manual | não existe |
-| Consignação (Foguete Amarelo) | `/foguete-amarelo` | Implantação sob escopo | página de captação, sem cliente em operação | não existe |
+| Supply (Veronica Pharma) | `/veronica-pharma` (`/foguete-amarelo` encaminha) | Parcial *(atualizado em 10/10/2026)* | reposição, validade, transferência entre filiais e alçada calculadas no navegador, em rede demonstrativa ou na planilha CSV do visitante; sem rede em operação | não existe |
 | Portfólio | `/portfolio` | Parcial | primeira geração gratuita | não existe |
 | Fashion Operator | `/clientes/veronica-fashion-operator` | Demonstração | dados demonstrativos identificados, selo `VH-MEM-2026-000003` | `…/execucao` |
 

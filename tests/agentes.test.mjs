@@ -178,6 +178,8 @@ const SEM_LINK_DE_PROPOSITO = new Set([
   "/proposta/express-entulho",
   // Endereço antigo do Studio: mantém links externos e retorno de checkout.
   "/video-ia",
+  // Nome de trabalho da Veronica Pharma: encaminha para /veronica-pharma.
+  "/foguete-amarelo",
   // Redirects do endereço antigo do Express Operations, que saiu de
   // /preview em 21/09. Não têm link porque não são página — são o link
   // velho que o dono já tem salvo continuando a abrir.

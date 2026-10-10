@@ -124,7 +124,7 @@ export type AgenteWorkforceId =
   | "tutor"
   | "carreira"
   | "seguranca"
-  | "consignacao"
+  | "supply"
   | "portfolio"
   | "fashion"
   | "members"
@@ -524,28 +524,35 @@ export const WORKFORCE: readonly AgenteWorkforce[] = [
     midia: { base: "security", alt: "Especialista analisando a segurança de sistemas digitais" },
   },
   {
-    id: "consignacao",
-    nome: "Foguete Amarelo",
-    curto: "Consignação",
+    id: "supply",
+    nome: "Veronica Supply",
+    curto: "Supply",
     etiqueta: "SUPPLY OPERATIONS",
     problema:
-      "Consignação entre farmácia, distribuidora e indústria vive de planilha, telefone e memória.",
+      "Rede de farmácia compra de novo o que já tem em outra filial e descobre a ruptura quando o cliente pede.",
     funcao:
-      "Agente desenhado para a cadeia de consignação farmacêutica: acerto, reposição e prestação de contas entre os três elos.",
-    capacidades: ["Organiza acerto", "Agenda", "Confere", "Presta contas"],
-    produtoId: "foguete",
-    estado: "oferta",
+      "Opera a Veronica Pharma: antecipa a ruptura, transfere entre filiais antes de comprar, vigia a validade e prepara cada pedido para aprovação dentro da alçada.",
+    capacidades: [
+      "Antecipa ruptura",
+      "Transfere entre filiais",
+      "Vigia validade",
+      "Prepara pedido",
+    ],
+    produtoId: "pharma",
+    estado: "parcial",
     prova:
-      "A rota /foguete-amarelo publica o desenho da solução por público. É captação com escopo aberto — não há preço fechado nem cliente em operação declarado.",
+      "A análise de reposição, validade e transferência funciona em /veronica-pharma, numa rede demonstrativa ou na planilha do visitante, calculada no navegador.",
     painel: null,
     pendencias: [
-      "Nenhuma implantação em operação declarada até aqui",
-      "Preço e escopo saem por proposta, não por tabela",
+      "Nenhuma rede em operação declarada até aqui",
+      "Sem usuários por rede, histórico, integração com sistema de gestão ou fornecedor",
+      "Aprovação só na tela: o pedido ainda não sai para o fornecedor",
+      "Cotação, recebimento, consignação e WhatsApp entram na implantação",
     ],
     impacto: {
       eixo: "Ativos",
       texto:
-        "Projetado para dar rastreabilidade ao estoque consignado — o ativo que mais some entre um acerto e outro.",
+        "Usa o estoque que a rede já pagou antes de comprar mais, e aponta o lote que vence antes de vender.",
     },
     midia: {
       base: "clientes",

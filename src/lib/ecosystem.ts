@@ -177,12 +177,14 @@ export const PRODUCTS: Product[] = [
     public: true,
   },
   {
-    id: "foguete",
-    name: "Foguete Amarelo",
+    id: "pharma",
+    name: "Veronica Pharma",
     category: "Ferramentas",
-    to: "/foguete-amarelo",
-    status: "Disponível",
-    description: "Agente de IA para consignação entre farmácia, distribuidora e indústria",
+    to: "/veronica-pharma",
+    // A análise funciona na página (demonstração e planilha do visitante);
+    // usuários por rede, histórico e integrações entram na implantação.
+    status: "Parcial",
+    description: "Compras, estoque e validade de redes de farmácia, operados pela Veronica Supply",
     external: false,
     public: true,
   },
@@ -338,7 +340,7 @@ export const HEADER_NAV_GROUPS = [
       "commercial",
       "agentes",
       "human-agents",
-      "foguete",
+      "pharma",
       "analytics",
       "security",
       "career",
@@ -357,7 +359,7 @@ export const HOME_PRODUCTS = [
   // fechado. Sem estar aqui, /agentes não tinha link em lugar nenhum do site
   // — nem na vitrine da home, nem no menu Ferramentas, que leem desta lista.
   "agentes",
-  "foguete",
+  "pharma",
   "portfolio",
   "studio",
   "career",
