@@ -1,12 +1,24 @@
-import { and, eq } from "drizzle-orm";
 import { type Beat } from "./beats";
-import { getDb } from "./db";
-import { articles } from "./schema";
+import {
+  booleanEnv,
+  canonicalArticleUrl,
+  checkCardImage,
+  DEFAULT_GRAPH_VERSION,
+  graphVersionFromEnv,
+  loadPublishedWireArticle,
+  metaGraphRequest,
+  notRun,
+  summarizeDryRun,
+  WIRE_SITE_URL,
+  type FetchLike,
+  type LoadWireArticle,
+  type MetaDryRunReport,
+  type WireArticle,
+} from "./meta-graph.server";
 import { WIRE_INSTAGRAM_HANDLE } from "./wire-instagram-card";
 
-const SITE_URL = "https://veronicahub.com";
+const SITE_URL = WIRE_SITE_URL;
 const DEFAULT_GRAPH_HOST = "graph.facebook.com";
-const DEFAULT_GRAPH_VERSION = "v24.0";
 const PROFILE_USERNAME = WIRE_INSTAGRAM_HANDLE.replace(/^@/, "");
 const MAX_CAPTION_LENGTH = 2_200;
 
@@ -16,15 +28,6 @@ type InstagramConfig = {
   graphHost: "graph.facebook.com" | "graph.instagram.com";
   graphVersion: string;
   autoPublishEnabled: boolean;
-};
-
-type MetaErrorPayload = {
-  error?: {
-    message?: string;
-    type?: string;
-    code?: number;
-    error_subcode?: number;
-  };
 };
 
 type InstagramMedia = {
@@ -49,9 +52,15 @@ export type InstagramPublishResult =
     }
   | { ok: false; error: string };
 
-function booleanEnv(value: string | undefined): boolean {
-  return value?.trim().toLowerCase() === "true";
-}
+export type InstagramPublisherDeps = {
+  fetch: FetchLike;
+  loadArticle: LoadWireArticle;
+};
+
+const defaultDeps: InstagramPublisherDeps = {
+  fetch: (input, init) => fetch(input, init),
+  loadArticle: loadPublishedWireArticle,
+};
 
 function readInstagramConfig(): { config: InstagramConfig | null; missing: string[] } {
   const accountId = process.env.META_INSTAGRAM_ACCOUNT_ID?.trim() ?? "";
@@ -59,10 +68,6 @@ function readInstagramConfig(): { config: InstagramConfig | null; missing: strin
   const requestedHost = process.env.META_INSTAGRAM_GRAPH_HOST?.trim() ?? DEFAULT_GRAPH_HOST;
   const graphHost =
     requestedHost === "graph.instagram.com" ? "graph.instagram.com" : DEFAULT_GRAPH_HOST;
-  const requestedVersion = process.env.META_GRAPH_API_VERSION?.trim() ?? DEFAULT_GRAPH_VERSION;
-  const graphVersion = /^v\d+\.\d+$/.test(requestedVersion)
-    ? requestedVersion
-    : DEFAULT_GRAPH_VERSION;
   const missing: string[] = [];
   if (!accountId) missing.push("META_INSTAGRAM_ACCOUNT_ID");
   if (!accessToken) missing.push("META_INSTAGRAM_ACCESS_TOKEN");
@@ -74,7 +79,7 @@ function readInstagramConfig(): { config: InstagramConfig | null; missing: strin
             accountId,
             accessToken,
             graphHost,
-            graphVersion,
+            graphVersion: graphVersionFromEnv(),
             autoPublishEnabled: booleanEnv(process.env.META_INSTAGRAM_AUTOPUBLISH),
           }
         : null,
@@ -86,29 +91,13 @@ function graphUrl(config: InstagramConfig, path: string): string {
   return `https://${config.graphHost}/${config.graphVersion}/${path.replace(/^\/+/, "")}`;
 }
 
-function sanitizedMetaMessage(payload: MetaErrorPayload, status: number): string {
-  const message = payload.error?.message?.replace(/access[_ ]token/gi, "credencial")?.slice(0, 240);
-  const code = payload.error?.code ? ` · código ${payload.error.code}` : "";
-  return message ? `${message}${code}` : `A Meta recusou a operação (HTTP ${status}).`;
-}
-
-async function metaRequest<T>(
+function metaRequest<T>(
   config: InstagramConfig,
   path: string,
+  deps: InstagramPublisherDeps,
   init: RequestInit = {},
 ): Promise<T> {
-  const headers = new Headers(init.headers);
-  headers.set("Authorization", `Bearer ${config.accessToken}`);
-  const response = await fetch(graphUrl(config, path), {
-    ...init,
-    headers,
-    signal: AbortSignal.timeout(20_000),
-  });
-  const payload = (await response.json().catch(() => ({}))) as T & MetaErrorPayload;
-  if (!response.ok || payload.error) {
-    throw new Error(sanitizedMetaMessage(payload, response.status));
-  }
-  return payload;
+  return metaGraphRequest<T>(deps.fetch, config.accessToken, graphUrl(config, path), init);
 }
 
 function publicImageUrl(value: string): string {
@@ -148,6 +137,7 @@ export function buildInstagramCaption(input: {
 async function findExistingPublication(
   config: InstagramConfig,
   canonicalUrl: string,
+  deps: InstagramPublisherDeps,
 ): Promise<InstagramMedia | null> {
   const fields = encodeURIComponent("id,caption,permalink,timestamp");
   let after: string | null = null;
@@ -156,7 +146,11 @@ async function findExistingPublication(
     const payload: {
       data?: InstagramMedia[];
       paging?: { cursors?: { after?: string } };
-    } = await metaRequest(config, `${config.accountId}/media?fields=${fields}&limit=100${cursor}`);
+    } = await metaRequest(
+      config,
+      `${config.accountId}/media?fields=${fields}&limit=100${cursor}`,
+      deps,
+    );
     const existing = payload.data?.find((media: InstagramMedia) =>
       media.caption?.includes(canonicalUrl),
     );
@@ -167,11 +161,16 @@ async function findExistingPublication(
   return null;
 }
 
-async function waitForContainer(config: InstagramConfig, containerId: string): Promise<void> {
+async function waitForContainer(
+  config: InstagramConfig,
+  containerId: string,
+  deps: InstagramPublisherDeps,
+): Promise<void> {
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const payload = await metaRequest<{ status_code?: string }>(
       config,
       `${containerId}?fields=status_code`,
+      deps,
     );
     const status = payload.status_code?.toUpperCase();
     if (!status || status === "FINISHED") return;
@@ -183,10 +182,14 @@ async function waitForContainer(config: InstagramConfig, containerId: string): P
   throw new Error("A Meta ainda está processando a imagem. Tente novamente em instantes.");
 }
 
-async function assertTargetAccount(config: InstagramConfig): Promise<{ username: string | null }> {
+async function assertTargetAccount(
+  config: InstagramConfig,
+  deps: InstagramPublisherDeps = defaultDeps,
+): Promise<{ username: string | null }> {
   const payload = await metaRequest<{ id: string; username?: string }>(
     config,
     `${config.accountId}?fields=id,username`,
+    deps,
   );
   if (payload.id !== config.accountId) {
     throw new Error("A Meta respondeu com uma conta diferente da configurada.");
@@ -240,41 +243,42 @@ export async function getInstagramPublisherStatusCore(options?: { probe?: boolea
   }
 }
 
+function publicationImageFor(article: WireArticle, imageUrl?: string): string | null {
+  const value = imageUrl ?? article.coverImageUrl;
+  return value ? publicImageUrl(value) : null;
+}
+
 export async function publishArticleBySlugToInstagram(
   slug: string,
   options?: { automatic?: boolean; imageUrl?: string },
+  deps: InstagramPublisherDeps = defaultDeps,
 ): Promise<InstagramPublishResult> {
   const { config, missing } = readInstagramConfig();
   if (!config) {
     return { ok: false, error: `Conexão Meta incompleta: ${missing.join(", ")}.` };
   }
+  // Antes de qualquer rede: com o autopost desligado, a rodada não toca na Meta.
   if (options?.automatic && !config.autoPublishEnabled) {
     return { ok: true, skipped: true, reason: "disabled", permalink: null };
   }
 
-  const db = getDb();
-  const [article] = await db
-    .select({
-      slug: articles.slug,
-      beat: articles.beat,
-      headline: articles.headline,
-      excerpt: articles.excerpt,
-      coverImageUrl: articles.coverImageUrl,
-    })
-    .from(articles)
-    .where(and(eq(articles.slug, slug), eq(articles.status, "published")))
-    .limit(1);
-
-  if (!article) return { ok: false, error: "Matéria publicada não encontrada." };
-  const publicationImageUrl = options?.imageUrl ?? article.coverImageUrl;
-  if (!publicationImageUrl) {
-    return { ok: false, error: "A matéria precisa de uma capa pública antes de ir ao Instagram." };
-  }
-
-  const canonicalUrl = `${SITE_URL}/blog/${article.slug}`;
   try {
-    await assertTargetAccount(config);
-    const existing = await findExistingPublication(config, canonicalUrl);
+    const article = await deps.loadArticle(slug);
+    if (!article) return { ok: false, error: "Matéria publicada não encontrada." };
+    const imageUrl = publicationImageFor(article, options?.imageUrl);
+    if (!imageUrl) {
+      return {
+        ok: false,
+        error: "A matéria precisa de uma capa pública antes de ir ao Instagram.",
+      };
+    }
+    // A Meta baixa a imagem pela URL e só aceita JPEG; conferir antes dá
+    // motivo legível quando o deploy ainda não publicou o card.
+    const image = await checkCardImage(imageUrl, deps.fetch);
+    if (!image.ok) return { ok: false, error: image.error ?? "Card indisponível." };
+
+    await assertTargetAccount(config, deps);
+    const existing = await findExistingPublication(config, canonicalArticleUrl(article.slug), deps);
     if (existing) {
       return {
         ok: true,
@@ -285,21 +289,27 @@ export async function publishArticleBySlugToInstagram(
     }
 
     const body = new URLSearchParams({
-      image_url: publicImageUrl(publicationImageUrl),
+      image_url: imageUrl,
       caption: buildInstagramCaption(article),
     });
-    const container = await metaRequest<{ id?: string }>(config, `${config.accountId}/media`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-    });
+    const container = await metaRequest<{ id?: string }>(
+      config,
+      `${config.accountId}/media`,
+      deps,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      },
+    );
     if (!container.id) throw new Error("A Meta não devolveu o identificador do card.");
 
-    await waitForContainer(config, container.id);
+    await waitForContainer(config, container.id, deps);
     const publishBody = new URLSearchParams({ creation_id: container.id });
     const publication = await metaRequest<{ id?: string }>(
       config,
       `${config.accountId}/media_publish`,
+      deps,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -311,6 +321,7 @@ export async function publishArticleBySlugToInstagram(
     const media = await metaRequest<{ permalink?: string }>(
       config,
       `${publication.id}?fields=permalink`,
+      deps,
     ).catch(() => ({ permalink: undefined }));
     return {
       ok: true,
@@ -324,4 +335,94 @@ export async function publishArticleBySlugToInstagram(
       error: error instanceof Error ? error.message : "Falha ao publicar no Instagram.",
     };
   }
+}
+
+/** ?dryRun=1: valida segredos, card e duplicidade e mostra o payload, sem postar. */
+export async function dryRunInstagramPublication(
+  slug: string,
+  options: { imageUrl: string },
+  deps: InstagramPublisherDeps = defaultDeps,
+): Promise<MetaDryRunReport> {
+  const { config, missing } = readInstagramConfig();
+  const pending = notRun("Não verificado: faltam segredos ou a matéria.");
+  const checks: MetaDryRunReport["checks"] = {
+    config: {
+      ok: missing.length === 0,
+      missing,
+      error: missing.length ? `Faltam: ${missing.join(", ")}.` : null,
+    },
+    article: pending,
+    image: await checkCardImage(options.imageUrl, deps.fetch),
+    credentials: { ...pending, account: null },
+    duplicate: { ...pending, alreadyPublished: false, permalink: null },
+  };
+  let payload: MetaDryRunReport["payload"] = null;
+
+  let article: WireArticle | null = null;
+  try {
+    article = await deps.loadArticle(slug);
+    checks.article = article
+      ? { ok: true, error: null }
+      : { ok: false, error: "Matéria publicada não encontrada." };
+  } catch (error) {
+    checks.article = {
+      ok: false,
+      error: error instanceof Error ? error.message : "Falha ao ler a matéria.",
+    };
+  }
+
+  const graphHost = config?.graphHost ?? DEFAULT_GRAPH_HOST;
+  const graphVersion = config?.graphVersion ?? graphVersionFromEnv();
+  if (article) {
+    payload = {
+      method: "POST",
+      endpoint: `https://${graphHost}/${graphVersion}/${
+        config?.accountId ?? "{META_INSTAGRAM_ACCOUNT_ID}"
+      }/media`,
+      fields: { image_url: options.imageUrl, caption: buildInstagramCaption(article) },
+    };
+  }
+
+  if (config) {
+    try {
+      const { username } = await assertTargetAccount(config, deps);
+      checks.credentials = { ok: true, error: null, account: username ? `@${username}` : null };
+    } catch (error) {
+      checks.credentials = {
+        ok: false,
+        account: null,
+        error: error instanceof Error ? error.message : "Falha ao validar a conta do Instagram.",
+      };
+    }
+    if (checks.credentials.ok && article) {
+      try {
+        const existing = await findExistingPublication(
+          config,
+          canonicalArticleUrl(article.slug),
+          deps,
+        );
+        checks.duplicate = {
+          ok: true,
+          error: null,
+          alreadyPublished: Boolean(existing),
+          permalink: existing?.permalink ?? null,
+        };
+      } catch (error) {
+        checks.duplicate = {
+          ok: false,
+          alreadyPublished: false,
+          permalink: null,
+          error: error instanceof Error ? error.message : "Falha ao ler os posts do Instagram.",
+        };
+      }
+    }
+  }
+
+  return summarizeDryRun({
+    network: "instagram",
+    slug,
+    autoPublishEnabled: config?.autoPublishEnabled ?? false,
+    checks,
+    payload,
+  });
 }

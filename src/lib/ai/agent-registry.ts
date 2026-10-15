@@ -151,6 +151,12 @@ export const TOOL_REGISTRY: readonly ToolDefinition[] = [
     implementedBy: "src/lib/instagram-publisher.server.ts",
   },
   {
+    key: "facebook.post.publish",
+    description: "Publica o card da matéria na Página do Facebook do Wire",
+    sideEffect: "external-send",
+    implementedBy: "src/lib/facebook-publisher.server.ts",
+  },
+  {
     key: "pricing.matrix.lookup",
     description: "Consulta preço na matriz de regras do cliente — nunca fora dela",
     sideEffect: "read",
@@ -311,6 +317,9 @@ const WIRE_REDACAO: RegisteredAgent = {
     // O autopost segue desligado (META_INSTAGRAM_AUTOPUBLISH=false) até a
     // conferência manual do primeiro post — então o uso exige aprovação.
     { key: "instagram.post.publish", requiresApproval: true },
+    // Mesma regra na Página do Facebook: META_FACEBOOK_AUTOPUBLISH=false até
+    // a conferência manual do primeiro post.
+    { key: "facebook.post.publish", requiresApproval: true },
   ],
   // US$ 0,01 por matéria. O rascunho roda no plano gratuito da Groq
   // (openai/gpt-oss-20b, articles-server.ts) e as capas vêm de Pexels/Pixabay,

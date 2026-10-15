@@ -1,4 +1,8 @@
-import { publishArticleBySlugToInstagram } from "./instagram-publisher.server";
+import {
+  dryRunInstagramPublication,
+  publishArticleBySlugToInstagram,
+} from "./instagram-publisher.server";
+import { isDryRunRequest, parseWireCardUrl } from "./meta-graph.server";
 
 export async function handlePublishInstagramCron(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET;
@@ -16,26 +20,22 @@ export async function handlePublishInstagramCron(request: Request): Promise<Resp
   if (typeof body.slug !== "string" || !body.slug.trim()) {
     return new Response("slug obrigatório", { status: 400 });
   }
+  const card = parseWireCardUrl(body.imageUrl);
+  if (!card.ok) return new Response(card.error, { status: 400 });
 
-  const imageUrl = typeof body.imageUrl === "string" ? body.imageUrl.trim() : "";
-  if (!imageUrl) return new Response("imageUrl obrigatório", { status: 400 });
-  let parsedImageUrl: URL;
-  try {
-    parsedImageUrl = new URL(imageUrl);
-  } catch {
-    return new Response("imageUrl inválida", { status: 400 });
-  }
-  if (
-    parsedImageUrl.origin !== "https://veronicahub.com" ||
-    !parsedImageUrl.pathname.startsWith("/images/instagram/wire-tv-") ||
-    !parsedImageUrl.pathname.endsWith(".jpg")
-  ) {
-    return new Response("imageUrl fora do diretório oficial da Wire TV", { status: 400 });
+  const slug = body.slug.trim();
+  // ?dryRun=1: valida segredos, card e duplicidade e devolve o payload, sem publicar.
+  if (isDryRunRequest(request)) {
+    const report = await dryRunInstagramPublication(slug, { imageUrl: card.url });
+    return Response.json(report, {
+      status: report.ok ? 200 : 502,
+      headers: { "cache-control": "no-store" },
+    });
   }
 
-  const result = await publishArticleBySlugToInstagram(body.slug.trim(), {
+  const result = await publishArticleBySlugToInstagram(slug, {
     automatic: true,
-    imageUrl: parsedImageUrl.toString(),
+    imageUrl: card.url,
   });
   return Response.json(result, { status: result.ok ? 200 : 502 });
 }

@@ -35,6 +35,7 @@ import { handleAffiliateRedirect } from "./lib/affiliate-server";
 import { handleAgentRegistry, isRegistryPath } from "./lib/ai/registry-api";
 import { isMcpPath } from "./lib/mcp/paths";
 import { handlePublishInstagramCron } from "./lib/instagram-cron";
+import { handlePublishFacebookCron } from "./lib/facebook-cron";
 import {
   handleArtCoversCron,
   handleCoverBankAddCron,
@@ -399,6 +400,15 @@ const app = {
         return await handlePublishInstagramCron(request);
       } catch (error) {
         console.error("Erro no cron de publicação do Instagram:", error);
+        return new Response("error", { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/cron/publish-facebook" && request.method === "POST") {
+      try {
+        return await handlePublishFacebookCron(request);
+      } catch (error) {
+        console.error("Erro no cron de publicação da Página do Facebook:", error);
         return new Response("error", { status: 500 });
       }
     }
