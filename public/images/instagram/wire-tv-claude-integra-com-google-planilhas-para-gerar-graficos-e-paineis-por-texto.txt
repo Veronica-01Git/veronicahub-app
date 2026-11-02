@@ -1,0 +1,9 @@
+Claude integra com Google Planilhas para gerar gráficos e painéis por texto
+
+Segundo o Canaltech, a inteligência artificial da Anthropic agora pode ser usada no Google Planilhas para criar gráficos interativos e dashboards por meio de comandos de texto.
+
+Leia a matéria completa: https://veronicahub.com/blog/claude-integra-com-google-planilhas-para-gerar-graficos-e-paineis-por-texto
+
+Foto: Artem Podrez / Pexels
+
+@wire__tv
