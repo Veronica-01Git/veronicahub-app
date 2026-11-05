@@ -1,0 +1,9 @@
+Falha no ChatGPT permitia acesso a conversas privadas com apenas um clique
+
+Uma vulnerabilidade na versão web do ChatGPT expunha o histórico e dados de usuários em segundos, mas já foi corrigida pela OpenAI.
+
+Leia a matéria completa: https://veronicahub.com/blog/falha-no-chatgpt-permitia-acesso-a-conversas-privadas-com-apenas-um-clique
+
+Foto: Brett Sayles / Pexels
+
+@wire__tv
